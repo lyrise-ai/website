@@ -1,0 +1,184 @@
+@font-face {
+  font-family: 'Space Grotesk', sans-serif;
+  src: url('../fonts/SpaceGrotesk-Regular.ttf');
+  font-weight: 400;
+}
+
+@font-face {
+  font-family: 'Space Grotesk', sans-serif;
+  src: url('../fonts/SpaceGrotesk-Bold.ttf');
+  font-weight: 700;
+}
+
+@font-face {
+  font-family: 'Space Grotesk', sans-serif;
+  src: url('../fonts/SpaceGrotesk-SemiBold.ttf');
+  font-weight: 500;
+}
+
+@font-face {
+  font-family: 'Space Grotesk', sans-serif;
+  src: url('../fonts/SpaceGrotesk-Light.ttf');
+  font-weight: normal;
+  font-style: italic;
+}
+
+:root {
+  --section-spacing: 120px;
+  --section-padding: 40px;
+}
+
+*,
+*::before,
+*::after {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html {
+  font-size: 16px;
+}
+
+img,
+svg {
+  max-width: 100%;
+}
+
+a {
+  text-decoration: none;
+  cursor: pointer;
+}
+
+ul,
+li {
+  list-style: none;
+}
+
+.section-padding {
+  margin-top: 90px;
+}
+
+.m-top {
+  margin-top: 80px;
+}
+
+@media (max-width: 768px) {
+  .section-padding {
+    margin-top: 40px;
+  }
+}
+
+.container {
+  /* padding-left: 15px;
+  padding-right: 15px; */
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* Small */
+
+@media (max-width: 480px) {
+  .container {
+    width: 100%;
+    padding-inline: 10px;
+  }
+}
+
+/* Small */
+
+@media (min-width: 480px) {
+  .container {
+    width: 430px;
+  }
+}
+
+/* Small */
+
+@media (min-width: 600px) {
+  .container {
+    width: 530px;
+  }
+}
+
+/* Small */
+
+@media (min-width: 768px) {
+  .container {
+    width: 750px;
+  }
+}
+
+/* Medium */
+
+@media (min-width: 992px) {
+  .container {
+    width: 970px;
+  }
+}
+
+/* Large */
+
+@media (min-width: 1200px) {
+  .container {
+    width: 1170px;
+  }
+}
+
+/* Very Large */
+
+@media (min-width: 1400px) {
+  .container {
+    width: 1340px;
+  }
+}
+
+.active {
+  text-decoration: underline;
+}
+
+/* .slider-arrow {
+  position: absolute;
+  z-index: 1;
+  height: 100%;
+  width: 100%;
+}
+
+.arrow-btn {
+  top: 45%;
+}
+
+.next {
+  float: right;
+} */
+
+.arrow-btn.prev::before {
+  content: '';
+}
+
+.arrow-btn.next::before {
+  content: '';
+}
+
+.slick-dots {
+  position: relative;
+  top: 0px;
+  width: auto;
+  text-align: left;
+}
+
+.slick-dots li button:before {
+  font-size: 6px;
+  line-height: 20px;
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 10px;
+  height: 10px;
+  border-radius: 6px;
+  content: '';
+  text-align: center;
+  background-color: #000;
+  opacity: 0.25;
+  color: #000;
+}
