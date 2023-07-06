@@ -1,3 +1,7 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
 @font-face {
   font-family: 'Space Grotesk', sans-serif;
   src: url('../fonts/SpaceGrotesk-Regular.ttf');
@@ -21,6 +25,11 @@
   src: url('../fonts/SpaceGrotesk-Light.ttf');
   font-weight: normal;
   font-style: italic;
+}
+
+@font-face {
+  font-family: Poppins;
+  src: url('../fonts/poppins.ttf') format('opentype');
 }
 
 :root {
