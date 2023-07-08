@@ -3,6 +3,7 @@ import PropTypes from 'prop-types'
 import { Divider, Grid, useMediaQuery } from '@mui/material'
 import React from 'react'
 import Image from 'next/image'
+import Link from 'next/link'
 import {
   footerLinksOne,
   footerLinksTwo,
@@ -117,8 +118,9 @@ const FooterMain = ({ isTalent }) => {
         <Grid container direction="row" justifyContent="flex-end" pt={5}>
           <Grid item>
             <p style={{ color: '#4D4361', paddingBottom: '10px' }}>
-              Terms and Conditions / Privacy Policy © Copyright LyRise 2022. All
-              rights reserved.
+              <Link href="/terms-conditions">Terms and Conditions</Link> /{' '}
+              <Link href="/privacy-policy">Privacy Policy</Link> © Copyright
+              LyRise 2022. All rights reserved.
             </p>
           </Grid>
         </Grid>
