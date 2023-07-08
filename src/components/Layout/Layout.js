@@ -5,7 +5,15 @@ import PropTypes from 'prop-types'
 import Footer from './Footer/Footer'
 import Header from './Header/Header'
 
-const Layout = ({ children, isTalent }) => {
+const Layout = ({ children, isTalent, isRaw = false }) => {
+  if (isRaw)
+    return (
+      <>
+        <Header isTalent={isTalent} />
+        {children}
+        <Footer isTalent={isTalent} />
+      </>
+    )
   return (
     <div style={{ overflow: 'hidden' }}>
       <Header isTalent={isTalent} />

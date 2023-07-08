@@ -122,6 +122,13 @@ export default function Header({ isTalent }) {
                 <Grid item>
                   <ExternalLink text="Blog" link="https://blog.lyrise.ai/" />
                 </Grid>
+                <Grid item>
+                  <InternalLink
+                    text="Product"
+                    link="/product"
+                    active={asPath === '/product'}
+                  />
+                </Grid>
               </Grid>
             ) : null}
           </Grid>

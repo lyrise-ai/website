@@ -35,6 +35,7 @@
 :root {
   --section-spacing: 120px;
   --section-padding: 40px;
+  overflow-x: hidden;
 }
 
 *,
@@ -190,4 +191,55 @@ li {
   background-color: #000;
   opacity: 0.25;
   color: #000;
+}
+
+/* Custom CSS for product page */
+
+.without-h-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+/* Hide scrollbar for IE, Edge and Firefox */
+.without-h-scrollbar {
+  -ms-overflow-style: none; /* IE and Edge */
+  scrollbar-width: none; /* Firefox */
+}
+
+.drop-sides-fade {
+  background: linear-gradient(
+    90deg,
+    #f5f7ff 0%,
+    rgba(245, 247, 255, 0.11) 32.29%,
+    rgba(245, 247, 255, 0) 74.48%,
+    #f5f7ff 100%
+  );
+  pointer-events: none;
+}
+
+.fade-in-out {
+  opacity: 0;
+  animation: fade-in 0.5s ease-in forwards;
+}
+
+@keyframes fade-in {
+  100% {
+    opacity: 1;
+  }
+}
+
+@keyframes fade-out {
+  0% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+.grid-start-2 {
+  grid-column-start: 2;
+}
+
+#__next {
+  background-color: #f5f7ff;
 }
