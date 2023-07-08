@@ -10,16 +10,18 @@ export default function LyCarousel({ children }) {
     <Carousel
       navigation={({ setActiveIndex, activeIndex, length }) => (
         <div className="absolute bottom-5 md:bottom-[10%] left-1/2 md:left-[20%] lg:left-[15%] xl:left-[12%] z-50 flex -translate-x-2/4 gap-4">
-          {new Array(length).fill('').map((_, i) => (
-            <button
-              type="button"
-              key={_.props.id}
-              className={`block h-3 w-3 cursor-pointer rounded-full transition-all content-[''] ${
-                activeIndex === i ? 'bg-black' : 'bg-black/50'
-              }`}
-              onClick={() => setActiveIndex(i)}
-            />
-          ))}
+          {[...Array(length).keys()].map((i) => {
+            return (
+              <button
+                type="button"
+                key={i}
+                className={`block h-3 w-3 cursor-pointer rounded-full transition-all content-[''] ${
+                  activeIndex === i ? 'bg-black' : 'bg-black/50'
+                }`}
+                onClick={() => setActiveIndex(i)}
+              />
+            )
+          })}
         </div>
       )}
       prevArrow={({ handlePrev }) => <Arrow onClick={handlePrev} />}
