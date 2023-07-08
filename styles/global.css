@@ -243,3 +243,16 @@ li {
 #__next {
   background-color: #f5f7ff;
 }
+
+.terms-privacy {
+  padding: 20px;
+  max-width: 1440px;
+  margin: auto;
+}
+
+.terms-privacy > h2 {
+  font-family: Poppins;
+  color: rgba(41, 87, 255, 0.7);
+  padding: 10px 0 10px 0;
+  font-weight: 800;
+}
