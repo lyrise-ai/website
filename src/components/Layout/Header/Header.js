@@ -21,8 +21,9 @@ import LyRiseLogo from '../../../assets/LyRiseLogo.png'
 import ScheduleMeetingButton from '../../Buttons/ScheduleMeetingButton'
 import Hamburger from '../../../assets/Hamburger.svg'
 import BlogIcon from '../../../assets/book-closed.png'
+import AboutIcon from '../../../assets/about.png'
 import Close from '../../../assets/x-close.png'
-// import CaseStudiesIcon from '../../../assets/CaseStudy.png'
+import CaseStudiesIcon from '../../../assets/CaseStudy.png'
 import { gridStyle } from './style'
 import InternalLink from './InternalLink'
 import ExternalLink from './ExternalLink'
@@ -32,19 +33,20 @@ const list = [
     id: 1,
     text: 'Blog',
     href: 'https://blog.lyrise.ai/',
+    target: '_blank',
     icon: BlogIcon,
   },
-  // {
-  //   id: 2,
-  //   text: 'About',
-  //   href: '/about',
-  //   // icon: BlogIcon,
-  // },
-  // {
-  //   text: 'Case Studies',
-  //   href: '#',
-  //   icon: CaseStudiesIcon,
-  // },
+  {
+    id: 2,
+    text: 'About',
+    href: '/about',
+    icon: AboutIcon,
+  },
+  {
+    text: 'Product',
+    href: '/product',
+    icon: CaseStudiesIcon,
+  },
 ]
 
 export default function Header({ isTalent }) {
@@ -180,7 +182,7 @@ export default function Header({ isTalent }) {
                         <ListItem key={item.id}>
                           <Link href={item.href}>
                             <a
-                              target="_blank"
+                              target={item.target || '_self'}
                               rel="noreferrer noopener"
                               style={{
                                 width: '100%',
