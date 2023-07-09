@@ -177,7 +177,7 @@ HeroSection.propTypes = {
 }
 
 HeroSection.defaultProps = {
-  title: 'Build your AI team at half the cost',
+  title: 'Build your AI team faster',
   subtitle:
     'Find the perfect candidate for your team and hire the top AI and data talents in a pool of top notch profiles.',
   img: heroGirl,
