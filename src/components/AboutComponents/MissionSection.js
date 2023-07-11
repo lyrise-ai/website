@@ -75,8 +75,8 @@ const MissionSection = () => {
             margin="12px 0 0 0"
             padding={under400 ? '0 10px' : '0 30px'}
           >
-            Connecting global organizations with MENA AI expertise to utilize AI
-            work.
+            Connecting global organizations with AI expertise to maximize
+            impact.
           </Title>
         </Grid>
       </Grid>
