@@ -251,11 +251,12 @@ export default function Header({ isTalent }) {
                           white
                           location="HeaderSection"
                           isTalent={isTalent}
-                          link={
-                            isTalent
-                              ? 'https://talents.lyrise.ai/'
-                              : '/Employer'
-                          }
+                          // link={
+                          //   isTalent
+                          //     ? 'https://talents.lyrise.ai/'
+                          //     : '/Employer'
+                          // }
+                          link="https://meetings.hubspot.com/sales-lyrise"
                           text={isTalent ? 'Apply Now' : undefined}
                           eventType={
                             isTalent

@@ -1,6 +1,7 @@
 import React from 'react'
 import { AiOutlineArrowRight } from 'react-icons/ai'
 
+import Link from 'next/link'
 import macBookImage from '../../assets/product/macbook.png'
 import maskImage from '../../assets/product/mask-group.png'
 import pathsImage from '../../assets/product/paths-group.png'
@@ -39,9 +40,10 @@ const HeaderImages = () => {
 }
 
 const HeaderContent = () => {
-  function handleButtonClick() {
-    // navigate to suitalbe link
-  }
+  // function handleButtonClick() {
+  //   // navigate to "https://www.lyrise.ai/Employer"
+  //   window.location.href = 'https://www.lyrise.ai/Employer'
+  // }
 
   return (
     <>
@@ -54,13 +56,15 @@ const HeaderContent = () => {
           Instant Talent Matching, Faster Recruitment Process,
           <br /> Access to a Diverse Talent Pool
         </h3>
-        <button
-          type="button"
-          onClick={handleButtonClick}
-          className="font-secondary w-full p-3 mt-5 rounded-md bg-primary text-white text-lg font-semibold"
-        >
-          Start your hiring now
-        </button>
+        <Link href="/employer">
+          <button
+            type="button"
+            // onClick={handleButtonClick}
+            className="font-secondary w-full p-3 mt-5 rounded-md bg-primary text-white text-lg font-semibold"
+          >
+            Start your hiring now
+          </button>
+        </Link>
       </div>
       {/* Bigger than mobile */}
       <div className="hidden md:flex flex-col p-5 absolute top-0 w-full text-center items-center">
@@ -71,13 +75,15 @@ const HeaderContent = () => {
           Start working with top AI talents that match your needs to the last
           detail.
         </h3>
-        <button
-          type="button"
-          onClick={handleButtonClick}
-          className="font-secondary w-auto p-3 mt-10 rounded-md bg-primary text-white text-lg hover:translate-x-3 transition-all duration-300 ease-in-out"
-        >
-          Start hiring now <AiOutlineArrowRight className="inline-block" />
-        </button>
+        <Link href="/employer">
+          <button
+            type="button"
+            // onClick={handleButtonClick}
+            className="font-secondary w-auto p-3 mt-10 rounded-md bg-primary text-white text-lg hover:translate-x-3 transition-all duration-300 ease-in-out"
+          >
+            Start hiring now <AiOutlineArrowRight className="inline-block" />
+          </button>
+        </Link>
       </div>
     </>
   )

@@ -78,7 +78,8 @@ const FooterMobile = ({ isTalent }) => {
         <Grid item xs={12} container justifyContent="center">
           <ScheduleMeetingButton
             location="FooterSection"
-            link={isTalent ? 'https://talents.lyrise.ai/' : '/Employer'}
+            // link={isTalent ? 'https://talents.lyrise.ai/' : '/Employer'}
+            link="https://meetings.hubspot.com/sales-lyrise"
             text={isTalent ? 'Apply Now' : undefined}
             eventType={isTalent ? 'PressedApplyNow' : undefined}
             isTalent={false}
