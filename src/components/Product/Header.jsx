@@ -56,7 +56,7 @@ const HeaderContent = () => {
           Instant Talent Matching, Faster Recruitment Process,
           <br /> Access to a Diverse Talent Pool
         </h3>
-        <Link href="/employer">
+        <Link href="/Employer">
           <button
             type="button"
             // onClick={handleButtonClick}
@@ -75,7 +75,7 @@ const HeaderContent = () => {
           Start working with top AI talents that match your needs to the last
           detail.
         </h3>
-        <Link href="/employer">
+        <Link href="/Employer">
           <button
             type="button"
             // onClick={handleButtonClick}
