@@ -12,7 +12,7 @@ const PrimaryButton = ({ onClickHandler, text, type, styles = {} }) => {
         // disabled={!isValid}
         // disabled={checkDisabled()}
         sx={{
-          background: '#2957FF',
+          background: '#2957FF !important',
           borderRadius: '8px',
           width: under451 ? '240px' : '200px',
           padding: '14px 40px',
