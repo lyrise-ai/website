@@ -26,7 +26,7 @@ export default function Header() {
 const HeaderImages = () => {
   return (
     <div className="w-full h-auto flex items-center mt-0 md:mt-1">
-      <div className="w-[90%] object-cover z-30 absolute translate-x-[7.5%] translate-y-5 md:translate-y-32 scale-100">
+      <div className="w-[90%] object-cover z-30 absolute translate-x-[12%] translate-y-5 md:translate-y-32 scale-100">
         <Img src={macBookImage} />
       </div>
       <div className="w-[95%] object-contain absolute -translate-y-[25%] blur-md scale-15">

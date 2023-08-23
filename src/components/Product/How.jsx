@@ -6,6 +6,7 @@ import paths from '../../assets/product/how/paths.png'
 import macbook1 from '../../assets/product/how/macbook1.png'
 import macbook2 from '../../assets/product/how/macbook2.png'
 import macbook3 from '../../assets/product/how/macbook3.png'
+import macbook4 from '../../assets/product/how/macbook4.png'
 import FadeInOut from './FadeInOut'
 import Img from './Img'
 
@@ -90,7 +91,7 @@ export default function How() {
           <DesktopImage src={macbook1} mref={ref1} />
           <DesktopImage src={macbook2} mref={ref2} />
           <DesktopImage src={macbook3} mref={ref3} />
-          <DesktopImage src={macbook1} mref={ref4} />
+          <DesktopImage src={macbook4} mref={ref4} />
         </div>
         z
       </div>

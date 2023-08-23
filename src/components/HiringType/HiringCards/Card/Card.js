@@ -10,6 +10,8 @@ import SubTitle from '../../../shared/SubTitle/SubTitle'
 import Title from '../../../shared/Title/Title'
 import styles from './card.module.css'
 
+import Img from '../../../Product/Img'
+
 const Card = ({ title, img, description, icon, section }) => {
   const { pathname } = useRouter()
   const under400 = useMediaQuery('(max-width: 400px)')
@@ -69,7 +71,13 @@ const Card = ({ title, img, description, icon, section }) => {
           </Title>
         </Grid>
       </Grid>
-      {!icon ? <Image src={img} /> : null}
+      {!icon ? (
+        <Img
+          src={img}
+          className="w-full h-1/2 object-contain flex justify-center"
+          alt={title}
+        />
+      ) : null}
       <SubTitle>{description}</SubTitle>
       <a
         onClick={onClickHandler}

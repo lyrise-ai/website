@@ -32,7 +32,7 @@ const GoogleStartups = () => {
           }}
         >
           <Typography>
-            In 2022, LyRise is participating in Google for Startups Accelerator
+            In 2022, LyRise participated in Google for Startups Accelerator
             Africa Class 7!
           </Typography>
         </Grid>

@@ -1,6 +1,6 @@
-import img1 from '../../../assets/Visual-data-bro-2.svg'
+import img1 from '../../../assets/contract-img.png'
 import img2 from '../../../assets/team-1.svg'
-import img3 from '../../../assets/Visual-data-pana-1.svg'
+import img3 from '../../../assets/expert-consult-img.png'
 
 export const cards = [
   {
