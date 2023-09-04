@@ -35,7 +35,7 @@
 :root {
   --section-spacing: 120px;
   --section-padding: 40px;
-  overflow-x: hidden;
+overflow-x: hidden;
 }
 
 *,
@@ -255,4 +255,103 @@ li {
   color: rgba(41, 87, 255, 0.7);
   padding: 10px 0 10px 0;
   font-weight: 800;
+}
+
+
+/* hero section custom animation classes */
+
+  /* // transition-all hover:max-w-full duration-1000 width-[400px] hover:flex-row */
+
+
+  .animate-active {
+    transition: all 600 ease-in-out;
+    width: 25vw !important;
+    max-width: 100vw !important;
+    z-index: 20;
+    height: 12vh !important; 
+    /* animation: HeroAnimation 2s ease-in-out forwards; */
+    overflow: visible; 
+    cursor: auto !important;; 
+  }
+  
+  .animate-active-2 { 
+    position: fixed !important;
+    z-index: 20;
+    /* transform: translateX(-60%) !important; */
+    transform: translateX(-5vw) translateY(-5vh) !important;
+    height: 61vh !important;
+    transition: all 1s ease-in-out !important;
+  }
+  
+  .animate-inactive {
+    transition: all 1s ease-in-out;
+    scale: 0.75; 
+    opacity: 0.6;
+  }
+  
+  @keyframes HeroAnimation {
+    0% {
+      transform: scale(0.8);
+      background-color: aqua;
+    }
+    100% {
+      background-color: red;
+      top: 0; 
+      bottom: 0;
+      left: 0;
+      right: 0;
+    }
+  }
+  
+  .overlay-entry-animation { 
+    animation: overlay-entry-animation 2s ease-in-out forwards;
+    opacity: 0.22;
+  }
+  
+  @keyframes overlay-entry-animation {
+    0% {
+      opacity: 0;
+    }
+    50% {
+      opacity: 0;
+    }
+    100% {
+      opacity: 0.44;
+    }
+  }
+  
+  .engineer-card {
+    animation: engineer-card 1s ease-in-out forwards;
+    position: absolute;
+  }
+  
+  @keyframes engineer-card {
+    0% {
+      opacity: 0;
+      transform: translate(0, 0) scale(0);
+    }
+    100% {
+      opacity: 1;
+      transform: translate(-25vw, 10vh) scale(1);
+    }
+  }
+  
+  .engineer-card-out {
+    animation: engineer-card-out 1s ease-in-out forwards;
+    position: absolute;
+  }
+  
+  @keyframes engineer-card-out {
+    0% {
+      opacity: 1;
+      transform: translate(-25vw, 10vh) scale(1);
+    }
+    100% {
+      opacity: 0;
+      transform: translate(0,-20vh) scale(0);
+    }
+  }
+
+.new-landing-container {
+  background-image: url("../src/assets/hero/background.png") !important; 
 }

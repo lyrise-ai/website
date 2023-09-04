@@ -5,14 +5,14 @@ import PropTypes from 'prop-types'
 import Footer from './Footer/Footer'
 import Header from './Header/Header'
 
-const Layout = ({ children, isTalent, isRaw = false }) => {
+const Layout = ({ children, isTalent, isRaw = false, background = null }) => {
   if (isRaw)
     return (
-      <>
+      <div style={{ background }}>
         <Header isTalent={isTalent} />
         {children}
         <Footer isTalent={isTalent} />
-      </>
+      </div>
     )
   return (
     <div style={{ overflow: 'hidden' }}>
