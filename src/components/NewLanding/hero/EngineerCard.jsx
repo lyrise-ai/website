@@ -26,11 +26,11 @@ function EngineerCard({
       <div className="font-secondary text-black text-xs">
         Previously Worked At:
         <div className="flex gap-3 justify-center">
-          {workedAtImages.map((imgSrc, index) => (
+          {workedAtImages.map((src) => (
             <Img
-              key={index}
-              src={imgSrc}
-              alt={imgSrc}
+              key={src}
+              src={src}
+              alt={src}
               className="w-6 h-6 object-cover mt-2"
             />
           ))}

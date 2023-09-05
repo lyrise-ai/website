@@ -1,10 +1,6 @@
 import React from 'react'
 import ItemsVault from './ItemsVault'
 
-import Img from '../../Product/Img'
-import background from '../../../assets/hero/background.png'
-import Image from 'next/image'
-
 export default function HeroSection() {
   return (
     <div className="flex md:grid grid-cols-3 w-full px-10 relative m-auto mx-10 lg:mx-20">
@@ -31,7 +27,10 @@ export default function HeroSection() {
             <option>Industry 2</option>
             <option>Industry 3</option>
           </select>
-          <button className="bg-blue-500 p-3 py-2 text-[1.2rem] font-secondary text-white font-bold rounded-md">
+          <button
+            className="bg-blue-500 p-3 py-2 text-[1.2rem] font-secondary text-white font-bold rounded-md"
+            type="button"
+          >
             Book Free Consultation
           </button>
         </div>

@@ -5,6 +5,12 @@ function Overlay({ clearActiveItem }) {
     <div
       onClick={clearActiveItem}
       className="fixed z-10 top-0 right-0 left-0 bottom-0 bg-blue-900 overlay-entry-animation"
+      onKeyDown={(e) => {
+        if (e.key === 'Escape') {
+          clearActiveItem()
+        }
+      }}
+      role="banner"
     ></div>
   )
 }
