@@ -20,7 +20,7 @@ export default function HeroSection() {
             Are you in another industry?
           </div>
           <select className="font-secondary text-sm p-2 text-gray-300 rounded border border-gray-300">
-            <option defaultValue={true} disabled>
+            <option defaultValue disabled>
               Select your industry...
             </option>
             <option>Industry 1</option>

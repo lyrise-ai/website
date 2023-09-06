@@ -11,7 +11,7 @@ function Overlay({ clearActiveItem }) {
         }
       }}
       role="banner"
-    ></div>
+    />
   )
 }
 

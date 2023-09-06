@@ -1,39 +1,43 @@
 import React, { useState, useEffect } from 'react'
 import { AiOutlineArrowRight } from 'react-icons/ai'
 import { useInView } from 'react-intersection-observer'
+import { motion, AnimatePresence } from 'framer-motion'
 
-import paths from '../../assets/product/how/paths.png'
-import macbook1 from '../../assets/product/how/macbook1.png'
-import macbook2 from '../../assets/product/how/macbook2.png'
-import macbook3 from '../../assets/product/how/macbook3.png'
-import macbook4 from '../../assets/product/how/macbook4.png'
-import FadeInOut from './FadeInOut'
-import Img from './Img'
+import paths from '../../../assets/product/how/paths.png'
+import macbook1 from '../../../assets/product/how/macbook1.png'
+
+import chatImg from '../../../assets/new-how/chat.png'
+import engineerCardImg from '../../../assets/new-how/engineer-card.png'
+import rectanglesImg from '../../../assets/new-how/rectangles.png'
+import sphereGif from '../../../assets/new-how/sphere.gif'
+
+import Img from '../../Product/Img'
+import FadeInOut from '../../Product/FadeInOut'
 
 const sections = [
   {
     id: 1,
-    title: 'Free Consultation & Gap Analysis',
+    title: '1. Tell us what you need',
     subtitle:
-      'We love tailored solutions! Let’s discuss your business needs and goals, so our team will get all the requirements you are looking for to make an informed decision for you.',
+      'Our team will listen to all of your requirements and find the talent that is your perfect fit.',
   },
   {
     id: 2,
-    title: 'Get the Shortlist',
+    title: '2. We use AI to go through our vetted talent database',
     subtitle:
       'With a wide-yet-niche pool with over 1200+ talents, we will get you a hand-picked shortlist of AI & software engineers superstars for your review that have the exact skill set that you are looking for.',
   },
   {
     id: 3,
-    title: 'Talents Vetting',
+    title: '2. We use AI to go through our vetted talent database',
     subtitle:
-      'Our LyRise experts will then use our comprehensive vetting process to identify the top candidates among our talent pool who meet your specific requirements.',
+      'With a wide-yet-niche pool with over 1200+ talents, we will get you a hand-picked shortlist of AI & software engineers superstars for your review that have the exact skill set that you are looking for.',
   },
   {
     id: 4,
-    title: 'Get Matched & Connected',
+    title: '3. We use AI to go through our vetted talent database',
     subtitle:
-      "Once you select the talent that best matches your requirements, culture, and values, we'll facilitate introductions to ensure a seamless and stress-free hiring experience.",
+      'With a wide-yet-niche pool with over 1200+ talents, we will get you a hand-picked shortlist of AI & software engineers superstars for your review that have the exact skill set that you are looking for.',
   },
 ]
 
@@ -47,7 +51,7 @@ export default function How() {
   const [ref1, isViewingRef1] = useInView(options)
   const [ref2, isViewingRef2] = useInView(options)
   const [ref3, isViewingRef3] = useInView(options)
-  const [ref4, isViewingRef4] = useInView(options)
+  // const [ref4, isViewingRef4] = useInView(options)
   const [sectionViewing, setSectionViewing] = useState(1)
 
   useEffect(() => {
@@ -56,14 +60,23 @@ export default function How() {
     }
     if (isViewingRef2) {
       setSectionViewing(2)
+      setTimeout(() => {
+        console.log('sectionViewing at check', sectionViewing)
+        if (sectionViewing === 2) setSectionViewing(3)
+      }, 1000)
     }
     if (isViewingRef3) {
-      setSectionViewing(3)
-    }
-    if (isViewingRef4) {
       setSectionViewing(4)
     }
-  }, [isViewingRef1, isViewingRef2, isViewingRef3, isViewingRef4])
+    // if (isViewingRef4) {
+    //   setSectionViewing(4)
+    // }
+  }, [isViewingRef1, isViewingRef2, isViewingRef3])
+
+  // logger for section in viwe
+  useEffect(() => {
+    console.log(sectionViewing)
+  }, [sectionViewing])
 
   return (
     <>
@@ -83,15 +96,18 @@ export default function How() {
             )
           })}
         </div>
-        <Img
-          src={paths}
-          className="sticky right-0 top-[20%] mt-[20%] scale-75 grid-start-2"
-        />
-        <div className="grid-start-2 -top-[40vh] xl:-top-[50vh] relative h-[280vh] xl:h-[290vh]">
-          <DesktopImage src={macbook1} mref={ref1} />
-          <DesktopImage src={macbook2} mref={ref2} />
-          <DesktopImage src={macbook3} mref={ref3} />
-          <DesktopImage src={macbook4} mref={ref4} />
+        <div className="grid-start-2 -top-[40vh]x xl:-top-[50vh]x relative h-[280vh]x xl:h-[400vh]x">
+          <div
+            className="bg-white w-[25vw] h-[25vw] sticky p-30 top-1/3 m-auto mt-[25vh] mb-[30%] xl:mb-[20%] rounded-[20px] overflow-hidden"
+            style={{
+              boxShadow: '0px 11.86106px 23.72213px 0px rgba(0, 34, 158, 0.15)',
+            }}
+          >
+            {getContent(sectionViewing)}
+          </div>
+          <div className="h-[60vh] w-full p-30" ref={ref1}></div>
+          <div className="h-[100vh] w-full p-30 " ref={ref2}></div>
+          <div className="h-[100vh] w-full p-30 " ref={ref3}></div>
         </div>
         z
       </div>
@@ -99,9 +115,84 @@ export default function How() {
   )
 }
 
+const Content1 = () => {
+  return (
+    <ContentSlot>
+      <ul className="text-blue-800 mt-[15%] ml-10 w-fit h-fit pl-10 border-[12px] border-white rounded-[20px] bg-[#EFF2FF] font-secondary p-5">
+        <li className="list-disc">Job title</li>
+        <li className="list-disc">Skills</li>
+        <li className="list-disc">Industry</li>
+        <li className="list-disc">Use Cases</li>
+        <li className="list-disc">Availability</li>
+        <li className="list-disc">Seniority</li>
+      </ul>
+      <Img
+        src={rectanglesImg}
+        className={`absolute -bottom-40 -right-32 w-full h-full -z-10`}
+      />
+    </ContentSlot>
+  )
+}
+
+const Content2 = () => {
+  return (
+    <ContentSlot>
+      <Img src={chatImg} className="mt-20 w-full h-full -z-10" />
+    </ContentSlot>
+  )
+}
+const Content3 = () => {
+  return (
+    <ContentSlot>
+      <Img src={sphereGif} className="w-full h-full -z-10" />
+    </ContentSlot>
+  )
+}
+const Content4 = () => {
+  return (
+    <ContentSlot>
+      <Img src={engineerCardImg} className="w-full h-full -z-10 scale-[0.85]" />
+    </ContentSlot>
+  )
+}
+
+const getContent = (sectionViewing) => {
+  switch (sectionViewing) {
+    case 1:
+      return <Content1 />
+    case 2:
+      return <Content2 />
+    case 3:
+      return <Content3 />
+    case 4:
+      return <Content4 />
+    default:
+      return <Content1 />
+  }
+}
+
+const ContentSlot = ({ children, className }) => {
+  return (
+    <AnimatePresence>
+      <motion.div
+        // initaial: outside screen => animate: enter screen from top => exit: exit screen from bottom
+        className={'w-full h-full relative overflow-hidden ' + className}
+        initial={{ y: '100%' }}
+        animate={{ y: '0' }}
+        exit={{ y: 300 }}
+        transition={{ ease: 'easeInOut', duration: 0.7 }}
+        // animate={{ transform: 'none' }}
+        // exit={{ transform: 'translateY(100%)' }}
+      >
+        {children}
+      </motion.div>
+    </AnimatePresence>
+  )
+}
+
 const DesktopImage = ({ src, mref }) => {
   return (
-    <div className="h-[90vh] w-full p-30" ref={mref}>
+    <div className="h-[100vh] w-full p-30" ref={mref}>
       <Img
         src={src}
         className="h-full w-full object-contain scale-75 lg:scale-90ff xl:scale-100 ml-[5vw] xl:ml-[20%]"

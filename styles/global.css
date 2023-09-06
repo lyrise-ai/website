@@ -355,3 +355,24 @@ li {
 .new-landing-container {
   background-image: url("../src/assets/hero/background.png") !important; 
 }
+
+/* new landing page how it works scroll effect */
+
+.howitworks-container {
+  scroll-snap-type: y mandatory;
+  overflow-y: scroll;
+  overflow-x: hidden !important;
+  height: 90vh !important; 
+  /* padding-right: 17px; /* Increase/decrease this value for cross-browser compatibility */
+    /* box-sizing: content-box; */
+    -ms-overflow-style: none;  /* Internet Explorer 10+ */
+    scrollbar-width: none;  /* Firefox */
+}
+
+.howitworks-container > div {
+  scroll-snap-align: start;
+} 
+
+.howitworks-container::-webkit-scrollbar { 
+  display: none;  /* Safari and Chrome */
+}

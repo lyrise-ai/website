@@ -2,12 +2,12 @@ import React from 'react'
 
 import Layout from './../src/components/Layout/Layout';
 import HeroSection from '../src/components/NewLanding/hero/HeroSection';
+import HowItWorks from '../src/components/NewLanding/how/How';
 import Img from '../src/components/Product/Img';
 
 import backedby1 from "../src/assets/hero/backed-by/1.png"
 import backedby2 from "../src/assets/hero/backed-by/2.png"
 import backedby3 from "../src/assets/hero/backed-by/3.png"
-import Image from 'next/image';
 
 
 export default function NewLanding() {
@@ -17,6 +17,7 @@ export default function NewLanding() {
             <div className="w-full h-fit new-landing-container flex flex-col items-center">
                 <HeroSection />
                 <BackedBy />
+                <HowItWorks />
             </div>
         </Layout>
     )
