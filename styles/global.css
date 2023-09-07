@@ -35,7 +35,7 @@
 :root {
   --section-spacing: 120px;
   --section-padding: 40px;
-overflow-x: hidden;
+  overflow-x: hidden;
 }
 
 *,
@@ -216,6 +216,17 @@ li {
   pointer-events: none;
 }
 
+.drop-sides-fade-new {
+  background: linear-gradient(
+    90deg,
+    #fff 0%,
+    rgba(255, 255, 255, 0.11) 31.6%,
+    rgba(255, 255, 255, 0) 72.89%,
+    #fff 97.87%
+  );
+  pointer-events: none;
+}
+
 .fade-in-out {
   opacity: 0;
   animation: fade-in 0.5s ease-in forwards;
@@ -257,103 +268,101 @@ li {
   font-weight: 800;
 }
 
-
 /* hero section custom animation classes */
 
-  /* // transition-all hover:max-w-full duration-1000 width-[400px] hover:flex-row */
+/* // transition-all hover:max-w-full duration-1000 width-[400px] hover:flex-row */
 
+.animate-active {
+  transition: all 600 ease-in-out;
+  width: 25vw !important;
+  max-width: 100vw !important;
+  z-index: 20;
+  height: 12vh !important;
+  /* animation: HeroAnimation 2s ease-in-out forwards; */
+  overflow: visible;
+  cursor: auto !important;
+}
 
-  .animate-active {
-    transition: all 600 ease-in-out;
-    width: 25vw !important;
-    max-width: 100vw !important;
-    z-index: 20;
-    height: 12vh !important; 
-    /* animation: HeroAnimation 2s ease-in-out forwards; */
-    overflow: visible; 
-    cursor: auto !important;; 
+.animate-active-2 {
+  position: fixed !important;
+  z-index: 20;
+  /* transform: translateX(-60%) !important; */
+  transform: translateX(-10vw) translateY(-5vh) !important;
+  height: 61vh !important;
+  transition: all 1s ease-in-out !important;
+}
+
+.animate-inactive {
+  transition: all 1s ease-in-out;
+  scale: 0.75;
+  opacity: 0.6;
+}
+
+@keyframes HeroAnimation {
+  0% {
+    transform: scale(0.8);
+    background-color: aqua;
   }
-  
-  .animate-active-2 { 
-    position: fixed !important;
-    z-index: 20;
-    /* transform: translateX(-60%) !important; */
-    transform: translateX(-5vw) translateY(-5vh) !important;
-    height: 61vh !important;
-    transition: all 1s ease-in-out !important;
+  100% {
+    background-color: red;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
   }
-  
-  .animate-inactive {
-    transition: all 1s ease-in-out;
-    scale: 0.75; 
-    opacity: 0.6;
+}
+
+.overlay-entry-animation {
+  animation: overlay-entry-animation 2s ease-in-out forwards;
+  opacity: 0.22;
+}
+
+@keyframes overlay-entry-animation {
+  0% {
+    opacity: 0;
   }
-  
-  @keyframes HeroAnimation {
-    0% {
-      transform: scale(0.8);
-      background-color: aqua;
-    }
-    100% {
-      background-color: red;
-      top: 0; 
-      bottom: 0;
-      left: 0;
-      right: 0;
-    }
+  50% {
+    opacity: 0;
   }
-  
-  .overlay-entry-animation { 
-    animation: overlay-entry-animation 2s ease-in-out forwards;
-    opacity: 0.22;
+  100% {
+    opacity: 0.44;
   }
-  
-  @keyframes overlay-entry-animation {
-    0% {
-      opacity: 0;
-    }
-    50% {
-      opacity: 0;
-    }
-    100% {
-      opacity: 0.44;
-    }
+}
+
+.engineer-card {
+  animation: engineer-card 1s ease-in-out forwards;
+  position: absolute;
+}
+
+@keyframes engineer-card {
+  0% {
+    opacity: 0;
+    transform: translate(0, 0) scale(0);
   }
-  
-  .engineer-card {
-    animation: engineer-card 1s ease-in-out forwards;
-    position: absolute;
+  100% {
+    opacity: 1;
+    transform: translate(-25vw, 10vh) scale(1);
   }
-  
-  @keyframes engineer-card {
-    0% {
-      opacity: 0;
-      transform: translate(0, 0) scale(0);
-    }
-    100% {
-      opacity: 1;
-      transform: translate(-25vw, 10vh) scale(1);
-    }
+}
+
+.engineer-card-out {
+  animation: engineer-card-out 1s ease-in-out forwards;
+  position: absolute;
+}
+
+@keyframes engineer-card-out {
+  0% {
+    opacity: 1;
+    transform: translate(-25vw, 10vh) scale(1);
   }
-  
-  .engineer-card-out {
-    animation: engineer-card-out 1s ease-in-out forwards;
-    position: absolute;
+  100% {
+    opacity: 0;
+    transform: translate(0, -20vh) scale(0);
   }
-  
-  @keyframes engineer-card-out {
-    0% {
-      opacity: 1;
-      transform: translate(-25vw, 10vh) scale(1);
-    }
-    100% {
-      opacity: 0;
-      transform: translate(0,-20vh) scale(0);
-    }
-  }
+}
 
 .new-landing-container {
-  background-image: url("../src/assets/hero/background.png") !important; 
+  background-image: url('../src/assets/hero/background.png') !important;
 }
 
 /* new landing page how it works scroll effect */
@@ -362,17 +371,17 @@ li {
   scroll-snap-type: y mandatory;
   overflow-y: scroll;
   overflow-x: hidden !important;
-  height: 90vh !important; 
+  height: 90vh !important;
   /* padding-right: 17px; /* Increase/decrease this value for cross-browser compatibility */
-    /* box-sizing: content-box; */
-    -ms-overflow-style: none;  /* Internet Explorer 10+ */
-    scrollbar-width: none;  /* Firefox */
+  /* box-sizing: content-box; */
+  -ms-overflow-style: none; /* Internet Explorer 10+ */
+  scrollbar-width: none; /* Firefox */
 }
 
 .howitworks-container > div {
   scroll-snap-align: start;
-} 
+}
 
-.howitworks-container::-webkit-scrollbar { 
-  display: none;  /* Safari and Chrome */
+.howitworks-container::-webkit-scrollbar {
+  display: none; /* Safari and Chrome */
 }

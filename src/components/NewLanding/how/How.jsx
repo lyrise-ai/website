@@ -27,14 +27,14 @@ const sections = [
     subtitle:
       'With a wide-yet-niche pool with over 1200+ talents, we will get you a hand-picked shortlist of AI & software engineers superstars for your review that have the exact skill set that you are looking for.',
   },
+  // {
+  //   id: 3,
+  //   title: '2. We use AI to go through our vetted talent database',
+  //   subtitle:
+  //     'With a wide-yet-niche pool with over 1200+ talents, we will get you a hand-picked shortlist of AI & software engineers superstars for your review that have the exact skill set that you are looking for.',
+  // },
   {
     id: 3,
-    title: '2. We use AI to go through our vetted talent database',
-    subtitle:
-      'With a wide-yet-niche pool with over 1200+ talents, we will get you a hand-picked shortlist of AI & software engineers superstars for your review that have the exact skill set that you are looking for.',
-  },
-  {
-    id: 4,
     title: '3. We use AI to go through our vetted talent database',
     subtitle:
       'With a wide-yet-niche pool with over 1200+ talents, we will get you a hand-picked shortlist of AI & software engineers superstars for your review that have the exact skill set that you are looking for.',
