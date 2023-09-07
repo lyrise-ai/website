@@ -52,21 +52,21 @@ export default function How() {
   const [ref2, isViewingRef2] = useInView(options)
   const [ref3, isViewingRef3] = useInView(options)
   // const [ref4, isViewingRef4] = useInView(options)
+  const [previousSectionIndex, setPreviousSectionIndex] = useState(null)
   const [sectionViewing, setSectionViewing] = useState(1)
 
   useEffect(() => {
     if (isViewingRef1) {
+      setPreviousSectionIndex(sectionViewing)
       setSectionViewing(1)
     }
     if (isViewingRef2) {
+      setPreviousSectionIndex(sectionViewing)
       setSectionViewing(2)
-      setTimeout(() => {
-        console.log('sectionViewing at check', sectionViewing)
-        if (sectionViewing === 2) setSectionViewing(3)
-      }, 1000)
     }
     if (isViewingRef3) {
-      setSectionViewing(4)
+      setPreviousSectionIndex(sectionViewing)
+      setSectionViewing(3)
     }
     // if (isViewingRef4) {
     //   setSectionViewing(4)
@@ -96,28 +96,33 @@ export default function How() {
             )
           })}
         </div>
-        <div className="grid-start-2 -top-[40vh]x xl:-top-[50vh]x relative h-[280vh]x xl:h-[400vh]x">
+        <div className="grid-start-2 -top-[40vh]x xl:-top-[50vh]x relative">
           <div
             className="bg-white w-[25vw] h-[25vw] sticky p-30 top-1/3 m-auto mt-[25vh] mb-[30%] xl:mb-[20%] rounded-[20px] overflow-hidden"
             style={{
               boxShadow: '0px 11.86106px 23.72213px 0px rgba(0, 34, 158, 0.15)',
             }}
           >
-            {getContent(sectionViewing)}
+            <AnimatePresence>
+              {getContent(sectionViewing, previousSectionIndex)}
+            </AnimatePresence>
           </div>
           <div className="h-[60vh] w-full p-30" ref={ref1}></div>
-          <div className="h-[100vh] w-full p-30 " ref={ref2}></div>
-          <div className="h-[100vh] w-full p-30 " ref={ref3}></div>
+          <div className="h-[100vh] w-full p-30" ref={ref2}></div>
+          <div className="h-[100vh] w-full p-30" ref={ref3}></div>
         </div>
-        z
       </div>
     </>
   )
 }
 
-const Content1 = () => {
+function Content1({ sectionViewing, previousSectionIndex }) {
   return (
-    <ContentSlot>
+    <ContentSlot
+      my_key="6fbb15e0-95b6-4c05-a9d2-a4e57fd190c0"
+      sectionViewing={sectionViewing}
+      previousSectionIndex={previousSectionIndex}
+    >
       <ul className="text-blue-800 mt-[15%] ml-10 w-fit h-fit pl-10 border-[12px] border-white rounded-[20px] bg-[#EFF2FF] font-secondary p-5">
         <li className="list-disc">Job title</li>
         <li className="list-disc">Skills</li>
@@ -134,63 +139,116 @@ const Content1 = () => {
   )
 }
 
-const Content2 = () => {
+function Content2({ sectionViewing, previousSectionIndex }) {
   return (
-    <ContentSlot>
+    <ContentSlot
+      my_key="c5b6a9c0-90a3-41ad-bb14-970e2776cafb"
+      sectionViewing={sectionViewing}
+      previousSectionIndex={previousSectionIndex}
+    >
       <Img src={chatImg} className="mt-20 w-full h-full -z-10" />
     </ContentSlot>
   )
 }
-const Content3 = () => {
+function Content3({ sectionViewing, previousSectionIndex }) {
   return (
-    <ContentSlot>
+    <ContentSlot
+      my_key="d5059082-845d-4862-809c-dbd3d71687c6"
+      sectionViewing={sectionViewing}
+      previousSectionIndex={previousSectionIndex}
+    >
       <Img src={sphereGif} className="w-full h-full -z-10" />
     </ContentSlot>
   )
 }
-const Content4 = () => {
+function Content4({ sectionViewing, previousSectionIndex }) {
   return (
-    <ContentSlot>
+    <ContentSlot
+      my_key="399d7852-7567-4b43-a5ef-cf795e7e5a79"
+      sectionViewing={sectionViewing}
+      previousSectionIndex={previousSectionIndex}
+    >
       <Img src={engineerCardImg} className="w-full h-full -z-10 scale-[0.85]" />
     </ContentSlot>
   )
 }
 
-const getContent = (sectionViewing) => {
-  switch (sectionViewing) {
-    case 1:
-      return <Content1 />
-    case 2:
-      return <Content2 />
-    case 3:
-      return <Content3 />
-    case 4:
-      return <Content4 />
-    default:
-      return <Content1 />
-  }
+function Content2then3() {
+  const [is2, setIs2] = useState(true)
+
+  useEffect(() => {
+    setTimeout(() => {
+      setIs2(false)
+    }, 1500)
+  }, [])
+
+  return is2 ? <Content2 /> : <Content3 />
 }
 
-const ContentSlot = ({ children, className }) => {
+function getContent(sectionViewing, previousSectionIndex) {
   return (
-    <AnimatePresence>
-      <motion.div
-        // initaial: outside screen => animate: enter screen from top => exit: exit screen from bottom
-        className={'w-full h-full relative overflow-hidden ' + className}
-        initial={{ y: '100%' }}
-        animate={{ y: '0' }}
-        exit={{ y: 300 }}
-        transition={{ ease: 'easeInOut', duration: 0.7 }}
-        // animate={{ transform: 'none' }}
-        // exit={{ transform: 'translateY(100%)' }}
-      >
-        {children}
-      </motion.div>
-    </AnimatePresence>
+    <>
+      {sectionViewing === 1 && (
+        <Content1
+          sectionViewing={sectionViewing}
+          previousSectionIndex={previousSectionIndex}
+        />
+      )}
+      {sectionViewing === 2 && (
+        <Content2then3
+          sectionViewing={sectionViewing}
+          previousSectionIndex={previousSectionIndex}
+        />
+      )}
+      {sectionViewing === 3 && (
+        <Content4
+          sectionViewing={sectionViewing}
+          previousSectionIndex={previousSectionIndex}
+        />
+      )}
+      {sectionViewing === null && (
+        <Content1
+          sectionViewing={sectionViewing}
+          previousSectionIndex={previousSectionIndex}
+        />
+      )}
+    </>
+  )
+}
+function ContentSlot({
+  children,
+  className,
+  my_key,
+  delay = 0,
+  sectionViewing,
+  previousSectionIndex,
+}) {
+  const direction = previousSectionIndex > sectionViewing ? 'up' : 'down'
+
+  console.log('scrolling', direction)
+  console.log('prev', previousSectionIndex, 'curr', sectionViewing)
+
+  return (
+    <motion.div
+      key={my_key}
+      // Reverse the animation direction if necessary
+      className={`w-full h-full relative overflow-hidden ${className}`}
+      initial={{ y: direction === 'up' ? '-100%' : '100%' }}
+      animate={{ y: '0' }}
+      exit={{ y: direction === 'up' ? '100%' : '-100%' }}
+      transition={{
+        duration: 0.7,
+        bounce: 0,
+        ease: 'easeInOut',
+        delay,
+      }}
+    >
+      {children}
+    </motion.div>
   )
 }
 
-const DesktopImage = ({ src, mref }) => {
+function DesktopImage({ src, mref }) {
   return (
     <div className="h-[100vh] w-full p-30" ref={mref}>
       <Img
@@ -201,7 +259,7 @@ const DesktopImage = ({ src, mref }) => {
   )
 }
 
-const HowDesktopSection = ({ title, subtitle }) => {
+function HowDesktopSection({ title, subtitle }) {
   return (
     <div className="col-span-1 p-20 pt-[40%] mb-[1400px] fade-in-out">
       <h1 className="hidden md:block font-primary-500 font-semibold text-4xl pb-5">
@@ -220,7 +278,7 @@ const HowDesktopSection = ({ title, subtitle }) => {
   )
 }
 
-const HowSection = () => {
+function HowSection() {
   return (
     <div className="h-auto md:h-[75vh] w-full flex flex-col-reverse gap-8 md:grid grid-cols-2 p-10 md:p-20">
       {/* <PathsBackground /> */}
@@ -256,7 +314,7 @@ const HowSection = () => {
   )
 }
 
-const ImageWithBackground = ({ src, className }) => {
+function ImageWithBackground({ paths, src, className }) {
   return (
     <>
       <Img
