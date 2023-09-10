@@ -9,9 +9,7 @@ import backedby1 from "../src/assets/hero/backed-by/1.png"
 import backedby2 from "../src/assets/hero/backed-by/2.png"
 import backedby3 from "../src/assets/hero/backed-by/3.png"
 import Logos from '../src/components/NewLanding/logos';
-
-import PartnersSlider from '../src/components/TopPartners/PartnersSlider';
-
+import UseCases from '../src/components/NewLanding/use-cases/UseCases';
 
 export default function NewLanding() {
     return (
@@ -26,6 +24,7 @@ export default function NewLanding() {
                     <PartnersSlider />
                 </div> */}
                 <Logos />
+                <UseCases />
             </div>
         </Layout>
     )
