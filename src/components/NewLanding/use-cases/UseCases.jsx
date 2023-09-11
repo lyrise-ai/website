@@ -8,6 +8,8 @@ import manufacturing from '../../../assets/hero/icons/manufacturing.png'
 import retail from '../../../assets/hero/icons/retail.png'
 import transportation from '../../../assets/hero/icons/transportation.png'
 import finance from '../../../assets/hero/icons/finance.png'
+import Img from '../../Product/Img'
+import { UseCasesCards } from './Card'
 
 const cases = [
   {
@@ -49,9 +51,10 @@ export default function UseCases() {
   const refs = [ref1, ref2, ref3, ref4, ref5]
 
   React.useEffect(() => {
-    refs[activeIndex].current.click()
-
-    console.log('clicked', refs[activeIndex].current.click)
+    if (refs[activeIndex].current) {
+      refs[activeIndex].current.click()
+      console.log('clicked', refs[activeIndex].current.click)
+    }
   }, [activeIndex])
 
   return (
@@ -63,7 +66,7 @@ export default function UseCases() {
         Discover the Industry and Use Cases for your A.I. needs
       </h1>
 
-      <div className="flex flex-row gap-4">
+      <div className="flex flex-row gap-10 mx-52">
         {cases.map((item) => (
           <Tab
             key={item.id}
@@ -87,19 +90,16 @@ export default function UseCases() {
                   ref={refs[i]}
                   onClick={() => setActiveIndex(i)}
                 />
-
               )
             })}
           </div>
         )}
-        className="m-auto rounded-xl h-auto md:h-[75vh] w-full overflow-hidden md:bg-white"
+        nextArrow={() => null}
+        prevArrow={() => null}
+        className="m-auto rounded-xl h-auto w-full overflow-hidden"
         loop
       >
-        <div>Hello world 1</div>
-        <div>Hello world 2</div>
-        <div>Hello world 3</div>
-        <div>Hello world 4</div>
-        <div>Hello world 5</div>
+        {UseCasesCards}
       </Carousel>
     </div>
   )
@@ -108,13 +108,13 @@ export default function UseCases() {
 const Tab = ({ title, icon, onClick, isActive }) => {
   return (
     <div
-      className={'rounded-lg px-5 flex-1 '.concat(
-        isActive ? 'border border-primary' : '',
+      className={'rounded-lg px-5 min-h-[10vh] cursor-pointer flex flex-col gap-3 justify-center transition-all flex-1 border border-transparent '.concat(
+        isActive ? '!border-primary bg-[#F7F9FF]' : '',
       )}
       onClick={onClick}
     >
-      <Image src={icon} width={20} height={20} objectFit="cover" />
-      <div className="text-sm">{title}</div>
+      <Image src={icon} objectFit="contain" width={25} />
+      <div className="text-[1.1rem]">{title}</div>
     </div>
   )
 }

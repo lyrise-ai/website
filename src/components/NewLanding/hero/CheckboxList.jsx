@@ -8,46 +8,50 @@ import healthCare2 from '/src/assets/hero/icons/healthcare/2.png'
 import healthCare3 from '/src/assets/hero/icons/healthcare/3.png'
 import healthCare4 from '/src/assets/hero/icons/healthcare/4.png'
 
-// manufacturing
-import manufacturing1 from '/src/assets/hero/icons/healthcare/1.svg'
-import manufacturing2 from '/src/assets/hero/icons/healthcare/2.svg'
-import manufacturing3 from '/src/assets/hero/icons/healthcare/3.svg'
-import manufacturing4 from '/src/assets/hero/icons/healthcare/4.svg'
+// // manufacturing
+// import manufacturing1 from '/src/assets/hero/icons/healthcare/1.svg'
+// import manufacturing2 from '/src/assets/hero/icons/healthcare/2.svg'
+// import manufacturing3 from '/src/assets/hero/icons/healthcare/3.svg'
+// import manufacturing4 from '/src/assets/hero/icons/healthcare/4.svg'
 
-// retail
-import retail1 from '/src/assets/hero/icons/healthcare/1.svg'
-import retail2 from '/src/assets/hero/icons/healthcare/2.svg'
-import retail3 from '/src/assets/hero/icons/healthcare/3.svg'
-import retail4 from '/src/assets/hero/icons/healthcare/4.svg'
+// // retail
+// import retail1 from '/src/assets/hero/icons/healthcare/1.svg'
+// import retail2 from '/src/assets/hero/icons/healthcare/2.svg'
+// import retail3 from '/src/assets/hero/icons/healthcare/3.svg'
+// import retail4 from '/src/assets/hero/icons/healthcare/4.svg'
 
-// transportation
-import transportation1 from '/src/assets/hero/icons/healthcare/1.svg'
-import transportation2 from '/src/assets/hero/icons/healthcare/2.svg'
-import transportation3 from '/src/assets/hero/icons/healthcare/3.svg'
-import transportation4 from '/src/assets/hero/icons/healthcare/4.svg'
+// // transportation
+// import transportation1 from '/src/assets/hero/icons/healthcare/1.svg'
+// import transportation2 from '/src/assets/hero/icons/healthcare/2.svg'
+// import transportation3 from '/src/assets/hero/icons/healthcare/3.svg'
+// import transportation4 from '/src/assets/hero/icons/healthcare/4.svg'
 
-// finance
-import finance1 from '/src/assets/hero/icons/healthcare/1.svg'
-import finance2 from '/src/assets/hero/icons/healthcare/2.svg'
-import finance3 from '/src/assets/hero/icons/healthcare/3.svg'
-import finance4 from '/src/assets/hero/icons/healthcare/4.svg'
+// // finance
+// import finance1 from '/src/assets/hero/icons/healthcare/1.svg'
+// import finance2 from '/src/assets/hero/icons/healthcare/2.svg'
+// import finance3 from '/src/assets/hero/icons/healthcare/3.svg'
+// import finance4 from '/src/assets/hero/icons/healthcare/4.svg'
 
 const mapToImgSrc = {
   healthcare: [healthCare1, healthCare2, healthCare3, healthCare4],
-  manufacturing: [
-    manufacturing1,
-    manufacturing2,
-    manufacturing3,
-    manufacturing4,
-  ],
-  retail: [retail1, retail2, retail3, retail4],
-  transportation: [
-    transportation1,
-    transportation2,
-    transportation3,
-    transportation4,
-  ],
-  finance: [finance1, finance2, finance3, finance4],
+  // manufacturing: [
+  //   manufacturing1,
+  //   manufacturing2,
+  //   manufacturing3,
+  //   manufacturing4,
+  // ],
+  // retail: [retail1, retail2, retail3, retail4],
+  // transportation: [
+  //   transportation1,
+  //   transportation2,
+  //   transportation3,
+  //   transportation4,
+  // ],
+  // finance: [finance1, finance2, finance3, finance4],
+  manufacturing: [healthCare1, healthCare2, healthCare3, healthCare4],
+  retail: [healthCare1, healthCare2, healthCare3, healthCare4],
+  transportation: [healthCare1, healthCare2, healthCare3, healthCare4],
+  finance: [healthCare1, healthCare2, healthCare3, healthCare4],
 }
 
 function CheckboxList({
@@ -88,9 +92,9 @@ function CheckboxList({
       className="text-left flex flex-col gap-2 w-full overflow-hidden"
       onSubmit={handleSubmit}
     >
-      <div className="font-secondary font-semibold text-black">
+      <h3 className="font-secondary font-semibold text-black" role='checkbox'>
         What use cases are you looking for?
-      </div>
+      </h3>
       {items.map((item, index) => {
         const isItemChecked = itemStates[item.title]
         return (
