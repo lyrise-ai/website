@@ -58,11 +58,11 @@ export default function UseCases() {
   }, [activeIndex])
 
   return (
-    <div className="text-center w-full">
+    <div className="text-center w-full mt-32">
       <h3 className="text-neutral-500 font-secondary mb-3">
         Industries & Use Cases
       </h3>
-      <h1 className="text-4xl max-w-[500px] m-auto font-semibold mb-10">
+      <h1 className="text-4xl max-w-[500px] m-auto font-semibold mb-20">
         Discover the Industry and Use Cases for your A.I. needs
       </h1>
 
@@ -108,13 +108,26 @@ export default function UseCases() {
 const Tab = ({ title, icon, onClick, isActive }) => {
   return (
     <div
-      className={'rounded-lg px-5 min-h-[10vh] cursor-pointer flex flex-col gap-3 justify-center transition-all flex-1 border border-transparent '.concat(
+      className={'rounded-lg px-5 min-h-[12vh] cursor-pointer flex flex-col gap-3 justify-center transition-all flex-1 border border-transparent '.concat(
         isActive ? '!border-primary bg-[#F7F9FF]' : '',
       )}
       onClick={onClick}
     >
-      <Image src={icon} objectFit="contain" width={25} />
-      <div className="text-[1.1rem]">{title}</div>
+      <Image
+        src={icon}
+        objectFit="contain"
+        width={10}
+        className={isActive ? 'scale-75' : 'scale-75 grayscale opacity-80'}
+      />
+      <div
+        className={
+          isActive
+            ? 'text-[1.1rem] font-semibold text-blue-500'
+            : 'text-[1.1rem] font-semibold text-neutral-500'
+        }
+      >
+        {title}
+      </div>
     </div>
   )
 }
