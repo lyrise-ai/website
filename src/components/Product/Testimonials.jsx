@@ -61,7 +61,7 @@ export default function Testimonials() {
             <Img src={testimonial.image} className="object-contain" />
           </div>
           <Img src={testimonial.mobileLogo} className="md:hidden w-[40%]" />
-          <div className="col-span-3 h-full flex flex-col gap-5 justify-center">
+          <div className="col-span-3 h-full flex flex-col gap-5 justify-center text-left">
             <h2 className="text-2xl md:text-3xl font-primary-500 text-gray-500 md:text-black">
               {testimonial.quote}
             </h2>

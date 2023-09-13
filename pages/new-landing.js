@@ -10,6 +10,9 @@ import backedby2 from "../src/assets/hero/backed-by/2.png"
 import backedby3 from "../src/assets/hero/backed-by/3.png"
 import Logos from '../src/components/NewLanding/logos';
 import UseCases from '../src/components/NewLanding/use-cases/UseCases';
+import Security from "../src/components/NewLanding/security"
+import LandingTestimonials from '../src/components/NewLanding/testimonials';
+import FAQ from '../src/components/NewLanding/faq';
 
 export default function NewLanding() {
     return (
@@ -25,6 +28,11 @@ export default function NewLanding() {
                 </div> */}
                 <Logos />
                 <UseCases />
+                <Security />
+                <LandingTestimonials />
+                <FAQ />
+                <br />
+                <br />
             </div>
         </Layout>
     )

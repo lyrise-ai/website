@@ -255,8 +255,8 @@ const cases = [
 // export default UseCasesCards
 export const UseCasesCards = cases.map((_case) => {
   return (
-    <div className="flex flex-row gap-10 p-10 mx-52">
-      <div className="flex-1 border-2 border-primary flex flex-col bg-[#F7F9FF] gap-6 p-5 rounded-xl mr-16">
+    <div className="flex flex-row gap-10 p-10 max-w-[1440px] w-[80vw] m-auto">
+      <div className="flex-1 border-2 border-primary flex flex-col bg-[#F7F9FF] gap-6 p-5 rounded-xl">
         {_case.items.map((item) => {
           return (
             <div className="flex-1 flex flex-row gap-5">
@@ -281,10 +281,22 @@ export const UseCasesCards = cases.map((_case) => {
           )
         })}
         <div className="flex gap-2 text-primary font-semibold font-secondary text-sm cursor-pointer">
-          View all Use Cases <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-<path d="M4.1665 9.99996H15.8332M15.8332 9.99996L9.99984 4.16663M15.8332 9.99996L9.99984 15.8333" stroke="#0033EB" stroke-width="1.66667" stroke-linecap="round" stroke-linejoin="round"/>
-</svg>
-
+          View all Use Cases{' '}
+          <svg
+            width="20"
+            height="20"
+            viewBox="0 0 20 20"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              d="M4.1665 9.99996H15.8332M15.8332 9.99996L9.99984 4.16663M15.8332 9.99996L9.99984 15.8333"
+              stroke="#0033EB"
+              stroke-width="1.66667"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
+          </svg>
         </div>
       </div>
       <Image src={_case.imgSrc} className="rounded-xl flex-1" />

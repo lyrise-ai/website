@@ -25,11 +25,11 @@ import microsoftLogo from '../../../assets/hero/microsoft.png'
 
 // default positioning
 const positioning = [
-  ' -translate-y-[130%] translate-x-[110%] ',
-  ' -translate-y-[160%] -translate-x-[110%] ',
-  ' -translate-x-[140%] translate-y-[55%] ',
-  ' translate-y-[70%] translate-x-[140%] ',
-  ' translate-y-[190%] ',
+  ' -translate-y-[120%] translate-x-[110%] ',
+  ' -translate-y-[140%] -translate-x-[110%] ',
+  ' -translate-x-[140%] translate-y-[35%] ',
+  ' translate-y-[50%] translate-x-[140%] ',
+  ' translate-y-[170%] ',
 ]
 
 const initialActivePositioning = [

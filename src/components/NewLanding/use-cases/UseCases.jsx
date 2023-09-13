@@ -66,7 +66,7 @@ export default function UseCases() {
         Discover the Industry and Use Cases for your A.I. needs
       </h1>
 
-      <div className="flex flex-row gap-10 mx-52">
+      <div className="flex flex-row gap-10 mx-52 border-neutral-400 border-b-2">
         {cases.map((item) => (
           <Tab
             key={item.id}
@@ -79,21 +79,19 @@ export default function UseCases() {
       </div>
 
       <Carousel
-        navigation={({ setActiveIndex, activeIndex, length }) => (
-          <div className="absolute bottom-5 md:bottom-[10%] left-1/2 md:left-[20%] lg:left-[15%] xl:left-[12%] z-50 flex -translate-x-2/4 gap-4">
-            {[...Array(length).keys()].map((i) => {
-              return (
-                <button
-                  type="button"
-                  key={i}
-                  className="hidden"
-                  ref={refs[i]}
-                  onClick={() => setActiveIndex(i)}
-                />
-              )
-            })}
-          </div>
-        )}
+        navigation={({ setActiveIndex, activeIndex, length }) =>
+          [...Array(length).keys()].map((i) => {
+            return (
+              <button
+                type="button"
+                key={i}
+                className="hidden"
+                ref={refs[i]}
+                onClick={() => setActiveIndex(i)}
+              />
+            )
+          })
+        }
         nextArrow={() => null}
         prevArrow={() => null}
         className="m-auto rounded-xl h-auto w-full overflow-hidden"
@@ -108,7 +106,7 @@ export default function UseCases() {
 const Tab = ({ title, icon, onClick, isActive }) => {
   return (
     <div
-      className={'rounded-lg px-5 min-h-[12vh] cursor-pointer flex flex-col gap-3 justify-center transition-all flex-1 border border-transparent '.concat(
+      className={'rounded-lg px-5 py-2 min-h-[12vh] cursor-pointer flex flex-col gap-3 justify-center transition-all flex-1 border-2 border-transparent '.concat(
         isActive ? '!border-primary bg-[#F7F9FF]' : '',
       )}
       onClick={onClick}
@@ -116,7 +114,7 @@ const Tab = ({ title, icon, onClick, isActive }) => {
       <Image
         src={icon}
         objectFit="contain"
-        width={10}
+        width={40}
         className={isActive ? 'scale-75' : 'scale-75 grayscale opacity-80'}
       />
       <div

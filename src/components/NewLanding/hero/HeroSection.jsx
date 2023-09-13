@@ -3,7 +3,7 @@ import ItemsVault from './ItemsVault'
 
 export default function HeroSection() {
   return (
-    <div className="flex md:grid grid-cols-3 w-full px-10 relative m-auto mx-10 lg:mx-20">
+    <div className="flex md:grid grid-cols-3 w-full px-10 relative m-auto mx-10 lg:mx-20 mb-20">
       {/* <div className="absolute w-full h-full bg-red-500 z-50 left-0 top-0 -translate-x-20">
         <Image src={background} objectFit="cover" width="100%" style={{position: "absolute"}} />
       </div> */}
