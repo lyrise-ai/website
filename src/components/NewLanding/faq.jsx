@@ -50,7 +50,10 @@ function Question({ question, answer }) {
 
   return (
     <div
-      className="border-b border-neutral-200 p-5 rounded-lg bg-white transition-all duration-500  cursor-pointer"
+      className={
+        'p-5 rounded-lg bg-white cursor-pointer transition-all duration-300 h-[8vh] border-2 ' +
+        (collapsed ? 'border-transparent' : '!border-blue-500 !h-[16vh]')
+      }
       onClick={() => setCollapsed(!collapsed)}
     >
       <div className="flex justify-between items-center">

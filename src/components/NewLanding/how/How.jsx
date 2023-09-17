@@ -35,9 +35,9 @@ const sections = [
   // },
   {
     id: 3,
-    title: '3. We use AI to go through our vetted talent database',
+    title: '3. Get Matched & Connected!',
     subtitle:
-      'With a wide-yet-niche pool with over 1200+ talents, we will get you a hand-picked shortlist of AI & software engineers superstars for your review that have the exact skill set that you are looking for.',
+      "Once you select the talent that best matches your requirements, culture, and values, we'll facilitate introductions to ensure a seamless and stress-free hiring experience.",
   },
 ]
 
