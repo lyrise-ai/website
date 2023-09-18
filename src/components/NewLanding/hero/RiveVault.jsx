@@ -16,7 +16,7 @@ const getVaultTranslation = {
   2: 'translate(30px, -20px) scale(0.50)',
   3: 'translate(-30px, -20px) scale(0.50)',
   4: 'translate(0, -30px) scale(0.50)',
-  null: 'translate(0, 0) scale(0.7)',
+  null: 'translate(0, 0) scale(0.65)',
 }
 
 const toVaultState = {

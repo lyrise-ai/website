@@ -23,7 +23,7 @@ const questions = [
     id: 4,
     question: 'How will LyRise help me manage my remote AI team?',
     answer:
-      'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.',
+      'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.',
   },
 ]
 
@@ -51,8 +51,10 @@ function Question({ question, answer }) {
   return (
     <div
       className={
-        'p-5 rounded-lg bg-white cursor-pointer transition-all duration-300 h-[8vh] border-2 ' +
-        (collapsed ? 'border-transparent' : '!border-blue-500 !h-[16vh]')
+        'p-5 rounded-lg bg-white cursor-pointer transition-all duration-300 h-fit border-2 ' +
+        (collapsed
+          ? 'border-transparent max-h-[10vh]'
+          : '!border-blue-500 !max-h-[20vh]')
       }
       onClick={() => setCollapsed(!collapsed)}
     >

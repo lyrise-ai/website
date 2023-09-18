@@ -1,4 +1,5 @@
 import React from 'react'
+import { motion } from 'framer-motion'
 
 import EngineerCard from './EngineerCard'
 import CheckboxList from './CheckboxList'
@@ -134,22 +135,13 @@ function WheelItem({
   const alwaysClasses =
     'border-[12px] rounded-[20px] border-white bg-[#EFF2FF] p-3 flex flex-col max-w-[200px] items-center gap-3 text-blue-500 text-center cursor-pointer absolute transition-all duration-1000 '
 
-  // const origin = isActive
-  //   ? toOrigin[position]
-  //   : typeof activeItem === "number"
-  //   ? toOrigin[items[activeItem].position]
-  //   : "";
   const origin =
     typeof activeItem === 'number' ? toOrigin[items[activeItem].position] : ''
-
-  const imgUrl = 'manufacturing.png'
-
-  // const imgUrl = require(`../../..${imgSrc.substr(4)}`)
 
   return (
     <>
       {isActive && <Overlay clearActiveItem={clearActiveItem} />}
-      <div
+      <motion.div
         onClick={handleItemClick}
         className={
           alwaysClasses +
@@ -158,6 +150,9 @@ function WheelItem({
           (isActive & !isExpanded ? initialActivePositioning[index] : '') +
           origin
         }
+        // initial={{ marginTop: 0 }}
+        // animate={{ marginTop: 10 }}
+        // transition={{ duration: 1, repeat: Infinity, repeatType: 'reverse' }}
       >
         {/* close button */}
         {isActive & isExpanded ? (
@@ -195,14 +190,10 @@ function WheelItem({
             imgSrc="https://www.gravatar.com/avatar/2c7d99fe281ecd3bcd65ab915bac6dd5?s=250"
             title="AI Engineer"
             name="John Doe"
-            // workedAtImages={[
-            //   'https://www.freepnglogos.com/uploads/google-logo-png/google-logo-png-google-icon-logo-png-transparent-svg-vector-bie-supply-14.png',
-            //   'https://www.freepnglogos.com/uploads/image-microsoft-logo--5.png',
-            // ]}
             workedAtImages={[googleLogo, microsoftLogo]}
           />
         ) : null}
-      </div>
+      </motion.div>
     </>
   )
 }
