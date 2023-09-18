@@ -29,8 +29,8 @@ const questions = [
 
 export default function FAQ() {
   return (
-    <div className="text-center w-full mt-32">
-      <h1 className="text-4xl max-w-[500px] m-auto font-semibold mb-20">
+    <div className="text-center w-full mt-32 font-primary">
+      <h1 className="text-4xl max-w-[500px] m-auto font-medium mb-20">
         Frequently Asked Questions
       </h1>
 
@@ -59,7 +59,7 @@ function Question({ question, answer }) {
       onClick={() => setCollapsed(!collapsed)}
     >
       <div className="flex justify-between items-center">
-        <div className="text-left text-[1.125rem] font-semibold font-secondary">
+        <div className="text-left text-[1.125rem] font-semibold">
           {question}
         </div>
         <div

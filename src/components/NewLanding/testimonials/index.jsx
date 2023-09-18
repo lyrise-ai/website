@@ -9,7 +9,12 @@ function LandingTestimonials() {
         what our clients say about us
       </h1>
 
-      <div className="max-w-[1440px] w-[80vw] m-auto rounded-2xl overflow-hidden shadow-lg">
+      <div
+        className="max-w-[1440px] w-[80vw] m-auto rounded-2xl overflow-hidden md:h-[60vh] flex flex-col items-center"
+        style={{
+          boxShadow: '0px 8.99711px 17.99422px 0px rgba(0, 34, 158, 0.15)',
+        }}
+      >
         <Testimonials />
       </div>
     </div>
