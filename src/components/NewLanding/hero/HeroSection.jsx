@@ -8,10 +8,10 @@ export default function HeroSection() {
         <Image src={background} objectFit="cover" width="100%" style={{position: "absolute"}} />
       </div> */}
       <div className="col-span-1 flex flex-col justify-center md:ml-10 lg:ml-32">
-        <h1 className="text-5xl font-semibold mb-6">
+        <h1 className="text-5xl font-semibold mb-6 font-primary">
           Unlock A.I for your Buisness
         </h1>
-        <h3 className="find the perfect ai talents pr-5 mb-6 text-neutral-600">
+        <h3 className="find the perfect ai talents pr-5 mb-6 text-neutral-600 font-primary">
           Find the perfect A.I. talents for your business using LyraAI, our
           proprietary AI chatbot!
         </h3>

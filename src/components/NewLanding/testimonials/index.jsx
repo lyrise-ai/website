@@ -5,8 +5,8 @@ function LandingTestimonials() {
   return (
     <div className="text-center w-full mt-32">
       <h3 className="text-neutral-500 font-secondary mb-3">Testimonials</h3>
-      <h1 className="text-4xl max-w-[500px] m-auto font-semibold mb-20">
-        what our clients say about us
+      <h1 className="text-4xl max-w-[500px] m-auto font-medium mb-20 font-primary">
+        what our clients say about us.
       </h1>
 
       <div

@@ -41,7 +41,7 @@ export default function NewLanding() {
 
 function BackedBy() {
     return <div className="flex flex-col items-center gap-5">
-        <div className="text-4xl font-semibold text-center mb-10">LyRise is backed by</div>
+        <div className="text-4xl font-semibold text-center mb-10 font-primary">LyRise is backed by</div>
         <div className='flex gap-10'>
             <div className='h-20 w-60'>
                 <Img src={backedby1} className="" />

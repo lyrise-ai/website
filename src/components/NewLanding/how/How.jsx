@@ -262,7 +262,8 @@ function DesktopImage({ src, mref }) {
 function HowDesktopSection({ title, subtitle }) {
   return (
     <div className="col-span-1 p-20 pt-[40%] mb-[1400px] fade-in-out">
-      <h1 className="hidden md:block font-primary-500 font-semibold text-4xl pb-5">
+      <div className="text-[#5E6282] font-secondary text-2xl">How it works</div>
+      <h1 className="hidden md:block font-primary-500 font-semibold text-4xl pb-5 font-primary">
         {title}
       </h1>
       <p className="hidden md:block font-primary-500 text-2xl text-gray-500 pb-5">
@@ -270,9 +271,9 @@ function HowDesktopSection({ title, subtitle }) {
       </p>
       <button
         type="button"
-        className="flex gap-3 items-center font-primary-500 text-2xl text-primary"
+        className="flex gap-3 items-center font-primary-500 text-2xl text-primary font-primary"
       >
-        Learn More <AiOutlineArrowRight />
+        Get Started <AiOutlineArrowRight />
       </button>
     </div>
   )

@@ -10,7 +10,7 @@ function Security() {
       <h3 className="text-neutral-500 font-secondary mb-3">
         Data Security & Infrastructure
       </h3>
-      <h1 className="text-4xl max-w-[500px] m-auto font-semibold mb-20">
+      <h1 className="text-4xl max-w-[500px] m-auto font-medium mb-20 font-primary">
         Elevate Your Data Security with IBM Hyper Protect Infrastructure
       </h1>
 
