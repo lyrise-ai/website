@@ -386,3 +386,19 @@ li {
 .howitworks-container::-webkit-scrollbar {
   display: none; /* Safari and Chrome */
 }
+
+@keyframes float {
+  0% {
+    transform: translatey(0px);
+  }
+  50% {
+    transform: translatey(-20px);
+  }
+  100% {
+    transform: translatey(0px);
+  }
+}
+
+.float-animation {
+  animation: float 2.5s ease-in-out infinite;
+}

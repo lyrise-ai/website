@@ -11,18 +11,26 @@ export default function ItemsVault() {
     <div className="col-span-2 flex justify-center items-center h-[90vh] relative">
       {/* <LyriseAnimatedLogo activeItem={activeItem} /> */}
       <RiveVault activeItem={activeItem} />
-      {items.map((item) => (
-        <WheelItem
-          key={item.index}
-          index={item.index}
-          title={item.title}
-          imgSrc={item.imgSrc}
-          activeItem={activeItem}
-          setActiveItem={setActiveItem}
-          position={item.position}
-          checkboxItems={item.checkboxItems}
-        />
-      ))}
+      {/* add wrapper for items without affecting their positioning and animate the wrapper using css */}
+      <div
+        className={
+          'flex justify-center items-center h-full w-full absolute ' +
+          (typeof activeItem === 'number' ? '' : 'float-animation')
+        }
+      >
+        {items.map((item) => (
+          <WheelItem
+            key={item.index}
+            index={item.index}
+            title={item.title}
+            imgSrc={item.imgSrc}
+            activeItem={activeItem}
+            setActiveItem={setActiveItem}
+            position={item.position}
+            checkboxItems={item.checkboxItems}
+          />
+        ))}
+      </div>
     </div>
   )
 }
