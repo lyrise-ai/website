@@ -84,17 +84,19 @@ export default function How() {
         <HowSection />
       </div>
       <div className="hidden lg:grid grid-cols-2 h-auto relative">
-        <div className="sticky p-30 h-[100px] top-0 mb-[50%] xl:mb-[40%]">
-          {sections.map((section, index) => {
-            return (
-              <FadeInOut show={index === sectionViewing - 1} key={section.id}>
-                <HowDesktopSection
-                  title={section.title}
-                  subtitle={section.subtitle}
-                />
-              </FadeInOut>
-            )
-          })}
+        <div className= "h-full relative pb-[70%]">
+          <div className="sticky h-[100px] top-0">
+            {sections.map((section, index) => {
+              return (
+                <FadeInOut show={index === sectionViewing - 1} key={section.id}>
+                  <HowDesktopSection
+                    title={section.title}
+                    subtitle={section.subtitle}
+                  />
+                </FadeInOut>
+              )
+            })}
+          </div>
         </div>
         <div className="grid-start-2 -top-[40vh]x xl:-top-[50vh]x relative">
           <div

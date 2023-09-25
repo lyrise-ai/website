@@ -1,10 +1,47 @@
+import React, { useState, useEffect } from 'react'
 import Image from 'next/image'
 
-import leftImg from '/src/assets/security/left.png'
-import centerImg from '/src/assets/security/center.png'
-import rightImg from '/src/assets/security/right.png'
+import first from '/src/assets/security/1.jpeg'
+import second from '/src/assets/security/2.jpeg'
+import third from '/src/assets/security/3.jpeg'
+
+const toBgColor = {
+  0: ' bg-[#5277FF]',
+  1: ' bg-[#2ED3B7]',
+  2: ' bg-[#2CE]',
+}
+
+const items = [
+  {
+    title: 'Privacy Preservation',
+    subtitle:
+      'Operate under a zero-trust architecture. The evolving Hyper Protect Platform ensures data security, privacy, and sovereignty, even within our team.',
+    imgSrc: first,
+  },
+  {
+    title: 'Confidential Lifecycle',
+    subtitle:
+      'Utilize Secure Service Container technology to maintain data integrity throughout its journey. Data remains secure in storage and transit, accessible only to authorized parties.',
+    imgSrc: second,
+  },
+  {
+    title: 'Regulatory Compliance',
+    subtitle:
+      'Adhere to GDPR, HIPAA, and industry standards for comprehensive compliance.',
+    imgSrc: third,
+  },
+]
 
 function Security() {
+  const [width, setWidth] = useState(window.innerWidth)
+  const [active, setActive] = useState(0)
+
+  useEffect(() => {
+    const handleResize = () => setWidth(window.innerWidth)
+    window.addEventListener('resize', handleResize)
+    return () => window.removeEventListener('resize', handleResize)
+  }, [])
+
   return (
     <div className="text-center w-full mt-32">
       <h3 className="text-neutral-500 font-secondary mb-3">
@@ -15,39 +52,60 @@ function Security() {
       </h1>
 
       <div className="md:grid gap-5 grid-cols-4 max-w-[1200px] m-auto">
-        <div className="col-span-1 hidden md:block">
-          <Image src={leftImg} />
-        </div>
-        <div
-          className="col-span-2 flex gap-5 rounded-lg border-[4px] border-white bg-[#EFF2FF] p-3"
-          style={{ boxShadow: '0px 9px 18px 0px rgba(0, 34, 158, 0.15)' }}
-        >
-          <div className="text-left flex-1 flex md:flex-col justify-center">
-            <div className="text-[1rem] font-semibold font-secondary mb-3">
-              Confidential Lifecycle
-            </div>
-            <div className="text-[1rem] font-secondary text-neutral-500 mb-3">
-              Utilize Secure Service Container technology to maintain data
-              integrity throughout its journey. Data remains secure in storage
-              and transit, accessible only to authorized parties.
-            </div>
-            <button
-              className="bg-blue-500 p-3 py-2 text-[1rem] font-secondary text-white font-bold rounded-md w-fit"
-              type="button"
-            >
-              Get Started
-            </button>
+        {[0, 1, 2].map((item) => (
+          <div
+            key={item}
+            className={
+              (active === item
+                ? 'col-span-2 max-w-[100%]'
+                : 'col-span-1 max-w-[150%] cursor-pointer' + toBgColor[item]) +
+              ' max-h-[30vh] h-[300px] transition-all rounded-xl'
+            }
+            onClick={() => setActive(item)}
+          >
+            {active === item ? (
+              <div
+                className="grid grid-cols-2 gap-5 rounded-lg border-[4px] border-white bg-[#EFF2FF] p-3 h-full w-full"
+                style={{ boxShadow: '0px 9px 18px 0px rgba(0, 34, 158, 0.15)' }}
+              >
+                <div className="text-left flex-1 flex md:flex-col justify-between">
+                  <div className="text-[1rem] font-semibold font-secondary mb-3 mt-3">
+                    {items[item].title}
+                  </div>
+                  <div className="text-[1rem] font-secondary text-neutral-500 mb-3">
+                    {items[item].subtitle}
+                  </div>
+                  <button
+                    className="bg-blue-500 p-3 py-2 text-[1rem] font-secondary text-white font-bold rounded-md w-fit"
+                    type="button"
+                  >
+                    Get Started
+                  </button>
+                </div>
+                <Image
+                  src={items[item].imgSrc}
+                  objectFit='cover'
+                  // width={280}
+                  // height={200}
+                  // style={{ flexShrink: 0, flex: 1 }}
+                />
+              </div>
+            ) : (
+              <div className="flex items-center justify-center h-full w-full">
+                <p className="text-center text-white font-semibold text-3xl font-primary">
+                  {items[item].title}
+                </p>
+              </div>
+            )}
           </div>
-          <Image
-            src={centerImg}
-            width={280}
-            height={200}
-            style={{ flexShrink: 0, flex: 1 }}
-          />
-        </div>
-        <div className="col-span-1 hidden md:block">
+        ))}
+        {/* <div className="col-span-1 hidden md:block">
+          <Image src={leftImg} />
+        </div> */}
+
+        {/* <div className="col-span-1 hidden md:block">
           <Image src={rightImg} />
-        </div>
+        </div> */}
       </div>
     </div>
   )

@@ -16,7 +16,22 @@ import financePng from '../../../assets/hero/icons/finance.png'
 import retailPng from '../../../assets/hero/icons/retail.png'
 import transportationPng from '../../../assets/hero/icons/transportation.png'
 
-// console.log(items)
+// experts imgsrcs
+import jonathanImg from '../../../assets/hero/experts/jonathan.jpeg'
+import karimImg from '../../../assets/hero/experts/karim.jpeg'
+import karim2Img from '../../../assets/hero/experts/karim2.png'
+import loayImg from '../../../assets/hero/experts/loay.jpeg'
+import omarImg from '../../../assets/hero/experts/omar.jpeg'
+
+// companies
+import cfImg from '../../../assets/hero/companies/cf.png'
+import pgImg from '../../../assets/hero/companies/p&g.png'
+import pwcImg from '../../../assets/hero/companies/pwc.png'
+import symplImg from '../../../assets/hero/companies/sympl.png'
+import udacityImg from '../../../assets/hero/companies/udacity.png'
+import userpilotImg from '../../../assets/hero/companies/userpilot.png'
+import visaImg from '../../../assets/hero/companies/visa.png'
+import vodafoneImg from '../../../assets/hero/companies/vodafone.png'
 
 import Img from '../../Product/Img'
 import Image from 'next/image'
@@ -56,6 +71,39 @@ const toImgUrl = {
   finance: financePng,
   retail: retailPng,
   transportation: transportationPng,
+}
+
+const toEngineerCard = {
+  'Manufacturing & Industry 4.0': {
+    imgSrc: jonathanImg,
+    title: 'Generative AI Expert',
+    name: 'Jonathan Hodges',
+    workedAtImages: [userpilotImg],
+  },
+  'Transportation & Logistics': {
+    imgSrc: loayImg,
+    title: 'AI Solution Architect',
+    name: 'Loay Amin',
+    workedAtImages: [pwcImg, udacityImg],
+  },
+  'Healthcare & Life Sciences': {
+    imgSrc: omarImg,
+    title: 'Data Science Exeprt',
+    name: 'Omar Kamal',
+    workedAtImages: [pgImg, cfImg],
+  },
+  'Finance & Banking': {
+    imgSrc: karimImg,
+    title: 'Co-Founder & CTO',
+    name: 'Karim Tawfik',
+    workedAtImages: [symplImg, visaImg],
+  },
+  'Retail & E-Commerce': {
+    imgSrc: karim2Img,
+    title: 'Data Science Expert',
+    name: 'Karim Tawfik',
+    workedAtImages: [vodafoneImg],
+  },
 }
 
 function WheelItem({
@@ -187,10 +235,14 @@ function WheelItem({
             className={
               isActive & isExpanded ? 'engineer-card' : 'engineer-card-out'
             }
-            imgSrc="https://www.gravatar.com/avatar/2c7d99fe281ecd3bcd65ab915bac6dd5?s=250"
-            title="AI Engineer"
-            name="John Doe"
-            workedAtImages={[googleLogo, microsoftLogo]}
+            // imgSrc="https://www.gravatar.com/avatar/2c7d99fe281ecd3bcd65ab915bac6dd5?s=250"
+            // title="AI Engineer"
+            // name="John Doe"
+            // workedAtImages={[googleLogo, microsoftLogo]}
+            imgSrc={toEngineerCard[title].imgSrc}
+            title={toEngineerCard[title].title}
+            name={toEngineerCard[title].name}
+            workedAtImages={toEngineerCard[title].workedAtImages}
           />
         ) : null}
       </motion.div>
