@@ -255,12 +255,12 @@ const cases = [
 // export default UseCasesCards
 export const UseCasesCards = cases.map((_case) => {
   return (
-    <div className="flex flex-row gap-10 p-10 max-w-[1440px] w-[80vw] m-auto">
-      <div className="flex-1 border-2 border-primary flex flex-col bg-[#F7F9FF] gap-6 p-5 rounded-xl">
+    <div className="flex flex-row gap-10 p-3 lg:p-10 lg:max-w-[1440px] w-[95vw] lg:w-[80vw] m-auto">
+      <div className="flex-1 border-[3px] lg:border-2 border-primary flex flex-col bg-[#F7F9FF] gap-6 p-5 rounded-2xl lg:rounded-xl">
         {_case.items.map((item) => {
           return (
             <div className="flex-1 flex flex-row gap-5">
-              <div className="flex justify-center items-center w-20 h-20 flex-shrink-0 bg-[#D1DBFF] border-[6px] border-[#EFF2FF] rounded-full">
+              <div className="flex justify-center items-center w-12 h-12 lg:w-20 lg:h-20 flex-shrink-0 bg-[#D1DBFF] border-[6px] border-[#EFF2FF] rounded-full">
                 <Image
                   src={item.icon}
                   // className="w-10 h-10 object-contain scale-125 flext items-center justify-center"
@@ -270,10 +270,10 @@ export const UseCasesCards = cases.map((_case) => {
                 />
               </div>
               <div className="text-left flex flex-col justify-center flex-grow-0">
-                <div className="font-secondary text-black font-semibold text-xs lg:text-lg mb-1">
+                <div className="font-secondary text-black font-semibold text-sm md:text-xs lg:text-lg mb-1">
                   {item.title}
                 </div>
-                <div className="font-secondary text-gray-500 text-xs lg:text-[1.05rem] leading-5">
+                <div className="font-secondary text-gray-500 text-sm md:text-xs lg:text-[1.05rem] leading-5">
                   {item.subtitle}
                 </div>
               </div>
@@ -299,7 +299,9 @@ export const UseCasesCards = cases.map((_case) => {
           </svg>
         </div>
       </div>
-      <Image src={_case.imgSrc} className="rounded-xl flex-1" />
+      <div className="hidden lg:block">
+        <Image src={_case.imgSrc} className="rounded-xl flex-1" />
+      </div>
     </div>
   )
 })

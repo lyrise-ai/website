@@ -66,7 +66,7 @@ export default function UseCases() {
         Discover the Industry and Use Cases for your A.I. needs
       </h1>
 
-      <div className="flex flex-row gap-10 mx-52 border-neutral-400 border-b-2 max-w-fullx overflow-hidden">
+      <div className="inline-flex max-sm:w-[90vw] flex-row gap-3 lg:gap-10 lg:mx-52 border-neutral-400 border-b-2 max-md:overflow-x-scroll">
         {cases.map((item) => (
           <Tab
             key={item.id}
@@ -106,7 +106,7 @@ export default function UseCases() {
 const Tab = ({ title, icon, onClick, isActive }) => {
   return (
     <div
-      className={'rounded-lg px-5 py-2 min-h-[12vh] cursor-pointer flex flex-col gap-3 justify-center transition-all flex-1 border-2 border-transparent '.concat(
+      className={'rounded-lg px-5 py-2 min-h-[12vh] cursor-pointer flex flex-col gap-3 justify-center transition-all flex-1 border-[3px] lg:border-2 border-transparent '.concat(
         isActive ? '!border-primary bg-[#F7F9FF]' : '',
       )}
       onClick={onClick}
