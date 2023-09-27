@@ -274,7 +274,7 @@ li {
 
 .animate-active {
   transition: all 600 ease-in-out;
-  width: 25vw !important;
+  width: 25vw;
   max-width: 100vw !important;
   z-index: 20;
   height: 13vh !important;
@@ -290,6 +290,16 @@ li {
   transform: translateX(-5vw) translateY(-5vh) !important;
   height: 61vh !important;
   transition: all 1s ease-in-out !important;
+}
+
+@media (max-width: 768px) {
+  .animate-active {
+    width: 80vw;
+  }
+
+  .animate-active-2 {
+    transform: translateX(0) translateY(15%) !important;
+  }
 }
 
 .animate-inactive {

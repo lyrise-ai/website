@@ -62,11 +62,11 @@ export default function UseCases() {
       <h3 className="text-neutral-500 font-secondary mb-3">
         Industries & Use Cases
       </h3>
-      <h1 className="text-4xl max-w-[500px] m-auto font-medium mb-20 font-primary">
+      <h1 className="text-3xl lg:text-4xl max-w-[500px] m-auto font-medium mb-20 font-primary">
         Discover the Industry and Use Cases for your A.I. needs
       </h1>
 
-      <div className="flex flex-row gap-10 mx-52 border-neutral-400 border-b-2">
+      <div className="flex flex-row gap-10 mx-52 border-neutral-400 border-b-2 max-w-fullx overflow-hidden">
         {cases.map((item) => (
           <Tab
             key={item.id}

@@ -1,5 +1,6 @@
 import React from 'react'
 import { motion } from 'framer-motion'
+import { useMediaQuery } from '@mui/material'
 
 import EngineerCard from './EngineerCard'
 import CheckboxList from './CheckboxList'
@@ -39,7 +40,7 @@ import Image from 'next/image'
 import googleLogo from '../../../assets/hero/google.png'
 import microsoftLogo from '../../../assets/hero/microsoft.png'
 
-// default positioning
+// default positioning => tested for large screens
 const positioning = [
   ' -translate-y-[120%] translate-x-[110%] ',
   ' -translate-y-[140%] -translate-x-[110%] ',
@@ -47,7 +48,6 @@ const positioning = [
   ' translate-y-[50%] translate-x-[140%] ',
   ' translate-y-[170%] ',
 ]
-
 const initialActivePositioning = [
   ' -translate-y-[100%] translate-x-[80%]  ',
   ' -translate-y-[120%] -translate-x-[80%]  ',
@@ -55,6 +55,46 @@ const initialActivePositioning = [
   ' translate-y-[50%] translate-x-[80%]  ',
   ' translate-y-[160%]  ',
 ]
+
+// small positioning
+// const positioning = [
+//   ' -translate-y-[120%] translate-x-[53.9%] ',
+//   ' -translate-y-[140%] -translate-x-[53.9%] ',
+//   ' -translate-x-[68.6%] translate-y-[35%] ',
+//   ' translate-y-[50%] translate-x-[68.6%] ',
+//   ' translate-y-[170%] ',
+// ]
+// const initialActivePositioning = [
+//   ' -translate-y-[120%] translate-x-[77%] ',
+//   ' -translate-y-[140%] -translate-x-[77%] ',
+//   ' -translate-x-[98%] translate-y-[35%] ',
+//   ' translate-y-[50%] translate-x-[98%] ',
+//   ' translate-y-[170%] ',
+// ]
+
+// small modified positioning
+const smPositioning = [
+  ' -translate-y-[100%] translate-x-[73.9%] ', // top right
+  ' -translate-y-[120%] -translate-x-[73.9%] ', // top left
+  ' -translate-x-[88.6%] translate-y-[50%] ', // mid left
+  ' translate-y-[40%] translate-x-[98.6%] ', // mid right
+  ' translate-y-[150%] ', // bottom
+]
+const smInitialActivePositioning = [
+  ' -translate-y-[100%] translate-x-[73.9%] ', // top right
+  ' -translate-y-[120%] -translate-x-[73.9%] ', // top left
+  ' -translate-x-[88.6%] translate-y-[50%] ', // mid left
+  ' translate-y-[40%] translate-x-[98.6%] ', // mid right
+  ' translate-y-[150%] ', // bottom
+]
+
+// const initialActivePositioning = [
+//   ' -translate-y-[120%] translate-x-[77%] ',
+//   ' -translate-y-[140%] -translate-x-[77%] ',
+//   ' -translate-x-[98%] translate-y-[35%] ',
+//   ' translate-y-[50%] translate-x-[98%] ',
+//   ' translate-y-[170%] ',
+// ]
 
 // active origin trasnform
 const toOrigin = {
@@ -120,6 +160,8 @@ function WheelItem({
   const [isExpanded, setIsExpanded] = React.useState(false)
   const [showEngineerCard, setShowEngineerCard] = React.useState(false)
 
+  const isSmall = useMediaQuery('(max-width:1024px)')
+
   const isActive = index === activeItem
 
   React.useEffect(() => {
@@ -181,7 +223,7 @@ function WheelItem({
   }
 
   const alwaysClasses =
-    'border-[12px] rounded-[20px] border-white bg-[#EFF2FF] p-3 flex flex-col max-w-[200px] items-center gap-3 text-blue-500 text-center cursor-pointer absolute transition-all duration-1000 '
+    'border-[12px] rounded-[20px] border-white bg-[#EFF2FF] p-1 lg:p-3 flex flex-col max-w-[200px] items-center gap-3 text-blue-500 text-center cursor-pointer absolute transition-all duration-1000 max-md:max-w-[150px] '
 
   const origin =
     typeof activeItem === 'number' ? toOrigin[items[activeItem].position] : ''
@@ -194,8 +236,12 @@ function WheelItem({
         className={
           alwaysClasses +
           animationClass +
-          positioning[index] +
-          (isActive & !isExpanded ? initialActivePositioning[index] : '') +
+          (isSmall ? smPositioning[index] : positioning[index]) +
+          (isActive & !isExpanded
+            ? isSmall
+              ? smInitialActivePositioning[index]
+              : initialActivePositioning[index]
+            : '') +
           origin
         }
         // initial={{ marginTop: 0 }}
@@ -211,6 +257,7 @@ function WheelItem({
             <Image src={closeSvg} alt="close icon" layout="fill" />
           </div>
         ) : null}
+        {/* item content */}
         <div className="w-8">
           <Img
             src={toImgUrl[imgSrc]}
@@ -220,7 +267,9 @@ function WheelItem({
             alt={title}
           />
         </div>
-        <div className="font-secondary font-bold lg:text-xl">{title}</div>
+        <div className="font-secondary font-bold text-[1rem]x text-sm lg:text-xl">
+          {title}
+        </div>
         {/* active item content */}
         {isExpanded && (
           <CheckboxList

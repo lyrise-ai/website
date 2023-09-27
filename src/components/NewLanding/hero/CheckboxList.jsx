@@ -92,7 +92,10 @@ function CheckboxList({
       className="text-left flex flex-col gap-2 w-full overflow-hidden"
       onSubmit={handleSubmit}
     >
-      <h3 className="font-secondary font-semibold text-black" role='checkbox'>
+      <h3
+        className="font-secondary font-semibold text-black max-md:text-sm"
+        role="checkbox"
+      >
         What use cases are you looking for?
       </h3>
       {items.map((item, index) => {

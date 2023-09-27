@@ -3,19 +3,16 @@ import ItemsVault from './ItemsVault'
 
 export default function HeroSection() {
   return (
-    <div className="flex md:grid grid-cols-3 w-full px-10x relative m-auto mx-10x mb-20">
-      {/* <div className="absolute w-full h-full bg-red-500 z-50 left-0 top-0 -translate-x-20">
-        <Image src={background} objectFit="cover" width="100%" style={{position: "absolute"}} />
-      </div> */}
-      <div className="col-span-1 flex flex-col justify-center md:ml-10 lg:ml-32">
-        <h1 className="text-5xl font-semibold mb-6 font-primary">
+    <div className="flex flex-col-reverse md:grid grid-cols-3 w-full px-10x relative m-auto mx-10x mb-20">
+      <div className="col-span-1 flex flex-col justify-center max-md:text-center md:ml-10 lg:ml-32 max-md:max-w-[80vw] max-md:m-auto max-md:items-center">
+        <h1 className="text-3xl lg:text-5xl font-semibold mb-6 font-primary">
           Unlock A.I for your Buisness
         </h1>
-        <h3 className="find the perfect ai talents pr-5 mb-6 text-neutral-600 font-primary">
-          Find the perfect A.I. talents for your business using LyraAI, our
-          proprietary AI chatbot!
+        <h3 className="pr-5 mb-6 text-neutral-600 font-secondary max-md:text-sm max-md:font-semibold lg:font-primary">
+          Find the perfect candidate for your team and hire the top AI and data
+          talents from a pool of top notch profiles.
         </h3>
-        <div className="border-[12px] bg-[#EFF2FF] border-white rounded-[20px] mr-10 p-4 flex flex-col gap-3 w-fit min-w-[20vw]">
+        <div className="border-[12px] bg-[#EFF2FF] border-white rounded-[20px] max-md:mr-0 p-4 flex flex-col gap-3 w-fit min-w-[20vw]">
           <div className="font-secondary text-[1.1rem] font-semibold">
             Are you in another industry?
           </div>

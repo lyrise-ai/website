@@ -33,14 +33,7 @@ const items = [
 ]
 
 function Security() {
-  const [width, setWidth] = useState(window.innerWidth)
   const [active, setActive] = useState(0)
-
-  useEffect(() => {
-    const handleResize = () => setWidth(window.innerWidth)
-    window.addEventListener('resize', handleResize)
-    return () => window.removeEventListener('resize', handleResize)
-  }, [])
 
   return (
     <div className="text-center w-full mt-32">
@@ -84,7 +77,7 @@ function Security() {
                 </div>
                 <Image
                   src={items[item].imgSrc}
-                  objectFit='cover'
+                  objectFit="cover"
                   // width={280}
                   // height={200}
                   // style={{ flexShrink: 0, flex: 1 }}

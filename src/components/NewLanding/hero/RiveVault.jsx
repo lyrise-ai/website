@@ -1,4 +1,5 @@
 import React from 'react'
+import { useMediaQuery } from '@mui/material'
 import {
   useRive,
   Layout,
@@ -9,6 +10,15 @@ import {
 
 // import RiveFile from "./vault.riv"
 
+const getSmVaultTranslation = {
+  // key is the activeItem
+  0: 'translate(-30px, 30px) scale(1)',
+  1: 'translate(30px, 30px) scale(1)',
+  2: 'translate(30px, -20px) scale(1)',
+  3: 'translate(-30px, -20px) scale(1)',
+  4: 'translate(0, -30px) scale(1)',
+  null: 'translate(0, 0) scale(1.2)',
+}
 const getVaultTranslation = {
   // key is the activeItem
   0: 'translate(-30px, 30px) scale(0.50)',
@@ -38,6 +48,8 @@ function RiveVault({ activeItem }) {
     // autoplay: true,
   })
 
+  const isSmall = useMediaQuery('(max-width:640px)')
+
   const RiveActiveState = useStateMachineInput(rive, 'Vault', 'ActiveState', 9)
 
   React.useEffect(() => {
@@ -61,7 +73,9 @@ function RiveVault({ activeItem }) {
     <div
       className="w-full h-full transition-transform ease-in-out duration-1000 "
       style={{
-        transform: getVaultTranslation[activeItem],
+        transform: isSmall
+          ? getSmVaultTranslation[activeItem]
+          : getVaultTranslation[activeItem],
       }}
     >
       <RiveComponent />
