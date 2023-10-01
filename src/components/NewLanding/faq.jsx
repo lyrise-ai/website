@@ -5,25 +5,25 @@ const questions = [
     id: 1,
     question: 'Who is LyRise for?',
     answer:
-      'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.',
+      'Tech companies looking for faster and more efficient access to remote AI, Data & Software talent.',
   },
   {
     id: 2,
     question: 'Can I subcontract a project to LyRise?',
     answer:
-      'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.',
+      'Yes. If you’re not looking to hire at the moment, you can work with our talents on a project basis and leave the hassle of HR to us. You can select our Talent As A Service (TAaS), LyRise will then act as your Employer of Record (EoR) building the team, manages your payroll, up or down-scales the team, performs regular performance reviews, provides technical support, security services all in one as well as other perks--sign up to find out more!',
   },
   {
     id: 3,
     question: 'How long does the matching process take?',
     answer:
-      'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.',
+      'It takes as little as 14 days for the roles listed above, whereas more specialized roles may require more time.',
   },
   {
     id: 4,
     question: 'How will LyRise help me manage my remote AI team?',
     answer:
-      'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.',
+      'We have top-notch engagement managers, AI, Data & Software product managers, and senior experts who can help you build and manage your remote AI & Data team.',
   },
 ]
 
@@ -54,7 +54,7 @@ function Question({ question, answer }) {
         'p-5 rounded-lg bg-white cursor-pointer transition-all duration-300 h-fit border-2 ' +
         (collapsed
           ? 'border-transparent max-h-[10vh]'
-          : '!border-blue-500 !max-h-[20vh]')
+          : '!border-blue-500 !max-h-[60vh]')
       }
       onClick={() => setCollapsed(!collapsed)}
     >
@@ -64,7 +64,7 @@ function Question({ question, answer }) {
         </div>
         <div
           className={
-            'text-[1.5rem] font-bold transition-all relative ' +
+            'text-[1.5rem] font-bold transition-all relative flex-shrink-0 ' +
             (collapsed
               ? '-rotate-90'
               : 'rotate-0 bg-blue-500 text-white rounded-full')

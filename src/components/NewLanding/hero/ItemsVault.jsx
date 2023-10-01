@@ -8,7 +8,7 @@ import RiveVault from './RiveVault'
 export default function ItemsVault() {
   const [activeItem, setActiveItem] = useState(null)
   return (
-    <div className="col-span-2 flex justify-center items-center h-[60vh] lg:h-[90vh] relative">
+    <div className="col-span-2 flex justify-center items-center h-[75vh] lg:h-[90vh] relative">
       {/* <LyriseAnimatedLogo activeItem={activeItem} /> */}
       <RiveVault activeItem={activeItem} />
       {/* add wrapper for items without affecting their positioning and animate the wrapper using css */}

@@ -40,7 +40,7 @@ function Security() {
       <h3 className="text-neutral-500 font-secondary mb-3">
         Data Security & Infrastructure
       </h3>
-      <h1 className="text-4xl max-w-[500px] m-auto font-medium mb-20 font-primary">
+      <h1 className="text-3xl lg:text-4xl max-w-[500px] m-auto font-medium mb-20 font-primary max-sm:max-w-[90%]">
         Elevate Your Data Security with IBM Hyper Protect Infrastructure
       </h1>
 
@@ -52,7 +52,7 @@ function Security() {
               (active === item
                 ? 'col-span-2 max-w-[100%]'
                 : 'col-span-1 max-w-[150%] cursor-pointer' + toBgColor[item]) +
-              ' max-h-[30vh] h-[300px] transition-all rounded-xl'
+              ' max-h-[30vh] h-[300px] transition-all rounded-xl max-md:m-3'
             }
             onClick={() => setActive(item)}
           >
@@ -61,11 +61,11 @@ function Security() {
                 className="grid grid-cols-2 gap-5 rounded-lg border-[4px] border-white bg-[#EFF2FF] p-3 h-full w-full"
                 style={{ boxShadow: '0px 9px 18px 0px rgba(0, 34, 158, 0.15)' }}
               >
-                <div className="text-left flex-1 flex md:flex-col justify-between">
-                  <div className="text-[1rem] font-semibold font-secondary mb-3 mt-3">
+                <div className="text-left flex-1 flex flex-col justify-between">
+                  <div className="text-sm md:text-[1rem] font-semibold font-secondary my-1 lg:my-3">
                     {items[item].title}
                   </div>
-                  <div className="text-[1rem] font-secondary text-neutral-500 mb-3">
+                  <div className="text-xs md:text-[1rem] font-secondary text-neutral-500 mb-3">
                     {items[item].subtitle}
                   </div>
                   <button

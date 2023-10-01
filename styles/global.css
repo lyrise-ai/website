@@ -298,7 +298,8 @@ li {
   }
 
   .animate-active-2 {
-    transform: translateX(0) translateY(15%) !important;
+    transform: translateX(0) translateY(0) !important;
+    height: 70vh !important;
   }
 }
 
@@ -411,4 +412,19 @@ li {
 
 .float-animation {
   animation: float 2.5s ease-in-out infinite;
+}
+
+/* custom responsive tabs border radius */
+@media (min-width: 1024px) {
+  .responsive-custom-rounded {
+    border-radius: 0.5rem;
+  }
+}
+@media (max-width: 1024px) {
+  .responsive-custom-rounded {
+    border-top-left-radius: 1rem;
+    border-top-right-radius: 1rem;
+    padding-left: 40px;
+    padding-right: 40px;
+  }
 }

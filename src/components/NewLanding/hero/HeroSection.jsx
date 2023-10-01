@@ -3,7 +3,7 @@ import ItemsVault from './ItemsVault'
 
 export default function HeroSection() {
   return (
-    <div className="flex flex-col-reverse md:grid grid-cols-3 w-full px-10x relative m-auto mx-10x mb-20">
+    <div className="flex flex-col-reverse md:grid grid-cols-3 w-full px-10x relative m-auto mx-10x mb-20 overflow-hidden">
       <div className="col-span-1 flex flex-col justify-center max-md:text-center md:ml-10 lg:ml-32 max-md:max-w-[80vw] max-md:m-auto max-md:items-center">
         <h1 className="text-3xl lg:text-5xl font-semibold mb-6 font-primary">
           Unlock A.I for your Buisness
