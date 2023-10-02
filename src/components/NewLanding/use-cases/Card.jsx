@@ -280,7 +280,7 @@ export const UseCasesCards = cases.map((_case) => {
             </div>
           )
         })}
-        <div className="flex gap-2 text-primary font-semibold font-secondary text-sm cursor-pointer">
+        {/* <div className="flex gap-2 text-primary font-semibold font-secondary text-sm cursor-pointer">
           View all Use Cases{' '}
           <svg
             width="20"
@@ -297,7 +297,7 @@ export const UseCasesCards = cases.map((_case) => {
               stroke-linejoin="round"
             />
           </svg>
-        </div>
+        </div> */}
       </div>
       <div className="hidden lg:block">
         <Image src={_case.imgSrc} className="rounded-xl flex-1" />

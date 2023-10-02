@@ -71,6 +71,9 @@ function Security() {
                   <button
                     className="bg-blue-500 p-3 py-2 text-[1rem] font-secondary text-white font-bold rounded-md w-fit"
                     type="button"
+                    onClick={() => {
+                      window.open('https://www.lyrise.ai/Employer', '_blank')
+                    }}
                   >
                     Get Started
                   </button>

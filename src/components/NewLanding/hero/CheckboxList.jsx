@@ -85,6 +85,8 @@ function CheckboxList({
     e.preventDefault()
     clearActiveItem()
     console.log(itemStates)
+    // navigate to https://www.lyrise.ai/Employer in a new tab
+    window.open('https://www.lyrise.ai/Employer', '_blank')
   }
 
   return (

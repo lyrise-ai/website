@@ -84,7 +84,7 @@ export default function How() {
         <HowSection />
       </div>
       <div className="hidden lg:grid grid-cols-2 h-auto relative">
-        <div className= "h-full relative pb-[70%]">
+        <div className="h-full relative pb-[70%]">
           <div className="sticky h-[100px] top-0">
             {sections.map((section, index) => {
               return (
@@ -274,6 +274,9 @@ function HowDesktopSection({ title, subtitle }) {
       <button
         type="button"
         className="flex gap-3 items-center font-primary-500 text-2xl text-primary font-primary"
+        onClick={() => {
+          window.open('https://www.lyrise.ai/Employer', '_blank')
+        }}
       >
         Get Started <AiOutlineArrowRight />
       </button>

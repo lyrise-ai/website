@@ -17,19 +17,31 @@ export default function HeroSection() {
             Are you in another industry?
           </div>
           <select className="font-secondary text-sm p-2 text-gray-300 rounded border border-gray-300">
-            <option defaultValue disabled>
+            <option selected disabled>
               Select your industry...
             </option>
-            <option>Industry 1</option>
-            <option>Industry 2</option>
-            <option>Industry 3</option>
+            {/* Education
+Marketing & Advertising
+Telecommunications
+Entertainment & media
+Insurance */}
+            <option>Education</option>
+            <option>Marketing & Advertising</option>
+            <option>Telecommunications</option>
+            <option>Entertainment & media</option>
+            <option>Insurance</option>
           </select>
-          <button
-            className="bg-blue-500 p-3 py-2 text-[1.2rem] font-secondary text-white font-bold rounded-md"
-            type="button"
+          <a
+            className="w-full"
+            href="https://meetings.hubspot.com/sales-lyrise"
           >
-            Book Free Consultation
-          </button>
+            <button
+              className="bg-blue-500 p-3 py-2 text-[1.2rem] font-secondary text-white font-bold rounded-md w-full"
+              type="button"
+            >
+              Book Free Consultation
+            </button>
+          </a>
         </div>
       </div>
       <ItemsVault />
