@@ -91,7 +91,7 @@ function CheckboxList({
 
   return (
     <form
-      className="text-left flex flex-col gap-2 w-full overflow-hidden"
+      className="text-left flex flex-col gap-1 md:gap-2 w-full overflow-hidden"
       onSubmit={handleSubmit}
     >
       <h3
@@ -139,7 +139,7 @@ function CheckboxList({
       <input
         type="submit"
         value={'Hire Top AI Engineers'}
-        className="bg-blue-500 text-lg font-secondary text-white p-3 rounded-lg cursor-pointer w-fit m-auto"
+        className="bg-blue-500 text-[1rem] lg:text-lg font-secondary text-white p-3 rounded-lg cursor-pointer w-fit m-auto"
       />
       <div className="text-black font-secondary m-auto text-sm font-semibold ">
         Need help?{' '}

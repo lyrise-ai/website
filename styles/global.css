@@ -277,7 +277,7 @@ li {
   width: 25vw;
   max-width: 100vw !important;
   z-index: 20;
-  height: 13vh !important;
+  max-height: 13vh !important;
   /* animation: HeroAnimation 2s ease-in-out forwards; */
   overflow: visible;
   cursor: auto !important;
@@ -288,7 +288,7 @@ li {
   z-index: 20;
   /* transform: translateX(-60%) !important; */
   transform: translateX(-5vw) translateY(-5vh) !important;
-  height: 61vh !important;
+  max-height: 70vh !important;
   transition: all 1s ease-in-out !important;
 }
 
@@ -298,8 +298,8 @@ li {
   }
 
   .animate-active-2 {
-    transform: translateX(0) translateY(0) !important;
-    height: 70vh !important;
+    transform: translateX(0) translateY(-10vh) !important;
+    max-height: 70vh !important;
   }
 }
 
@@ -369,6 +369,40 @@ li {
   100% {
     opacity: 0;
     transform: translate(0, -20vh) scale(0);
+  }
+}
+
+@media (max-width: 768px) {
+  .engineer-card {
+    animation: engineer-card-mobile 1s ease-in-out forwards;
+    position: absolute;
+  }
+
+  @keyframes engineer-card-mobile {
+    0% {
+      opacity: 0;
+      transform: translate(0, 0) scale(0);
+    }
+    100% {
+      opacity: 1;
+      transform: translate(0, 66vh) scale(1);
+    }
+  }
+
+  .engineer-card-out {
+    animation: engineer-card-out-mobile 1s ease-in-out forwards;
+    position: absolute;
+  }
+
+  @keyframes engineer-card-out-mobile {
+    0% {
+      opacity: 1;
+      transform: translate(0, 66vh) scale(1);
+    }
+    100% {
+      opacity: 0;
+      transform: translate(0, -20vh) scale(0);
+    }
   }
 }
 

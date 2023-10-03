@@ -11,27 +11,16 @@ function EngineerCard({
 }) {
   return (
     <div
-      className={` w-[15vw] h-[15vw] border-[12px] p-5 border-white bg-[#EFF2FF] text-center rounded-[20px] max-md:hidden ${className}`}
+      className={` w-[55vw] h-[55vw] md:w-[15vw] md:h-[15vw] border-[12px] p-2 md:p-3 lg:p-5 border-white bg-[#EFF2FF] text-center rounded-[20px] ${className}`}
     >
-      {/* <div className="w-26 h-26 border-2 border-white rounded-full overflow-hidden mb-3"> */}
-      {/* <Image
-        src={imgSrc}
-        alt={name}
-        // width={'30%'}
-        // height={'30%'}
-        style={{ borderRadius: '100%', flexGrow: 0 }}
-        // layout="fill"
-        objectFit="contain"
-        // objectPosition="center"
-      /> */}
       <Img
-        className="w-1/2 h-1/2 mx-auto object-cover border-2 border-white rounded-full overflow-hidden mb-3"
+        className="w-[45%] h-[45%] md:w-1/2 md:h-1/2 mx-auto object-cover border-2 border-white rounded-full overflow-hidden mb-3"
         alt={name}
         src={imgSrc}
       />
       {/* </div> */}
-      <div className="font-secondary text-black text-sm">{name}</div>
-      <div className="font-secondary text-black text-[1rem] font-semibold">
+      <div className="font-secondary text-black text-xs md:text-sm">{name}</div>
+      <div className="font-secondary text-black text-[0.8rem] md:text-[1rem] font-semibold">
         {title}
       </div>
       <div className="font-secondary text-black text-xs">

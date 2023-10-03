@@ -284,10 +284,6 @@ function WheelItem({
             className={
               isActive & isExpanded ? 'engineer-card' : 'engineer-card-out'
             }
-            // imgSrc="https://www.gravatar.com/avatar/2c7d99fe281ecd3bcd65ab915bac6dd5?s=250"
-            // title="AI Engineer"
-            // name="John Doe"
-            // workedAtImages={[googleLogo, microsoftLogo]}
             imgSrc={toEngineerCard[title].imgSrc}
             title={toEngineerCard[title].title}
             name={toEngineerCard[title].name}
