@@ -73,6 +73,7 @@ export default function Index() {
         <AISection />
         <ForbesSection />
         <FAQSection />
+        <div>This page is under maintenance ⚙️ </div>
       </Layout>
       {/* </FlagsProvider> */}
     </>
