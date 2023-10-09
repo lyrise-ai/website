@@ -11,7 +11,7 @@ function EngineerCard({
 }) {
   return (
     <div
-      className={` w-[55vw] h-[55vw] md:w-[15vw] md:h-[15vw] border-[12px] p-2 md:p-3 lg:p-5 border-white bg-[#EFF2FF] text-center rounded-[20px] ${className}`}
+      className={` w-[55vw] h-[55vw] md:w-[15vw] md:h-[15vw] border-[12px] p-2 md:p-3 lg:p-5 border-white bg-[#EFF2FF] text-center rounded-[20px] flex flex-col justify-center ${className}`}
     >
       <Img
         className="w-[45%] h-[45%] md:w-1/2 md:h-1/2 mx-auto object-cover border-2 border-white rounded-full overflow-hidden mb-3"
@@ -23,7 +23,8 @@ function EngineerCard({
       <div className="font-secondary text-black text-[0.8rem] md:text-[1rem] font-semibold">
         {title}
       </div>
-      <div className="font-secondary text-black text-xs">
+      {/* Worked at companies (Currently Disabled) */}
+      {/* <div className="font-secondary text-black text-xs">
         Previously Worked At:
         <div className="flex gap-3 justify-center">
           {workedAtImages.map((src) => (
@@ -35,7 +36,7 @@ function EngineerCard({
             />
           ))}
         </div>
-      </div>
+      </div> */}
     </div>
   )
 }
