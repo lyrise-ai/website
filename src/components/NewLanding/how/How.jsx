@@ -7,7 +7,8 @@ import paths from '../../../assets/product/how/paths.png'
 import macbook1 from '../../../assets/product/how/macbook1.png'
 
 import chatImg from '../../../assets/new-how/chat.png'
-import engineerCardImg from '../../../assets/new-how/engineer-card.png'
+// import engineerCardImg from '../../../assets/new-how/engineer-card.png'
+import engineerCardImg from '../../../assets/new-how/engineer-card-no-logos.png'
 import rectanglesImg from '../../../assets/new-how/rectangles.png'
 import sphereGif from '../../../assets/new-how/sphere.gif'
 

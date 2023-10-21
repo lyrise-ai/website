@@ -15,6 +15,7 @@ import FAQSection from '../src/components/FAQSection/FAQSection'
 import LeaveToLyRise from '../src/components/LeaveToLyRise/LeaveToLyRise'
 import { expertsSection } from '../src/constants/main'
 // import { FlagsProvider } from '../src/providers/RemoteConfigFirebase/FlagsProvider'
+import NewLanding from './new-landing'
 
 export default function Index() {
   React.useEffect(() => {
@@ -62,10 +63,11 @@ export default function Index() {
       />
       <ToastContainer />
       {/* <FlagsProvider> */}
+      {/* <MembersSection /> this puts extra margin in the children's for loop in the layout.js */}
+      {/* <ExpertSection /> */}
+      {/* 🟢 old landing page */}
       <Layout>
         <HeroSection />
-        {/* <MembersSection /> this puts extra margin in the children's for loop in the layout.js */}
-        {/* <ExpertSection /> */}
         <LeaveToLyRise cards={expertsSection} />
         <TopPartners />
         <HiringType />
@@ -74,6 +76,8 @@ export default function Index() {
         <ForbesSection />
         <FAQSection />
       </Layout>
+      {/* 🟢 new landing page */}
+      {/* <NewLanding /> */}
       {/* </FlagsProvider> */}
     </>
   )
