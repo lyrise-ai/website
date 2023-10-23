@@ -317,6 +317,9 @@ function HowSection() {
       <div className="col-span-1 h-full w-full relative flex">
         <ImageWithBackground src={macbook1} />
       </div>
+      <div className="text-3xl lg:text-4xl font-semibold text-center mb-10 font-primary">
+        How it works
+      </div>
     </div>
   )
 }
