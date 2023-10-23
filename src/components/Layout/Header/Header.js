@@ -112,28 +112,34 @@ export default function Header({ isTalent }) {
                 </a>
               </Link>
             </Grid>
-            {!medium ? (
-              <Grid item container wrap="nowrap" gap="20px">
-                <Grid item>
-                  <InternalLink
-                    text="About"
-                    link="/about"
-                    active={asPath === '/about'}
-                  />
-                </Grid>
-                <Grid item>
-                  <ExternalLink text="Blog" link="https://blog.lyrise.ai/" />
-                </Grid>
-                <Grid item>
-                  <InternalLink
-                    text="Product"
-                    link="/product"
-                    active={asPath === '/product'}
-                  />
-                </Grid>
-              </Grid>
-            ) : null}
           </Grid>
+          {!medium ? (
+            <Grid
+              item
+              container
+              wrap="nowrap"
+              gap="40px"
+              justifyContent={'center'}
+            >
+              <Grid item>
+                <InternalLink
+                  text="About"
+                  link="/about"
+                  active={asPath === '/about'}
+                />
+              </Grid>
+              <Grid item>
+                <ExternalLink text="Blog" link="https://blog.lyrise.ai/" />
+              </Grid>
+              <Grid item>
+                <InternalLink
+                  text="Product"
+                  link="/product"
+                  active={asPath === '/product'}
+                />
+              </Grid>
+            </Grid>
+          ) : null}
           {medium && pathname !== employerPathname ? (
             <>
               <Grid
@@ -233,7 +239,7 @@ export default function Header({ isTalent }) {
                 >
                   {pathname !== employerPathname ? (
                     <>
-                      <Grid item>
+                      {/* <Grid item>
                         <InternalLink
                           text={isTalent ? 'Start Hiring' : 'Apply for jobs'}
                           link={isTalent ? '/' : '/talents'}
@@ -245,7 +251,7 @@ export default function Header({ isTalent }) {
                           }
                           isTalent
                         />
-                      </Grid>
+                      </Grid> */}
                       <Grid item>
                         <ScheduleMeetingButton
                           white
@@ -256,8 +262,8 @@ export default function Header({ isTalent }) {
                           //     ? 'https://talents.lyrise.ai/'
                           //     : '/Employer'
                           // }
-                          link="https://meetings.hubspot.com/sales-lyrise"
-                          text={isTalent ? 'Apply Now' : undefined}
+                          link="/talents"
+                          text={'Join Our Talents'}
                           eventType={
                             isTalent
                               ? 'PressedApplyNow'

@@ -78,6 +78,8 @@ export default function ScheduleMeetingButton({
                 <Typography
                   color={white ? 'primary' : '#FFF'}
                   fontSize="1.3rem"
+                  className="font-secondary"
+                  fontWeight={500}
                 >
                   {(pathname === '/' || pathname === '/about') &&
                   [
