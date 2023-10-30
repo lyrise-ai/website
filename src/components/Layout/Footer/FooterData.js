@@ -22,11 +22,11 @@ export const footerLinksTwo = [
     href: 'https://talents.lyrise.ai',
     text: 'Apply For Jobs',
   },
-  {
-    id: 2,
-    href: 'https://discord.gg/QSgmJH3KPS',
-    text: 'AI & Community',
-  },
+  // {
+  //   id: 2,
+  //   href: 'https://discord.gg/QSgmJH3KPS',
+  //   text: 'AI & Community',
+  // },
 ]
 
 export const footerLinksThree = [
