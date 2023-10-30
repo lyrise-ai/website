@@ -10,7 +10,7 @@ export default function HeroSection() {
         </h1>
         <h3 className="pr-5 mb-6 text-neutral-600 font-secondary max-md:text-sm max-md:font-semibold lg:font-primary">
           Find the perfect candidate for your team and hire the top AI and data
-          talents from a pool of top notch profiles.
+          talent from a pool of top notch profiles.
         </h3>
         <div className="border-[12px] bg-[#EFF2FF] border-white rounded-[20px] max-md:mr-0 p-4 flex flex-col gap-3 w-fit min-w-[20vw]">
           <div className="font-secondary text-[1.1rem] font-semibold">
