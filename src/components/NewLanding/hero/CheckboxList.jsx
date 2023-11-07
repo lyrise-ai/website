@@ -95,7 +95,7 @@ function CheckboxList({
       onSubmit={handleSubmit}
     >
       <h3
-        className="font-secondary font-semibold text-black max-md:text-sm"
+        className="font-secondary font-semibold text-black max-lg:text-sm text-lg"
         role="checkbox"
       >
         What use cases are you looking for?

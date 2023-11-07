@@ -51,10 +51,10 @@ function Question({ question, answer }) {
   return (
     <div
       className={
-        'p-5 rounded-lg bg-white cursor-pointer transition-all duration-300 h-fit border-2 ' +
+        'rounded-lg bg-white cursor-pointer transition-all ease-out duration-300 h-fit border-2 ' +
         (collapsed
-          ? 'border-transparent max-h-[10vh]'
-          : '!border-blue-500 !max-h-[60vh]')
+          ? 'px-5 border-transparent max-h-[10vh]'
+          : 'p-5 !border-blue-500 !max-h-[60vh]')
       }
       onClick={() => setCollapsed(!collapsed)}
     >
@@ -64,9 +64,9 @@ function Question({ question, answer }) {
         </div>
         <div
           className={
-            'text-[1.5rem] font-bold transition-all relative flex-shrink-0 ' +
+            'text-[1.5rem] font-bold transition-all ease-out relative flex-shrink-0 ' +
             (collapsed
-              ? '-rotate-90'
+              ? '-rotate-90 my-2'
               : 'rotate-0 bg-blue-500 text-white rounded-full')
           }
         >
