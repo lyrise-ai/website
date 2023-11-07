@@ -263,7 +263,8 @@ export default function Header({ isTalent }) {
                           //     : '/Employer'
                           // }
                           link="https://talents.lyrise.ai/"
-                          text={'Join Our Talent'}
+                          // text={'Join Our Talent'}
+                          text={'Apply as a talent'}
                           eventType={
                             isTalent
                               ? 'PressedApplyNow'
