@@ -60,7 +60,7 @@ export default function LyriseAIBeta() {
           onSubmit={handleSubmit}
         >
           <div>
-            <h1 className="text-3xl font-semibold text-left mb-5 relative">
+            <h1 className="text-2xl md:text-3xl font-semibold text-left mb-5 relative">
               Pre-sign up to try LyRiseAI{' '}
               <sup className="text-xs rounded-lg bg-cyan-100 text-cyan-600 px-1 py-0.5 ml-1 font-normal h-fit absolute top-0">
                 Beta
@@ -110,14 +110,14 @@ export default function LyriseAIBeta() {
           />
           <div className="mt-2">
             <button
-              className="bg-primary py-2 font-secondary rounded-lg text-white text-xl px-4 mr-5"
+              className="bg-primary py-2 font-secondary rounded-lg text-white text-lg md:text-xl px-4 mr-5"
               type="submit"
             >
               Join the waitlist!
             </button>
             <a
               href="javascript:history.back()"
-              className="flex-1 bg-white py-2 font-secondary rounded-lg text-primary text-xl px-4 border border-primary"
+              className="flex-1 bg-white py-2 font-secondary rounded-lg text-primary text-lg md:text-xl px-4 border border-primary"
             >
               Back
             </a>
@@ -140,7 +140,7 @@ function FormInput({
     <div className="flex flex-col gap-1">
       <label
         htmlFor={label}
-        className="text-base font-secondary text-neutral-900"
+        className="text-sm md:text-base font-secondary text-neutral-900"
       >
         {label}
       </label>
@@ -148,7 +148,7 @@ function FormInput({
         type={type}
         id={label}
         placeholder={placeholder}
-        className="rounded-lg border border-[#D1DBFF] p-3 font-secondary text-lg"
+        className="rounded-lg border border-[#D1DBFF] p-3 font-secondary text-base md:text-lg"
         required={required}
         value={value}
         onChange={(e) => setValue(e.target.value)}

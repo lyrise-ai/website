@@ -28,15 +28,15 @@
 }
 @font-face {
   font-family: Poppins;
-  src: url('../fonts/Poppins-SemiBold.ttf') format('opentype');
-  font-weight: 500;
+  src: url('../fonts/poppins.ttf') format('opentype');
+
+  font-weight: 400;
 }
 
 @font-face {
   font-family: Poppins;
-  src: url('../fonts/poppins.ttf') format('opentype');
-
-  font-weight: 400;
+  src: url('../fonts/Poppins-SemiBold.ttf') format('opentype');
+  font-weight: 600;
 }
 
 :root {
@@ -311,7 +311,7 @@ li {
   }
 
   .animate-active-2 {
-    transform: translateX(0) translateY(-10vh) !important;
+    transform: translateX(0) translateY(-60vh) !important;
     max-height: 70vh !important;
   }
 }

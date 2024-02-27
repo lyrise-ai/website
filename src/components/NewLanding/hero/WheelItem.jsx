@@ -141,7 +141,7 @@ const toEngineerCard = {
   'Retail & E-Commerce': {
     imgSrc: karim2Img,
     title: 'Data Science Expert',
-    name: 'Karim Tawfik',
+    name: 'Ahmed Samir Tawfik',
     workedAtImages: [vodafoneImg],
   },
 }

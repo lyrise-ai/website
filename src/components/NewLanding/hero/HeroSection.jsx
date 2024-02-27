@@ -4,9 +4,9 @@ import ItemsVault from './ItemsVault'
 export default function HeroSection() {
   return (
     // note: overflow was hidden here
-    <div className="flex flex-col-reverse md:grid grid-cols-3 w-full px-10x relative m-auto mx-10x mb-20">
+    <div className="flex flex-col md:grid grid-cols-3 w-full px-10x relative m-auto mx-10x mb-20">
       <div className="col-span-1 flex flex-col justify-center max-md:text-center md:ml-10 lg:ml-32 max-md:max-w-[80vw] max-md:m-auto max-md:items-center">
-        <h1 className="text-3xl lg:text-5xl font-semibold mb-6 font-primary">
+        <h1 className="text-3xl lg:text-5xl font-semibold mb-6 font-primary max-sm:mt-10">
           Unlock A.I for your Business
         </h1>
         <h3 className="pr-5 mb-6 text-neutral-600 font-secondary max-md:text-sm max-md:font-semibold lg:font-primary">
@@ -41,19 +41,19 @@ export default function HeroSection() {
           </a> */}
 
           {/* LyriseAI Launch  */}
-          <h3 className="text-2xl text-center flex font-secondary text-[#1C1C1C]">
+          <h3 className="text-xl md:text-2xl text-center flex font-secondary text-[#1C1C1C]">
             We're Launching LyriseAI
             <sup className="text-xs rounded-lg bg-cyan-100 text-cyan-600 px-1 py-0.5 ml-2 font-normal h-fit">
               Beta
             </sup>
           </h3>
 
-          <p className="w-full text-lg font-secondary text-[#475467]">
+          <p className="w-full text-base text-left   font-secondary text-[#475467]">
             LyRiseAI is our proprietary chat interface to find AI talents by
             chatting with our LLM!
           </p>
 
-          <button className="bg-primary py-2 font-secondary rounded-lg text-white">
+          <button className="bg-primary py-2 font-secondary rounded-lg text-white text-lg">
             <a href="/lyriseAI-beta" className="flex-1">
               Join Our Beta!
             </a>

@@ -25,7 +25,7 @@ function LLMs() {
         imgSrc={lyriseAI}
         subtitle="Find the A.I. talents you need."
         description="LyRise AI connects you with top AI talent to bring your AI use cases to life. Skip the recruitment hassle and focus on building your AI future."
-        link="/"
+        link="/lyriseAI-beta"
         phase="Beta"
       />
       {/* </div> */}
@@ -37,7 +37,8 @@ export default LLMs
 
 function Solution({ title, imgSrc, subtitle, description, link, phase }) {
   return (
-    // <div className="col-span-1 h-auto p-5 bg-white rounded-lg flex flex-col items-center justify-between max-sm:mx-5 max-sm:mb-5">
+    // <>
+    // <div className="md:hidden col-span-1 h-auto p-5 bg-white rounded-lg flex flex-col items-center justify-between max-sm:mx-5 max-sm:mb-5">
     //   <h2 className="text-4xl font-semibold text-center my-4 flex justify-center">
     //     {title}
     //     <sup className="text-xs rounded-lg bg-cyan-100 text-cyan-600 px-1 py-0.5 ml-2 font-normal h-fit">
@@ -65,9 +66,9 @@ function Solution({ title, imgSrc, subtitle, description, link, phase }) {
     //   </div>
     // </div>
 
-    <div className="col-span-1 h-auto p-5 bg-white rounded-2xl flex flex-col items-center justify-between md:grid grid-cols-2 max-sm:mx-5 max-sm:mb-5 max-w-6xl gap-4">
+    <div className="col-span-1 h-auto p-5 bg-white rounded-2xl flex flex-col-reverse items-center justify-between md:grid grid-cols-2 max-sm:mx-5 max-sm:mb-5 max-w-6xl gap-4">
       <div>
-        <h2 className="text-5xl font-semibold my-4 flex">
+        <h2 className="md:flex hidden text-3xl lg:text-5xl font-semibold my-4">
           {title}
           <sup className="text-xs rounded-lg bg-cyan-100 text-cyan-600 px-1 py-0.5 ml-2 font-normal h-fit">
             {phase}
@@ -97,6 +98,12 @@ function Solution({ title, imgSrc, subtitle, description, link, phase }) {
       <div className="col-span-1 h-full flex items-center justify-center">
         <Img src={imgSrc} alt={title} className={''} />
       </div>
+      <h2 className="flex md:hidden text-3xl lg:text-5xl font-semibold my-4">
+        {title}
+        <sup className="text-xs rounded-lg bg-cyan-100 text-cyan-600 px-1 py-0.5 ml-2 font-normal h-fit">
+          {phase}
+        </sup>
+      </h2>
     </div>
   )
 }
