@@ -13,6 +13,7 @@ import UseCases from './use-cases/UseCases'
 import Security from './security'
 import LandingTestimonials from './testimonials'
 import FAQ from './faq'
+import LLMs from './llms'
 
 export default function NewLanding() {
   return (
@@ -20,6 +21,7 @@ export default function NewLanding() {
       {/* <Img src={background} className="w-screen h-fit object-cover absolute top-0 left-0" /> */}
       <div className="w-full h-fit new-landing-container">
         <HeroSection />
+        <LLMs />
         <BackedBy />
         <HowItWorks />
         {/* <div className='bg-white h-[50vh]'>
@@ -41,7 +43,7 @@ export default function NewLanding() {
 function BackedBy() {
   return (
     <div className="flex flex-col items-center gap-5 w-full overflow-hidden">
-      <div className="text-3xl lg:text-4xl font-semibold text-center mb-10 font-primary">
+      <div className="text-3xl lg:text-4xl font-semibold text-center mb-10 font-primary mt-20">
         LyRise is backed by
       </div>
       <div className="flex gap-10 mx-10">

@@ -35,7 +35,7 @@ const testimonials = [
   },
   {
     id: 3,
-    name: 'Ahmed Sheikha',
+    name: 'Ahmed Ibrahim',
     title: 'Founder & CEO',
     image: ibrahimImage,
     mobileLogo: ibrahimLogo,

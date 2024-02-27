@@ -13,8 +13,9 @@ export default function HeroSection() {
           Find the perfect candidate for your team and hire the top AI and data
           talent from a pool of top notch profiles.
         </h3>
-        <div className="border-[12px] bg-[#EFF2FF] border-white rounded-[20px] max-md:mr-0 p-4 flex flex-col gap-3 w-fit min-w-[20vw]">
-          <div className="font-secondary text-[1.1rem] font-semibold">
+        <div className="border-[12px] bg-[#EFF2FF] border-white rounded-[20px] max-md:mr-0 p-4 flex flex-col gap-3 w-fit max-w-[425px]">
+          {/* First Landing Page launch content - Deprecated */}
+          {/* <div className="font-secondary text-[1.1rem] font-semibold">
             Are you in another industry?
           </div>
           <select className="font-secondary text-sm p-2 text-gray-300 rounded border border-gray-300">
@@ -37,7 +38,29 @@ export default function HeroSection() {
             >
               Book Free Consultation
             </button>
-          </a>
+          </a> */}
+
+          {/* LyriseAI Launch  */}
+
+          <h3></h3>
+
+          <h3 className="text-2xl text-center flex font-secondary text-[#1C1C1C]">
+            We're Launching LyriseAI
+            <sup className="text-xs rounded-lg bg-cyan-100 text-cyan-600 px-1 py-0.5 ml-2 font-normal h-fit">
+              Beta
+            </sup>
+          </h3>
+
+          <p className="w-full text-lg font-secondary text-[#475467]">
+            LyRiseAI is our proprietary chat interface to find AI talents by
+            chatting with our LLM!
+          </p>
+
+          <button className="bg-primary py-2 font-secondary rounded-lg text-white">
+            <a href="/lyriseAI-beta" className="flex-1">
+              Join Our Beta!
+            </a>
+          </button>
         </div>
       </div>
       <ItemsVault />
