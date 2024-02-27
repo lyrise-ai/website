@@ -4,17 +4,18 @@ import ItemsVault from './ItemsVault'
 export default function HeroSection() {
   return (
     // note: overflow was hidden here
-    <div className="flex flex-col-reverse md:grid grid-cols-3 w-full px-10x relative m-auto mx-10x mb-20">
+    <div className="flex flex-col md:grid grid-cols-3 w-full px-10x relative m-auto mx-10x mb-20">
       <div className="col-span-1 flex flex-col justify-center max-md:text-center md:ml-10 lg:ml-32 max-md:max-w-[80vw] max-md:m-auto max-md:items-center">
-        <h1 className="text-3xl lg:text-5xl font-semibold mb-6 font-primary">
+        <h1 className="text-3xl lg:text-5xl font-semibold mb-6 font-primary max-sm:mt-10">
           Unlock A.I for your Business
         </h1>
         <h3 className="pr-5 mb-6 text-neutral-600 font-secondary max-md:text-sm max-md:font-semibold lg:font-primary">
           Find the perfect candidate for your team and hire the top AI and data
           talent from a pool of top notch profiles.
         </h3>
-        <div className="border-[12px] bg-[#EFF2FF] border-white rounded-[20px] max-md:mr-0 p-4 flex flex-col gap-3 w-fit min-w-[20vw]">
-          <div className="font-secondary text-[1.1rem] font-semibold">
+        <div className="border-[12px] bg-[#EFF2FF] border-white rounded-[20px] max-md:mr-0 p-4 flex flex-col gap-3 w-fit max-w-[425px]">
+          {/* First Landing Page launch content - Deprecated */}
+          {/* <div className="font-secondary text-[1.1rem] font-semibold">
             Are you in another industry?
           </div>
           <select className="font-secondary text-sm p-2 text-gray-300 rounded border border-gray-300">
@@ -37,7 +38,26 @@ export default function HeroSection() {
             >
               Book Free Consultation
             </button>
-          </a>
+          </a> */}
+
+          {/* LyriseAI Launch  */}
+          <h3 className="text-xl md:text-2xl text-center flex font-secondary text-[#1C1C1C]">
+            We're Launching LyriseAI
+            <sup className="text-xs rounded-lg bg-cyan-100 text-cyan-600 px-1 py-0.5 ml-2 font-normal h-fit">
+              Beta
+            </sup>
+          </h3>
+
+          <p className="w-full text-base text-left   font-secondary text-[#475467]">
+            LyRiseAI is our proprietary chat interface to find AI talents by
+            chatting with our LLM!
+          </p>
+
+          <button className="bg-primary py-2 font-secondary rounded-lg text-white text-lg">
+            <a href="/lyriseAI-beta" className="flex-1">
+              Join Our Beta!
+            </a>
+          </button>
         </div>
       </div>
       <ItemsVault />

@@ -47,6 +47,11 @@ const list = [
     href: '/product',
     icon: CaseStudiesIcon,
   },
+  {
+    text: 'LyRiseAI',
+    href: '/lyriseAI-beta',
+    icon: CaseStudiesIcon,
+  },
 ]
 
 export default function Header({ isTalent }) {
@@ -135,6 +140,13 @@ export default function Header({ isTalent }) {
                 <InternalLink
                   text="Product"
                   link="/product"
+                  active={asPath === '/product'}
+                />
+              </Grid>
+              <Grid item>
+                <InternalLink
+                  text="LyRiseAI"
+                  link="/lyriseAI-beta"
                   active={asPath === '/product'}
                 />
               </Grid>
