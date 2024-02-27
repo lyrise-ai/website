@@ -41,9 +41,6 @@ export default function HeroSection() {
           </a> */}
 
           {/* LyriseAI Launch  */}
-
-          <h3></h3>
-
           <h3 className="text-2xl text-center flex font-secondary text-[#1C1C1C]">
             We're Launching LyriseAI
             <sup className="text-xs rounded-lg bg-cyan-100 text-cyan-600 px-1 py-0.5 ml-2 font-normal h-fit">
