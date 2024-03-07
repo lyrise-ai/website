@@ -2,6 +2,7 @@ import axios from 'axios'
 import { useState } from 'react'
 import LyRiseLogo from '../src/assets/LyRiseLogo.png'
 import Image from 'next/image'
+import Link from 'next/link'
 
 const SHEET_BEST_API =
   'https://sheet.best/api/sheets/055403a5-9b68-4668-b56a-6ab32974ae75'
@@ -46,9 +47,9 @@ export default function LyriseAIBeta() {
     <div className="h-screen relative flex flex-col">
       {/* navbar */}
       <div className="bg-white border-b-2 border-[#D0D5DD] w-full h-16 z-20 items-center justify-center flex">
-        <a href="/" className="flex">
+        <Link href="/" className="flex">
           <Image src={LyRiseLogo} width={100} height={100 / 3} />
-        </a>
+        </Link>
       </div>
       {/* background */}
       <div className="absolute w-screen h-screen -z-1 scale-105 top-0 left-0 new-landing-container blur-lg"></div>
@@ -115,12 +116,14 @@ export default function LyriseAIBeta() {
             >
               Join the waitlist!
             </button>
-            <a
-              href="javascript:history.back()"
+            <button
+              // href="javascript:history.back()"
+              type="button"
+              onClick={() => window.history.back()}
               className="flex-1 bg-white py-2 font-secondary rounded-lg text-primary text-lg md:text-xl px-4 border border-primary"
             >
               Back
-            </a>
+            </button>
           </div>
         </form>
       </div>

@@ -1,5 +1,6 @@
 import React from 'react'
 import ItemsVault from './ItemsVault'
+import Link from 'next/link'
 
 export default function HeroSection() {
   return (
@@ -41,9 +42,9 @@ export default function HeroSection() {
           </a> */}
 
           {/* LyriseAI Launch  */}
-          <h3 className="text-xl md:text-2xl text-center flex font-secondary text-[#1C1C1C]">
-            We're Launching LyriseAI
-            <sup className="text-xs rounded-lg bg-cyan-100 text-cyan-600 px-1 py-0.5 ml-2 font-normal h-fit">
+          <h3 className="text-xl md:text-2xl max-sm:text-center flex font-secondary text-[#1C1C1C] relative">
+            We&apos;re Launching LyriseAI
+            <sup className="text-xs rounded-lg bg-cyan-100 text-cyan-600 px-1 py-0.5 ml-2 font-normal h-fit absolute top-0 right-0">
               Beta
             </sup>
           </h3>
@@ -53,10 +54,13 @@ export default function HeroSection() {
             chatting with our LLM!
           </p>
 
-          <button className="bg-primary py-2 font-secondary rounded-lg text-white text-lg">
-            <a href="/lyriseAI-beta" className="flex-1">
+          <button
+            className="bg-primary py-2 font-secondary rounded-lg text-white text-lg"
+            type="button"
+          >
+            <Link href="/lyriseAI-beta" className="flex-1">
               Join Our Beta!
-            </a>
+            </Link>
           </button>
         </div>
       </div>
