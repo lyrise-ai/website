@@ -54,14 +54,14 @@ export default function HeroSection() {
             chatting with our LLM!
           </p>
 
-          <button
-            className="bg-primary py-2 font-secondary rounded-lg text-white text-lg"
-            type="button"
-          >
-            <Link href="/lyriseAI-beta" className="flex-1">
+          <Link href="/lyriseAI-beta">
+            <button
+              className="bg-primary py-2 font-secondary rounded-lg text-white text-lg"
+              type="button"
+            >
               Join Our Beta!
-            </Link>
-          </button>
+            </button>
+          </Link>
         </div>
       </div>
       <ItemsVault />
