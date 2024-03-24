@@ -274,7 +274,8 @@ export default function Header({ isTalent }) {
                           //     ? 'https://talents.lyrise.ai/'
                           //     : '/Employer'
                           // }
-                          link="https://talents.lyrise.ai/"
+                          // link="https://talents.lyrise.ai/"
+                          link="https://lyrai-chat.lyrise.ai/talent/register"
                           // text={'Join Our Talent'}
                           text={'Apply as a talent'}
                           eventType={
