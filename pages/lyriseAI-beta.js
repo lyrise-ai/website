@@ -5,7 +5,7 @@ import Image from 'next/image'
 import Link from 'next/link'
 
 const SHEET_BEST_API =
-  'https://sheet.best/api/sheets/055403a5-9b68-4668-b56a-6ab32974ae75'
+  'https://sheet.best/api/sheets/cac1121b-94da-4680-8818-b304c31cfd84'
 
 export default function LyriseAIBeta() {
   const [firstName, setFirstName] = useState('')
