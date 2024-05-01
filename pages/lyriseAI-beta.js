@@ -1,11 +1,10 @@
-import axios from 'axios'
-import { useState } from 'react'
-import LyRiseLogo from '../src/assets/LyRiseLogo.png'
 import Image from 'next/image'
 import Link from 'next/link'
+import { useState } from 'react'
+import LyRiseLogo from '../src/assets/LyRiseLogo.png'
 
-const SHEET_BEST_API =
-  'https://sheet.best/api/sheets/cac1121b-94da-4680-8818-b304c31cfd84'
+const GOOGLE_SCRIPT_URL =
+  'https://script.google.com/macros/s/AKfycbyrKqWtl4CU-VAa-eN2F_ZS6GxGo7fHt2djGQK0NLl8vNoYZ7jhLXJu1KVznk4Bcfo/exec'
 
 export default function LyriseAIBeta() {
   const [firstName, setFirstName] = useState('')
@@ -17,16 +16,19 @@ export default function LyriseAIBeta() {
   const handleSubmit = (e) => {
     e.preventDefault()
 
-    const data = {
-      'First Name': firstName,
-      'Last Name': lastName,
-      'Email Address': email,
-      'Company Website': companyWebsite,
-      'Job Title': jobTitle,
+    const formData = new FormData()
+    formData.append('First Name', firstName)
+    formData.append('Last Name', lastName)
+    formData.append('Email Address', email)
+    formData.append('Company Website', companyWebsite)
+    formData.append('Job Title', jobTitle)
+
+    const options = {
+      method: 'POST',
+      body: formData,
     }
 
-    axios
-      .post(SHEET_BEST_API, data)
+    fetch(GOOGLE_SCRIPT_URL, options)
       .then((res) => {
         alert('Thank you for signing up! We will reach out to you soon.')
         console.log(res)
@@ -71,6 +73,7 @@ export default function LyriseAIBeta() {
           <div className="grid gap-5 flex-1 grid-cols-2">
             <FormInput
               label="First Name"
+              name="First Name"
               type="text"
               placeholder="Jack"
               required
@@ -79,6 +82,7 @@ export default function LyriseAIBeta() {
             />
             <FormInput
               label="Last Name"
+              name="Last Name"
               type="text"
               placeholder="Cooper"
               required
@@ -88,6 +92,7 @@ export default function LyriseAIBeta() {
           </div>
           <FormInput
             label="Email"
+            name="Email Address"
             type="email"
             placeholder="jack@company.com"
             required
@@ -96,6 +101,7 @@ export default function LyriseAIBeta() {
           />
           <FormInput
             label="Company Website (Optional)"
+            name="Company Website"
             type="text"
             placeholder="https://company.com"
             value={companyWebsite}
@@ -103,6 +109,7 @@ export default function LyriseAIBeta() {
           />
           <FormInput
             label="Job Title"
+            name="Job Title"
             type="text"
             placeholder="Data Scientist"
             value={jobTitle}
@@ -138,6 +145,7 @@ function FormInput({
   required = false,
   value,
   setValue,
+  name,
 }) {
   return (
     <div className="flex flex-col gap-1">
@@ -154,6 +162,7 @@ function FormInput({
         className="rounded-lg border border-[#D1DBFF] p-3 font-secondary text-base md:text-lg"
         required={required}
         value={value}
+        name={name}
         onChange={(e) => setValue(e.target.value)}
         pattern={
           type === 'email' ? '[a-z0-9._%+-]+@[a-z0-9.-]+.[a-z]{2,}$' : undefined

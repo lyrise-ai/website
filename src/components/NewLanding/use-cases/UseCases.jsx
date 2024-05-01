@@ -79,15 +79,15 @@ export default function UseCases() {
       </div>
 
       <Carousel
-        navigation={({ setActiveIndex, activeIndex, length }) =>
-          [...Array(length).keys()].map((i) => {
+        navigation={({ setActiveIndex }) =>
+          cases.map((c) => {
             return (
               <button
                 type="button"
-                key={i}
+                key={c.id}
                 className="hidden"
-                ref={refs[i]}
-                onClick={() => setActiveIndex(i)}
+                ref={refs[c.id]}
+                onClick={() => setActiveIndex(Number(c.id))}
               />
             )
           })

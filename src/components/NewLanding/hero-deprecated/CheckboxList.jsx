@@ -1,6 +1,6 @@
 import React from 'react'
 
-import Img from './../../Product/Img'
+import Img from '../../Product/Img'
 
 // healthcare
 import healthCare1 from '/src/assets/hero/icons/healthcare/1.png'

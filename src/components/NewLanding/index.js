@@ -1,27 +1,27 @@
 import React from 'react'
 
 import Layout from '../Layout/Layout'
-import HeroSection from './hero/HeroSection'
-import HowItWorks from './how/How'
 import Img from '../Product/Img'
+import HowItWorks from './how/How'
 
 import backedby1 from '../../../src/assets/hero/backed-by/1.png'
 import backedby2 from '../../../src/assets/hero/backed-by/2.png'
 import backedby3 from '../../../src/assets/hero/backed-by/3.png'
+import FAQ from './faq'
+import HeroSection from './hero/HeroSection'
 import Logos from './logos'
-import UseCases from './use-cases/UseCases'
 import Security from './security'
 import LandingTestimonials from './testimonials'
-import FAQ from './faq'
-import LLMs from './llms'
+import UseCases from './use-cases/UseCases'
 
 export default function NewLanding() {
   return (
     <Layout isRaw={true}>
       {/* <Img src={background} className="w-screen h-fit object-cover absolute top-0 left-0" /> */}
       <div className="w-full h-fit new-landing-container">
+        {/* <HeroSection /> */}
         <HeroSection />
-        <LLMs />
+        {/* <LLMs /> */}
         <BackedBy />
         <HowItWorks />
         {/* <div className='bg-white h-[50vh]'>

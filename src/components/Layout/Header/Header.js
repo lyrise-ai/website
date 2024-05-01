@@ -113,7 +113,12 @@ export default function Header({ isTalent }) {
             >
               <Link href="/">
                 <a>
-                  <Image src={LyRiseLogo} />
+                  <Image
+                    src={LyRiseLogo}
+                    width={120}
+                    height={40}
+                    objectFit="contain"
+                  />
                 </a>
               </Link>
             </Grid>
