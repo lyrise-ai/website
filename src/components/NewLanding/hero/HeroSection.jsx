@@ -24,9 +24,9 @@ export default function HeroSection() {
 
     observer.observe(videoRef.current)
 
-    return () => {
-      observer.unobserve(videoRef.current)
-    }
+    // return () => {
+    //   observer.unobserve(videoRef.current)
+    // }
   })
 
   return (
