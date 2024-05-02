@@ -36,14 +36,12 @@ export default function HeroSection() {
         <h1 className="text-3xl lg:text-7xl font-semibold mb-6 font-primary max-sm:mt-10">
           Build AI Teams Faster
         </h1>
-        <h3 className="pr-5 mb-6 text-neutral-600 font-secondary text-sm md:text-[0.95rem] md:leading-[1.35rem] lg:text-2xl font-medium lg:font-primary">
-          A recruitment tool to instantly match with your required candidate.
-          Database curated from a pool of pre-vetted, top notch profiles. AI has
-          many perks, we are just unlocking a door to them for you.
+        <h3 className="pr-5 mb-6 text-neutral-600 font-secondary text-lg md:text-xl lg:text-2xl font-medium lg:font-primary">
+          Match with the top A.I. talent and start work in 2 weeks - risk-free guaranteed.
         </h3>
         <Link href="/lyriseAI-beta">
           <button
-            className="bg-primary hover:bg-blue-700 py-2 font-secondary rounded-lg text-white lg:text-2xl px-12 md:px-20 lg:px-32 font-medium w-fit transition-all duration-200"
+            className="bg-primary hover:bg-blue-700 py-2 font-secondary rounded-lg text-white text-xl lg:text-2xl px-12 md:px-20 lg:px-32 font-medium w-fit transition-all duration-200"
             type="button"
           >
             Join Our Beta!
