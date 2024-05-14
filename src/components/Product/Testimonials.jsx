@@ -12,17 +12,17 @@ import LyCarousel from './LyCarousel'
 import Img from './Img'
 
 const testimonials = [
-  {
-    id: 1,
-    name: 'Ahmed Sheikha',
-    title: 'Chief Business Officer',
-    image: ahmedImage,
-    mobileLogo: ahmedLogo,
-    DesktopLogo: ahmedDeskLogo,
-    quote: `"lyrise helped us focus on what really matters. lyrise made the hiring
-    process painless, supported us with technical advice, and saved us
-    over 50% in terms of cost and time."`,
-  },
+  // {
+  //   id: 1,
+  //   name: 'Ahmed Sheikha',
+  //   title: 'Chief Business Officer',
+  //   image: ahmedImage,
+  //   mobileLogo: ahmedLogo,
+  //   DesktopLogo: ahmedDeskLogo,
+  //   quote: `"lyrise helped us focus on what really matters. lyrise made the hiring
+  //   process painless, supported us with technical advice, and saved us
+  //   over 50% in terms of cost and time."`,
+  // },
   {
     id: 2,
     name: 'Robert Pratt',

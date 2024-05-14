@@ -298,7 +298,7 @@ function HowSection() {
           team will listen to all of your requirements and find the talent that
           is your perfect fit.
         </p>
-        <h1 className="md:hidden font-primary-500 text-4xl mt-3">
+        <h1 className="md:hidden text-3xl lg:text-4xl font-semibold text-center font-primary mb-3">
           Free Consultation & Gap Analysis
         </h1>
         <p className="md:hidden font-primary-500 text-2xl text-gray-500">
