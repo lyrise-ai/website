@@ -292,9 +292,9 @@ export const UseCasesCards = cases.map((_case) => {
             <path
               d="M4.1665 9.99996H15.8332M15.8332 9.99996L9.99984 4.16663M15.8332 9.99996L9.99984 15.8333"
               stroke="#0033EB"
-              stroke-width="1.66667"
-              stroke-linecap="round"
-              stroke-linejoin="round"
+              strokeWidth="1.66667"
+              strokeLinecap="round"
+              strokeLinejoin="round"
             />
           </svg>
         </div> */}
