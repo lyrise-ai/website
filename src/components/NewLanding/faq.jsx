@@ -96,9 +96,9 @@ const ArrowSvg = () => {
       <path
         d="M17.2305 22.2432L25.4871 30.4624L33.7436 22.2432"
         stroke="currentColor"
-        stroke-width="2"
-        stroke-linecap="round"
-        stroke-linejoin="round"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
       />
     </svg>
   )

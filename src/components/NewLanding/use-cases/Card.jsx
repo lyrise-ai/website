@@ -270,36 +270,18 @@ export const UseCasesCards = cases.map((_case) => {
                 />
               </div>
               <div className="text-left flex flex-col justify-center flex-grow-0">
-                <div className="font-secondary text-black font-semibold text-sm md:text-xs lg:text-lg mb-1">
+                <div className="font-secondary text-black font-semibold text-sm lg:text-lg mb-1">
                   {item.title}
                 </div>
-                <div className="font-secondary text-gray-500 text-sm md:text-xs lg:text-[1.05rem] leading-5">
+                <div className="font-secondary text-gray-500 text-sm lg:text-[1.05rem] leading-5">
                   {item.subtitle}
                 </div>
               </div>
             </div>
           )
         })}
-        {/* <div className="flex gap-2 text-primary font-semibold font-secondary text-sm cursor-pointer">
-          View all Use Cases{' '}
-          <svg
-            width="20"
-            height="20"
-            viewBox="0 0 20 20"
-            fill="none"
-            xmlns="http://www.w3.org/2000/svg"
-          >
-            <path
-              d="M4.1665 9.99996H15.8332M15.8332 9.99996L9.99984 4.16663M15.8332 9.99996L9.99984 15.8333"
-              stroke="#0033EB"
-              stroke-width="1.66667"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-            />
-          </svg>
-        </div> */}
       </div>
-      <div className="hidden lg:block">
+      <div className="hidden xl:block">
         <Image src={_case.imgSrc} className="rounded-xl flex-1" />
       </div>
     </div>

@@ -66,7 +66,7 @@ export default function UseCases() {
         Discover the Industry and Use Cases for your A.I. needs
       </h1>
 
-      <div className="inline-flex max-sm:w-[90vw] flex-row lg:gap-10 lg:mx-52 border-neutral-400 border-b-2 max-md:overflow-x-scroll">
+      <div className="inline-flex max-sm:w-[90vw] flex-row lg:gap-10 lg:mx-20 xl:mx-52 border-neutral-400 border-b-2 max-md:overflow-x-scroll">
         {cases.map((item) => (
           <Tab
             key={item.id}
