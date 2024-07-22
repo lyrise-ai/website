@@ -34,17 +34,18 @@ export default function HeroSection() {
     <div className="flex flex-col md:grid grid-cols-9 w-full px-10x relative m-auto md:mb-20 md:max-w-[90rem] gap-10 py-3 md:py-20 max-md:px-5">
       <div className="col-span-4 flex flex-col max-md:text-center md:ml-10 max-md:items-center">
         <h1 className="text-3xl lg:text-7xl font-semibold mb-6 font-primary max-sm:mt-10">
-          Build AI Teams Faster
+          Hire AI Talent Instantly
         </h1>
         <h3 className="pr-5 mb-6 text-neutral-600 font-secondary text-lg md:text-xl lg:text-2xl font-medium lg:font-primary">
-          Match with the top A.I. talent and start work in 2 weeks - risk-free guaranteed.
+          Our LLM will match you with the top 2% vetted AI engineers in Africa,
+          for free.
         </h3>
-        <Link href="/lyriseAI-beta">
+        <Link href="https://lyrai-chat.lyrise.ai/">
           <button
             className="bg-primary hover:bg-blue-700 py-2 font-secondary rounded-lg text-white text-xl lg:text-2xl px-12 md:px-20 lg:px-32 font-medium w-fit transition-all duration-200"
             type="button"
           >
-            Join Our Beta!
+            Hire now!
           </button>
         </Link>
       </div>
