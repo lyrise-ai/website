@@ -49,7 +49,7 @@ const list = [
   },
   {
     text: 'LyRiseAI',
-    href: 'https://lyrai-chat.lyrise.ai/',
+    href: '/lyriseAI-beta',
     icon: CaseStudiesIcon,
   },
 ]
@@ -149,14 +149,10 @@ export default function Header({ isTalent }) {
                 />
               </Grid>
               <Grid item>
-                {/* <InternalLink
+                <InternalLink
                   text="LyRiseAI"
                   link="/lyriseAI-beta"
                   active={asPath === '/product'}
-                /> */}
-                <ExternalLink
-                  text="LyRiseAI"
-                  link="https://lyrai-chat.lyrise.ai/"
                 />
               </Grid>
             </Grid>
