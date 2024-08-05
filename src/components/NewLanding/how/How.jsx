@@ -277,7 +277,7 @@ function HowDesktopSection({ title, subtitle }) {
         type="button"
         className="flex gap-3 items-center font-primary-500 text-2xl text-primary font-primary"
         onClick={() => {
-          window.open(LYRISEAI_PRODUCT_URL, '_blank')
+          window.open(LYRISEAI_PRODUCT_URL + 'signup', '_blank')
         }}
       >
         Get Started <AiOutlineArrowRight />

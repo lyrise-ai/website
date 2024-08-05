@@ -83,7 +83,7 @@ function Security() {
                     className="bg-blue-500 p-3 py-2 text-[1rem] font-secondary text-white font-bold rounded-md w-fit"
                     type="button"
                     onClick={() => {
-                      window.open(LYRISEAI_PRODUCT_URL, '_blank')
+                      window.open(LYRISEAI_PRODUCT_URL + 'signup', '_blank')
                     }}
                   >
                     Get Started
@@ -154,7 +154,7 @@ function MobileVersion({ active, setActive }) {
               className="bg-blue-500 p-3 py-2 text-[1rem] font-secondary text-white font-bold rounded-md w-fit"
               type="button"
               onClick={() => {
-                window.open(LYRISEAI_PRODUCT_URL, '_blank')
+                window.open(LYRISEAI_PRODUCT_URL + 'signup', '_blank')
               }}
             >
               Get Started

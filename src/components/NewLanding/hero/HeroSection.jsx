@@ -41,7 +41,7 @@ export default function HeroSection() {
           Our LLM will match you with the top 2% vetted AI engineers in Africa,
           for free.
         </h3>
-        <Link href={LYRISEAI_PRODUCT_URL}>
+        <Link href={LYRISEAI_PRODUCT_URL + 'signup'}>
           <button
             className="bg-primary hover:bg-blue-700 py-2 font-secondary rounded-lg text-white text-xl lg:text-2xl px-12 md:px-20 lg:px-32 font-medium w-fit transition-all duration-200"
             type="button"
