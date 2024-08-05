@@ -27,6 +27,7 @@ import CaseStudiesIcon from '../../../assets/CaseStudy.png'
 import { gridStyle } from './style'
 import InternalLink from './InternalLink'
 import ExternalLink from './ExternalLink'
+import { LYRISEAI_PRODUCT_URL } from '../../../constants/main'
 
 const list = [
   {
@@ -42,16 +43,11 @@ const list = [
     href: '/about',
     icon: AboutIcon,
   },
-  {
-    text: 'Product',
-    href: '/product',
-    icon: CaseStudiesIcon,
-  },
-  {
-    text: 'LyRiseAI',
-    href: '/lyriseAI-beta',
-    icon: CaseStudiesIcon,
-  },
+  // {
+  //   text: 'Product',
+  //   href: '/product',
+  //   icon: CaseStudiesIcon,
+  // },
 ]
 
 export default function Header({ isTalent }) {
@@ -140,20 +136,6 @@ export default function Header({ isTalent }) {
               </Grid>
               <Grid item>
                 <ExternalLink text="Blog" link="https://blog.lyrise.ai/" />
-              </Grid>
-              <Grid item>
-                <InternalLink
-                  text="Product"
-                  link="/product"
-                  active={asPath === '/product'}
-                />
-              </Grid>
-              <Grid item>
-                <InternalLink
-                  text="LyRiseAI"
-                  link="/lyriseAI-beta"
-                  active={asPath === '/product'}
-                />
               </Grid>
             </Grid>
           ) : null}
@@ -274,15 +256,7 @@ export default function Header({ isTalent }) {
                           white
                           location="HeaderSection"
                           isTalent={isTalent}
-                          // link={
-                          //   isTalent
-                          //     ? 'https://talents.lyrise.ai/'
-                          //     : '/Employer'
-                          // }
-                          // link="https://talents.lyrise.ai/"
-                          // link="https://lyrai-chat.lyrise.ai/talent/register"
-                          link="https://lyrai-chat.lyrise.ai/talent/auth"
-                          // text={'Join Our Talent'}
+                          link={LYRISEAI_PRODUCT_URL + 'talent/login'}
                           text={'Apply as a talent'}
                           eventType={
                             isTalent

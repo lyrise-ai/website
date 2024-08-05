@@ -22,3 +22,5 @@ export const expertsSection = [
     description: 'Hire and build your team as per your preferences',
   },
 ]
+
+export const LYRISEAI_PRODUCT_URL = 'https://lyrai-chat.lyrise.ai/'
