@@ -14,6 +14,7 @@ import sphereGif from '../../../assets/new-how/sphere.gif'
 
 import Img from '../../Product/Img'
 import FadeInOut from '../../Product/FadeInOut'
+import { LYRISEAI_PRODUCT_URL } from '../../../constants/main'
 
 const sections = [
   {
@@ -276,7 +277,7 @@ function HowDesktopSection({ title, subtitle }) {
         type="button"
         className="flex gap-3 items-center font-primary-500 text-2xl text-primary font-primary"
         onClick={() => {
-          window.open('https://www.lyrise.ai/Employer', '_blank')
+          window.open(LYRISEAI_PRODUCT_URL, '_blank')
         }}
       >
         Get Started <AiOutlineArrowRight />

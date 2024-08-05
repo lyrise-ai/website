@@ -5,6 +5,7 @@ import first from '/src/assets/security/1.jpeg'
 import second from '/src/assets/security/2.jpeg'
 import third from '/src/assets/security/3.jpeg'
 import { useMediaQuery } from '@mui/material'
+import { LYRISEAI_PRODUCT_URL } from '../../constants/main'
 
 const toBgColor = {
   0: ' bg-[#5277FF]',
@@ -82,7 +83,7 @@ function Security() {
                     className="bg-blue-500 p-3 py-2 text-[1rem] font-secondary text-white font-bold rounded-md w-fit"
                     type="button"
                     onClick={() => {
-                      window.open('https://www.lyrise.ai/Employer', '_blank')
+                      window.open(LYRISEAI_PRODUCT_URL, '_blank')
                     }}
                   >
                     Get Started
@@ -153,7 +154,7 @@ function MobileVersion({ active, setActive }) {
               className="bg-blue-500 p-3 py-2 text-[1rem] font-secondary text-white font-bold rounded-md w-fit"
               type="button"
               onClick={() => {
-                window.open('https://www.lyrise.ai/Employer', '_blank')
+                window.open(LYRISEAI_PRODUCT_URL, '_blank')
               }}
             >
               Get Started
