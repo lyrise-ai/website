@@ -1,39 +1,13 @@
-import React, { useRef, useEffect } from 'react'
 import Link from 'next/link'
+import React from 'react'
 import { LYRISEAI_PRODUCT_URL } from '../../../constants/main'
+import BotChat from './BotChat'
 
 export default function HeroSection() {
-  const videoRef = useRef(null)
-
-  useEffect(() => {
-    const options = {
-      rootMargin: '0px',
-      threshold: [0.25, 0.75],
-    }
-
-    const handlePlay = (entries, observer) => {
-      entries.forEach((entry) => {
-        if (entry.isIntersecting) {
-          videoRef.current.play()
-        } else {
-          videoRef.current.pause()
-        }
-      })
-    }
-
-    const observer = new IntersectionObserver(handlePlay, options)
-
-    observer.observe(videoRef.current)
-
-    // return () => {
-    //   observer.unobserve(videoRef.current)
-    // }
-  })
-
   return (
     // note: overflow was hidden here
     <div className="flex flex-col md:grid grid-cols-9 w-full px-10x relative m-auto md:mb-20 md:max-w-[90rem] gap-10 py-3 md:py-20 max-md:px-5">
-      <div className="col-span-4 flex flex-col max-md:text-center md:ml-10 max-md:items-center">
+      <div className="col-span-4 flex flex-col max-md:text-center md:ml-10 max-md:items-center justify-center">
         <h1 className="text-3xl lg:text-7xl font-semibold mb-6 font-primary max-sm:mt-10">
           Hire AI Talent Instantly
         </h1>
@@ -50,21 +24,8 @@ export default function HeroSection() {
           </button>
         </Link>
       </div>
-      <div className="col-span-5 border-[12px] bg-[#EFF2FF] border-white rounded-[20px] overflow-hidden md:max-lg:mr-10">
-        <video
-          id="video"
-          preload="metadata" // this will load entire video while page loads
-          width="auto"
-          poster="hero-vidoe-placeholder.png"
-          ref={videoRef}
-          loop
-          autoPlay
-          muted
-          playsInline
-          className="scale-105"
-        >
-          <source src="hero-video.mp4" type="video/mp4" />
-        </video>
+      <div className="col-span-5 md:max-lg:mr-10 h-[75vh]">
+        <BotChat />
       </div>
     </div>
   )

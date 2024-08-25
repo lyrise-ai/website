@@ -25,9 +25,8 @@ export default function NewLanding() {
         <BackedBy />
         <HowItWorks />
         {/* <div className='bg-white h-[50vh]'>
-
-                    <PartnersSlider />
-                </div> */}
+              <PartnersSlider />
+        </div> */}
         <Logos />
         <UseCases />
         <Security />
