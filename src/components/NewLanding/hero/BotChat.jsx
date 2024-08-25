@@ -37,11 +37,11 @@ const BotChat = () => {
               key={message.id}
               className={`
                 message ${message.type}
+                text-base font-secondary
                 mb-2 p-2 rounded-lg
-                ${
-                  message.type === 'user'
-                    ? 'bg-blue-100 text-blue-800 ml-auto'
-                    : 'bg-gray-100 text-gray-800'
+                ${message.type === 'user'
+                  ? 'bg-blue-100 text-blue-800 ml-auto'
+                  : 'bg-gray-100 text-gray-800'
                 }
                 ${index === 0 ? 'mt-auto' : ''}
               `}

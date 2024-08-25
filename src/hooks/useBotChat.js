@@ -3,15 +3,24 @@ import { nanoid } from 'nanoid'
 import { getBotResponse } from '../services/chat.services'
 import useConversation from './useConversation'
 
+const INITIAL_BOT_MESSAGE = `Upload your job description file or copy paste it below. 
+No job description? No problem! Just tell me what AI talent you’re looking for?`
+
 const useBotChat = () => {
   const [sessionId, setSessionId] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const { conversation, addMessage, clearConversation } = useConversation()
 
   useEffect(() => {
+    initializeConversation()
+  }, [])
+
+  const initializeConversation = () => {
     // Generate a new session ID when the component mounts
     setSessionId('guest_conversation_' + nanoid())
-  }, [])
+    // add the initial bot message to the conversation
+    addMessage(INITIAL_BOT_MESSAGE, 'bot')
+  }
 
   const sendMessage = async (userInput) => {
     if (userInput.trim()) {
@@ -36,7 +45,7 @@ const useBotChat = () => {
     // Implement the database storage logic here
   }
 
-  const redirectToSignup = () => {}
+  const redirectToSignup = () => { }
 
   const onChatSuccess = () => {
     // this function is called when the chat is successful
