@@ -1,7 +1,7 @@
-import { useState } from 'react';
+import { useState } from 'react'
 
 const useConversation = () => {
-  const [conversation, setConversation] = useState([]);
+  const [conversation, setConversation] = useState([])
 
   const addMessage = (content, type) => {
     const newMessage = {
@@ -9,19 +9,19 @@ const useConversation = () => {
       content,
       type,
       timestamp: new Date().toISOString(),
-    };
-    setConversation(prevConversation => [...prevConversation, newMessage]);
-  };
+    }
+    setConversation((prevConversation) => [...prevConversation, newMessage])
+  }
 
   const clearConversation = () => {
-    setConversation([]);
-  };
+    setConversation([])
+  }
 
   return {
     conversation,
     addMessage,
     clearConversation,
-  };
-};
+  }
+}
 
-export default useConversation;
+export default useConversation
