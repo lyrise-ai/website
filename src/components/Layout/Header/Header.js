@@ -125,7 +125,7 @@ export default function Header({ isTalent }) {
               container
               wrap="nowrap"
               gap="40px"
-              justifyContent={'center'}
+              justifyContent={'start'}
             >
               <Grid item>
                 <InternalLink
@@ -264,7 +264,7 @@ export default function Header({ isTalent }) {
                               : 'PressedScheduleAMeeting'
                           }
                           isPopup={false}
-                          // isPopup={pathname === '/'}
+                        // isPopup={pathname === '/'}
                         />
                       </Grid>
                     </>
