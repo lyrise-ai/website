@@ -1,47 +1,45 @@
 /* eslint-disable sonarjs/cognitive-complexity */
 /* eslint-disable react/jsx-no-target-blank */
-import * as React from 'react'
-import PropTypes from 'prop-types'
-import Image from 'next/image'
-import Grid from '@mui/material/Grid'
-import SwipeableDrawer from '@mui/material/SwipeableDrawer'
-import useMediaQuery from '@mui/material/useMediaQuery'
 import {
   Box,
   Divider,
   List,
   ListItem,
   ListItemButton,
-  ListItemIcon,
-  ListItemText,
+  ListItemText
 } from '@mui/material'
+import Grid from '@mui/material/Grid'
+import SwipeableDrawer from '@mui/material/SwipeableDrawer'
+import useMediaQuery from '@mui/material/useMediaQuery'
+import Image from 'next/image'
 import Link from 'next/link'
 import { useRouter } from 'next/router'
-import LyRiseLogo from '../../../assets/LyRiseLogo.png'
-import ScheduleMeetingButton from '../../Buttons/ScheduleMeetingButton'
+import PropTypes from 'prop-types'
+import * as React from 'react'
 import Hamburger from '../../../assets/Hamburger.svg'
-import BlogIcon from '../../../assets/book-closed.png'
+import LyRiseLogo from '../../../assets/LyRiseLogo.png'
 import AboutIcon from '../../../assets/about.png'
+import BlogIcon from '../../../assets/book-closed.png'
 import Close from '../../../assets/x-close.png'
-import CaseStudiesIcon from '../../../assets/CaseStudy.png'
-import { gridStyle } from './style'
-import InternalLink from './InternalLink'
-import ExternalLink from './ExternalLink'
 import { LYRISEAI_PRODUCT_URL } from '../../../constants/main'
+import ScheduleMeetingButton from '../../Buttons/ScheduleMeetingButton'
+import ExternalLink from './ExternalLink'
+import InternalLink from './InternalLink'
+import { gridStyle } from './style'
 
 const list = [
   {
     id: 1,
+    text: 'About',
+    href: '/about',
+    icon: AboutIcon,
+  },
+  {
+    id: 2,
     text: 'Blog',
     href: 'https://blog.lyrise.ai/',
     target: '_blank',
     icon: BlogIcon,
-  },
-  {
-    id: 2,
-    text: 'About',
-    href: '/about',
-    icon: AboutIcon,
   },
   // {
   //   text: 'Product',
@@ -96,7 +94,7 @@ export default function Header({ isTalent }) {
           <Grid
             item
             container
-            xs={6}
+            xs={medium ? 6 : 3} // 6 columns for mobile, 2 for desktop
             wrap="nowrap"
             gap="20px"
             alignItems="center"
@@ -139,7 +137,7 @@ export default function Header({ isTalent }) {
               </Grid>
             </Grid>
           ) : null}
-          {medium && pathname !== employerPathname ? (
+          {medium ? (
             <>
               <Grid
                 item
@@ -161,22 +159,28 @@ export default function Header({ isTalent }) {
                   sx={{
                     '& .MuiDrawer-paper': {
                       width: '100%',
-                      marginTop: '100px',
-                      backgroundColor: '#E2E2E2',
+                      marginTop: "9vh",
+                      backgroundColor: 'white',
+                      boxShadow: 'none',
+                      paddingBottom: '10vh',
                     },
                   }}
                 >
                   <Divider
                     sx={{
                       backgroundImage:
-                        'linear-gradient(180deg, #000000 0%, #094BF6 0.01%, #737CFE 100%)',
-                      height: '2px',
+                        'linear-gradient(180deg, #000000 0%, #D1DBFF 0.01%, #737CFE 100%)',
+                      height: '1px',
                       width: '100%',
                     }}
                   />
                   <Box
                     sx={{
                       width: '100%',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      justifyContent: 'space-between',
+                      height: '100%',
                     }}
                     role="presentation"
                     onClick={toggleDrawer(false)}
@@ -184,7 +188,7 @@ export default function Header({ isTalent }) {
                   >
                     <List>
                       {list.map((item) => (
-                        <ListItem key={item.id}>
+                        <ListItem key={item.id} >
                           <Link href={item.href}>
                             <a
                               target={item.target || '_self'}
@@ -202,19 +206,21 @@ export default function Header({ isTalent }) {
                                   },
                                 }}
                               >
-                                <ListItemIcon>
+                                {/* <ListItemIcon>
                                   <Image src={item.icon} />
-                                </ListItemIcon>
+                                </ListItemIcon> */}
                                 <ListItemText
                                   primary={item.text}
-                                  sx={{
-                                    fontFamily: 'Poppins',
-                                    fontStyle: 'normal',
-                                    fontWeight: '400',
-                                    fontSize: '14px',
-                                    lineHeight: '140%',
-                                    color: '#344054',
+                                  primaryTypographyProps={{
+                                    sx: {
+                                      fontFamily: 'Poppins, sans-serif',
+                                      fontStyle: 'normal',
+                                      fontWeight: 500,
+                                      fontSize: '1.5rem',
+                                      lineHeight: '120%',
+                                    }
                                   }}
+                                  className='text-neutral-500'
                                 />
                               </ListItemButton>
                             </a>
@@ -222,60 +228,63 @@ export default function Header({ isTalent }) {
                         </ListItem>
                       ))}
                     </List>
+                    <Grid
+                      container
+                      direction="column"
+                      spacing={2}
+                      sx={{ padding: '16px' }}
+                    >
+                      <HeaderButtons isTalent={isTalent} />
+                    </Grid>
                   </Box>
                 </SwipeableDrawer>
               </Grid>
             </>
           ) : (
-            <Grid item xs={6} container>
-              {pathname !== employerPathname ? (
-                <Grid
-                  item
-                  container
-                  alignItems="center"
-                  justifyContent="flex-end"
-                  gap={3}
-                >
-                  {pathname !== employerPathname ? (
-                    <>
-                      {/* <Grid item>
-                        <InternalLink
-                          text={isTalent ? 'Start Hiring' : 'Apply for jobs'}
-                          link={isTalent ? '/' : '/talents'}
-                          section="HeaderSection"
-                          eventName={
-                            isTalent
-                              ? 'PressedStartHiring'
-                              : 'PressedApplyForJobs'
-                          }
-                          isTalent
-                        />
-                      </Grid> */}
-                      <Grid item>
-                        <ScheduleMeetingButton
-                          white
-                          location="HeaderSection"
-                          isTalent={isTalent}
-                          link={LYRISEAI_PRODUCT_URL + 'talent/login'}
-                          text={'Apply as a talent'}
-                          eventType={
-                            isTalent
-                              ? 'PressedApplyNow'
-                              : 'PressedScheduleAMeeting'
-                          }
-                          isPopup={false}
-                        // isPopup={pathname === '/'}
-                        />
-                      </Grid>
-                    </>
-                  ) : null}
-                </Grid>
-              ) : null}
+            <Grid item container>
+              <Grid
+                item
+                container
+                alignItems="center"
+                justifyContent="flex-end"
+                direction={"row"}
+                wrap='nowrap'
+                gap={3}
+              >
+                <HeaderButtons isTalent={isTalent} />
+              </Grid>
             </Grid>
           )}
         </Grid>
       </div>
     </div>
+  )
+}
+
+export function HeaderButtons({ isTalent }) {
+  return (
+    <>
+      <Grid item>
+        <ScheduleMeetingButton
+          white
+          location="HeaderSection"
+          isTalent={isTalent}
+          link={LYRISEAI_PRODUCT_URL + 'talent/login'}
+          text={'Apply As talent'}
+          isPopup={false}
+        // isPopup={pathname === '/'}
+        />
+      </Grid>
+      <Grid item>
+        <ScheduleMeetingButton
+          location="HeaderSection"
+          isTalent={isTalent}
+          link={LYRISEAI_PRODUCT_URL + 'signup'}
+          text={'Find AI Talent'}
+          isPopup={false}
+        // isPopup={pathname === '/'}
+        />
+      </Grid></>
   )
 }
 
