@@ -135,5 +135,7 @@ module.exports = {
     camelcase: 'off',
     'block-scoped-var': 'off',
     'jsx-a11y/no-noninteractive-element-interactions': 'off',
+    'no-plusplus': 'off',
+    'no-await-in-loop': 'off',
   },
 }
