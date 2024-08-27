@@ -23,7 +23,11 @@ const ArrowButton = ({
 
     return (
         <button
-            className={`p-2 px-4 hover:px-6 font-secondary rounded-lg text-xl lg:text-2xl font-medium w-fit transition-all duration-200 flex items-center justify-center group ${getButtonStyles()} ${className}`}
+            className={`
+                p-2 px-4 hover:px-6 font-secondary rounded-lg text-lg lg:text-xl font-medium w-fit transition-all duration-200 flex items-center justify-center group 
+                ${getButtonStyles()} 
+                ${className}
+            `}
             onClick={onClick}
         >
             <span className={`${showArrow ? "mr-2" : ""}`}>{children}</span>

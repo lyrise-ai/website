@@ -25,7 +25,7 @@ export default function HeroSection() {
           for free.
         </h3>
         <Link href={LYRISEAI_PRODUCT_URL + 'signup'}>
-          <ArrowButton>
+          <ArrowButton showArrow>
             Hire Now!
           </ArrowButton>
         </Link>
@@ -33,7 +33,7 @@ export default function HeroSection() {
       <div className="relative col-span-5 md:max-lg:mr-10 h-[40vh] lg:h-[75vh]">
         <div className={`absolute transition-all duration-300 ease-in-out ${isChatFocused
           ? 'z-50 h-[50vh] -top-[40vh] left-0 right-0'
-          : 'h-[40vh] top-0 left-0 right-0'
+          : 'h-[40vh] lg:h-[75vh] top-0 left-0 right-0'
           }`}>
           <ChatFocusContext.Provider value={{ isChatFocused, setIsChatFocused }}>
             <BotChat />

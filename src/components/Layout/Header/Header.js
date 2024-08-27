@@ -26,6 +26,7 @@ import ScheduleMeetingButton from '../../Buttons/ScheduleMeetingButton'
 import ExternalLink from './ExternalLink'
 import InternalLink from './InternalLink'
 import { gridStyle } from './style'
+import HeaderButtons from './HeaderButtons'
 
 const list = [
   {
@@ -234,7 +235,7 @@ export default function Header({ isTalent }) {
                       spacing={2}
                       sx={{ padding: '16px' }}
                     >
-                      <HeaderButtons isTalent={isTalent} />
+                      <HeaderButtons />
                     </Grid>
                   </Box>
                 </SwipeableDrawer>
@@ -251,40 +252,13 @@ export default function Header({ isTalent }) {
                 wrap='nowrap'
                 gap={3}
               >
-                <HeaderButtons isTalent={isTalent} />
+                <HeaderButtons />
               </Grid>
             </Grid>
           )}
         </Grid>
       </div>
     </div>
-  )
-}
-
-export function HeaderButtons({ isTalent }) {
-  return (
-    <>
-      <Grid item>
-        <ScheduleMeetingButton
-          white
-          location="HeaderSection"
-          isTalent={isTalent}
-          link={LYRISEAI_PRODUCT_URL + 'talent/login'}
-          text={'Apply As talent'}
-          isPopup={false}
-        // isPopup={pathname === '/'}
-        />
-      </Grid>
-      <Grid item>
-        <ScheduleMeetingButton
-          location="HeaderSection"
-          isTalent={isTalent}
-          link={LYRISEAI_PRODUCT_URL + 'signup'}
-          text={'Find AI Talent'}
-          isPopup={false}
-        // isPopup={pathname === '/'}
-        />
-      </Grid></>
   )
 }
 
