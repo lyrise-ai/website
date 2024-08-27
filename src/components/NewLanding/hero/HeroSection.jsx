@@ -1,10 +1,18 @@
 import Link from 'next/link'
-import React from 'react'
+import React, { useContext, useState } from 'react'
 import { LYRISEAI_PRODUCT_URL } from '../../../constants/main'
 import BotChat from './BotChat'
 import ArrowButton from '../../Buttons/ArrowButton'
 
+const ChatFocusContext = React.createContext(false);
+
+export const useChatFocus = () => {
+  return useContext(ChatFocusContext);
+}
+
 export default function HeroSection() {
+  const [isChatFocused, setIsChatFocused] = useState(false);
+
   return (
     // note: overflow was hidden here
     <div className="flex flex-col md:grid grid-cols-9 w-full px-10x relative m-auto md:mb-20 md:max-w-[90rem] gap-10 py-3 md:py-20 max-md:px-5">
@@ -22,8 +30,15 @@ export default function HeroSection() {
           </ArrowButton>
         </Link>
       </div>
-      <div className="col-span-5 md:max-lg:mr-10 h-[40vh] lg:h-[75vh]">
-        <BotChat />
+      <div className="relative col-span-5 md:max-lg:mr-10 h-[40vh] lg:h-[75vh]">
+        <div className={`absolute transition-all duration-300 ease-in-out ${isChatFocused
+          ? 'z-50 h-[50vh] -top-[40vh] left-0 right-0'
+          : 'h-[40vh] top-0 left-0 right-0'
+          }`}>
+          <ChatFocusContext.Provider value={{ isChatFocused, setIsChatFocused }}>
+            <BotChat />
+          </ChatFocusContext.Provider>
+        </div>
       </div>
     </div>
   )

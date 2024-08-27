@@ -1,13 +1,28 @@
 import React from 'react'
 import SendIcon from '../../../../assets/icons/sendIcon'
 import ChatFileInput from './ChatFileInput'
+import { useChatFocus } from '../HeroSection';
+import { useMediaQuery } from '@mui/material';
 
 export default function ChatInput({ userInput, setUserInput, isLoading, handleSubmit }) {
+  const { setIsChatFocused } = useChatFocus();
+  const isMobile = useMediaQuery('(max-width: 1000px)');
+
   const handleKeyDown = (e) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
       handleSubmit(e);
     }
+  };
+
+  const handleFocus = () => {
+    if (isMobile) {
+      setIsChatFocused(true);
+    }
+  };
+
+  const handleBlur = () => {
+    setIsChatFocused(false);
   };
 
   return (
@@ -20,6 +35,8 @@ export default function ChatInput({ userInput, setUserInput, isLoading, handleSu
         value={userInput}
         onChange={(e) => setUserInput(e.target.value)}
         onKeyDown={handleKeyDown}
+        onFocus={handleFocus}
+        onBlur={handleBlur}
         placeholder="Type your message..."
         className="h-[1.2lh] flex-1 focus:outline-none text-base resize-none"
       />
