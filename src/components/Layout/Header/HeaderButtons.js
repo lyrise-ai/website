@@ -11,7 +11,7 @@ export default function HeaderButtons() {
                     <ArrowButton
                         showArrow
                         variant="link"
-                        className="max-md:w-full justify-between font-semibold"
+                        className="max-md:w-full justify-between font-semibold py-3"
                     >
                         Apply As Talent
                     </ArrowButton>
@@ -21,7 +21,7 @@ export default function HeaderButtons() {
                 <a href={LYRISEAI_PRODUCT_URL + 'signup'}>
                     <ArrowButton
                         showArrow
-                        className="max-md:w-full justify-between font-semibold"
+                        className="max-md:w-full justify-between font-semibold py-3"
                     >
                         Find AI Talent
                     </ArrowButton>
