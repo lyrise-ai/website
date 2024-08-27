@@ -2,7 +2,14 @@ import React from 'react'
 import SendIcon from '../../../../assets/icons/sendIcon'
 import ChatFileInput from './ChatFileInput'
 
-export default function ChatInput({ userInput, setUserInput, isLoading }) {
+export default function ChatInput({ userInput, setUserInput, isLoading, handleSubmit }) {
+  const handleKeyDown = (e) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      handleSubmit(e);
+    }
+  };
+
   return (
     <div
       className="flex flex-row w-full items-center bg-white rounded-lg overflow-hidden"
@@ -12,6 +19,7 @@ export default function ChatInput({ userInput, setUserInput, isLoading }) {
       <textarea
         value={userInput}
         onChange={(e) => setUserInput(e.target.value)}
+        onKeyDown={handleKeyDown}
         placeholder="Type your message..."
         className="h-[1.2lh] flex-1 focus:outline-none text-base resize-none"
       />

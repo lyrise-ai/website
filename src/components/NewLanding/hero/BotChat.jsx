@@ -56,6 +56,7 @@ const BotChat = () => {
           userInput={userInput}
           setUserInput={setUserInput}
           isLoading={isLoading}
+          handleSubmit={handleSubmit}
         />
       </form>
     </div>
