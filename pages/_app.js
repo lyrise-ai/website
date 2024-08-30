@@ -108,7 +108,9 @@ export default function MyApp(props) {
       />
       
       {/* Google Ads Script */}
-      <Script strategy="beforeInteractive" src="https://www.googletagmanager.com/gtag/js?id=AW-10840230589">
+      <Script 
+        src="https://www.googletagmanager.com/gtag/js?id=AW-10840230589"
+      >
       </Script>
       <Script>
         {`
