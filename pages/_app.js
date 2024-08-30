@@ -79,6 +79,11 @@ export default function MyApp(props) {
   })();`
       : '',
   )
+  
+  // google ads script
+  useScript(
+    
+  )
 
   if (
     process.env.NEXT_PUBLIC_ENV === 'production' &&
@@ -108,11 +113,10 @@ export default function MyApp(props) {
       />
       
       {/* Google Ads Script */}
-      {/* 
-      <Script 
+      <Script
+        async
         src="https://www.googletagmanager.com/gtag/js?id=AW-10840230589"
-      >
-      </Script>
+      />
       <Script>
         {`
         window.dataLayer = window.dataLayer || [];
@@ -121,7 +125,6 @@ export default function MyApp(props) {
         gtag('config', 'AW-10840230589');
         `}
       </Script>
-      */}
       
       {/* <script type="text/javascript">
         window.heap=window.heap||[],heap.load=function(e,t){window.heap.appid=e,window.heap.config=t=t||{};var r=document.createElement("script");r.type="text/javascript",r.async=!0,r.src="https://cdn.heapanalytics.com/js/heap-"+e+".js";var a=document.getElementsByTagName("script")[0];a.parentNode.insertBefore(r,a);for(var n=function(e){return function(){heap.push([e].concat(Array.prototype.slice.call(arguments,0)))}},p=["addEventProperties","addUserProperties","clearEventProperties","identify","resetIdentity","removeEventProperty","setEventProperties","track","unsetEventProperty"],o=0;o<p.length;o++)heap[p[o]]=n(p[o])};
