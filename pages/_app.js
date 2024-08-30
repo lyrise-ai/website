@@ -79,11 +79,6 @@ export default function MyApp(props) {
   })();`
       : '',
   )
-  
-  // google ads script
-  useScript(
-    
-  )
 
   if (
     process.env.NEXT_PUBLIC_ENV === 'production' &&
