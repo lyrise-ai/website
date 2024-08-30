@@ -112,7 +112,7 @@ export default function MyApp(props) {
         async
         src="https://www.googletagmanager.com/gtag/js?id=AW-10840230589"
       />
-      <Script>
+      <Script type="text/javascript" id="google-ads-script">
         {`
         window.dataLayer = window.dataLayer || [];
         function gtag(){dataLayer.push(arguments);}
