@@ -1,29 +1,35 @@
 import React from 'react'
 import SendIcon from '../../../../assets/icons/sendIcon'
 import ChatFileInput from './ChatFileInput'
-import { useChatFocus } from '../HeroSection';
-import { useMediaQuery } from '@mui/material';
+import { useChatFocus } from '../HeroSection'
+import { useMediaQuery } from '@mui/material'
 
-export default function ChatInput({ userInput, setUserInput, isLoading, handleSubmit }) {
-  const { setIsChatFocused } = useChatFocus();
-  const isMobile = useMediaQuery('(max-width: 1000px)');
+export default function ChatInput({
+  userInput,
+  setUserInput,
+  isLoading,
+  handleSubmit,
+  disabled,
+}) {
+  const { setIsChatFocused } = useChatFocus()
+  const isMobile = useMediaQuery('(max-width: 1000px)')
 
   const handleKeyDown = (e) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault();
-      handleSubmit(e);
+    if (e.key === 'Enter' && !e.shiftKey && !disabled) {
+      e.preventDefault()
+      handleSubmit(e)
     }
-  };
+  }
 
   const handleFocus = () => {
     if (isMobile) {
-      setIsChatFocused(true);
+      setIsChatFocused(true)
     }
-  };
+  }
 
   const handleBlur = () => {
-    setIsChatFocused(false);
-  };
+    setIsChatFocused(false)
+  }
 
   return (
     <div
@@ -41,7 +47,7 @@ export default function ChatInput({ userInput, setUserInput, isLoading, handleSu
         className="h-[1.2lh] flex-1 focus:outline-none text-base resize-none"
       />
       <button
-        disabled={isLoading}
+        disabled={isLoading || disabled}
         type="submit"
         className="text-white px-4 py-2 rounded-r-lg transition duration-300 disabled:opacity-50 h-full"
       >

@@ -1,16 +1,12 @@
 import api from './api.services'
 
-export async function getBotResponse(sessionId, message) {
-  // TODO: add this to the api.services.js
-  //   const response = await api.post('/v1/chat/bot', data)
-  //   return response.data
+export async function startAnonymousChat() {
+  // should return the chat id fetched from the server
 
-  // Simulating an asynchronous API call with a dummy response
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      resolve({
-        message: 'Hello dev 🫣, this is a static response for now.',
-      })
-    }, 500) // Simulating a 500ms delay
-  })
+  return api.post('/ai/anon-chat')
+}
+
+export async function sendChatAnonMessage(data) {
+  // data: { chat_id, message }
+  return api.post('/ai/send-anon-chat-message', data)
 }

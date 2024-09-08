@@ -10,6 +10,7 @@ const BotChat = () => {
     sendMessage,
     onChatSuccess,
     isLoading,
+    sessionId,
   } = useBotChat()
 
   const [userInput, setUserInput] = useState('')
@@ -39,9 +40,10 @@ const BotChat = () => {
                 message ${message.type}
                 text-base font-secondary
                 mb-2 p-2 rounded-lg
-                ${message.type === 'user'
-                  ? 'bg-blue-100 text-blue-800 ml-auto'
-                  : 'bg-gray-100 text-gray-800'
+                ${
+                  message.type === 'user'
+                    ? 'bg-blue-100 text-blue-800 ml-auto'
+                    : 'bg-gray-100 text-gray-800'
                 }
                 ${index === 0 ? 'mt-auto' : ''}
               `}
@@ -57,6 +59,7 @@ const BotChat = () => {
           setUserInput={setUserInput}
           isLoading={isLoading}
           handleSubmit={handleSubmit}
+          disabled={!sessionId} // disable chatting if the sessionId is not available yet
         />
       </form>
     </div>

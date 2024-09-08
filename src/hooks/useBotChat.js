@@ -1,6 +1,8 @@
-import { useState, useEffect } from 'react'
-import { nanoid } from 'nanoid'
-import { getBotResponse } from '../services/chat.services'
+import { useEffect, useState } from 'react'
+import {
+  sendChatAnonMessage,
+  startAnonymousChat,
+} from '../services/chat.services'
 import useConversation from './useConversation'
 
 const INITIAL_BOT_MESSAGE = `Upload your job description file or copy paste it below. 
@@ -15,19 +17,37 @@ const useBotChat = () => {
     initializeConversation()
   }, [])
 
-  const initializeConversation = () => {
-    // Generate a new session ID when the component mounts
-    setSessionId('guest_conversation_' + nanoid())
-    // add the initial bot message to the conversation
-    addMessage(INITIAL_BOT_MESSAGE, 'bot')
+  const initializeConversation = async () => {
+    sendInitialMessage()
+    startNewChat()
+  }
+
+  const sendInitialMessage = async () => {
+    const msg = INITIAL_BOT_MESSAGE
+    await sendMessage(msg)
+  }
+
+  const startNewChat = async () => {
+    try {
+      const { chat_id } = await startAnonymousChat()
+      setSessionId(chat_id)
+    } catch (error) {
+      console.log('Error starting new chat:', error)
+    }
   }
 
   const sendMessage = async (userInput) => {
     if (userInput.trim()) {
       addMessage(userInput, 'user')
       setIsLoading(true)
+
+      const data = {
+        chat_id: sessionId,
+        message: userInput,
+      }
+
       try {
-        const botResponse = await getBotResponse(sessionId, userInput)
+        const botResponse = await sendChatAnonMessage(data)
         addMessage(botResponse.message, 'bot')
       } catch (error) {
         console.error('Error getting bot response:', error)
@@ -45,7 +65,7 @@ const useBotChat = () => {
     // Implement the database storage logic here
   }
 
-  const redirectToSignup = () => { }
+  const redirectToSignup = () => {}
 
   const onChatSuccess = () => {
     // this function is called when the chat is successful
