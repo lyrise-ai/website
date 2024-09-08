@@ -23,8 +23,9 @@ const useBotChat = () => {
   }
 
   const sendInitialMessage = async () => {
-    const msg = INITIAL_BOT_MESSAGE
-    await sendMessage(msg)
+    if (conversation.length === 0) {
+      addMessage(INITIAL_BOT_MESSAGE, 'bot')
+    }
   }
 
   const startNewChat = async () => {
@@ -48,7 +49,10 @@ const useBotChat = () => {
 
       try {
         const botResponse = await sendChatAnonMessage(data)
-        addMessage(botResponse.message, 'bot')
+
+        console.log({ botResponse })
+
+        addMessage(botResponse.content, 'bot')
       } catch (error) {
         console.error('Error getting bot response:', error)
         addMessage('Sorry, there was an error processing your request.', 'bot')

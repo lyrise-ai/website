@@ -2,7 +2,6 @@ import api from './api.services'
 
 export async function startAnonymousChat() {
   // should return the chat id fetched from the server
-
   return api.post('/ai/anon-chat')
 }
 

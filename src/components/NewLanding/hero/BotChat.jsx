@@ -1,6 +1,7 @@
-import React, { useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import useBotChat from '../../../hooks/useBotChat'
 import ChatInput from './ui/ChatInput'
+import ChatMessaage from './ui/ChatMessaage'
 
 const BotChat = () => {
   const {
@@ -14,6 +15,7 @@ const BotChat = () => {
   } = useBotChat()
 
   const [userInput, setUserInput] = useState('')
+  const scrollRef = useRef(null)
 
   const handleSubmit = async (e) => {
     e.preventDefault()
@@ -29,27 +31,24 @@ const BotChat = () => {
     }
   }
 
+  useEffect(() => {
+    scrollRef.current.scrollTo({
+      bottom: 0,
+      behavior: 'smooth',
+    })
+  }, [conversation.length])
+
   return (
     <div className="bg-primary-25 shadow-lg rounded-2xl p-4 w-full h-full flex flex-col justify-between border-2 lg:border-[4px] border-primary">
       <div className="overflow-y-auto mb-4 flex flex-col h-full">
-        <div className="flex flex-col h-[60vh]">
+        <div className="flex flex-col h-[60vh]" ref={scrollRef}>
           {conversation.map((message, index) => (
-            <div
-              key={message.id}
-              className={`
-                message ${message.type}
-                text-base font-secondary
-                mb-2 p-2 rounded-lg
-                ${
-                  message.type === 'user'
-                    ? 'bg-blue-100 text-blue-800 ml-auto'
-                    : 'bg-gray-100 text-gray-800'
-                }
-                ${index === 0 ? 'mt-auto' : ''}
-              `}
-            >
-              {message.content}
-            </div>
+            <ChatMessaage
+              key={message.timestamp}
+              message={message}
+              index={index}
+              sessionId={sessionId}
+            />
           ))}
         </div>
       </div>
