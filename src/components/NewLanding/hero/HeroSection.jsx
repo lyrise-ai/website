@@ -1,14 +1,9 @@
 import Link from 'next/link'
-import React, { useContext, useState } from 'react'
+import React, { useState } from 'react'
 import { LYRISEAI_PRODUCT_URL } from '../../../constants/main'
-import BotChat from './BotChat'
+import { ChatFocusContext } from '../../../providers/ChatFocusContext'
 import ArrowButton from '../../Buttons/ArrowButton'
-
-const ChatFocusContext = React.createContext(false)
-
-export const useChatFocus = () => {
-  return useContext(ChatFocusContext)
-}
+import BotChat from './BotChat'
 
 export default function HeroSection() {
   const [isChatFocused, setIsChatFocused] = useState(false)

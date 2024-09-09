@@ -1,7 +1,7 @@
 import React from 'react'
 import SendIcon from '../../../../assets/icons/sendIcon'
 import ChatFileInput from './ChatFileInput'
-import { useChatFocus } from '../HeroSection'
+import { useChatFocus } from '../../../../providers/ChatFocusContext'
 import { useMediaQuery } from '@mui/material'
 
 export default function ChatInput({
