@@ -41,7 +41,7 @@ const BotChat = () => {
   return (
     <div className="bg-primary-25 shadow-lg rounded-2xl p-4 w-full h-full flex flex-col justify-between border-2 lg:border-[4px] border-primary">
       <div className="overflow-y-auto mb-4 flex flex-col h-full">
-        <div className="flex flex-col h-[60vh]" ref={scrollRef}>
+        <div className="flex flex-col h-[70vh]" ref={scrollRef}>
           {conversation.map((message, index) => (
             <ChatMessaage
               key={message.timestamp}
