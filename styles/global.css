@@ -49,6 +49,9 @@
   --section-spacing: 120px;
   --section-padding: 40px;
   overflow-x: hidden;
+
+  --chat-input-height: 1.2lh;
+  will-change: var(--chat-input-height);
 }
 
 *,

@@ -1,8 +1,10 @@
-import React from 'react'
+import React, { useEffect, useRef } from 'react'
 import SendIcon from '../../../../assets/icons/sendIcon'
 import ChatFileInput from './ChatFileInput'
 import { useChatFocus } from '../../../../providers/ChatFocusContext'
 import { useMediaQuery } from '@mui/material'
+
+import styles from './ChatInput.module.css'
 
 export default function ChatInput({
   userInput,
@@ -11,13 +13,27 @@ export default function ChatInput({
   handleSubmit,
   disabled,
 }) {
+  const textareaRef = useRef(null)
   const { setIsChatFocused } = useChatFocus()
   const isMobile = useMediaQuery('(max-width: 1000px)')
+  const CSSChatInputHeight = useChatInputHeightCSSVar()
+
+  useEffect(() => {
+    if (userInput.length === 0) {
+      CSSChatInputHeight.reset()
+    } else {
+      if (textareaRef.current) {
+        const newheight = textareaRef.current.scrollHeight + 'px'
+        CSSChatInputHeight.set(newheight)
+      }
+    }
+  }, [userInput])
 
   const handleKeyDown = (e) => {
     if (e.key === 'Enter' && !e.shiftKey && !disabled) {
       e.preventDefault()
       handleSubmit(e)
+      CSSChatInputHeight.reset()
     }
   }
 
@@ -33,18 +49,19 @@ export default function ChatInput({
 
   return (
     <div
-      className="flex flex-row w-full items-center bg-white rounded-lg overflow-hidden"
+      className="flex flex-row w-full items-center bg-white rounded-lg overflow-hidden min-h-fit py-1"
       style={{ boxShadow: '0px 4px 8px 0px rgba(0, 34, 158, 0.08)' }}
     >
       <ChatFileInput setUserInput={setUserInput} />
       <textarea
         value={userInput}
+        ref={textareaRef}
         onChange={(e) => setUserInput(e.target.value)}
         onKeyDown={handleKeyDown}
         onFocus={handleFocus}
         onBlur={handleBlur}
         placeholder="Type your message..."
-        className="h-[1.2lh] flex-1 focus:outline-none text-base resize-none"
+        className={styles.chat_textarea}
       />
       <button
         disabled={isLoading || disabled}

@@ -1,0 +1,17 @@
+/* ---chat-input-height: 1.2lh; this is the default height */
+
+.chat_textarea {
+  @apply text-base resize-none outline-none;
+  flex: 1;
+  height: var(--chat-input-height);
+  max-height: 5.2lh;
+  min-height: 1.2lh;
+}
+
+@media (max-width: 1000px) {
+  .chat_textarea {
+    height: var(--chat-input-height);
+    max-height: 3.2lh;
+    min-height: 1.2lh;
+  }
+}
