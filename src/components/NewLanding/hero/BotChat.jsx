@@ -52,8 +52,7 @@ const BotChat = () => {
             />
           ))}
         </div>
-        <Thinking />
-        {/* {isLoading ? <Thinking /> : null} */}
+        {isLoading ? <Thinking /> : null}
       </div>
       <form onSubmit={handleSubmit} className="flex mb-2 float-end px-4">
         <ChatInput
