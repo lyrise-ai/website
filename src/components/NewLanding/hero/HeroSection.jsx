@@ -20,7 +20,12 @@ export default function HeroSection() {
           for free.
         </h3>
         <Link href={LYRISEAI_PRODUCT_URL + 'signup'}>
-          <ArrowButton showArrow>Hire Now!</ArrowButton>
+          <ArrowButton
+            showArrow
+            className="max-md:w-full justify-between font-medium py-3"
+          >
+            Hire Now!
+          </ArrowButton>
         </Link>
       </div>
       <div className="relative col-span-5 md:max-lg:mr-10 h-[40vh] lg:h-[75vh]">
