@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from 'react'
 import useBotChat from '../../../hooks/useBotChat'
 import ChatInput from './ui/ChatInput'
 import ChatMessaage from './ui/ChatMessaage'
+import Thinking from './ui/Thinking'
 
 const BotChat = () => {
   const {
@@ -51,6 +52,7 @@ const BotChat = () => {
             />
           ))}
         </div>
+        {isLoading ? <Thinking /> : null}
       </div>
       <form onSubmit={handleSubmit} className="flex mb-2 float-end px-4">
         <ChatInput
