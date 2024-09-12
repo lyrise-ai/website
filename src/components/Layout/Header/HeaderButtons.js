@@ -9,7 +9,6 @@ export default function HeaderButtons() {
       <Grid item>
         <a href={LYRISEAI_PRODUCT_URL + 'talent/login'}>
           <ArrowButton
-            showArrow
             variant="link"
             className="max-md:w-full justify-between font-medium py-3"
           >

@@ -21,14 +21,21 @@ export default function TalentCard({
 
   const seniority = getSeniorityFromYears(years_of_experience)
 
-  const handleButtonClick = useCallback(() => {
+  const handleBookMeeting = useCallback(() => {
     window.open(LYRISEAI_PRODUCT_URL + 'signup?session=' + sessionId, '_blank')
   }, [])
+
+  const handleCardClick = handleBookMeeting
+
+  const handleViewTalentProfile = (e) => {
+    e.stopPropagation()
+    alert('should view talent profile')
+  }
 
   return (
     <button
       className="relative border bg-white p-3 md:p-5 rounded-2xl border-solid border-zinc-300 max-md:max-w-full max-md:px-5 hover:shadow-md transition-all duration-200 text-left"
-      onClick={handleButtonClick}
+      onClick={handleCardClick}
     >
       <div className="flex grow flex-col items-stretch justify-center">
         <div className="items-center flex gap-2">
@@ -61,13 +68,22 @@ export default function TalentCard({
         </div>
       </div>
 
-      <ArrowButton
-        showArrow
-        className="md:absolute right-0 top-0 mt-3 md:mt-5 mr-5 !text-sm max-md:w-full"
-        onClick={handleButtonClick}
-      >
-        Book Meeting
-      </ArrowButton>
+      <div className="md:absolute right-0 top-0 mt-3 md:mt-5 mr-5 flex gap-2">
+        <ArrowButton
+          variant="link"
+          className="!text-sm max-md:w-full"
+          onClick={handleViewTalentProfile}
+        >
+          View Talent Profile
+        </ArrowButton>
+        <ArrowButton
+          showArrow
+          className="!text-sm max-md:w-full"
+          onClick={handleBookMeeting}
+        >
+          Book Meeting
+        </ArrowButton>
+      </div>
     </button>
   )
 }
