@@ -5,6 +5,7 @@ import { useChatFocus } from '../../../../providers/ChatFocusContext'
 import { useMediaQuery } from '@mui/material'
 
 import styles from './ChatInput.module.css'
+import useChatInputHeightCSSVar from '../../../../hooks/useChatInputHeightCSSVar'
 
 export default function ChatInput({
   userInput,

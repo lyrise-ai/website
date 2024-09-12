@@ -5,14 +5,15 @@ export default function ChatMessaage({ message, index, sessionId }) {
   return (
     <div
       key={message.id}
+      // max-w-[80%] w-fit
       className={`
         message ${message.type}
-        text-base font-secondary
-        mb-2 p-2 rounded-lg
+        text-base font-secondary text-wrap
+        w-full p-4
         ${
           message.type === 'user'
-            ? 'bg-blue-100 text-blue-800 ml-auto'
-            : 'bg-gray-100 text-gray-800'
+            ? 'bg-[#eff2ff] text-blue-800'
+            : 'bg-transparent text-gray-800'
         }
         ${index === 0 ? 'mt-auto' : ''}
     `}

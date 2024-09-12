@@ -1,4 +1,4 @@
-function useChatInputHeightCSSVar() {
+export default function useChatInputHeightCSSVar() {
   function setHeight(value) {
     document.documentElement.style.setProperty('--chat-input-height', value)
   }
