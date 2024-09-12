@@ -22,7 +22,7 @@ export default function HeroSection() {
         <Link href={LYRISEAI_PRODUCT_URL + 'signup'}>
           <ArrowButton
             showArrow
-            className="max-md:w-full justify-between font-medium py-3"
+            className="max-md:w-full justify-between font-medium py-3 max-w-fit"
           >
             Hire Now!
           </ArrowButton>
