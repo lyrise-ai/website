@@ -1,5 +1,6 @@
 import React from 'react'
 import TalentCard from './TalentCard'
+import MessageAvatar from './MessageAvatar'
 
 export default function ChatMessaage({ message, index, sessionId }) {
   return (
@@ -9,15 +10,15 @@ export default function ChatMessaage({ message, index, sessionId }) {
       className={`
         message ${message.type}
         text-base font-secondary text-wrap
+        text-[rgb(55,65,81)]
         w-full p-4
-        ${
-          message.type === 'user'
-            ? 'bg-[#eff2ff] text-blue-800'
-            : 'bg-transparent text-gray-800'
-        }
+        flex gap-2 max-md:flex-col
+        ${message.type === 'user' ? 'bg-[#eff2ff]' : 'bg-transparent'}
         ${index === 0 ? 'mt-auto' : ''}
-    `}
+      `}
     >
+      <MessageAvatar role={message.type} />
+
       {typeof message.content === 'string' ? (
         message.content
       ) : (
