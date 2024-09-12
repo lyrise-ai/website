@@ -12,7 +12,7 @@ const Thinking = () => {
         bg-transparent
       `}
     >
-      <MessageAvatar role="bot" />
+      <MessageAvatar type="bot" />
 
       <div className="flex justify-center items-center ml-2">
         <div className="relative">

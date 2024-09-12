@@ -1,11 +1,11 @@
 import React from 'react'
 
-const MessageAvatar = React.memo(({ role }) => {
-  if (!['bot', 'user'].includes(role)) return null
+const MessageAvatar = React.memo(({ type }) => {
+  if (!['bot', 'user'].includes(type)) return null
 
   return (
     <div className="flex-shrink-0">
-      {role === 'bot' ? <BotAvatar /> : <UserAvatar />}
+      {type === 'bot' ? <BotAvatar /> : <UserAvatar />}
     </div>
   )
 })

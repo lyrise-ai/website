@@ -17,7 +17,7 @@ export default function ChatMessaage({ message, index, sessionId }) {
         ${index === 0 ? 'mt-auto' : ''}
       `}
     >
-      <MessageAvatar role={message.type} />
+      <MessageAvatar type={message.type} />
 
       {typeof message.content === 'string' ? (
         message.content

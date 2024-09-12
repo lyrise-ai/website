@@ -34,7 +34,7 @@ export default function TalentCard({
 
   return (
     <button
-      className="relative border bg-white p-3 md:p-5 rounded-2xl border-solid border-zinc-300 max-md:max-w-full max-md:px-5 hover:shadow-md transition-all duration-200 text-left"
+      className="relative border bg-white p-3 md:p-5 rounded-2xl border-solid border-zinc-300 max-md:max-w-full hover:shadow-md transition-all duration-200 text-left"
       onClick={handleCardClick}
       type="button"
     >
@@ -64,22 +64,22 @@ export default function TalentCard({
         </div>
         <div className="text-slate-700 text-sm leading-5 mt-2 max-md:text-xs">
           {reasoning.length > 100 && isMobile
-            ? reasoning.substring(0, 100) + '...'
+            ? reasoning.substring(0, 150) + '...'
             : reasoning}
         </div>
       </div>
 
-      <div className="md:absolute right-0 top-0 mt-3 md:mt-5 mr-5 flex gap-2">
+      <div className="md:absolute right-0 top-0 mt-3 md:mt-5 md:mr-5 max-md:w-full flex md:gap-2 justify-between">
         <ArrowButton
           variant="link"
-          className="!text-sm max-md:w-full"
+          className="!text-sm max-md:!text-xs max-md:px-3"
           onClick={handleViewTalentProfile}
         >
           View Talent Profile
         </ArrowButton>
         <ArrowButton
           showArrow
-          className="!text-sm max-md:w-full"
+          className="!text-sm max-md:!text-xs max-md:px-3"
           onClick={handleBookMeeting}
         >
           Book Meeting
