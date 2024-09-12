@@ -22,11 +22,9 @@ export default function ChatInput({
   useEffect(() => {
     if (userInput.length === 0) {
       CSSChatInputHeight.reset()
-    } else {
-      if (textareaRef.current) {
-        const newheight = textareaRef.current.scrollHeight + 'px'
-        CSSChatInputHeight.set(newheight)
-      }
+    } else if (textareaRef.current) {
+      const newheight = textareaRef.current.scrollHeight + 'px'
+      CSSChatInputHeight.set(newheight)
     }
   }, [userInput])
 

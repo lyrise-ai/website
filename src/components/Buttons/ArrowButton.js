@@ -23,6 +23,7 @@ const ArrowButton = ({
 
   return (
     <button
+      type="button"
       className={`
                 p-2 px-4 font-secondary rounded-[2rem] text-lg lg:text-xl font-medium w-fit transition-all duration-200 flex items-center justify-center group 
                 ${getButtonStyles()} 

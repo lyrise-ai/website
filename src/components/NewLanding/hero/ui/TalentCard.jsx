@@ -36,6 +36,7 @@ export default function TalentCard({
     <button
       className="relative border bg-white p-3 md:p-5 rounded-2xl border-solid border-zinc-300 max-md:max-w-full max-md:px-5 hover:shadow-md transition-all duration-200 text-left"
       onClick={handleCardClick}
+      type="button"
     >
       <div className="flex grow flex-col items-stretch justify-center">
         <div className="items-center flex gap-2">
