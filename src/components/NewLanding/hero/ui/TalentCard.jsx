@@ -29,7 +29,7 @@ export default function TalentCard({
 
   const handleViewTalentProfile = (e) => {
     e.stopPropagation()
-    alert('should view talent profile')
+    handleBookMeeting()
   }
 
   return (

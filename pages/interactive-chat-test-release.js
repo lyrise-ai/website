@@ -5,7 +5,7 @@ import * as React from 'react'
 import ReactGA from 'react-ga'
 import { ToastContainer } from 'react-toastify'
 // import { FlagsProvider } from '../src/providers/RemoteConfigFirebase/FlagsProvider'
-import NewLanding from '../src/components/NewLanding'
+import LandingReleaseTest from '../src/components/NewLanding/release-test'
 
 export default function Index() {
   React.useEffect(() => {
@@ -67,7 +67,7 @@ export default function Index() {
         <FAQSection />
       </Layout> */}
       {/* 🟢 new landing page */}
-      <NewLanding />
+      <LandingReleaseTest />
       {/* </FlagsProvider> */}
     </>
   )
