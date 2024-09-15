@@ -40,7 +40,10 @@ const BotChat = () => {
 
   return (
     <div className="bg-primary-25 shadow-lg rounded-2xl py-3 w-full h-full flex flex-col justify-between border-2 lg:border-[4px] border-primary">
-      <ScrollToBottom className="overflow-y-auto mb-4 flex flex-col h-full">
+      <ScrollToBottom
+        className="overflow-y-auto mb-4 flex flex-col h-full"
+        followButtonClassName="hidden"
+      >
         <div className="flex flex-col h-[70vh]">
           {conversation.map((message, index) => (
             <ChatMessaage
