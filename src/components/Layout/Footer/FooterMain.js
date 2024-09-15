@@ -73,18 +73,20 @@ const FooterMain = ({ isTalent }) => {
               justifyContent="space-between"
             >
               <Grid item>
-                <div className='rounded-lg bg-white shadow-xl flex flex-col gap-3 p-3 justify-center'>
-                  <div className="text-[1.2rem]">Book Your Free Consultation!</div>
+                <div className="rounded-lg bg-white shadow-xl flex flex-col gap-3 p-3 justify-center">
+                  <div className="text-[1.2rem]">
+                    Book Your Free Consultation!
+                  </div>
                   <input
                     type={'text'}
-                    className='text-secondary text-neutral-500 border border-neutral-300 rounded p-2 text-sm font-semibold'
+                    className="text-secondary text-neutral-500 border border-neutral-300 rounded p-2 text-sm font-semibold"
                     placeholder="Email or Phone Number"
                   />
                   <ScheduleMeetingButton
                     location="FooterSection"
                     // link={isTalent ? 'https://talents.lyrise.ai/' : '/Employer'}
                     link="https://meetings.hubspot.com/sales-lyrise"
-                    text={"Book Now"}
+                    text={'Book Now'}
                     eventType={isTalent ? 'PressedApplyNow' : undefined}
                     isTalent={false}
                   />

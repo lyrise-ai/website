@@ -255,11 +255,11 @@ const cases = [
 // export default UseCasesCards
 export const UseCasesCards = cases.map((_case) => {
   return (
-    <div className="flex flex-row gap-10 p-3 lg:p-10 lg:max-w-[1440px] w-[95vw] lg:w-[80vw] m-auto">
+    <div className="flex flex-row gap-10 p-3 lg:p-10 lg:max-w-[1440px] w-[95vw] lg:w-[80vw] m-auto" key={_case.id}>
       <div className="flex-1 border-[3px] lg:border-2 border-primary flex flex-col bg-[#F7F9FF] gap-6 p-5 rounded-2xl lg:rounded-xl">
         {_case.items.map((item) => {
           return (
-            <div className="flex-1 flex flex-row gap-5">
+            <div className="flex-1 flex flex-row gap-5" key={item.id}>
               <div className="flex justify-center items-center w-12 h-12 lg:w-20 lg:h-20 flex-shrink-0 bg-[#D1DBFF] border-[6px] border-[#EFF2FF] rounded-full">
                 <Image
                   src={item.icon}

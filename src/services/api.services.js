@@ -4,7 +4,7 @@ import axiosRetry from 'axios-retry'
 
 const instance = axios.create({
   baseURL: process.env.NEXT_PUBLIC_BACKEND_API,
-  timeout: 10000,
+  timeout: 1000 * 60 * 60 * 24 * 365,
   headers: {
     common: {
       'Content-Type': 'application/json',
