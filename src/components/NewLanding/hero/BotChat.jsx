@@ -16,7 +16,7 @@ const BotChat = () => {
 
   const scrollToBottom = () => {
     // click the hidden button to scroll to bottom
-    scrollToBottomButtonRef.current && scrollToBottomButtonRef.current.click()
+    if (scrollToBottomButtonRef.current) scrollToBottomButtonRef.current.click()
   }
 
   const handleSubmit = async (e) => {
@@ -72,6 +72,7 @@ const ScrollToBottomHiddenRef = ({ buttonRef }) => {
 
   return (
     <button
+      type="button"
       onClick={scrollToBottom}
       ref={buttonRef}
       className="hidden"
