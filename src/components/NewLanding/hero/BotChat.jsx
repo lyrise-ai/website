@@ -53,8 +53,8 @@ const BotChat = () => {
               sessionId={sessionId}
             />
           ))}
+          {isLoading ? <Thinking /> : null}
         </div>
-        {isLoading ? <Thinking /> : null}
         <ScrollToBottomHiddenRef buttonRef={scrollToBottomButtonRef} />
       </ScrollToBottom>
       <form onSubmit={handleSubmit} className="flex mb-2 float-end px-4">

@@ -9,6 +9,7 @@ const Thinking = () => {
         w-full p-4
         flex gap-2
         bg-transparent
+        relative
       `}
     >
       <div className="flex justify-center items-center ml-2">
