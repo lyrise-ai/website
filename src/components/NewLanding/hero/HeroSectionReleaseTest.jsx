@@ -30,10 +30,10 @@ export default function HeroSectionReleaseTest() {
       </div>
       <div className="relative col-span-5 md:max-lg:mr-10 h-[40vh] lg:h-[75vh]">
         <div
-          className={`absolute transition-all duration-300 ease-in-out ${
+          className={`absolute transition-all duration-300 ease-in-out top-0 ${
             isChatFocused
-              ? 'z-50 h-[50vh] -top-[40vh] -left-5 -right-5' // as outer container is applying x-padding 5rem
-              : 'h-[40vh] lg:h-[75vh] top-0 left-0 right-0'
+              ? 'z-50 h-[50vh] -left-5 -right-5' // as outer container is applying x-padding 5rem
+              : 'h-[40vh] lg:h-[75vh] left-0 right-0'
           }`}
         >
           <ChatFocusContext.Provider
