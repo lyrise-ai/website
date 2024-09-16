@@ -46,6 +46,13 @@ export default function ChatInput({
     setIsChatFocused(false)
   }
 
+  const handleButtonClick = (e) => {
+    e.preventDefault()
+    handleSubmit(e)
+    CSSChatInputHeight.reset()
+    textareaRef.current.focus()
+  }
+
   return (
     <div
       className="flex flex-row w-full items-center bg-white rounded-lg overflow-hidden min-h-fit py-1"
@@ -66,6 +73,7 @@ export default function ChatInput({
         disabled={isLoading || disabled}
         type="submit"
         className="text-white px-4 py-2 rounded-r-lg transition duration-300 disabled:opacity-50 h-full"
+        onClick={handleButtonClick}
       >
         <SendIcon className="h-auto w-5" />
       </button>

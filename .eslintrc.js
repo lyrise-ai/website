@@ -137,5 +137,7 @@ module.exports = {
     'jsx-a11y/no-noninteractive-element-interactions': 'off',
     'no-plusplus': 'off',
     'no-await-in-loop': 'off',
+    'prefer-destructuring': 'off',
+    'no-param-reassign': 'off',
   },
 }
