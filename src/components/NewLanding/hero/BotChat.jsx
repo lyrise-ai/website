@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react'
+import React, { useRef, useState } from 'react'
 
 // components
 import ChatInput from './ui/ChatInput'
@@ -7,14 +7,16 @@ import Thinking from './ui/Thinking'
 
 // hooks
 import useBotChat from '../../../hooks/useBotChat'
-import { useSmoothScroll } from '../../../hooks/useSmootScroll'
+import useScrollOnNewContent from '../../../hooks/useScrollOnNewContent'
 
 const BotChat = () => {
   const { conversation, sessionId, isLoading, addMessage, sendMessage } =
     useBotChat()
 
-  const smoothScroll = useSmoothScroll()
   const scrollRef = useRef(null)
+
+  // scroll down whenever a new message is added
+  useScrollOnNewContent(scrollRef, conversation)
 
   const [userInput, setUserInput] = useState('')
 
@@ -31,28 +33,6 @@ const BotChat = () => {
       }
     }
   }
-
-  useEffect(() => {
-    if (scrollRef.current) {
-      console.log('should scroll to bottom')
-      const scrollElement = scrollRef.current
-      const scrollToBottom = () => {
-        const scrollHeight = scrollElement.scrollHeight
-        const height = scrollElement.clientHeight
-        const maxScrollTop = scrollHeight - height
-        smoothScroll(scrollElement, maxScrollTop, 300) // 300ms duration
-      }
-
-      // scroll depending on browser support
-      if ('scrollBehavior' in document.documentElement.style) {
-        // Native smooth scrolling
-        scrollToBottom()
-      } else {
-        // Fallback for browsers that don't support scroll-behavior
-        smoothScroll(scrollElement, scrollElement.scrollHeight, 300)
-      }
-    }
-  }, [conversation, smoothScroll])
 
   return (
     <div className="bg-primary-25 shadow-lg rounded-2xl py-3 w-full h-full flex flex-col justify-between border-2 lg:border-[4px] border-primary">
