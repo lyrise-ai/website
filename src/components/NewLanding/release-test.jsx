@@ -13,6 +13,7 @@ import Logos from './logos'
 import Security from './security'
 import LandingTestimonials from './testimonials'
 import UseCases from './use-cases/UseCases'
+import JDGenerator from './jd-generator'
 
 export default function LandingReleaseTest() {
   return (
@@ -23,6 +24,7 @@ export default function LandingReleaseTest() {
         <HeroSectionReleaseTest />
         {/* <LLMs /> */}
         <BackedBy />
+        <JDGenerator />
         <HowItWorks />
         {/* <div className='bg-white h-[50vh]'>
               <PartnersSlider />
