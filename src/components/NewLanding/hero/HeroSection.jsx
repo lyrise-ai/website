@@ -4,7 +4,6 @@ import { LYRISEAI_PRODUCT_URL } from '../../../constants/main'
 import { ChatFocusContext } from '../../../providers/ChatFocusContext'
 import ArrowButton from '../../Buttons/ArrowButton'
 import BotChat from './BotChat'
-import Video from './Video'
 
 export default function HeroSection() {
   const [isChatFocused, setIsChatFocused] = useState(false)
@@ -23,14 +22,26 @@ export default function HeroSection() {
         <Link href={LYRISEAI_PRODUCT_URL + 'signup'}>
           <ArrowButton
             showArrow
-            className="max-md:w-full justify-between font-medium py-2 md:py-3 max-w-fit"
+            className="max-md:w-full justify-between font-medium py-3 max-w-fit"
           >
             Hire Now!
           </ArrowButton>
         </Link>
       </div>
-      <div className="col-span-5 border-[12px] bg-[#EFF2FF] border-white rounded-[20px] overflow-hidden md:max-lg:mr-10">
-        <Video />
+      <div className="relative col-span-5 md:max-lg:mr-10 h-[40vh] lg:h-[75vh]">
+        <div
+          className={`absolute transition-all duration-300 ease-in-out top-0 ${
+            isChatFocused
+              ? 'z-50 h-[50vh] -left-5 -right-5' // as outer container is applying x-padding 5rem
+              : 'h-[40vh] lg:h-[75vh] left-0 right-0'
+          }`}
+        >
+          <ChatFocusContext.Provider
+            value={{ isChatFocused, setIsChatFocused }}
+          >
+            <BotChat />
+          </ChatFocusContext.Provider>
+        </div>
       </div>
     </div>
   )

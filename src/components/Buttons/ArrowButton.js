@@ -1,5 +1,5 @@
 import React from 'react'
-import { FaArrowRight } from 'react-icons/fa'
+import RightArrowIcon from '../../assets/icons/rightArrowIcon'
 
 const ArrowButton = ({
   children = '',
@@ -25,7 +25,7 @@ const ArrowButton = ({
     <button
       type="button"
       className={`
-                p-2 px-4 font-secondary rounded-[2rem] text-lg lg:text-xl font-medium w-fit transition-all duration-200 flex items-center justify-center group 
+                p-2 px-4 font-secondary rounded-lg text-lg lg:text-xl font-medium w-fit transition-all duration-200 flex items-center justify-center group 
                 ${getButtonStyles()} 
                 ${className}
                 hover:px-6
@@ -34,9 +34,9 @@ const ArrowButton = ({
     >
       <span className={`${showArrow ? 'mr-2' : ''}`}>{children}</span>
       {showArrow && (
-        <FaArrowRight
+        <RightArrowIcon
           className={
-            'transition-transform duration-200 ' +
+            'transition-transform duration-200 text-white ' +
             (showArrow ? 'group-hover:translate-x-2.5' : '')
           }
         />
