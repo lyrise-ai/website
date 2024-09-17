@@ -8,7 +8,7 @@ import backedby1 from '../../../src/assets/hero/backed-by/1.png'
 import backedby2 from '../../../src/assets/hero/backed-by/2.png'
 import backedby3 from '../../../src/assets/hero/backed-by/3.png'
 import FAQ from './faq'
-import HeroSectionReleaseTest from './hero/HeroSectionReleaseTest'
+import HeroSection from './hero/HeroSection'
 import Logos from './logos'
 import Security from './security'
 import LandingTestimonials from './testimonials'
@@ -21,7 +21,7 @@ export default function LandingReleaseTest() {
       {/* <Img src={background} className="w-screen h-fit object-cover absolute top-0 left-0" /> */}
       <div className="w-full h-fit new-landing-container">
         {/* <HeroSection /> */}
-        <HeroSectionReleaseTest />
+        <HeroSection />
         {/* <LLMs /> */}
         <BackedBy />
         <JDGenerator />
