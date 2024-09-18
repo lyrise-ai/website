@@ -74,7 +74,7 @@ export default BotChat
 
 function DesktopInstructions() {
   return (
-    <div className="hidden md:block absolute -bottom-3 -translate-x-[92%] animate-pulse">
+    <div className="hidden md:block absolute -bottom-3 -translate-x-[92%]">
       <Image
         src={desktopInstructionsImage}
         alt="Try it now"
