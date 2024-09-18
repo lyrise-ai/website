@@ -94,13 +94,13 @@ function MobileInstructions() {
   }
 
   return (
-    <button className="block md:hidden absolute -translate-y-[80%] -right-5">
+    <div className="block md:hidden absolute -translate-y-[80%] -right-5">
       <Image
         src={mobileInstructionsImage}
         alt="Try it now"
         width={200}
         height={200}
       />
-    </button>
+    </div>
   )
 }
