@@ -1,6 +1,6 @@
 import React from 'react'
 
-import SwiperComponent from '../shared/Swiper/SwiperComponent'
+import SwiperImagesComponent from '../shared/Swiper/SwiperImagesComponent'
 
 const SilverbulletGray = '/assets/GrayLogos/silver_bulletgray.png'
 const QuantraxGray = '/assets/GrayLogos/quantraxgray.png'
@@ -30,6 +30,15 @@ const images = [
   { id: '12', greyImage: NeoTaxGray, image: NeoTax },
 ]
 
+const items = images.map((item) => ({
+  id: item.id,
+  content: (
+    <div className="flex justify-center items-center">
+      <img src={item.greyImage} alt="logo" />
+    </div>
+  ),
+}))
+
 export default function PartnersSlider() {
-  return <SwiperComponent images={images} />
+  return <SwiperImagesComponent images={images} />
 }
