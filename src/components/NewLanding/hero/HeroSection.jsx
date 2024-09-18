@@ -10,7 +10,7 @@ export default function HeroSection() {
 
   return (
     // note: overflow was hidden here
-    <div className="flex flex-col md:grid grid-cols-9 w-full relative m-auto md:mb-20 md:max-w-[80rem] gap-10 py-3 md:py-20 max-md:px-5">
+    <div className="flex flex-col md:grid grid-cols-9 w-full relative m-auto md:mb-20 md:max-w-[84rem] gap-10 py-3 md:py-20 max-md:px-5">
       <div className="col-span-4 flex flex-col lg:gap-5 justify-center">
         <h1 className="text-5xl lg:text-7xl font-semibold font-primary max-sm:mt-10">
           Hire AI Talent Instantly
