@@ -13,6 +13,8 @@ import Logos from './logos'
 import Security from './security'
 import LandingTestimonials from './testimonials'
 import UseCases from './use-cases/UseCases'
+import JDGenerator from './jd-generator'
+import ExpertNetwork from './expert-network/ExpertNetwork'
 
 export default function NewLanding() {
   return (
@@ -23,6 +25,8 @@ export default function NewLanding() {
         <HeroSection />
         {/* <LLMs /> */}
         <BackedBy />
+        <JDGenerator />
+        <ExpertNetwork />
         <HowItWorks />
         {/* <div className='bg-white h-[50vh]'>
               <PartnersSlider />

@@ -8,7 +8,6 @@ import { Swiper, SwiperSlide } from 'swiper/react'
 
 const SwiperComponent = ({ items, selected, setSelected }) => {
   const above1000 = useMediaQuery('(min-width: 1000px)')
-  const under600 = useMediaQuery('(max-width: 600px)')
   const under400 = useMediaQuery('(max-width: 400px)')
 
   return (
@@ -16,11 +15,13 @@ const SwiperComponent = ({ items, selected, setSelected }) => {
       freeMode
       autoHeight
       grabCursor
+      loop
       modules={[FreeMode, Autoplay]}
       className="mySwiper"
       slidesPerView={under400 ? 2 : above1000 ? 5 : 3}
       spaceBetween={10}
       autoplay={{
+        stopOnLastSlide: false,
         delay: 2500,
         disableOnInteraction: false,
       }}
@@ -33,8 +34,6 @@ const SwiperComponent = ({ items, selected, setSelected }) => {
         >
           <div
             style={{
-              width: under600 ? '100px' : '150px',
-              height: '93px',
               display: 'flex',
               justifyContent: 'center',
               alignItems: 'center',

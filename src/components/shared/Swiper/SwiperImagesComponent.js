@@ -14,7 +14,7 @@ const SwiperImagesComponent = ({ images }) => {
     content: (
       <ImgComponent
         source={imgObj.id === selected ? imgObj.image : imgObj.greyImage}
-        width={under600 ? '100px' : '150'}
+        width={under600 ? '100px' : '150px'}
         height="93px"
       />
     ),
