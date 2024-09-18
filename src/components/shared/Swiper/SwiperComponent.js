@@ -56,8 +56,9 @@ SwiperComponent.propTypes = {
       content: PropTypes.node.isRequired,
     }),
   ).isRequired,
-  selected: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
-  setSelected: PropTypes.func,
+  selected: PropTypes.oneOfType([PropTypes.string, PropTypes.number])
+    .isRequired,
+  setSelected: PropTypes.func.isRequired,
 }
 
 export default SwiperComponent
