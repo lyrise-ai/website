@@ -6,8 +6,13 @@ import ChatMessaage from './ui/ChatMessaage'
 import Thinking from './ui/Thinking'
 
 // hooks
+import Image from 'next/image'
 import useBotChat from '../../../hooks/useBotChat'
 import useScrollOnNewContent from '../../../hooks/useScrollOnNewContent'
+
+import desktopInstructionsImage from '../../../assets/hero/desktop-instructions.png'
+import mobileInstructionsImage from '../../../assets/hero/mobile-instructions.png'
+import { useChatFocus } from '../../../providers/ChatFocusContext'
 
 const BotChat = () => {
   const { conversation, sessionId, isLoading, addMessage, sendMessage } =
@@ -35,7 +40,7 @@ const BotChat = () => {
   }
 
   return (
-    <div className="bg-primary-25 shadow-lg rounded-2xl py-3 w-full h-full flex flex-col justify-between border-2 lg:border-[4px] border-primary">
+    <div className="relative bg-primary-25 shadow-lg rounded-2xl py-3 w-full h-full flex flex-col justify-between border-2 lg:border-[4px] border-primary">
       <div
         className="flex flex-col h-full overflow-y-auto scroll-smooth"
         ref={scrollRef}
@@ -59,8 +64,43 @@ const BotChat = () => {
           disabled={!sessionId} // disable chatting if the sessionId is not available yet
         />
       </form>
+      <DesktopInstructions />
+      <MobileInstructions />
     </div>
   )
 }
 
 export default BotChat
+
+function DesktopInstructions() {
+  return (
+    <div className="hidden md:block absolute -bottom-3 -translate-x-[92%]">
+      <Image
+        src={desktopInstructionsImage}
+        alt="Try it now"
+        width={220}
+        height={220}
+        objectFit="contain"
+      />
+    </div>
+  )
+}
+
+function MobileInstructions() {
+  const { isChatFocused } = useChatFocus()
+
+  if (isChatFocused) {
+    return null
+  }
+
+  return (
+    <div className="block md:hidden absolute -translate-y-[80%] -right-5">
+      <Image
+        src={mobileInstructionsImage}
+        alt="Try it now"
+        width={200}
+        height={200}
+      />
+    </div>
+  )
+}

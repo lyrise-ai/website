@@ -55,7 +55,10 @@ export default function ChatInput({
 
   return (
     <div
-      className="flex flex-row w-full items-center bg-white rounded-lg overflow-hidden min-h-fit py-1"
+      className={
+        'flex flex-row w-full items-center bg-white rounded-lg overflow-hidden min-h-fit py-1 '
+        // styles.fancy
+      }
       style={{ boxShadow: '0px 4px 8px 0px rgba(0, 34, 158, 0.08)' }}
     >
       <ChatFileInput setUserInput={setUserInput} />
