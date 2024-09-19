@@ -27,7 +27,7 @@ export default function NewLanding() {
         <BackedBy />
         <JDGenerator />
         <ExpertNetwork />
-        <HowItWorks />
+        {/* <HowItWorks /> */}
         {/* <div className='bg-white h-[50vh]'>
               <PartnersSlider />
         </div> */}
