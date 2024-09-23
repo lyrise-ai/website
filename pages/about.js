@@ -17,12 +17,12 @@ export default function About() {
   }, [])
   return (
     <>
-      <Script
+      {/* <Script
         type="text/javascript"
         id="hs-script-loader"
         async
         src="//js.hs-scripts.com/8514634.js"
-      />
+      /> */}
       <Header isTalent={false} />
       <MissionSection />
       <HeroSection />

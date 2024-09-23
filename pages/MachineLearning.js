@@ -58,12 +58,12 @@ export default function MachineLearning() {
 
   return (
     <>
-      <Script
+      {/* <Script
         type="text/javascript"
         id="hs-script-loader"
         async
         src="//js.hs-scripts.com/8514634.js"
-      />
+      /> */}
       <Layout>
         <HeroSection
           title={heroSection.title}

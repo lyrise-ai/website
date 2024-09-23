@@ -38,12 +38,12 @@ export default function Index() {
 
   return (
     <>
-      <Script
+      {/* <Script
         type="text/javascript"
         id="hs-script-loader"
         async
         src="//js.hs-scripts.com/8514634.js"
-      />
+      /> */}
       <Layout isTalent>
         <HeroSection
           title="Join the top AI. and Data Talents."

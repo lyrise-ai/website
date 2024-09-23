@@ -44,13 +44,13 @@ export default function Index() {
 
   return (
     <>
-      <Script
+      {/* <Script
         type="text/javascript"
         id="hs-script-loader"
         async
         src="//js.hs-scripts.com/8514634.js"
         strategy="lazyOnload"
-      />
+      /> */}
       <ToastContainer />
       {/* <FlagsProvider> */}
       {/* <MembersSection /> this puts extra margin in the children's for loop in the layout.js */}
