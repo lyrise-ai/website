@@ -24,9 +24,6 @@ export default function NewLanding() {
         {/* <LLMs /> */}
         <BackedBy />
         <HowItWorks />
-        {/* <div className='bg-white h-[50vh]'>
-              <PartnersSlider />
-        </div> */}
         <Logos />
         {/* <UseCases /> */}
         <Security />
