@@ -3,27 +3,42 @@ import React from 'react'
 const questions = [
   {
     id: 1,
-    question: 'Who is LyRise for?',
-    answer:
-      'Tech companies looking for faster and more efficient access to remote AI, Data & Software talent.',
+    question: 'What services does LyRise Offer?',
+    answer: (
+      <>
+        <span>
+          <b>We provide two core services:</b>
+        </span>
+        <ul>
+          <li>
+            1. Exponentially accelerating hiring AI and Data talents through our
+            LLM, Lyrai.
+          </li>
+          <li>
+            2. Develop Custom AI Agent and solutions tailored to your specific
+            needs.
+          </li>
+        </ul>
+      </>
+    ),
   },
   {
     id: 2,
-    question: 'Can I subcontract a project to LyRise?',
+    question: "What's AIaaS?",
     answer:
-      'Yes. If you’re not looking to hire at the moment, you can work with our talents on a project basis and leave the hassle of HR to us. You can select our Talent As A Service (TAaS), LyRise will then act as your Employer of Record (EoR) building the team, manages your payroll, up or down-scales the team, performs regular performance reviews, provides technical support, security services all in one as well as other perks--sign up to find out more!',
+      'AIaaS (Artificial Intelligence as a Service) refers to the delivery of AI capabilities via cloud-based platforms, allowing businesses to access and integrate AI technologies without needing to build or maintain their own AI infrastructure. AIaaS offers a range of services such as machine learning, natural language processing, computer vision, and predictive analytics through APIs or ready-made tools. This model allows companies to leverage AI for their business operations with lower upfront costs, faster implementation, and scalability as needed.',
   },
   {
     id: 3,
-    question: 'How long does the matching process take?',
+    question: 'What is Lyrai?',
     answer:
-      'It takes as little as 14 days for the roles listed above, whereas more specialized roles may require more time.',
+      'Lyrai is our LLM that accelerates hiring AI and Data talents. You simply paste your job description or explain what kind of experience/projects  would you want your talent to have worked on before, and it’ll keep suggesting vetted candidates from our Database',
   },
   {
     id: 4,
-    question: 'How will LyRise help me manage my remote AI team?',
+    question: 'What does our Database consist of?',
     answer:
-      'We have top-notch engagement managers, AI, Data & Software product managers, and senior experts who can help you build and manage your remote AI & Data team.',
+      'Our database comprises of AI and Data Talents and Expert Network. They mainly reside in the MENA region, as well as the US and Europe.',
   },
 ]
 

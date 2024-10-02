@@ -16,20 +16,30 @@ const toBgColor = {
 const items = [
   {
     title: 'Privacy Preservation',
-    subtitle:
-      'Operate under a zero-trust architecture. The evolving Hyper Protect Platform ensures data security, privacy, and sovereignty, even within our team.',
+    subtitle: (
+      <span>
+        We operate under a zero-trust architecture. The evolving{' '}
+        <a
+          href="https://www.ibm.com/products/hyper-protect-virtual-servers"
+          className="underline"
+        >
+          IBM Hyper Protect Platform
+        </a>{' '}
+        ensures your data security, privacy, and sovereignty.
+      </span>
+    ),
     imgSrc: first,
   },
   {
     title: 'Confidential Lifecycle',
     subtitle:
-      'Utilize Secure Service Container technology to maintain data integrity throughout its journey. Data remains secure in storage and transit, accessible only to authorized parties.',
+      'We utilize IBM’s Secure Service Container technology to maintain your data integrity throughout its journey.',
     imgSrc: second,
   },
   {
     title: 'Regulatory Compliance',
     subtitle:
-      'Adhere to GDPR, HIPAA, and industry standards for comprehensive compliance.',
+      'We ensure full compliance with GDPR, HIPAA, and all relevant industry standards, maintaining the highest level of data protection and regulatory adherence.',
     imgSrc: third,
   },
 ]
@@ -49,10 +59,10 @@ function Security() {
   return (
     <div className="text-center w-full mt-32">
       <h3 className="text-neutral-500 font-secondary mb-3">
-        Data Security & Infrastructure
+        Data Security: Your data never leaves your premise.
       </h3>
       <h1 className="text-3xl lg:text-4xl max-w-[500px] m-auto font-medium mb-20 font-primary max-sm:max-w-[90%]">
-        Elevate Your Data Security with IBM Hyper Protect Infrastructure
+        Ensure your Data Security with IBM Hyper Protect Infrastructure
       </h1>
 
       <div className="md:grid gap-5 grid-cols-4 max-w-[1200px] m-auto">
@@ -124,11 +134,11 @@ function MobileVersion({ active, setActive }) {
   console.log('rendering mobile version', active)
   return (
     <div className="text-center w-full mt-32">
-      <h3 className="text-neutral-500 font-secondary mb-3">
-        Data Security & Infrastructure
+      <h3 className="text-neutral-500 font-secondary mb-3 max-w-[85%] mx-auto">
+        Data Security: Your data never leaves your premise.
       </h3>
       <h1 className="text-3xl lg:text-4xl max-w-[500px] m-auto font-medium mb-20 font-primary max-sm:max-w-[90%]">
-        Elevate Your Data Security with IBM Hyper Protect Infrastructure
+        Ensure your Data Security with IBM Hyper Protect Infrastructure
       </h1>
       {/* active item */}
       <div

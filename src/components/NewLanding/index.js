@@ -28,7 +28,7 @@ export default function NewLanding() {
               <PartnersSlider />
         </div> */}
         <Logos />
-        <UseCases />
+        {/* <UseCases /> */}
         <Security />
         <LandingTestimonials />
         <FAQ />
@@ -43,7 +43,7 @@ function BackedBy() {
   return (
     <div className="flex flex-col items-center gap-5 w-full overflow-hidden">
       <div className="text-3xl lg:text-4xl font-semibold text-center mb-10 font-primary mt-20">
-        LyRise is backed by
+        Associated with
       </div>
       <div className="flex gap-10 mx-10">
         <div className="h-auto w-1/3">
