@@ -13,11 +13,10 @@ export default function HeroSection() {
     <div className="flex flex-col md:grid grid-cols-9 w-full relative m-auto md:mb-20 md:max-w-[84rem] gap-10 py-3 md:py-20 max-md:px-5">
       <div className="col-span-4 flex flex-col lg:gap-5 justify-center">
         <h1 className="text-5xl lg:text-7xl font-semibold font-primary max-sm:mt-10">
-          Hire AI Talent Instantly
+          Helping SMEs Adopt AI Easier and Faster
         </h1>
         <h3 className="pr-5 text-neutral-600 font-secondary text-lg md:text-xl lg:text-2xl font-medium lg:font-primary max-md:mb-2">
-          Our LLM will match you with the top 2% vetted AI engineers in Africa,
-          for free.
+          Unlocking AI for 1 Million Businesses
         </h3>
         <Link href={LYRISEAI_PRODUCT_URL + 'signup'}>
           <ArrowButton
