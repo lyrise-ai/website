@@ -23,7 +23,7 @@ export default function HeroSection() {
             showArrow
             className="max-md:w-full justify-between font-medium py-3 max-w-fit"
           >
-            Hire Now!
+            Try Now!
           </ArrowButton>
         </Link>
       </div>
