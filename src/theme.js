@@ -6,7 +6,7 @@ import '@fontsource/cairo'
 const theme = createTheme({
   palette: {
     primary: {
-      main: '#4200FF',
+      main: '#4200FF' ,
     },
     secondary: {
       main: '#000022',
