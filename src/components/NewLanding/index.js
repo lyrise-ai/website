@@ -13,6 +13,8 @@ import Logos from './logos'
 import Security from './security'
 import LandingTestimonials from './testimonials'
 import UseCases from './use-cases/UseCases'
+import JDGenerator from './jd-generator'
+import ExpertNetwork from './expert-network/ExpertNetwork'
 
 export default function NewLanding() {
   return (
@@ -23,7 +25,12 @@ export default function NewLanding() {
         <HeroSection />
         {/* <LLMs /> */}
         <BackedBy />
+        <JDGenerator />
+        <ExpertNetwork />
         {/* <HowItWorks /> */}
+        {/* <div className='bg-white h-[50vh]'>
+              <PartnersSlider />
+        </div> */}
         {/* <Logos /> */}
         {/* <UseCases /> */}
         <Security />
@@ -40,7 +47,7 @@ function BackedBy() {
   return (
     <div className="flex flex-col items-center gap-5 w-full overflow-hidden">
       <div className="text-3xl lg:text-4xl font-semibold text-center mb-10 font-primary mt-20">
-        Associated with
+        Associated With
       </div>
       <div className="flex gap-10 mx-10">
         <div className="h-auto w-1/3">

@@ -1,5 +1,9 @@
+import Link from 'next/link'
+
 import ArrowButton from '../Buttons/ArrowButton'
 import MessageAvatar from './hero/ui/MessageAvatar'
+
+const JD_GENERATOR_URL = ''
 
 export default function JDGenerator() {
   return (
@@ -21,9 +25,11 @@ export default function JDGenerator() {
             Our AI model can generate a job description for any AI role you’re
             looking to hire.
           </p>
-          <ArrowButton showArrow className="!text-base md:!text-lg">
-            Generate Job Description
-          </ArrowButton>
+          <Link href={JD_GENERATOR_URL}>
+            <ArrowButton showArrow className="!text-base md:!text-lg">
+              Generate Job Description
+            </ArrowButton>
+          </Link>
         </div>
       </div>
       <div className="flex flex-1 items-end gap-5">

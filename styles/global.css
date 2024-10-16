@@ -485,7 +485,6 @@ li {
   }
 }
 
-/* text area field sizing */
-/* textarea {
-  field-sizing: content;
-} */
+#expert-network-swiper {
+  overflow: visible !important;
+}
