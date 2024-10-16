@@ -25,7 +25,7 @@ const ArrowButton = ({
     <button
       type="button"
       className={`
-                p-2 px-4 font-secondary rounded-lg text-lg lg:text-xl font-medium w-fit transition-all duration-200 flex items-center justify-center group 
+                p-2 px-4 font-secondary rounded-xl text-lg lg:text-xl font-medium w-fit transition-all duration-200 flex items-center justify-center group 
                 ${getButtonStyles()} 
                 ${className}
                 hover:px-6

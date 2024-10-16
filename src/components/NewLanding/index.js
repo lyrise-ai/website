@@ -23,8 +23,8 @@ export default function NewLanding() {
         <HeroSection />
         {/* <LLMs /> */}
         <BackedBy />
-        <HowItWorks />
-        <Logos />
+        {/* <HowItWorks /> */}
+        {/* <Logos /> */}
         {/* <UseCases /> */}
         <Security />
         <LandingTestimonials />
