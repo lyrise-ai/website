@@ -15,6 +15,7 @@ import LandingTestimonials from './testimonials'
 import UseCases from './use-cases/UseCases'
 import JDGenerator from './jd-generator'
 import ExpertNetwork from './expert-network/ExpertNetwork'
+import Solutions from './solutions/Solutions'
 
 export default function NewLanding() {
   return (
@@ -25,7 +26,8 @@ export default function NewLanding() {
         <HeroSection />
         {/* <LLMs /> */}
         <BackedBy />
-        <JDGenerator />
+        {/* <JDGenerator /> */}
+        <Solutions />
         <ExpertNetwork />
         {/* <HowItWorks /> */}
         {/* <div className='bg-white h-[50vh]'>
