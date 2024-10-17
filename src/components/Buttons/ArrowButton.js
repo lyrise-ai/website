@@ -11,7 +11,7 @@ const ArrowButton = ({
   const getButtonStyles = () => {
     switch (variant) {
       case 'secondary':
-        return 'bg-white text-primary border-2 border-primary hover:bg-neutral-100'
+        return 'bg-white text-primary border border-primary hover:bg-neutral-100'
       case 'white':
         return 'bg-white text-primary hover:bg-gray-100'
       case 'link':

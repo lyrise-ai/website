@@ -8,7 +8,7 @@ const JD_GENERATOR_URL = ''
 export default function JDGenerator() {
   return (
     <section
-      className="flex flex-col items-center md:flex-row gap-5 md:gap-8 p-5 md:p-8 bg-white w-fit mx-auto max-w-[90%] md:max-w-4xl mt-12 md:mt-16 rounded-2xl"
+      className="flex flex-col items-center md:flex-row gap-5 md:gap-8 p-5 md:p-8 bg-white mx-auto md:max-w-6xl mt-12 md:mt-16 rounded-2xl max-md:mx-5"
       style={{
         boxShadow: '0px 9px 18px 0px rgba(0, 34, 158, 0.15)',
       }}
@@ -27,7 +27,7 @@ export default function JDGenerator() {
           </p>
           <Link href={JD_GENERATOR_URL}>
             <ArrowButton showArrow className="!text-base md:!text-lg">
-              Generate Job Description
+              Book a Demo!
             </ArrowButton>
           </Link>
         </div>

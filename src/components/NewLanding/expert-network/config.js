@@ -34,7 +34,7 @@ export const EXPERTS = [
   },
   {
     id: 'ahmed-samir-tawfik',
-    name: 'Ahmed Samir Tawfik',
+    name: 'Ahmed Samir Roshdy',
     title: 'Data Science Expert',
     companies: ['Vodafone'],
     companiesImgs: [vodafoneImg],

@@ -57,11 +57,11 @@ function Security() {
   if (isMobile) return <MobileVersion active={active} setActive={setActive} />
 
   return (
-    <div className="text-center w-full mt-32">
+    <div className="text-center w-full mt-20">
       <h3 className="text-neutral-500 font-secondary mb-3">
         Data Security: Your data never leaves your premise.
       </h3>
-      <h1 className="text-3xl lg:text-4xl max-w-[500px] m-auto font-medium mb-20 font-primary max-sm:max-w-[90%]">
+      <h1 className="text-3xl lg:text-4xl max-w-[600px] m-auto font-medium mb-20 font-primary max-sm:max-w-[90%]">
         Ensure your Data Security with IBM Hyper Protect Infrastructure
       </h1>
 
@@ -137,7 +137,7 @@ function MobileVersion({ active, setActive }) {
       <h3 className="text-neutral-500 font-secondary mb-3 max-w-[85%] mx-auto">
         Data Security: Your data never leaves your premise.
       </h3>
-      <h1 className="text-3xl lg:text-4xl max-w-[500px] m-auto font-medium mb-20 font-primary max-sm:max-w-[90%]">
+      <h1 className="text-3xl lg:text-4xl max-w-[600px] m-auto font-medium mb-20 font-primary max-sm:max-w-[90%]">
         Ensure your Data Security with IBM Hyper Protect Infrastructure
       </h1>
       {/* active item */}

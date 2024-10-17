@@ -16,7 +16,7 @@ export default function HeroSection() {
     <div className="flex flex-col md:grid grid-cols-9 w-full relative mx-auto md:mb-20 md:max-w-[84rem] gap-10 max-md:px-5 h-[calc(100vh-13rem)]">
       <div
         data-show-video={showVideo}
-        className="flex flex-col lg:gap-5 justify-center col-span-4 max-w-2xl mx-auto data-[show-video=false]:col-span-9 data-[show-video=false]:text-center data-[show-video=false]:items-center"
+        className="group flex flex-col lg:gap-5 justify-center col-span-4 max-w-2xl mx-auto data-[show-video=false]:col-span-9 data-[show-video=false]:text-center data-[show-video=false]:items-center max-md:data-[show-video=false]:my-auto"
       >
         <h1 className="text-5xl lg:text-7xl font-semibold font-primary max-sm:mt-10">
           Hire AI Talent Instantly
@@ -25,12 +25,13 @@ export default function HeroSection() {
           Our LLM will match you with the top 2% vetted AI engineers in north
           Africa, for free!
         </h3>
-        <div className="flex gap-5">
+        <div className="flex gap-5 max-md:flex-col max-md:w-full">
           {showVideo ? null : (
             <ArrowButton
               showArrow
               variant="secondary"
               onClick={handleToggleVideo}
+              className="max-md:mx-auto"
             >
               Watch Demo
             </ArrowButton>
@@ -38,7 +39,7 @@ export default function HeroSection() {
           <Link href={LYRISEAI_PRODUCT_URL + 'signup'}>
             <ArrowButton
               showArrow
-              className="max-md:w-full justify-between font-medium py-3 max-w-fit"
+              className="max-md:w-full justify-between font-medium py-3 max-w-fit group-data-[show-video=false]:mx-auto"
             >
               Try It Now!
             </ArrowButton>
