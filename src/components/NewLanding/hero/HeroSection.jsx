@@ -4,6 +4,8 @@ import { LYRISEAI_PRODUCT_URL } from '../../../constants/main'
 import ArrowButton from '../../Buttons/ArrowButton'
 import Video from './Video'
 
+import { motion } from 'framer-motion'
+
 export default function HeroSection() {
   const [showVideo, setShowVideo] = useState(false)
 
@@ -16,7 +18,7 @@ export default function HeroSection() {
     <div className="flex flex-col md:grid grid-cols-9 w-full relative mx-auto md:mb-20 md:max-w-[84rem] gap-10 max-md:px-5 h-[calc(100vh-13rem)]">
       <div
         data-show-video={showVideo}
-        className="group flex flex-col lg:gap-5 justify-center col-span-4 max-w-2xl mx-auto data-[show-video=false]:col-span-9 data-[show-video=false]:text-center data-[show-video=false]:items-center max-md:data-[show-video=false]:my-auto"
+        className="group flex flex-col lg:gap-5 justify-center col-span-4 max-w-2xl mx-auto transition-all data-[show-video=false]:col-span-9 data-[show-video=false]:text-center data-[show-video=false]:items-center max-md:data-[show-video=false]:my-auto"
       >
         <h1 className="text-5xl lg:text-7xl font-semibold font-primary max-sm:mt-10">
           Hire AI Talent Instantly
@@ -46,11 +48,14 @@ export default function HeroSection() {
           </Link>
         </div>
       </div>
-      {showVideo && (
-        <div className="col-span-5 border-[12px] bg-[#EFF2FF] border-white rounded-[20px] overflow-hidden md:max-lg:mr-10 my-auto">
-          <Video />
-        </div>
-      )}
+      <motion.div
+        data-show-video={showVideo}
+        className="col-span-5 border-[12px] bg-[#EFF2FF] border-white rounded-[20px] overflow-hidden md:max-lg:mr-10 my-auto hidden data-[show-video=true]:block"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: showVideo ? 1 : 0 }}
+      >
+        <Video isShown={showVideo} />
+      </motion.div>
     </div>
   )
 }
