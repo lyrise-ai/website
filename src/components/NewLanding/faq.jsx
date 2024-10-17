@@ -69,7 +69,7 @@ function Question({ question, answer }) {
         'rounded-lg bg-white cursor-pointer transition-all ease-out duration-300 h-fit border-2 ' +
         (collapsed
           ? 'px-5 border-transparent max-h-[10vh]'
-          : 'p-5 !border-blue-500 !max-h-[60vh]')
+          : 'p-5 !border-blue-500 !max-h-[80vh]')
       }
       onClick={() => setCollapsed(!collapsed)}
     >
