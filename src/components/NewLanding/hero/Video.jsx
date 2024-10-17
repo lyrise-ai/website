@@ -41,7 +41,6 @@ export default function Video() {
       id="video"
       preload="metadata" // this will load entire video while page loads
       width="auto"
-      poster="hero-vidoe-placeholder.png"
       ref={videoRef}
       loop
       autoPlay

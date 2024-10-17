@@ -22,7 +22,7 @@ export default function Solutions() {
       <div className="text-3xl lg:text-4xl font-semibold text-center font-primary mt-20">
         Lyrise LLM Solutions
       </div>
-      <div className="grid md:grid-cols-2 gap-5 max-w-6xl mx-auto mt-16">
+      <div className="grid md:grid-cols-2 gap-5 md:gap-10 max-w-6xl mx-auto mt-16">
         {solutions.map((solution) => (
           <Solution key={solution.id} {...solution}>
             <Img src={images[solution.key]} className="w-full h-auto" />

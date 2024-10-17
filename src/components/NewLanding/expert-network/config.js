@@ -33,7 +33,7 @@ export const EXPERTS = [
     imgSrc: karimImg,
   },
   {
-    id: 'ahmed-samir-tawfik',
+    id: 'ahmed-samir-roshdy',
     name: 'Ahmed Samir Roshdy',
     title: 'Data Science Expert',
     companies: ['Vodafone'],
