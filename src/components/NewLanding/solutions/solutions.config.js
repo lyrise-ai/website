@@ -1,3 +1,5 @@
+import { LYRISEAI_PRODUCT_URL } from '../../../constants/main'
+
 export const solutions = [
   {
     id: 0,
@@ -6,8 +8,8 @@ export const solutions = [
     subtitle: 'Find the A.I. talents you need.',
     description:
       'LyRise AI connects you with top AI talent to bring your AI use cases to life. Skip the recruitment hassle and focus on building your AI future.',
-    ctaLabel: 'Book a Demo!',
-    ctaUrl: '/calendar',
+    ctaLabel: 'Try It Now!',
+    ctaUrl: LYRISEAI_PRODUCT_URL + 'signup',
   },
   {
     id: 1,

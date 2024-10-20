@@ -9,32 +9,19 @@ import backedby2 from '../../../src/assets/hero/backed-by/2.png'
 import backedby3 from '../../../src/assets/hero/backed-by/3.png'
 import FAQ from './faq'
 import HeroSection from './hero/HeroSection'
-import Logos from './logos'
 import Security from './security'
 import LandingTestimonials from './testimonials'
-import UseCases from './use-cases/UseCases'
-import JDGenerator from './jd-generator'
 import ExpertNetwork from './expert-network/ExpertNetwork'
 import Solutions from './solutions/Solutions'
 
 export default function NewLanding() {
   return (
     <Layout isRaw={true}>
-      {/* <Img src={background} className="w-screen h-fit object-cover absolute top-0 left-0" /> */}
       <div className="w-full h-fit new-landing-container">
-        {/* <HeroSection /> */}
         <HeroSection />
-        {/* <LLMs /> */}
         <BackedBy />
-        {/* <JDGenerator /> */}
         <Solutions />
         <ExpertNetwork />
-        {/* <HowItWorks /> */}
-        {/* <div className='bg-white h-[50vh]'>
-              <PartnersSlider />
-        </div> */}
-        {/* <Logos /> */}
-        {/* <UseCases /> */}
         <Security />
         <LandingTestimonials />
         <FAQ />

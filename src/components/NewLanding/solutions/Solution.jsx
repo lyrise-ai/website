@@ -30,7 +30,11 @@ export default function Solution({
           {description}
         </p>
         <Link href={ctaUrl}>
-          <ArrowButton showArrow className="!text-base md:!text-lg">
+          <ArrowButton
+            showArrow
+            extraRounded
+            className="!text-base md:!text-lg"
+          >
             {ctaLabel}
           </ArrowButton>
         </Link>
