@@ -1,6 +1,6 @@
 import React from 'react'
 
-import SwiperComponent from '../shared/Swiper/SwiperComponent'
+import SwiperImagesComponent from '../shared/Swiper/SwiperImagesComponent'
 
 const SilverbulletGray = '/assets/GrayLogos/silver_bulletgray.png'
 const QuantraxGray = '/assets/GrayLogos/quantraxgray.png'
@@ -31,5 +31,5 @@ const images = [
 ]
 
 export default function PartnersSlider() {
-  return <SwiperComponent images={images} />
+  return <SwiperImagesComponent images={images} />
 }

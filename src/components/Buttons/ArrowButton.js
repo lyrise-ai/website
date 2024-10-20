@@ -7,11 +7,12 @@ const ArrowButton = ({
   className = '',
   variant = 'default',
   showArrow = false,
+  extraRounded = false,
 }) => {
   const getButtonStyles = () => {
     switch (variant) {
       case 'secondary':
-        return 'bg-white text-primary border-2 border-primary hover:bg-primary hover:text-white'
+        return 'bg-white text-primary border border-primary hover:bg-neutral-100'
       case 'white':
         return 'bg-white text-primary hover:bg-gray-100'
       case 'link':
@@ -25,8 +26,9 @@ const ArrowButton = ({
     <button
       type="button"
       className={`
-                p-2 px-4 font-secondary rounded-lg text-lg lg:text-xl font-medium w-fit transition-all duration-200 flex items-center justify-center group 
-                ${getButtonStyles()} 
+                p-2 px-4 font-secondary text-lg lg:text-xl font-medium w-fit transition-all duration-200 flex items-center justify-center group
+                ${extraRounded ? 'rounded-full' : 'rounded-xl'}
+                ${getButtonStyles()}
                 ${className}
                 hover:px-6
             `}
@@ -36,7 +38,7 @@ const ArrowButton = ({
       {showArrow && (
         <RightArrowIcon
           className={
-            'transition-transform duration-200 text-white ' +
+            'transition-transform duration-200 ' +
             (showArrow ? 'group-hover:translate-x-2.5' : '')
           }
         />

@@ -16,7 +16,7 @@ export default function HeaderButtons() {
           </ArrowButton>
         </a>
       </Grid>
-      <Grid item>
+      {/* <Grid item>
         <a href={LYRISEAI_PRODUCT_URL + 'signup'}>
           <ArrowButton
             showArrow
@@ -25,7 +25,7 @@ export default function HeaderButtons() {
             Find AI Talent
           </ArrowButton>
         </a>
-      </Grid>
+      </Grid> */}
     </>
   )
 }

@@ -9,23 +9,20 @@ import backedby2 from '../../../src/assets/hero/backed-by/2.png'
 import backedby3 from '../../../src/assets/hero/backed-by/3.png'
 import FAQ from './faq'
 import HeroSection from './hero/HeroSection'
-import Logos from './logos'
 import Security from './security'
 import LandingTestimonials from './testimonials'
-import UseCases from './use-cases/UseCases'
+import ExpertNetwork from './expert-network/ExpertNetwork'
+import Solutions from './solutions/Solutions'
 
 export default function NewLanding() {
   return (
     <Layout isRaw={true}>
-      {/* <Img src={background} className="w-screen h-fit object-cover absolute top-0 left-0" /> */}
       <div className="w-full h-fit new-landing-container">
-        {/* <HeroSection /> */}
         <HeroSection />
-        {/* <LLMs /> */}
         <BackedBy />
+        {/* <Solutions /> */}
         <HowItWorks />
-        <Logos />
-        {/* <UseCases /> */}
+        <ExpertNetwork />
         <Security />
         <LandingTestimonials />
         <FAQ />
@@ -40,7 +37,7 @@ function BackedBy() {
   return (
     <div className="flex flex-col items-center gap-5 w-full overflow-hidden">
       <div className="text-3xl lg:text-4xl font-semibold text-center mb-10 font-primary mt-20">
-        Associated with
+        Associated With
       </div>
       <div className="flex gap-10 mx-10">
         <div className="h-auto w-1/3">
