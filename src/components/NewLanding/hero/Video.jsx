@@ -1,10 +1,36 @@
-import React, { useEffect, useRef } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 
-// @deprecated
-// this is a video component that will play when the user scrolls to it
+// utility function to request fullscreen from different browsers
+const requestFullscreen = (element) => {
+  if (element.requestFullscreen) {
+    element.requestFullscreen()
+  } else if (element.mozRequestFullScreen) {
+    // Firefox
+    element.mozRequestFullScreen()
+  } else if (element.webkitRequestFullscreen) {
+    // Chrome, Safari and Opera
+    element.webkitRequestFullscreen()
+  } else if (element.msRequestFullscreen) {
+    // IE/Edge
+    element.msRequestFullscreen()
+  }
+}
+
+const playAndEnterFullscreen = (videoElement) => {
+  videoElement
+    .play()
+    .then(() => {
+      requestFullscreen(videoElement)
+    })
+    .catch((error) => {
+      console.log('Error attempting to play the video:', error)
+    })
+}
 
 export default function Video({ isShown }) {
   const videoRef = useRef(null)
+  const [hasPlayed, setHasPlayed] = useState(false)
+  const [isInViewport, setIsInViewport] = useState(false)
 
   useEffect(() => {
     const options = {
@@ -12,17 +38,24 @@ export default function Video({ isShown }) {
       threshold: [0.25, 0.75],
     }
 
-    const handlePlay = (entries, observer) => {
+    const handleIntersection = (entries) => {
       entries.forEach((entry) => {
-        if (entry.isIntersecting && isShown) {
-          videoRef.current.play()
+        if (entry.isIntersecting) {
+          setIsInViewport(true)
+          if (isShown && !hasPlayed) {
+            playAndEnterFullscreen(videoRef.current)
+            setHasPlayed(true)
+          } else if (hasPlayed) {
+            videoRef.current.play()
+          }
         } else {
+          setIsInViewport(false)
           videoRef.current.pause()
         }
       })
     }
 
-    const observer = new IntersectionObserver(handlePlay, options)
+    const observer = new IntersectionObserver(handleIntersection, options)
 
     const currentVideoRef = videoRef.current
     if (currentVideoRef) {
@@ -34,7 +67,7 @@ export default function Video({ isShown }) {
         observer.unobserve(currentVideoRef)
       }
     }
-  }, [isShown])
+  }, [isShown, hasPlayed])
 
   return (
     <video

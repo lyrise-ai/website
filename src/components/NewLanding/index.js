@@ -20,7 +20,8 @@ export default function NewLanding() {
       <div className="w-full h-fit new-landing-container">
         <HeroSection />
         <BackedBy />
-        <Solutions />
+        {/* <Solutions /> */}
+        <HowItWorks />
         <ExpertNetwork />
         <Security />
         <LandingTestimonials />
