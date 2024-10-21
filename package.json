@@ -38,6 +38,7 @@
     "next": "12.3.0",
     "prop-types": "latest",
     "react": "latest",
+    "react-calendar": "^5.0.0",
     "react-dom": "latest",
     "react-ga": "^3.3.1",
     "react-gtm-module": "^2.0.11",
