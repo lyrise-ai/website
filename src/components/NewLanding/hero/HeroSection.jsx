@@ -24,7 +24,7 @@ export default function HeroSection() {
           Adopt AI Easier & Faster
         </h1>
         <h3 className="pr-5 text-neutral-600 font-secondary text-lg md:text-xl lg:text-2xl lg:font-primary max-md:mb-2">
-          Our Mission is to Unlock AI for 1 Million Companies
+          The platform for companies to adopt AI easier and faster
         </h3>
         <div className="flex gap-5 max-md:flex-col max-md:w-full">
           {showVideo ? null : (
