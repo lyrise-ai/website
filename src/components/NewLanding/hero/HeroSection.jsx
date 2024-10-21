@@ -21,11 +21,10 @@ export default function HeroSection() {
         className="group flex flex-col lg:gap-5 justify-center col-span-4 max-w-2xl mx-auto transition-all data-[show-video=false]:col-span-9 data-[show-video=false]:text-center data-[show-video=false]:items-center max-md:data-[show-video=false]:my-auto"
       >
         <h1 className="text-5xl lg:text-7xl font-semibold font-primary max-sm:mt-10">
-          Hire AI Talent Instantly
+          Adopt AI Easier & Faster
         </h1>
         <h3 className="pr-5 text-neutral-600 font-secondary text-lg md:text-xl lg:text-2xl lg:font-primary max-md:mb-2">
-          Our LLM will match you with the top 2% vetted AI engineers in north
-          Africa, for free!
+          Our Mission is to Unlock AI for 1 Million Companies
         </h3>
         <div className="flex gap-5 max-md:flex-col max-md:w-full">
           {showVideo ? null : (
