@@ -488,3 +488,30 @@ li {
 #expert-network-swiper {
   overflow: visible !important;
 }
+
+/* react calendar custom styling */
+
+.react-calendar {
+  font-size: 1.1rem !important;
+}
+
+@media (max-width: 768px) {
+  .react-calendar {
+    font-size: 1rem !important;
+  }
+}
+
+.react-calendar__navigation {
+  margin-bottom: 10px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 40px;
+  font-family: Poppins;
+  font-weight: 500;
+}
+
+abbr {
+  text-decoration: none !important;
+  font-family: Poppins;
+}
