@@ -61,7 +61,7 @@ export default function MyApp(props) {
       t.src=v;s=b.getElementsByTagName(e)[0];
       s.parentNode.insertBefore(t,s)}(window,document,'script',
       'https://connect.facebook.net/en_US/fbevents.js');
-       fbq('init', '3278159452308220'); 
+       fbq('init', '3278159452308220');
       fbq('track', 'PageView');`
       : '',
   )
@@ -106,7 +106,7 @@ export default function MyApp(props) {
         async
         src="https://www.googletagmanager.com/gtag/js?id=GTM-MF93SZM"
       />
-      
+
       {/* Google Ads Script */}
       <Script
         async
@@ -120,7 +120,7 @@ export default function MyApp(props) {
         gtag('config', 'AW-10840230589');
         `}
       </Script>
-      
+
       {/* <script type="text/javascript">
         window.heap=window.heap||[],heap.load=function(e,t){window.heap.appid=e,window.heap.config=t=t||{};var r=document.createElement("script");r.type="text/javascript",r.async=!0,r.src="https://cdn.heapanalytics.com/js/heap-"+e+".js";var a=document.getElementsByTagName("script")[0];a.parentNode.insertBefore(r,a);for(var n=function(e){return function(){heap.push([e].concat(Array.prototype.slice.call(arguments,0)))}},p=["addEventProperties","addUserProperties","clearEventProperties","identify","resetIdentity","removeEventProperty","setEventProperties","track","unsetEventProperty"],o=0;o<p.length;o++)heap[p[o]]=n(p[o])};
         heap.load("3331170087");
@@ -138,20 +138,18 @@ export default function MyApp(props) {
         <meta name="viewport" content="initial-scale=1, width=device-width" />
         <link rel="icon" href="/images/LogoIcon.ico" />
         <meta name="theme-color" content="#6666ff" />
-        <title>Remote AI & Data Teams: Hire Vetted Talent in 2 Weeks</title>
+        <title>LyRise AI: The Platform to Adopt AI Easier and Faster</title>
         <meta
           name="description"
-          content="Build your global, vetted AI and Data teams faster. Hiring distributed AI and Data teams has never been easier. Sign-up for free, no strings attached.
-"
+          content="Helping you Adopt AI, by either developing your AI Solutions or Hiring The Top AI Developers for you!"
         />
         <meta
           property="og:title"
-          content="Remote AI & Data Teams: Hire Vetted Talent in 2 Weeks"
+          content="LyRise AI: The Platform to Adopt AI Easier and Faster"
         />
         <meta
           property="og:description"
-          content="Build your global, vetted AI and Data teams faster. Hiring distributed AI and Data teams has never been easier. Sign-up for free, no strings attached.
-"
+          content="Helping you Adopt AI, by either developing your AI Solutions or Hiring The Top AI Developers for you!"
         />
         <meta
           property="og:image"
