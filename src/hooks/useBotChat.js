@@ -47,15 +47,34 @@ const useBotChat = () => {
         message: userInput,
       }
 
+      const generalErrorMessage = "Sorry, there was an error processing your request."
+
       try {
         const botResponse = await sendChatAnonMessage(data)
-
-        console.log({ botResponse })
-
         addMessage(botResponse.content, 'bot')
       } catch (error) {
-        console.error('Error getting bot response:', error)
-        addMessage('Sorry, there was an error processing your request.', 'bot')
+        if (error.response) {
+          const errorType = error.response.data.error;
+
+          switch (errorType) {
+            case "max-message-length-exceeded":
+              addMessage("Message too long. Sign up to lift limits.", 'bot');
+              break;
+            case "max-chat-length-exceeded":
+              addMessage("Chat limit reached. Sign up to continue the conversation.", 'bot');
+              break;
+            default:
+              if (error.response.status === 429) {
+                addMessage("Too many messages. Sign up to avoid delays.", 'bot');
+              } else {
+                console.error("Error getting bot response:", error);
+                addMessage(generalErrorMessage, 'bot');
+              }
+          }
+        } else {
+          console.error("Error getting bot response:", error);
+          addMessage(generalErrorMessage, 'bot');
+        }
       } finally {
         setIsLoading(false)
       }
