@@ -3,7 +3,6 @@ import React from 'react'
 import Layout from '../Layout/Layout'
 
 import FAQ from './faq'
-// import HowItWorks from './how/How'
 import HeroSection from './hero/HeroSection'
 import Security from './security'
 import LandingTestimonials from './testimonials'
