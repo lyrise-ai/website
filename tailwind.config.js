@@ -12,7 +12,8 @@ module.exports = {
     extend: {
       colors: {
         primary: 'rgba(41, 87, 255, 1)',
-        "primary-25": '#F7F9FF',
+        'primary-25': '#F7F9FF',
+        'primary-50': '#EFF2FF',
       },
       fontFamily: {
         primary: 'Space Grotesk',

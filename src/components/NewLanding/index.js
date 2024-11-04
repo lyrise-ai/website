@@ -3,13 +3,15 @@ import React from 'react'
 import Layout from '../Layout/Layout'
 
 import FAQ from './faq'
-import HowItWorks from './how/How'
+// import HowItWorks from './how/How'
 import HeroSection from './hero/HeroSection'
 import Security from './security'
 import LandingTestimonials from './testimonials'
 import ExpertNetwork from './expert-network/ExpertNetwork'
 import Solutions from './solutions/Solutions'
 import BackedBy from './backed-by'
+
+import HowItWorks, { robHowItWorksConfig } from './how-it-works/HowItWorks'
 
 export default function NewLanding() {
   return (
@@ -18,7 +20,7 @@ export default function NewLanding() {
         <HeroSection />
         <BackedBy />
         <Solutions />
-        {/* <HowItWorks /> */}
+        <HowItWorks config={robHowItWorksConfig} />
         <ExpertNetwork />
         <Security />
         <LandingTestimonials />

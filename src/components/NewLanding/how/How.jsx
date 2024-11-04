@@ -1,4 +1,6 @@
-import React, { useState, useEffect } from 'react'
+// /* eslint-disable react-hooks/exhaustive-deps */
+
+import React, { useState, useEffect, useMemo } from 'react'
 import { AiOutlineArrowRight } from 'react-icons/ai'
 import { useInView } from 'react-intersection-observer'
 import { motion, AnimatePresence } from 'framer-motion'
@@ -15,6 +17,9 @@ import sphereGif from '../../../assets/new-how/sphere.gif'
 import Img from '../../Product/Img'
 import FadeInOut from '../../Product/FadeInOut'
 import { LYRISEAI_PRODUCT_URL } from '../../../constants/main'
+import ProgressCheckIcon from '../../../assets/icons/progressCheckIcon'
+import ProgressCheckpointIcon from '../../../assets/icons/progressCheckpointIcon'
+import StickyProgress from '../../StickyProgress/StickyProgress'
 
 const sections = [
   {
@@ -75,13 +80,8 @@ export default function How() {
     // }
   }, [isViewingRef1, isViewingRef2, isViewingRef3])
 
-  // logger for section in viwe
-  useEffect(() => {
-    console.log(sectionViewing)
-  }, [sectionViewing])
-
   return (
-    <>
+    <div className="relative">
       <div className="lg:hidden">
         <HowSection />
       </div>
@@ -116,7 +116,7 @@ export default function How() {
           <div className="h-[100vh] w-full p-30" ref={ref3}></div>
         </div>
       </div>
-    </>
+    </div>
   )
 }
 

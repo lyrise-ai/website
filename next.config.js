@@ -1,8 +1,10 @@
+const path = require('path')
+
 module.exports = {
   experimental: {
     images: {
       allowFutureImage: true,
-      // domains: ["www.gravatar.com", "www.freepnglogos.com"], 
+      // domains: ["www.gravatar.com", "www.freepnglogos.com"],
       remotePatterns: [
         {
           protocol: 'https',
@@ -20,10 +22,20 @@ module.exports = {
           protocol: 'https',
           hostname: 'www.freepnglogos.com',
           port: '',
-          pathname: '/uploads/google-logo-png/google-logo-png-google-icon-logo-png-transparent-svg-vector-bie-supply-14.png',
+          pathname:
+            '/uploads/google-logo-png/google-logo-png-google-icon-logo-png-transparent-svg-vector-bie-supply-14.png',
         },
       ],
     },
   },
   reactStrictMode: false,
+  webpack: (config) => {
+    config.resolve.alias = {
+      ...config.resolve.alias,
+      '@components': path.resolve(__dirname, 'src/components'),
+      '@hooks': path.resolve(__dirname, 'src/hooks'),
+      '@assets': path.resolve(__dirname, 'src/assets'),
+    }
+    return config
+  },
 }
