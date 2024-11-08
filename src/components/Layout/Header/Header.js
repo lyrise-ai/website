@@ -6,7 +6,7 @@ import {
   List,
   ListItem,
   ListItemButton,
-  ListItemText
+  ListItemText,
 } from '@mui/material'
 import Grid from '@mui/material/Grid'
 import SwipeableDrawer from '@mui/material/SwipeableDrawer'
@@ -68,7 +68,7 @@ export default function Header({ isTalent }) {
   }
 
   return (
-    <div style={{ backgroundColor: '#FFF' }}>
+    <div style={{ backgroundColor: '#FFF', borderBottom: '2px solid #E2E2E2' }}>
       <div
         className={pathname !== employerPathname ? 'container' : undefined}
         style={{
@@ -160,7 +160,7 @@ export default function Header({ isTalent }) {
                   sx={{
                     '& .MuiDrawer-paper': {
                       width: '100%',
-                      marginTop: "9vh",
+                      marginTop: '9vh',
                       backgroundColor: 'white',
                       boxShadow: 'none',
                       paddingBottom: '10vh',
@@ -189,7 +189,7 @@ export default function Header({ isTalent }) {
                   >
                     <List>
                       {list.map((item) => (
-                        <ListItem key={item.id} >
+                        <ListItem key={item.id}>
                           <Link href={item.href}>
                             <a
                               target={item.target || '_self'}
@@ -219,9 +219,9 @@ export default function Header({ isTalent }) {
                                       fontWeight: 500,
                                       fontSize: '1.5rem',
                                       lineHeight: '120%',
-                                    }
+                                    },
                                   }}
-                                  className='text-neutral-500'
+                                  className="text-neutral-500"
                                 />
                               </ListItemButton>
                             </a>
@@ -248,8 +248,8 @@ export default function Header({ isTalent }) {
                 container
                 alignItems="center"
                 justifyContent="flex-end"
-                direction={"row"}
-                wrap='nowrap'
+                direction={'row'}
+                wrap="nowrap"
                 gap={3}
               >
                 <HeaderButtons />

@@ -1,6 +1,8 @@
 import { ThumbsUpDown, ThumbUp } from '@mui/icons-material'
 import { useEffect, useState } from 'react'
+
 import ArrowButton from '@components/Buttons/ArrowButton'
+import SectionWrapper from './section-wrapper'
 
 export default function Leaderboard() {
   const [companies, setCompanies] = useState([
@@ -66,10 +68,7 @@ export default function Leaderboard() {
   const sortedCompanies = [...companies].sort((a, b) => b.score - a.score)
 
   return (
-    <div className="w-full max-w-md mx-auto p-4 space-y-2 bg-background rounded-3xl">
-      <h2 className="text-2xl font-bold text-center mb-4">
-        AI Companies Leaderboard
-      </h2>
+    <SectionWrapper title="Leaderboard">
       {sortedCompanies.map((company, index) => (
         <div
           key={company.id}
@@ -98,6 +97,6 @@ export default function Leaderboard() {
           </div>
         </div>
       ))}
-    </div>
+    </SectionWrapper>
   )
 }
