@@ -42,7 +42,16 @@ export default function CompanyRegistrationForm() {
     setIsSubmitting(true)
 
     try {
-      await registerCompany(formData)
+      await registerCompany({
+        name: formData.companyName,
+        website: formData.companyWebsite,
+        ai_project_title: formData.aiProjectTitle,
+        ai_project_details: formData.aiProjectDetails,
+        funding_stage: formData.fundingStage,
+        contact_full_name: formData.fullName,
+        contact_email: formData.workEmail,
+        contact_number: formData.phoneNumber,
+      })
       setCurrentStep(3)
       router.push('/accelerator')
     } catch (error) {

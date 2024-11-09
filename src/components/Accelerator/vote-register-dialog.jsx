@@ -1,13 +1,14 @@
-import { useEffect, useRef, useState } from 'react'
+import { useState } from 'react'
 import ArrowButton from '@components/Buttons/ArrowButton'
 import SectionWrapper from './section-wrapper'
 import { FormInput } from '../Form'
+import { setUserEmail } from '../../services/accelerator.services'
 
 export default function VoteRegisterDialog({ isOpen, onClose }) {
   const [workEmail, setWorkEmail] = useState('')
 
   const handleSignup = () => {
-    // TODO: handle signup
+    setUserEmail(workEmail)
     onClose()
   }
 

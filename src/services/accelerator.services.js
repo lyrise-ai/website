@@ -6,9 +6,10 @@ import api from './api.services'
  */
 export async function getLeaderboard() {
   try {
-    const response = await api.get('/leaderboard')
-    return response.data.companies
+    const response = await api.get('/leaderboard/')
+    return response.companies
   } catch (error) {
+    console.log(error)
     throw new Error(
       error.response?.data?.error || 'Failed to fetch leaderboard',
     )
@@ -25,9 +26,10 @@ export async function getLeaderboard() {
  */
 export async function registerCompany(data) {
   try {
-    const response = await api.post('/leaderboard', data)
-    return response.data.company
+    const response = await api.post('/leaderboard/', data)
+    return response
   } catch (error) {
+    console.log(error)
     throw new Error(error.response?.data?.error || 'Failed to register company')
   }
 }
@@ -52,7 +54,7 @@ export async function voteForCompany(companyId) {
  */
 export async function downvoteCompany(companyId) {
   try {
-    await api.post(`/leaderboard/${companyId}/downvote`)
+    await api.delete(`/leaderboard/${companyId}/vote`)
   } catch (error) {
     throw new Error(error.response?.data?.error || 'Failed to remove vote')
   }
@@ -63,5 +65,7 @@ export async function downvoteCompany(companyId) {
  * @param {string} email User's email
  */
 export function setUserEmail(email) {
+  // add user email to the local storage
+  localStorage.setItem('userEmail', email)
   api.defaults.headers.common['X-User-Email'] = email
 }

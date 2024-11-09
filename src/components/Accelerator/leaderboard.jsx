@@ -1,50 +1,16 @@
-import { ThumbsUpDown, ThumbUp } from '@mui/icons-material'
 import { useEffect, useState } from 'react'
 
 import SectionWrapper from './section-wrapper'
-import { getLeaderboard } from '../../services/accelerator.services'
+import {
+  downvoteCompany,
+  getLeaderboard,
+  setUserEmail,
+  voteForCompany,
+} from '../../services/accelerator.services'
 
 export default function Leaderboard({ openVoteRegisterDialog }) {
-  const [companies, setCompanies] = useState([
-    {
-      id: 1,
-      name: 'OpenAI',
-      useCase: 'Natural Language Processing',
-      score: 245,
-    },
-    { id: 2, name: 'DeepMind', useCase: 'Reinforcement Learning', score: 198 },
-    { id: 3, name: 'Anthropic', useCase: 'AI Safety & Ethics', score: 167 },
-    { id: 4, name: 'Stability AI', useCase: 'Image Generation', score: 134 },
-    { id: 5, name: 'Cohere', useCase: 'Enterprise AI Solutions', score: 112 },
-    { id: 6, name: 'Hugging Face', useCase: 'AI Model Hub & Tools', score: 89 },
-  ])
+  const [companies, setCompanies] = useState([])
 
-  const [upvotedCompanies, setUpvotedCompanies] = useState(new Set())
-
-  // TODO: should first register as a normal user to upvote
-  // and he should be able to upvote only once (or as business will say)
-  const handleUpvote = (companyId) => {
-    openVoteRegisterDialog()
-    // setUpvotedCompanies((prev) => {
-    //   const newUpvoted = new Set(prev)
-    //   if (newUpvoted.has(companyId)) {
-    //     newUpvoted.delete(companyId)
-    //   } else {
-    //     newUpvoted.add(companyId)
-    //   }
-    //   return newUpvoted
-    // })
-
-    // setCompanies((prevCompanies) =>
-    //   prevCompanies.map((company) =>
-    //     company.id === companyId
-    //       ? { ...company, score: company.score + 1 }
-    //       : company,
-    //   ),
-    // )
-  }
-
-  // Function to update leaderboard with new data
   const updateLeaderboard = (newData) => {
     setCompanies((prevCompanies) => {
       return prevCompanies.map((company) => {
@@ -54,22 +20,30 @@ export default function Leaderboard({ openVoteRegisterDialog }) {
     })
   }
 
-  // Simulating real-time updates (remove this in production)
-  // useEffect(() => {
-  //   const interval = setInterval(() => {
-  //     const randomCompany = Math.floor(Math.random() * companies.length)
-  //     const randomScore = Math.floor(Math.random() * 10)
-  //     updateLeaderboard([{ id: randomCompany + 1, score: randomScore }])
-  //   }, 5000)
-
-  //   return () => clearInterval(interval)
-  // }, [companies])
-
   useEffect(() => {
-    getLeaderboard().then(console.log).catch(console.error)
+    fetchCompanies()
+    // Real-time illusion
+    const intervalId = setInterval(fetchCompanies, 30000) // Fetch companies every 30 seconds
+
+    return () => clearInterval(intervalId)
   }, [])
 
-  // Sort companies by score
+  const fetchCompanies = () => {
+    getLeaderboard().then(updateCompanies)
+  }
+
+  const updateCompanies = (newCompanies) => {
+    let mappedCompanies = newCompanies.map((company) => ({
+      id: company.id,
+      name: company.name,
+      useCase: company.ai_project_title,
+      score: company.votes,
+      voters: company.voters,
+      ...company,
+    }))
+    setCompanies(mappedCompanies)
+  }
+
   const sortedCompanies = [...companies].sort((a, b) => b.score - a.score)
 
   return (
@@ -78,40 +52,85 @@ export default function Leaderboard({ openVoteRegisterDialog }) {
       className="[&>*:nth-child(2)]:border-2 [&>*:nth-child(2)]:border-rose-600"
     >
       {sortedCompanies.map((company, index) => (
-        <div
+        <CompanyComponent
+          company={company}
           key={company.id}
-          className="flex items-center justify-start p-2 rounded-xl bg-card hover:bg-accent/50 transition-colors w-full border border-rose-300 bg-primary-25 font-secondary"
-        >
-          <div className="font-semibold self-start mr-1 text-rose-600">
-            <span className="text-[75%]">#</span>
-            {index + 1}
-          </div>
-          <div className="space-y-1">
-            <div className="flex items-center space-x-2">
-              <h3 className="text-lg font-medium">{company.name}</h3>
-            </div>
-            <p className="text-neutral-500 text-xs">
-              {company.useCase.length > 40
-                ? company.useCase.slice(0, 40) + '...'
-                : company.useCase}
-            </p>
-          </div>
-          <div className="flex flex-col justify-center items-center ml-auto">
-            <button
-              type="button"
-              className={`space-x-1 ${
-                upvotedCompanies.has(company.id) ? 'text-primary' : ''
-              }`}
-              onClick={() => handleUpvote(company.id)}
-            >
-              <UpvoteIcon className="w-8 h-8" />
-              <span className="sr-only">Upvote</span>
-            </button>
-            <span className="font-bold text-sm">{company.score}</span>
-          </div>
-        </div>
+          index={index}
+          openVoteRegisterDialog={openVoteRegisterDialog}
+          fetchCompanies={fetchCompanies}
+        />
       ))}
     </SectionWrapper>
+  )
+}
+
+const CompanyComponent = ({
+  company,
+  index,
+  openVoteRegisterDialog,
+  fetchCompanies,
+}) => {
+  const [isLoading, setIsLoading] = useState(false)
+  let userEmail = ''
+  if (typeof localStorage !== 'undefined') {
+    userEmail = localStorage.getItem('userEmail')
+  }
+  const isUpvoted = company?.voters?.includes(userEmail)
+  const toggleUpvote = (companyId) => {
+    if (!userEmail) {
+      openVoteRegisterDialog()
+    } else {
+      setIsLoading(true)
+      setUserEmail(userEmail)
+      if (isUpvoted) {
+        downvoteCompany(companyId).then(() => {
+          fetchCompanies()
+          setIsLoading(false)
+        })
+      } else {
+        voteForCompany(companyId).then(() => {
+          fetchCompanies()
+          setIsLoading(false)
+        })
+      }
+    }
+  }
+  return (
+    <div
+      key={company.id}
+      className="flex items-center justify-start p-2 rounded-xl bg-card hover:bg-accent/50 transition-colors w-full border border-rose-300 bg-primary-25 font-secondary"
+    >
+      <div className="font-semibold self-start mr-1 text-rose-600">
+        <span className="text-[75%]">#</span>
+        {index + 1}
+      </div>
+      <div className="space-y-1">
+        <div className="flex items-center space-x-2">
+          <h3 className="text-lg font-medium">{company.name}</h3>
+        </div>
+        <p className="text-neutral-500 text-xs">
+          {company.useCase.length > 40
+            ? company.useCase.slice(0, 40) + '...'
+            : company.useCase}
+        </p>
+      </div>
+      <div className="flex flex-col justify-center items-center ml-auto">
+        {isLoading ? (
+          <span className="text-xs">...</span>
+        ) : (
+          <button
+            type="button"
+            disabled={isLoading}
+            className={`space-x-1 ${isUpvoted ? 'text-primary' : ''}`}
+            onClick={() => toggleUpvote(company.id)}
+          >
+            <UpvoteIcon className="w-8 h-8" />
+            <span className="sr-only">Upvote</span>
+          </button>
+        )}
+        <span className="font-bold text-sm">{company.score}</span>
+      </div>
+    </div>
   )
 }
 

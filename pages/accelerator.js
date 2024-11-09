@@ -1,5 +1,3 @@
-import { useRouter } from 'next/router'
-
 import Countdown from '@components/Accelerator/countdown'
 import Leaderboard from '@components/Accelerator/leaderboard'
 import RegisterBottomSheet from '@components/Accelerator/register-bottom-sheet'
