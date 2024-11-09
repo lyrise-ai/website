@@ -1,6 +1,6 @@
 /* eslint-disable @next/next/no-img-element */
 import { Grid, Typography, useMediaQuery } from '@mui/material'
-import Image from 'next/image'
+import Image from "next/legacy/image"
 import Link from 'next/link'
 import LinkedinIcon from '../../assets/about/linkedin.svg'
 import Marc from '../../assets/about/marcbanoub.png'

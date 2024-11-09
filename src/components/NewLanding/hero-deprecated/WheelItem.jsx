@@ -35,7 +35,7 @@ import visaImg from '../../../assets/hero/companies/visa.png'
 import vodafoneImg from '../../../assets/hero/companies/vodafone.png'
 
 import Img from '../../Product/Img'
-import Image from 'next/image'
+import Image from "next/legacy/image"
 
 import googleLogo from '../../../assets/hero/google.png'
 import microsoftLogo from '../../../assets/hero/microsoft.png'

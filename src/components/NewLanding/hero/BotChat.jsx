@@ -6,7 +6,7 @@ import ChatMessaage from './ui/ChatMessaage'
 import Thinking from './ui/Thinking'
 
 // hooks
-import Image from 'next/image'
+import Image from "next/legacy/image"
 import useBotChat from '../../../hooks/useBotChat'
 import useScrollOnNewContent from '../../../hooks/useScrollOnNewContent'
 

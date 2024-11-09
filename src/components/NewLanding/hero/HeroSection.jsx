@@ -15,7 +15,7 @@ export default function HeroSection() {
 
   return (
     // note: overflow was hidden here
-    <div className="flex flex-col md:grid grid-cols-9 w-full relative mx-auto md:mb-20 md:max-w-[84rem] gap-10 max-md:px-5 h-[calc(100vh-13rem)]">
+    (<div className="flex flex-col md:grid grid-cols-9 w-full relative mx-auto md:mb-20 md:max-w-[84rem] gap-10 max-md:px-5 h-[calc(100vh-13rem)]">
       <div
         data-show-video={showVideo}
         className="group flex flex-col lg:gap-5 justify-center col-span-4 max-w-2xl md:max-w-4xl mx-auto transition-all data-[show-video=false]:col-span-9 data-[show-video=false]:text-center data-[show-video=false]:items-center max-md:data-[show-video=false]:my-auto"
@@ -55,6 +55,6 @@ export default function HeroSection() {
       >
         <Video isShown={showVideo} />
       </motion.div>
-    </div>
-  )
+    </div>)
+  );
 }

@@ -11,7 +11,7 @@ import {
 import Grid from '@mui/material/Grid'
 import SwipeableDrawer from '@mui/material/SwipeableDrawer'
 import useMediaQuery from '@mui/material/useMediaQuery'
-import Image from 'next/image'
+import Image from "next/legacy/image"
 import Link from 'next/link'
 import { useRouter } from 'next/router'
 import PropTypes from 'prop-types'

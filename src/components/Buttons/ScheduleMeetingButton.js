@@ -3,7 +3,7 @@ import * as React from 'react'
 import PropTypes from 'prop-types'
 import { useRouter } from 'next/router'
 import { Button, useMediaQuery, Typography, Grid } from '@mui/material'
-import Image from 'next/image'
+import Image from "next/legacy/image"
 import amplitude from 'amplitude-js'
 import ReactGA from 'react-ga'
 import Link from 'next/link'

@@ -5,7 +5,7 @@ import Link from 'next/link'
 export default function HeroSection() {
   return (
     // note: overflow was hidden here
-    <div className="flex flex-col md:grid grid-cols-3 w-full px-10x relative m-auto mx-10x mb-20">
+    (<div className="flex flex-col md:grid grid-cols-3 w-full px-10x relative m-auto mx-10x mb-20">
       <div className="col-span-1 flex flex-col justify-center max-md:text-center md:ml-10 lg:ml-32 max-md:max-w-[80vw] max-md:m-auto max-md:items-center">
         <h1 className="text-3xl lg:text-5xl font-semibold mb-6 font-primary max-sm:mt-10">
           Unlock A.I for your Business
@@ -65,6 +65,6 @@ export default function HeroSection() {
         </div>
       </div>
       <ItemsVault />
-    </div>
-  )
+    </div>)
+  );
 }

@@ -1,7 +1,7 @@
 import React from 'react'
 
 import { Carousel, carousel } from '@material-tailwind/react'
-import Image from 'next/image'
+import Image from "next/legacy/image"
 
 import healthcare from '../../../assets/hero/icons/healthcare.png'
 import manufacturing from '../../../assets/hero/icons/manufacturing.png'
