@@ -20,7 +20,7 @@ export default function HeroSection() {
         <h3 className="pr-5 text-neutral-600 font-secondary text-lg md:text-xl lg:text-2xl font-medium lg:font-primary max-md:mb-2">
           Unlocking AI for 1 Million Businesses
         </h3>
-        <Link href={LYRISEAI_PRODUCT_URL + 'signup'}>
+        <Link href={LYRISEAI_PRODUCT_URL + 'signup'} legacyBehavior>
           <ArrowButton
             showArrow
             className="max-md:w-full justify-between font-medium py-3 max-w-fit"

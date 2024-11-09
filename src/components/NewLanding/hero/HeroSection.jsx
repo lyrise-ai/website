@@ -37,7 +37,7 @@ export default function HeroSection() {
               Watch Demo
             </ArrowButton>
           )}
-          <Link href={LYRISEAI_PRODUCT_URL + 'signup'}>
+          <Link href={LYRISEAI_PRODUCT_URL + 'signup'} legacyBehavior>
             <ArrowButton
               showArrow
               className="max-md:w-full justify-between font-medium py-3 max-w-fit group-data-[show-video=false]:mx-auto"

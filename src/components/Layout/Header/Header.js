@@ -68,7 +68,7 @@ export default function Header({ isTalent }) {
   }
 
   return (
-    <div style={{ backgroundColor: '#FFF', borderBottom: '2px solid #E2E2E2' }}>
+    (<div style={{ backgroundColor: '#FFF', borderBottom: '2px solid #E2E2E2' }}>
       <div
         className={pathname !== employerPathname ? 'container' : undefined}
         style={{
@@ -107,14 +107,14 @@ export default function Header({ isTalent }) {
               }}
             >
               <Link href="/">
-                <a>
-                  <Image
-                    src={LyRiseLogo}
-                    width={120}
-                    height={40}
-                    objectFit="contain"
-                  />
-                </a>
+
+                <Image
+                  src={LyRiseLogo}
+                  width={120}
+                  height={40}
+                  objectFit="contain"
+                />
+
               </Link>
             </Grid>
           </Grid>
@@ -190,41 +190,41 @@ export default function Header({ isTalent }) {
                     <List>
                       {list.map((item) => (
                         <ListItem key={item.id}>
-                          <Link href={item.href}>
-                            <a
-                              target={item.target || '_self'}
-                              rel="noreferrer noopener"
-                              style={{
+                          <Link
+                            href={item.href}
+                            target={item.target || '_self'}
+                            rel="noreferrer noopener"
+                            style={{
+                              width: '100%',
+                            }}>
+
+                            <ListItemButton
+                              sx={{
+                                color: '#000000',
                                 width: '100%',
+                                '&:hover, &:focus': {
+                                  backgroundColor: '#red',
+                                },
                               }}
                             >
-                              <ListItemButton
-                                sx={{
-                                  color: '#000000',
-                                  width: '100%',
-                                  '&:hover, &:focus': {
-                                    backgroundColor: '#red',
+                              {/* <ListItemIcon>
+                                <Image src={item.icon} />
+                              </ListItemIcon> */}
+                              <ListItemText
+                                primary={item.text}
+                                primaryTypographyProps={{
+                                  sx: {
+                                    fontFamily: 'Poppins, sans-serif',
+                                    fontStyle: 'normal',
+                                    fontWeight: 500,
+                                    fontSize: '1.5rem',
+                                    lineHeight: '120%',
                                   },
                                 }}
-                              >
-                                {/* <ListItemIcon>
-                                  <Image src={item.icon} />
-                                </ListItemIcon> */}
-                                <ListItemText
-                                  primary={item.text}
-                                  primaryTypographyProps={{
-                                    sx: {
-                                      fontFamily: 'Poppins, sans-serif',
-                                      fontStyle: 'normal',
-                                      fontWeight: 500,
-                                      fontSize: '1.5rem',
-                                      lineHeight: '120%',
-                                    },
-                                  }}
-                                  className="text-neutral-500"
-                                />
-                              </ListItemButton>
-                            </a>
+                                className="text-neutral-500"
+                              />
+                            </ListItemButton>
+
                           </Link>
                         </ListItem>
                       ))}
@@ -258,8 +258,8 @@ export default function Header({ isTalent }) {
           )}
         </Grid>
       </div>
-    </div>
-  )
+    </div>)
+  );
 }
 
 Header.propTypes = {

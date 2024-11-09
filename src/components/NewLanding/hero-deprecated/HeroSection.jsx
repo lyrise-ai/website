@@ -54,7 +54,7 @@ export default function HeroSection() {
             chatting with our LLM!
           </p>
 
-          <Link href="/lyriseAI-beta">
+          <Link href="/lyriseAI-beta" legacyBehavior>
             <button
               className="bg-primary py-2 font-secondary rounded-lg text-white text-lg"
               type="button"
