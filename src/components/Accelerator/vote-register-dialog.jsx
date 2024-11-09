@@ -5,7 +5,6 @@ import ArrowButton from '@components/Buttons/ArrowButton'
 import SocialButton from '@components/Buttons/SocialButton'
 import SectionWrapper from './section-wrapper'
 import { FormInput } from '../Form'
-import { setUserEmail } from '../../services/accelerator.services'
 import useWeakAuth from '@hooks/useWeakAuth'
 
 import googleIcon from '@assets/hero/google.png'
@@ -13,10 +12,10 @@ import linkedinIcon from '@assets/linkedin.svg'
 
 export default function VoteRegisterDialog({ isOpen, onClose }) {
   const [workEmail, setWorkEmail] = useState('')
-  const email = useWeakAuth()
+  const { email, setPersistedEmail } = useWeakAuth()
 
   const handleSignup = () => {
-    setUserEmail(workEmail)
+    setPersistedEmail(workEmail)
     onClose()
   }
 

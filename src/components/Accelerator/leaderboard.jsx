@@ -4,14 +4,13 @@ import SectionWrapper from './section-wrapper'
 import {
   downvoteCompany,
   getLeaderboard,
-  setUserEmail,
   voteForCompany,
 } from '../../services/accelerator.services'
 import useWeakAuth from '@hooks/useWeakAuth'
 
 export default function Leaderboard({ openVoteRegisterDialog }) {
   const [companies, setCompanies] = useState([])
-  const email = useWeakAuth()
+  const { email } = useWeakAuth()
 
   const updateLeaderboard = (newData) => {
     setCompanies((prevCompanies) => {
@@ -59,7 +58,7 @@ export default function Leaderboard({ openVoteRegisterDialog }) {
       )}
       <SectionWrapper
         title="Leaderboard"
-        className="[&>*:nth-child(2)]:border-2 [&>*:nth-child(2)]:border-rose-600"
+        className="[&>*:nth-child(2)]:border-2 [&>*:nth-child(2)]:border-rose-600 min-h-[60vh]"
       >
         {sortedCompanies.map((company, index) => (
           <CompanyComponent
@@ -82,17 +81,14 @@ const CompanyComponent = ({
   fetchCompanies,
 }) => {
   const [isLoading, setIsLoading] = useState(false)
-  let userEmail = ''
-  if (typeof localStorage !== 'undefined') {
-    userEmail = localStorage.getItem('userEmail')
-  }
+  const { email: userEmail } = useWeakAuth()
   const isUpvoted = company?.voters?.includes(userEmail)
+
   const toggleUpvote = (companyId) => {
     if (!userEmail) {
       openVoteRegisterDialog()
     } else {
       setIsLoading(true)
-      setUserEmail(userEmail)
       if (isUpvoted) {
         downvoteCompany(companyId).then(() => {
           fetchCompanies()
@@ -126,19 +122,15 @@ const CompanyComponent = ({
         </p>
       </div>
       <div className="flex flex-col justify-center items-center ml-auto">
-        {isLoading ? (
-          <span className="text-xs">...</span>
-        ) : (
-          <button
-            type="button"
-            disabled={isLoading}
-            className={`space-x-1 ${isUpvoted ? 'text-primary' : ''}`}
-            onClick={() => toggleUpvote(company.id)}
-          >
-            <UpvoteIcon className="w-8 h-8" />
-            <span className="sr-only">Upvote</span>
-          </button>
-        )}
+        <button
+          type="button"
+          disabled={isLoading}
+          className={`space-x-1 disabled:opacity-50`}
+          onClick={() => toggleUpvote(company.id)}
+        >
+          <UpvoteIcon className="w-8 h-8" upvoted={isUpvoted} />
+          <span className="sr-only">Upvote</span>
+        </button>
         <span className="font-bold text-sm">{company.score}</span>
       </div>
     </div>
@@ -155,10 +147,17 @@ const UpvoteIcon = ({ upvoted, className }) => {
       xmlns="http://www.w3.org/2000/svg"
       className={className}
     >
-      <rect x="0.5" y="1" width="23" height="23" rx="3.5" stroke="#98A2B3" />
+      <rect
+        x="0.5"
+        y="1"
+        width="23"
+        height="23"
+        rx="3.5"
+        stroke={upvoted ? '#fda4af' : '#98A2B3'}
+      />
       <path
         d="M7 10.9444L12 5.5M12 5.5L17 10.9444M12 5.5V19.5"
-        stroke="#111827"
+        stroke={upvoted ? '#e11d48' : '#111827'}
         strokeWidth="2"
         strokeLinecap="round"
         strokeLinejoin="round"

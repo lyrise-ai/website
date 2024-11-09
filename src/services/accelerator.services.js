@@ -64,8 +64,6 @@ export async function downvoteCompany(companyId) {
  * Set user email for authentication
  * @param {string} email User's email
  */
-export function setUserEmail(email) {
-  // add user email to the local storage
-  localStorage.setItem('userEmail', email)
+export function setAPIXUserEmailHeader(email) {
   api.defaults.headers.common['X-User-Email'] = email
 }
