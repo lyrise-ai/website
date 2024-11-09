@@ -1,22 +1,26 @@
-import Button from '@components/Buttons/ArrowButton'
-import { useState } from 'react'
+'use client'
+
 import { useRouter } from 'next/router'
-import {
-  ArrowBack as ArrowBackIcon,
-  ArrowForward as ArrowForwardIcon,
-} from '@mui/icons-material'
+import { useState } from 'react'
+
+import Layout from '@components/Layout/Layout'
+import ArrowButton from '@components/Buttons/ArrowButton'
+import { FormInput, FormSelect, FormPhoneInput } from '@components/Form'
+import { registerCompany } from '@services/accelerator.services'
 
 export default function CompanyRegistrationForm() {
   const router = useRouter()
   const [currentStep, setCurrentStep] = useState(1)
   const [formData, setFormData] = useState({
     companyName: '',
-    aiUseCase: '',
     companyWebsite: '',
+    aiProjectTitle: '',
+    aiProjectDetails: '',
     fundingStage: '',
-    name: '',
-    email: '',
+    fullName: '',
+    workEmail: '',
     phoneNumber: '',
+    countryCode: '+1',
   })
   const [isSubmitting, setIsSubmitting] = useState(false)
 
@@ -28,12 +32,9 @@ export default function CompanyRegistrationForm() {
     }))
   }
 
-  const handleNext = () => {
-    setCurrentStep((prev) => Math.min(prev + 1, 3))
-  }
-
-  const handleBack = () => {
-    setCurrentStep((prev) => Math.max(prev - 1, 1))
+  const handleNext = (e) => {
+    e.preventDefault()
+    setCurrentStep(2)
   }
 
   const handleSubmit = async (e) => {
@@ -41,11 +42,9 @@ export default function CompanyRegistrationForm() {
     setIsSubmitting(true)
 
     try {
-      // Simulate API call - replace with your actual API endpoint
-      await new Promise((resolve) => setTimeout(resolve, 2000))
-
-      // On successful submission, redirect to main page
-      router.push('/')
+      await registerCompany(formData)
+      setCurrentStep(3)
+      router.push('/accelerator')
     } catch (error) {
       console.error('Submission error:', error)
     } finally {
@@ -53,201 +52,225 @@ export default function CompanyRegistrationForm() {
     }
   }
 
-  return (
-    <div className="min-h-screen flex items-center justify-center p-4 bg-gray-100">
-      <div className="w-full max-w-md bg-white rounded-lg shadow-md overflow-hidden">
-        <div className="p-6">
-          <h2 className="text-2xl font-bold mb-4">
-            {currentStep === 1 && 'Company Information'}
-            {currentStep === 2 && 'Social Media Sharing'}
-            {currentStep === 3 && 'Contact Information'}
-          </h2>
-          <form onSubmit={handleSubmit}>
-            {currentStep === 1 && (
-              <div className="space-y-4">
-                <div>
-                  <div
-                    htmlFor="companyName"
-                    className="block text-sm font-medium text-gray-700"
-                  >
-                    Company Name
-                  </div>
-                  <input
-                    type="text"
-                    id="companyName"
-                    name="companyName"
-                    value={formData.companyName}
-                    onChange={handleInputChange}
-                    required
-                    className="text-sm p-1 mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
-                  />
-                </div>
-                <div>
-                  <div
-                    htmlFor="aiUseCase"
-                    className="block text-sm font-medium text-gray-700"
-                  >
-                    AI Use Case
-                  </div>
-                  <input
-                    type="text"
-                    id="aiUseCase"
-                    name="aiUseCase"
-                    value={formData.aiUseCase}
-                    onChange={handleInputChange}
-                    required
-                    className="text-sm p-1 mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
-                  />
-                </div>
-                <div>
-                  <div
-                    htmlFor="companyWebsite"
-                    className="block text-sm font-medium text-gray-700"
-                  >
-                    Company Website
-                  </div>
-                  <input
-                    type="url"
-                    id="companyWebsite"
-                    name="companyWebsite"
-                    value={formData.companyWebsite}
-                    onChange={handleInputChange}
-                    required
-                    className="text-sm p-1 mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
-                  />
-                </div>
-                <div>
-                  <div
-                    htmlFor="fundingStage"
-                    className="block text-sm font-medium text-gray-700"
-                  >
-                    Funding Stage
-                  </div>
-                  <select
-                    id="fundingStage"
-                    name="fundingStage"
-                    value={formData.fundingStage}
-                    onChange={handleInputChange}
-                    required
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 text-sm"
-                  >
-                    <option value="">Select funding stage</option>
-                    <option value="pre-seed">Pre-seed</option>
-                    <option value="seed">Seed</option>
-                    <option value="series-a">Series A</option>
-                    <option value="series-b">Series B</option>
-                    <option value="series-c">Series C+</option>
-                  </select>
-                </div>
-              </div>
-            )}
-
-            {currentStep === 2 && (
-              <div className="space-y-4">
-                <h3 className="font-medium">
-                  Share on Social Media, and Tag us:
-                </h3>
-                <p className="text-sm text-gray-600">
-                  Whoever will get the most likes will be automatically
-                  qualified for the next round!
-                </p>
-                <div className="p-4 bg-gray-100 rounded-lg">
-                  <p className="text-sm">
-                    Share your AI use case on social media and tag us to
-                    increase your chances of qualification.
-                  </p>
-                </div>
-              </div>
-            )}
-
-            {currentStep === 3 && (
-              <div className="space-y-4">
-                <div>
-                  <div
-                    htmlFor="name"
-                    className="block text-sm font-medium text-gray-700"
-                  >
-                    Name
-                  </div>
-                  <input
-                    type="text"
-                    id="name"
-                    name="name"
-                    value={formData.name}
-                    onChange={handleInputChange}
-                    required
-                    className="text-sm p-1 mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
-                  />
-                </div>
-                <div>
-                  <div
-                    htmlFor="email"
-                    className="block text-sm font-medium text-gray-700"
-                  >
-                    Email
-                  </div>
-                  <input
-                    type="email"
-                    id="email"
-                    name="email"
-                    value={formData.email}
-                    onChange={handleInputChange}
-                    required
-                    className="text-sm p-1 mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
-                  />
-                </div>
-                <div>
-                  <div
-                    htmlFor="phoneNumber"
-                    className="block text-sm font-medium text-gray-700"
-                  >
-                    Phone Number
-                  </div>
-                  <input
-                    type="tel"
-                    id="phoneNumber"
-                    name="phoneNumber"
-                    value={formData.phoneNumber}
-                    onChange={handleInputChange}
-                    required
-                    className="text-sm p-1 mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
-                  />
-                </div>
-              </div>
-            )}
-
-            <div className="mt-6 flex justify-between">
-              <button
-                type="button"
-                onClick={handleBack}
-                disabled={currentStep === 1}
-                className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-gray-700 bg-gray-200 hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
+  const renderFormStep = () => {
+    switch (currentStep) {
+      case 1:
+        return (
+          <div className="space-y-4">
+            <FormInput
+              label="Company Name"
+              type="text"
+              name="companyName"
+              placeholder="ex : United States"
+              value={formData.companyName}
+              onChange={handleInputChange}
+              maxLength={100}
+              pattern="[A-Za-z0-9\s\-\_\.]+"
+            />
+            <FormInput
+              label="Company Website"
+              type="url"
+              name="companyWebsite"
+              placeholder="ex : https://example.com"
+              value={formData.companyWebsite}
+              onChange={handleInputChange}
+              pattern="https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)"
+            />
+            <FormInput
+              label="AI Project title"
+              type="text"
+              name="aiProjectTitle"
+              placeholder="ex : Product Recommendation AI"
+              value={formData.aiProjectTitle}
+              onChange={handleInputChange}
+              maxLength={200}
+            />
+            <div>
+              <label
+                htmlFor="aiProjectDetails"
+                className="block text-sm mb-1 font-secondary"
               >
-                <ArrowBackIcon className="w-5 h-5 mr-2" />
-                Back
-              </button>
-              {currentStep < 3 ? (
-                <button
-                  type="button"
-                  onClick={handleNext}
-                  className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-                >
-                  Next
-                  <ArrowForwardIcon className="w-5 h-5 ml-2" />
-                </button>
-              ) : (
-                <button
-                  type="submit"
-                  disabled={isSubmitting}
-                  className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
-                >
-                  {isSubmitting ? 'Submitting...' : 'Submit'}
-                </button>
-              )}
+                AI Project Details<span className="text-rose-500">*</span>
+                <textarea
+                  id="aiProjectDetails"
+                  name="aiProjectDetails"
+                  placeholder="ex : Product recommendation system for e-commerce"
+                  value={formData.aiProjectDetails}
+                  onChange={handleInputChange}
+                  required
+                  rows={4}
+                  maxLength={1000}
+                  // focus:ring-2 focus:ring-rose-500
+                  className="w-full px-2 py-2 border border-gray-200 rounded-md focus:outline-none"
+                />
+              </label>
             </div>
+            <FormSelect
+              label="What is your funding stage?"
+              name="fundingStage"
+              value={formData.fundingStage}
+              onChange={handleInputChange}
+              placeholder="ex : Pre-seed, Seed, Series A..."
+              options={[
+                { value: 'pre-seed', label: 'Pre-seed' },
+                { value: 'seed', label: 'Seed' },
+                { value: 'series-a', label: 'Series A' },
+                { value: 'series-b', label: 'Series B' },
+                { value: 'series-c', label: 'Series C+' },
+              ]}
+            />
+          </div>
+        )
+      case 2:
+        return (
+          <div className="space-y-4">
+            <FormInput
+              label="Full Name"
+              type="text"
+              name="fullName"
+              placeholder="ex : John Smith"
+              value={formData.fullName}
+              onChange={handleInputChange}
+              pattern="^[a-zA-Z\s]{2,100}$"
+              maxLength={100}
+            />
+            <FormInput
+              label="Work Email"
+              type="email"
+              name="workEmail"
+              placeholder="ex : john@company.com"
+              value={formData.workEmail}
+              onChange={handleInputChange}
+              pattern="[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$"
+            />
+            <FormPhoneInput
+              label="Phone Number"
+              type="tel"
+              name="phoneNumber"
+              placeholder="9023456789"
+              value={formData.phoneNumber}
+              countryCode={formData.countryCode}
+              onChange={handleInputChange}
+              maxLength={10}
+              required
+            />
+          </div>
+        )
+      default:
+        return (
+          <p className="text-xl font-semibold text-neutral-600 mb-3 font-secondary">
+            Your company has been registered.
+          </p>
+        )
+    }
+  }
+
+  const getButtonText = () => {
+    if (currentStep === 1) return 'Continue'
+    if (isSubmitting) return 'Registering...'
+    return 'Register'
+  }
+
+  return (
+    <Layout isRaw>
+      <div className="min-h-screen bg-white px-4 py-8 max-w-3xl mx-auto">
+        <div className="max-w-md mx-auto">
+          <h1 className="text-[2.4rem] font-medium mb-8 font-primary">
+            Register your company info.
+          </h1>
+          <Steps currentStep={currentStep} />
+          <form onSubmit={currentStep === 1 ? handleNext : handleSubmit}>
+            <h2 className="text-rose-500 font-semibold mb-6">
+              {currentStep === 1
+                ? 'Company Info'
+                : currentStep === 2
+                ? 'Contact Info'
+                : 'Thank you!'}
+            </h2>
+            {renderFormStep()}
+            {currentStep !== 3 && (
+              <ArrowButton
+                type="submit"
+                disabled={isSubmitting}
+                className="w-[60%] mt-5 bg-rose-500 hover:bg-rose-600 focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed !rounded-md"
+              >
+                {getButtonText()}
+              </ArrowButton>
+            )}
           </form>
         </div>
       </div>
-    </div>
+    </Layout>
   )
 }
+
+// Icons
+const BuildingIcon = () => (
+  <svg
+    className="w-4 h-4"
+    fill="none"
+    viewBox="0 0 24 24"
+    stroke="currentColor"
+  >
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      strokeWidth={2}
+      d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"
+    />
+  </svg>
+)
+
+const UserIcon = () => (
+  <svg
+    className="w-4 h-4"
+    fill="none"
+    viewBox="0 0 24 24"
+    stroke="currentColor"
+  >
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      strokeWidth={2}
+      d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+    />
+  </svg>
+)
+
+const CheckIcon = () => (
+  <svg
+    className="w-4 h-4"
+    fill="none"
+    viewBox="0 0 24 24"
+    stroke="currentColor"
+  >
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      strokeWidth={2}
+      d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+    />
+  </svg>
+)
+
+const Steps = ({ currentStep }) => (
+  <div className="flex justify-center mb-8 relative">
+    <div className="absolute top-1/2 left-0 right-0 h-0.5 bg-rose-500 -translate-y-1/2" />
+    <div className="flex justify-between relative z-10 w-48">
+      {[
+        { step: 1, Icon: BuildingIcon },
+        { step: 2, Icon: UserIcon },
+        { step: 3, Icon: CheckIcon },
+      ].map(({ step, Icon }) => (
+        <div
+          key={step}
+          className={`w-8 h-8 rounded-full flex items-center justify-center ${
+            currentStep >= step ? 'bg-rose-500 text-white' : 'bg-gray-200'
+          }`}
+        >
+          <Icon />
+        </div>
+      ))}
+    </div>
+  </div>
+)
