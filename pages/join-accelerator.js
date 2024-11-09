@@ -116,7 +116,8 @@ export default function CompanyRegistrationForm() {
                 { value: 'seed', label: 'Seed' },
                 { value: 'series-a', label: 'Series A' },
                 { value: 'series-b', label: 'Series B' },
-                { value: 'series-c', label: 'Series C+' },
+                { value: 'series-c', label: 'Series C' },
+                { value: 'series-d', label: 'Series D' },
               ]}
             />
           </div>
