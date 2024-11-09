@@ -2,8 +2,9 @@ import { ThumbsUpDown, ThumbUp } from '@mui/icons-material'
 import { useEffect, useState } from 'react'
 
 import SectionWrapper from './section-wrapper'
+import { getLeaderboard } from '../../services/accelerator.services'
 
-export default function Leaderboard() {
+export default function Leaderboard({ openVoteRegisterDialog }) {
   const [companies, setCompanies] = useState([
     {
       id: 1,
@@ -23,23 +24,24 @@ export default function Leaderboard() {
   // TODO: should first register as a normal user to upvote
   // and he should be able to upvote only once (or as business will say)
   const handleUpvote = (companyId) => {
-    setUpvotedCompanies((prev) => {
-      const newUpvoted = new Set(prev)
-      if (newUpvoted.has(companyId)) {
-        newUpvoted.delete(companyId)
-      } else {
-        newUpvoted.add(companyId)
-      }
-      return newUpvoted
-    })
+    openVoteRegisterDialog()
+    // setUpvotedCompanies((prev) => {
+    //   const newUpvoted = new Set(prev)
+    //   if (newUpvoted.has(companyId)) {
+    //     newUpvoted.delete(companyId)
+    //   } else {
+    //     newUpvoted.add(companyId)
+    //   }
+    //   return newUpvoted
+    // })
 
-    setCompanies((prevCompanies) =>
-      prevCompanies.map((company) =>
-        company.id === companyId
-          ? { ...company, score: company.score + 1 }
-          : company,
-      ),
-    )
+    // setCompanies((prevCompanies) =>
+    //   prevCompanies.map((company) =>
+    //     company.id === companyId
+    //       ? { ...company, score: company.score + 1 }
+    //       : company,
+    //   ),
+    // )
   }
 
   // Function to update leaderboard with new data
@@ -62,6 +64,10 @@ export default function Leaderboard() {
 
   //   return () => clearInterval(interval)
   // }, [companies])
+
+  useEffect(() => {
+    getLeaderboard().then(console.log).catch(console.error)
+  }, [])
 
   // Sort companies by score
   const sortedCompanies = [...companies].sort((a, b) => b.score - a.score)
