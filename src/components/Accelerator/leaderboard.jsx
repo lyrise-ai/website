@@ -7,9 +7,11 @@ import {
   setUserEmail,
   voteForCompany,
 } from '../../services/accelerator.services'
+import useWeakAuth from '@hooks/useWeakAuth'
 
 export default function Leaderboard({ openVoteRegisterDialog }) {
   const [companies, setCompanies] = useState([])
+  const email = useWeakAuth()
 
   const updateLeaderboard = (newData) => {
     setCompanies((prevCompanies) => {
@@ -33,7 +35,7 @@ export default function Leaderboard({ openVoteRegisterDialog }) {
   }
 
   const updateCompanies = (newCompanies) => {
-    let mappedCompanies = newCompanies.map((company) => ({
+    const mappedCompanies = newCompanies.map((company) => ({
       id: company.id,
       name: company.name,
       useCase: company.ai_project_title,
@@ -47,20 +49,29 @@ export default function Leaderboard({ openVoteRegisterDialog }) {
   const sortedCompanies = [...companies].sort((a, b) => b.score - a.score)
 
   return (
-    <SectionWrapper
-      title="Leaderboard"
-      className="[&>*:nth-child(2)]:border-2 [&>*:nth-child(2)]:border-rose-600"
-    >
-      {sortedCompanies.map((company, index) => (
-        <CompanyComponent
-          company={company}
-          key={company.id}
-          index={index}
-          openVoteRegisterDialog={openVoteRegisterDialog}
-          fetchCompanies={fetchCompanies}
-        />
-      ))}
-    </SectionWrapper>
+    <>
+      {email && (
+        <SectionWrapper className="border-1 border-neutral-200">
+          <h1 className="text-sm font-medium font-primary text-green-600">
+            Welcome, {email}
+          </h1>
+        </SectionWrapper>
+      )}
+      <SectionWrapper
+        title="Leaderboard"
+        className="[&>*:nth-child(2)]:border-2 [&>*:nth-child(2)]:border-rose-600"
+      >
+        {sortedCompanies.map((company, index) => (
+          <CompanyComponent
+            company={company}
+            key={company.id}
+            index={index}
+            openVoteRegisterDialog={openVoteRegisterDialog}
+            fetchCompanies={fetchCompanies}
+          />
+        ))}
+      </SectionWrapper>
+    </>
   )
 }
 

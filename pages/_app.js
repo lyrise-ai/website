@@ -17,11 +17,17 @@ import '../styles/global.css'
 import { initAmplitude } from '../src/utilities/amplitude'
 import useScript from '../src/utilities/useScript'
 
+import { SessionProvider } from 'next-auth/react'
+
 // Client-side cache, shared for the whole session of the user in the browser.
 const clientSideEmotionCache = createEmotionCache()
 
 export default function MyApp(props) {
-  const { Component, emotionCache = clientSideEmotionCache, pageProps } = props
+  const {
+    Component,
+    emotionCache = clientSideEmotionCache,
+    pageProps: { session, ...pageProps },
+  } = props
 
   useScript(
     null,
@@ -98,94 +104,96 @@ export default function MyApp(props) {
   }
 
   return (
-    <CacheProvider value={emotionCache}>
-      <Script id="mf-script-loader">
-        var mouseflowPath = window.location.host + window.location.pathname;
-      </Script>
-      <Script
-        async
-        src="https://www.googletagmanager.com/gtag/js?id=GTM-MF93SZM"
-      />
+    <SessionProvider session={session}>
+      <CacheProvider value={emotionCache}>
+        <Script id="mf-script-loader">
+          var mouseflowPath = window.location.host + window.location.pathname;
+        </Script>
+        <Script
+          async
+          src="https://www.googletagmanager.com/gtag/js?id=GTM-MF93SZM"
+        />
 
-      {/* Google Ads Script */}
-      <Script
-        async
-        src="https://www.googletagmanager.com/gtag/js?id=AW-10840230589"
-      />
-      <Script type="text/javascript" id="google-ads-script">
-        {`
-        window.dataLayer = window.dataLayer || [];
-        function gtag(){dataLayer.push(arguments);}
-        gtag('js', new Date());
-        gtag('config', 'AW-10840230589');
-        `}
-      </Script>
+        {/* Google Ads Script */}
+        <Script
+          async
+          src="https://www.googletagmanager.com/gtag/js?id=AW-10840230589"
+        />
+        <Script type="text/javascript" id="google-ads-script">
+          {`
+          window.dataLayer = window.dataLayer || [];
+          function gtag(){dataLayer.push(arguments);}
+          gtag('js', new Date());
+          gtag('config', 'AW-10840230589');
+          `}
+        </Script>
 
-      {/* <script type="text/javascript">
-        window.heap=window.heap||[],heap.load=function(e,t){window.heap.appid=e,window.heap.config=t=t||{};var r=document.createElement("script");r.type="text/javascript",r.async=!0,r.src="https://cdn.heapanalytics.com/js/heap-"+e+".js";var a=document.getElementsByTagName("script")[0];a.parentNode.insertBefore(r,a);for(var n=function(e){return function(){heap.push([e].concat(Array.prototype.slice.call(arguments,0)))}},p=["addEventProperties","addUserProperties","clearEventProperties","identify","resetIdentity","removeEventProperty","setEventProperties","track","unsetEventProperty"],o=0;o<p.length;o++)heap[p[o]]=n(p[o])};
-        heap.load("3331170087");
-      </script> */}
-
-      <Script type="text/javascript" id="heap-script-loader">
-        {`
+        {/* <script type="text/javascript">
           window.heap=window.heap||[],heap.load=function(e,t){window.heap.appid=e,window.heap.config=t=t||{};var r=document.createElement("script");r.type="text/javascript",r.async=!0,r.src="https://cdn.heapanalytics.com/js/heap-"+e+".js";var a=document.getElementsByTagName("script")[0];a.parentNode.insertBefore(r,a);for(var n=function(e){return function(){heap.push([e].concat(Array.prototype.slice.call(arguments,0)))}},p=["addEventProperties","addUserProperties","clearEventProperties","identify","resetIdentity","removeEventProperty","setEventProperties","track","unsetEventProperty"],o=0;o<p.length;o++)heap[p[o]]=n(p[o])};
           heap.load("3331170087");
-          // heap.identify('unique_identifier'); // use this to enable user identities
-        `}
-      </Script>
+        </script> */}
 
-      <Head>
-        <meta name="viewport" content="initial-scale=1, width=device-width" />
-        <link rel="icon" href="/images/LogoIcon.ico" />
-        <meta name="theme-color" content="#6666ff" />
-        <title>LyRise AI: The Platform to Adopt AI Easier and Faster</title>
-        <meta
-          name="description"
-          content="Helping you Adopt AI, by either developing your AI Solutions or Hiring The Top AI Developers for you!"
-        />
-        <meta
-          property="og:title"
-          content="LyRise AI: The Platform to Adopt AI Easier and Faster"
-        />
-        <meta
-          property="og:description"
-          content="Helping you Adopt AI, by either developing your AI Solutions or Hiring The Top AI Developers for you!"
-        />
-        <meta
-          property="og:image"
-          content="https://lyrise.ai/images/lyrise-logo.jpg"
-        />
-        <meta property="og:type" content="website" />
-        <meta property="og:url" content="https://lyrise.ai/" />
-        <link
-          rel="apple-touch-icon"
-          href="https://lyrise.ai/images/lyrise-logo.jpg"
-        />
-        <link rel="manifest" href="manifest.json" />
-      </Head>
-      <ThemeProvider theme={theme}>
-        {/* CssBaseline kickstart an elegant, consistent, and simple baseline to build upon. */}
-        <CssBaseline />
-        <Component {...pageProps} />
-        <noscript>
-          <iframe
-            src="https://www.googletagmanager.com/ns.html?id=GTM-MF93SZM"
-            height="0"
-            width="0"
-            style={{ display: 'none', visibility: 'hidden' }}
-          ></iframe>
-        </noscript>
-        <noscript>
-          <img
-            src="https://ws.zoominfo.com/pixel/6342a65c13a47623635c4f40"
-            width="1"
-            height="1"
-            style={{ display: 'none' }}
-            alt="websights"
+        <Script type="text/javascript" id="heap-script-loader">
+          {`
+            window.heap=window.heap||[],heap.load=function(e,t){window.heap.appid=e,window.heap.config=t=t||{};var r=document.createElement("script");r.type="text/javascript",r.async=!0,r.src="https://cdn.heapanalytics.com/js/heap-"+e+".js";var a=document.getElementsByTagName("script")[0];a.parentNode.insertBefore(r,a);for(var n=function(e){return function(){heap.push([e].concat(Array.prototype.slice.call(arguments,0)))}},p=["addEventProperties","addUserProperties","clearEventProperties","identify","resetIdentity","removeEventProperty","setEventProperties","track","unsetEventProperty"],o=0;o<p.length;o++)heap[p[o]]=n(p[o])};
+            heap.load("3331170087");
+            // heap.identify('unique_identifier'); // use this to enable user identities
+          `}
+        </Script>
+
+        <Head>
+          <meta name="viewport" content="initial-scale=1, width=device-width" />
+          <link rel="icon" href="/images/LogoIcon.ico" />
+          <meta name="theme-color" content="#6666ff" />
+          <title>LyRise AI: The Platform to Adopt AI Easier and Faster</title>
+          <meta
+            name="description"
+            content="Helping you Adopt AI, by either developing your AI Solutions or Hiring The Top AI Developers for you!"
           />
-        </noscript>
-      </ThemeProvider>
-    </CacheProvider>
+          <meta
+            property="og:title"
+            content="LyRise AI: The Platform to Adopt AI Easier and Faster"
+          />
+          <meta
+            property="og:description"
+            content="Helping you Adopt AI, by either developing your AI Solutions or Hiring The Top AI Developers for you!"
+          />
+          <meta
+            property="og:image"
+            content="https://lyrise.ai/images/lyrise-logo.jpg"
+          />
+          <meta property="og:type" content="website" />
+          <meta property="og:url" content="https://lyrise.ai/" />
+          <link
+            rel="apple-touch-icon"
+            href="https://lyrise.ai/images/lyrise-logo.jpg"
+          />
+          <link rel="manifest" href="manifest.json" />
+        </Head>
+        <ThemeProvider theme={theme}>
+          {/* CssBaseline kickstart an elegant, consistent, and simple baseline to build upon. */}
+          <CssBaseline />
+          <Component {...pageProps} />
+          <noscript>
+            <iframe
+              src="https://www.googletagmanager.com/ns.html?id=GTM-MF93SZM"
+              height="0"
+              width="0"
+              style={{ display: 'none', visibility: 'hidden' }}
+            ></iframe>
+          </noscript>
+          <noscript>
+            <img
+              src="https://ws.zoominfo.com/pixel/6342a65c13a47623635c4f40"
+              width="1"
+              height="1"
+              style={{ display: 'none' }}
+              alt="websights"
+            />
+          </noscript>
+        </ThemeProvider>
+      </CacheProvider>
+    </SessionProvider>
   )
 }
 
