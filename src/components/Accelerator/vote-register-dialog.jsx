@@ -15,6 +15,7 @@ export default function VoteRegisterDialog({ isOpen, onClose }) {
   const { email, setPersistedEmail } = useWeakAuth()
 
   const handleSignup = () => {
+    console.log('setting with ', workEmail)
     setPersistedEmail(workEmail)
     onClose()
   }

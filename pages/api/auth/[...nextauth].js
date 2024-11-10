@@ -13,6 +13,22 @@ export const authOptions = {
     LinkedInProvider({
       clientId: process.env.LINKEDIN_CLIENT_ID,
       clientSecret: process.env.LINKEDIN_CLIENT_SECRET,
+      type: 'oauth',
+      client: { token_endpoint_auth_method: 'client_secret_post' },
+      issuer: 'https://www.linkedin.com',
+      profile: (profile) => ({
+        id: profile.sub,
+        name: profile.name,
+        email: profile.email,
+        image: profile.picture,
+      }),
+      wellKnown:
+        'https://www.linkedin.com/oauth/.well-known/openid-configuration',
+      authorization: {
+        params: {
+          scope: 'openid profile email',
+        },
+      },
     }),
     // TwitterProvider({
     //   clientId: process.env.TWITTER_CLIENT_ID,

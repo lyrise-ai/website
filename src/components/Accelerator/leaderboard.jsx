@@ -34,6 +34,7 @@ export default function Leaderboard({ openVoteRegisterDialog }) {
   }
 
   const updateCompanies = (newCompanies) => {
+    console.log({ newCompanies })
     const mappedCompanies = newCompanies.map((company) => ({
       id: company.id,
       name: company.name,

@@ -1,24 +1,31 @@
 import { useSession } from 'next-auth/react'
-import useLocalStorage from './useLocalStorage'
 import { setAPIXUserEmailHeader } from '../services/accelerator.services'
+import { useState, useEffect } from 'react'
 
 export default function useWeakAuth() {
   const { data: session } = useSession()
-  const [localStorageEmail, setLocalStorageEmail] = useLocalStorage('email')
-  let email
+  const [email, setEmail] = useState(null)
+  const localStorageEmail =
+    typeof window !== 'undefined' ? window.localStorage.getItem('email') : null
 
-  if (localStorageEmail) {
-    email = localStorageEmail
-  }
-
-  if (session && session.user) {
-    email = session.user.email
-  }
+  useEffect(() => {
+    if (localStorageEmail) {
+      setEmail(localStorageEmail)
+    }
+    if (session && session.user) {
+      setEmail(session.user.email)
+    }
+  }, [session, localStorageEmail])
 
   if (email) setAPIXUserEmailHeader(email)
 
+  const setPersistedEmail = (newEmail) => {
+    setEmail(newEmail)
+    window.localStorage.setItem('email', newEmail)
+  }
+
   return {
     email,
-    setPersistedEmail: setLocalStorageEmail,
+    setPersistedEmail,
   }
 }
