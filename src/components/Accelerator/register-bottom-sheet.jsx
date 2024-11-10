@@ -15,7 +15,7 @@ export default function RegisterBottomSheet() {
         borderTopRightRadius: '1.5rem',
         borderTopLeftRadius: '1.5rem',
       }}
-      className="fixed bottom-0 left-0 right-0 bg-white p-4 shadow-xl h-fit z-50 px-4 py-3"
+      className="fixed bottom-0 left-0 right-0 bg-white p-4 shadow-xl h-fit z-30 px-4 py-3"
     >
       <SectionWrapper
         title="Register your company now!"
