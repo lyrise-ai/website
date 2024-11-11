@@ -98,7 +98,7 @@ function FormPhoneInput({
               borderRight: '1px solid transparent',
             },
           }}
-          defaultCountry="eg"
+          defaultCountry="us"
         />
       </label>
     </div>
