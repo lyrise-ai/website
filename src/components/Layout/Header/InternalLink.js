@@ -8,7 +8,15 @@ import amplitude from 'amplitude-js'
 import ReactGA from 'react-ga'
 import { useRouter } from 'next/router'
 
-const InternalLink = ({ text, link, section, eventName, active, isTalent }) => {
+const InternalLink = ({
+  text,
+  link,
+  section,
+  eventName,
+  active,
+  isTalent,
+  color,
+}) => {
   const { pathname } = useRouter()
   const onClickHandler = () => {
     if (
@@ -49,10 +57,9 @@ const InternalLink = ({ text, link, section, eventName, active, isTalent }) => {
     }
   }
   return (
-    (<Link href={link} passHref onClick={onClickHandler}>
-
+    <Link href={link} passHref onClick={onClickHandler}>
       <Typography
-        color="#7B7B98"
+        color={color ?? '#7B7B98'}
         className={active ? 'active' : ''}
         sx={{
           fontFamily: 'Cairo',
@@ -69,9 +76,8 @@ const InternalLink = ({ text, link, section, eventName, active, isTalent }) => {
       >
         {text}
       </Typography>
-
-    </Link>)
-  );
+    </Link>
+  )
 }
 
 InternalLink.propTypes = {

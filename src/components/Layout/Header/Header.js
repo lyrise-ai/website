@@ -11,7 +11,7 @@ import {
 import Grid from '@mui/material/Grid'
 import SwipeableDrawer from '@mui/material/SwipeableDrawer'
 import useMediaQuery from '@mui/material/useMediaQuery'
-import Image from "next/legacy/image"
+import Image from 'next/legacy/image'
 import Link from 'next/link'
 import { useRouter } from 'next/router'
 import PropTypes from 'prop-types'
@@ -75,7 +75,7 @@ export default function Header({ isTalent }) {
   }
 
   return (
-    (<div style={{ backgroundColor: '#FFF', borderBottom: '2px solid #E2E2E2' }}>
+    <div style={{ backgroundColor: '#FFF', borderBottom: '2px solid #E2E2E2' }}>
       <div
         className={pathname !== employerPathname ? 'container' : undefined}
         style={{
@@ -114,14 +114,12 @@ export default function Header({ isTalent }) {
               }}
             >
               <Link href="/">
-
                 <Image
                   src={LyRiseLogo}
                   width={120}
                   height={40}
                   objectFit="contain"
                 />
-
               </Link>
             </Grid>
           </Grid>
@@ -145,6 +143,8 @@ export default function Header({ isTalent }) {
               </Grid>
               <Grid item>
                 <InternalLink
+                  color="#f43f5e"
+                  className="text-rose-500"
                   text="AI Accelerator"
                   link="/accelerator"
                 />
@@ -209,8 +209,8 @@ export default function Header({ isTalent }) {
                             rel="noreferrer noopener"
                             style={{
                               width: '100%',
-                            }}>
-
+                            }}
+                          >
                             <ListItemButton
                               sx={{
                                 color: '#000000',
@@ -234,10 +234,13 @@ export default function Header({ isTalent }) {
                                     lineHeight: '120%',
                                   },
                                 }}
-                                className="text-neutral-500"
+                                className={
+                                  item.text === 'AI Accelerator'
+                                    ? 'text-rose-500'
+                                    : ''
+                                }
                               />
                             </ListItemButton>
-
                           </Link>
                         </ListItem>
                       ))}
@@ -271,8 +274,8 @@ export default function Header({ isTalent }) {
           )}
         </Grid>
       </div>
-    </div>)
-  );
+    </div>
+  )
 }
 
 Header.propTypes = {
