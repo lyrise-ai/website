@@ -223,45 +223,47 @@ export default function CompanyRegistrationForm() {
 
   return (
     <Layout isRaw>
-      <div className="bg-white px-4 py-4 max-w-3xl mx-auto">
-        <SectionWrapper className="max-w-md mx-auto min-h-[85vh]">
-          <h1 className="text-[2.4rem] font-medium mb-3 font-primary leading-10">
-            Register your company info.
-          </h1>
-          <StepsHeader currentStep={currentStep} />
-          <form
-            className="mt-auto w-full"
-            onSubmit={currentStep === 1 ? handleNext : handleSubmit}
-          >
-            <h2 className="text-rose-500 font-bold mb-6 font-primary">
-              {currentStep === 1
-                ? 'Company Info'
-                : currentStep === 2
-                ? 'Contact Info'
-                : 'Share to win!'}
-            </h2>
-            {renderFormStep()}
-            {currentStep !== 3 ? (
-              <ArrowButton
-                showArrow
-                type="submit"
-                disabled={isSubmitting}
-                className="w-[60%] mt-5 bg-rose-500 hover:bg-rose-600 focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed !rounded-md"
-              >
-                {getButtonText()}
-              </ArrowButton>
-            ) : (
-              <ArrowButton
-                showArrow
-                type="button"
-                onClick={handleFinish}
-                className="w-[60%] mt-5 bg-rose-500 hover:bg-rose-600 focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed !rounded-md"
-              >
-                Finish
-              </ArrowButton>
-            )}
-          </form>
-        </SectionWrapper>
+      <div className="w-full bg-white">
+        <div className="bg-white px-4 py-4 max-w-3xl mx-auto">
+          <SectionWrapper className="mx-auto min-h-[85vh]">
+            <h1 className="text-[2.4rem] font-medium mb-3 font-primary leading-10">
+              Register your company info.
+            </h1>
+            <StepsHeader currentStep={currentStep} />
+            <form
+              className="mt-auto w-full"
+              onSubmit={currentStep === 1 ? handleNext : handleSubmit}
+            >
+              <h2 className="text-rose-500 font-bold mb-6 font-primary">
+                {currentStep === 1
+                  ? 'Company Info'
+                  : currentStep === 2
+                  ? 'Contact Info'
+                  : 'Share to win!'}
+              </h2>
+              {renderFormStep()}
+              {currentStep !== 3 ? (
+                <ArrowButton
+                  showArrow
+                  type="submit"
+                  disabled={isSubmitting}
+                  className="w-[60%] mt-5 bg-rose-500 hover:bg-rose-600 focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed !rounded-md"
+                >
+                  {getButtonText()}
+                </ArrowButton>
+              ) : (
+                <ArrowButton
+                  showArrow
+                  type="button"
+                  onClick={handleFinish}
+                  className="w-[60%] mt-5 bg-rose-500 hover:bg-rose-600 focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed !rounded-md"
+                >
+                  Finish
+                </ArrowButton>
+              )}
+            </form>
+          </SectionWrapper>
+        </div>
       </div>
     </Layout>
   )
