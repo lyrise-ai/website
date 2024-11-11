@@ -5,8 +5,16 @@ import { useState } from 'react'
 
 import Layout from '@components/Layout/Layout'
 import ArrowButton from '@components/Buttons/ArrowButton'
+import SocialButton from '@components/Buttons/SocialButton'
 import { FormInput, FormSelect, FormPhoneInput } from '@components/Form'
+import StepsHeader from '@components/Accelerator/steps-header'
 import { registerCompany } from '@services/accelerator.services'
+import SectionWrapper from '../src/components/Accelerator/section-wrapper'
+
+import linkedinIcon from '@assets/linkedin.svg'
+import instagramIcon from '@assets/instagram.webp'
+import xIcon from '@assets/x.svg'
+import Link from 'next/link'
 
 export default function CompanyRegistrationForm() {
   const router = useRouter()
@@ -20,7 +28,6 @@ export default function CompanyRegistrationForm() {
     fullName: '',
     workEmail: '',
     phoneNumber: '',
-    countryCode: '+1',
   })
   const [isSubmitting, setIsSubmitting] = useState(false)
 
@@ -53,9 +60,10 @@ export default function CompanyRegistrationForm() {
         contact_number: formData.phoneNumber,
       })
       setCurrentStep(3)
-      router.push('/accelerator')
+      // router.push('/accelerator')
     } catch (error) {
       console.error('Submission error:', error)
+      alert("Couldn't register your company, please try again.")
     } finally {
       setIsSubmitting(false)
     }
@@ -109,7 +117,6 @@ export default function CompanyRegistrationForm() {
                   required
                   rows={4}
                   maxLength={1000}
-                  // focus:ring-2 focus:ring-rose-500
                   className="w-full px-2 py-2 border border-gray-200 rounded-md focus:outline-none"
                 />
               </label>
@@ -159,18 +166,47 @@ export default function CompanyRegistrationForm() {
               name="phoneNumber"
               placeholder="9023456789"
               value={formData.phoneNumber}
-              countryCode={formData.countryCode}
               onChange={handleInputChange}
               maxLength={10}
               required
             />
+            <div>
+              <div className="flex items-center text-sm font-secondary">
+                <input type="checkbox" required className="mr-2 rounded" />
+                <span>
+                  I agree to the{' '}
+                  <Link
+                    href="/terms-conditions"
+                    className="underline text-primary"
+                  >
+                    terms and consitions
+                  </Link>
+                </span>
+              </div>
+            </div>
           </div>
         )
       default:
         return (
-          <p className="text-xl font-semibold text-neutral-600 mb-3 font-secondary">
-            Your company has been registered.
-          </p>
+          <div className="w-full flex flex-col gap-2">
+            <SocialButton
+              provider="linkedin"
+              iconSrc={linkedinIcon}
+              onClick={() => {}}
+            >
+              Share to LinkedIn
+            </SocialButton>
+            <SocialButton
+              provider="instagram"
+              iconSrc={instagramIcon}
+              onClick={() => {}}
+            >
+              Share to Instagram
+            </SocialButton>
+            <SocialButton provider="x" iconSrc={xIcon} onClick={() => {}}>
+              Share to X
+            </SocialButton>
+          </div>
         )
     }
   }
@@ -181,106 +217,52 @@ export default function CompanyRegistrationForm() {
     return 'Register'
   }
 
+  const handleFinish = () => {
+    router.push('/accelerator')
+  }
+
   return (
     <Layout isRaw>
-      <div className="min-h-screen bg-white px-4 py-8 max-w-3xl mx-auto">
-        <div className="max-w-md mx-auto">
-          <h1 className="text-[2.4rem] font-medium mb-8 font-primary">
+      <div className="bg-white px-4 py-4 max-w-3xl mx-auto">
+        <SectionWrapper className="max-w-md mx-auto min-h-[85vh]">
+          <h1 className="text-[2.4rem] font-medium mb-3 font-primary leading-10">
             Register your company info.
           </h1>
-          <Steps currentStep={currentStep} />
-          <form onSubmit={currentStep === 1 ? handleNext : handleSubmit}>
-            <h2 className="text-rose-500 font-semibold mb-6">
+          <StepsHeader currentStep={currentStep} />
+          <form
+            className="mt-auto w-full"
+            onSubmit={currentStep === 1 ? handleNext : handleSubmit}
+          >
+            <h2 className="text-rose-500 font-bold mb-6 font-primary">
               {currentStep === 1
                 ? 'Company Info'
                 : currentStep === 2
                 ? 'Contact Info'
-                : 'Thank you!'}
+                : 'Share to win!'}
             </h2>
             {renderFormStep()}
-            {currentStep !== 3 && (
+            {currentStep !== 3 ? (
               <ArrowButton
+                showArrow
                 type="submit"
                 disabled={isSubmitting}
                 className="w-[60%] mt-5 bg-rose-500 hover:bg-rose-600 focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed !rounded-md"
               >
                 {getButtonText()}
               </ArrowButton>
+            ) : (
+              <ArrowButton
+                showArrow
+                type="button"
+                onClick={handleFinish}
+                className="w-[60%] mt-5 bg-rose-500 hover:bg-rose-600 focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed !rounded-md"
+              >
+                Finish
+              </ArrowButton>
             )}
           </form>
-        </div>
+        </SectionWrapper>
       </div>
     </Layout>
   )
 }
-
-// Icons
-const BuildingIcon = () => (
-  <svg
-    className="w-4 h-4"
-    fill="none"
-    viewBox="0 0 24 24"
-    stroke="currentColor"
-  >
-    <path
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      strokeWidth={2}
-      d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"
-    />
-  </svg>
-)
-
-const UserIcon = () => (
-  <svg
-    className="w-4 h-4"
-    fill="none"
-    viewBox="0 0 24 24"
-    stroke="currentColor"
-  >
-    <path
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      strokeWidth={2}
-      d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
-    />
-  </svg>
-)
-
-const CheckIcon = () => (
-  <svg
-    className="w-4 h-4"
-    fill="none"
-    viewBox="0 0 24 24"
-    stroke="currentColor"
-  >
-    <path
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      strokeWidth={2}
-      d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
-    />
-  </svg>
-)
-
-const Steps = ({ currentStep }) => (
-  <div className="flex justify-center mb-8 relative">
-    <div className="absolute top-1/2 left-0 right-0 h-0.5 bg-rose-500 -translate-y-1/2" />
-    <div className="flex justify-between relative z-10 w-48">
-      {[
-        { step: 1, Icon: BuildingIcon },
-        { step: 2, Icon: UserIcon },
-        { step: 3, Icon: CheckIcon },
-      ].map(({ step, Icon }) => (
-        <div
-          key={step}
-          className={`w-8 h-8 rounded-full flex items-center justify-center ${
-            currentStep >= step ? 'bg-rose-500 text-white' : 'bg-gray-200'
-          }`}
-        >
-          <Icon />
-        </div>
-      ))}
-    </div>
-  </div>
-)

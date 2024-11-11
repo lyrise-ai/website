@@ -95,6 +95,7 @@ const LeaderboardCompanyCard = ({
   fetchCompanies,
   setExpandedCompany,
   children,
+  className,
 }) => {
   const [isLoading, setIsLoading] = useState(false)
   const { email: userEmail } = useWeakAuth()
@@ -135,7 +136,10 @@ const LeaderboardCompanyCard = ({
       type="button"
       key={company.id}
       onClick={handleCardClick}
-      className="p-2 rounded-xl bg-card hover:bg-accent/50 transition-colors w-full border border-rose-300 bg-primary-25 font-secondary"
+      className={
+        'p-2 rounded-xl bg-card hover:bg-accent/50 transition-colors w-full border border-rose-300 bg-primary-25 font-secondary ' +
+        className
+      }
     >
       <div className="flex items-center justify-start transition-colors w-full ">
         <div className="font-semibold self-start mr-1 text-rose-600">
@@ -197,6 +201,7 @@ const CompanyDetailsDialog = ({
           index={index}
           openVoteRegisterDialog={patchedOpenVoteRegisterDialog}
           fetchCompanies={fetchCompanies}
+          className="max-w-xl lg:scale-150"
         >
           <p className="text-neutral-500 bg-neutral-100 p-2 text-xs text-left font-secondary rounded-lg">
             {company.ai_project_details}

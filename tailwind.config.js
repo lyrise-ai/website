@@ -26,6 +26,10 @@ module.exports = {
         semibold: 600,
         bold: 700,
       },
+      backgroundImage: {
+        'instagram-gradient':
+          'radial-gradient(50% 50% at 50% 50%, rgba(140, 58, 170, 0.00) 64.4%, rgba(140, 58, 170, 0.20) 100%), radial-gradient(130.54% 130.55% at 13.29% 100.47%, #FA8F21 9%, #D82D7E 78%);',
+      },
     },
   },
   plugins: [],
