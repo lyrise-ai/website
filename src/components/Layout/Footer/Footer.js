@@ -6,15 +6,16 @@ import FooterMain from './FooterMain'
 
 const Footer = ({ isTalent }) => {
   const mobile = useMediaQuery('(max-width: 887px)')
-  return (
-    <>
-      {mobile ? (
-        <FooterMobile isTalent={isTalent} />
-      ) : (
-        <FooterMain isTalent={isTalent} />
-      )}
-    </>
-  )
+  // return (
+  //   <>
+  //     {mobile ? (
+  //       <FooterMobile isTalent={isTalent} />
+  //     ) : (
+  //       <FooterMain isTalent={isTalent} />
+  //     )}
+  //   </>
+  // )
+  return null
 }
 
 export default Footer

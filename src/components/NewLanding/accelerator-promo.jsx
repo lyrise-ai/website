@@ -31,8 +31,8 @@ export default function AcceleratorPromo() {
           </h1>
 
           <div className="space-y-4 md:w-full lg:w-3/5 xl:w-2/3">
-            <p className="text-rose-400 text-lg md:text-xl font-secondary leading-6 md:leading-7">
-              Be on of our top 5 to win a{' '}
+            <p className="text-neutral-500 text-lg md:text-xl font-secondary leading-6 md:leading-7">
+              Be one of our top 5 to win a{' '}
               <span className="font-semibold">$45,000 grant</span> grant on your
               next AI project built by LyRise.
             </p>
