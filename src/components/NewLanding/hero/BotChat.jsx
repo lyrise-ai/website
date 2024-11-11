@@ -6,7 +6,7 @@ import ChatMessaage from './ui/ChatMessaage'
 import Thinking from './ui/Thinking'
 
 // hooks
-import Image from 'next/legacy/image'
+import Image from 'next/image'
 import useBotChat from '../../../hooks/useBotChat'
 import useScrollOnNewContent from '../../../hooks/useScrollOnNewContent'
 
@@ -64,8 +64,8 @@ const BotChat = () => {
           disabled={!sessionId} // disable chatting if the sessionId is not available yet
         />
       </form>
-      {/* <DesktopInstructions />
-      <MobileInstructions /> */}
+      <DesktopInstructions />
+      <MobileInstructions />
     </div>
   )
 }

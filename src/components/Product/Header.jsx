@@ -45,44 +45,46 @@ const HeaderContent = () => {
   //   window.location.href = 'https://www.lyrise.ai/Employer'
   // }
 
-  return (<>
-    {/* Mobile */}
-    <div className="md:hidden p-5 pt-0">
-      <h1 className="font-primary-500 text-3xl capitalize">
-        The Right AI Talent for you
-      </h1>
-      <h3 className="font-secondary pt-2 text-gray-500 text-lg font-semibold">
-        Instant Talent Matching, Faster Recruitment Process,
-        <br /> Access to a Diverse Talent Pool
-      </h3>
-      <Link href="/Employer" legacyBehavior>
-        <button
-          type="button"
-          // onClick={handleButtonClick}
-          className="font-secondary w-full p-3 mt-5 rounded-md bg-primary text-white text-lg font-semibold"
-        >
-          Start your hiring now
-        </button>
-      </Link>
-    </div>
-    {/* Bigger than mobile */}
-    <div className="hidden md:flex flex-col p-5 absolute top-0 w-full text-center items-center">
-      <h1 className="font-primary-500 text-5xl lg:text-6xl font-extrabold capitalize">
-        The Perfect AI Talent for you
-      </h1>
-      <h3 className="text-xl lg:text-2xl font-secondary text-gray-500 mt-6 md:w-[70%] lg:w-[47%]">
-        Start working with top AI talents that match your needs to the last
-        detail.
-      </h3>
-      <Link href="/Employer" legacyBehavior>
-        <button
-          type="button"
-          // onClick={handleButtonClick}
-          className="font-secondary w-auto p-3 mt-10 rounded-md bg-primary text-white text-lg hover:translate-x-3 transition-all duration-300 ease-in-out"
-        >
-          Start hiring now <AiOutlineArrowRight className="inline-block" />
-        </button>
-      </Link>
-    </div>
-  </>);
+  return (
+    <>
+      {/* Mobile */}
+      <div className="md:hidden p-5 pt-0">
+        <h1 className="font-primary-500 text-3xl capitalize">
+          The Right AI Talent for you
+        </h1>
+        <h3 className="font-secondary pt-2 text-gray-500 text-lg font-semibold">
+          Instant Talent Matching, Faster Recruitment Process,
+          <br /> Access to a Diverse Talent Pool
+        </h3>
+        <Link href="/Employer">
+          <button
+            type="button"
+            // onClick={handleButtonClick}
+            className="font-secondary w-full p-3 mt-5 rounded-md bg-primary text-white text-lg font-semibold"
+          >
+            Start your hiring now
+          </button>
+        </Link>
+      </div>
+      {/* Bigger than mobile */}
+      <div className="hidden md:flex flex-col p-5 absolute top-0 w-full text-center items-center">
+        <h1 className="font-primary-500 text-5xl lg:text-6xl font-extrabold capitalize">
+          The Perfect AI Talent for you
+        </h1>
+        <h3 className="text-xl lg:text-2xl font-secondary text-gray-500 mt-6 md:w-[70%] lg:w-[47%]">
+          Start working with top AI talents that match your needs to the last
+          detail.
+        </h3>
+        <Link href="/Employer">
+          <button
+            type="button"
+            // onClick={handleButtonClick}
+            className="font-secondary w-auto p-3 mt-10 rounded-md bg-primary text-white text-lg hover:translate-x-3 transition-all duration-300 ease-in-out"
+          >
+            Start hiring now <AiOutlineArrowRight className="inline-block" />
+          </button>
+        </Link>
+      </div>
+    </>
+  )
 }

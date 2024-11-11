@@ -2,7 +2,7 @@ import * as React from 'react'
 import Grid from '@mui/material/Grid'
 import PropTypes from 'prop-types'
 import useMediaQuery from '@mui/material/useMediaQuery'
-import Image from "next/legacy/image"
+import Image from 'next/image'
 import aiSection2 from '../../assets/aiSection2.png'
 import AILeftColumn from './AILeftColumn'
 

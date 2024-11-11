@@ -1,5 +1,5 @@
 import { Box, Grid, Typography, useMediaQuery } from '@mui/material'
-import Image from "next/legacy/image"
+import Image from 'next/image'
 import PropTypes from 'prop-types'
 
 const ValueCard = ({ icon, title, description }) => {

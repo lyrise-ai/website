@@ -1,5 +1,5 @@
 import { Box, Grid, useMediaQuery } from '@mui/material'
-import Image from "next/legacy/image"
+import Image from 'next/image'
 import Title from '../shared/Title/Title'
 import TinyTitle from './TinyTitle'
 import Quote from '../../assets/about/quote.svg'

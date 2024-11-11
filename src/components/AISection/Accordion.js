@@ -7,7 +7,7 @@ import MuiAccordionSummary from '@mui/material/AccordionSummary'
 import MuiAccordionDetails from '@mui/material/AccordionDetails'
 import Divider from '@mui/material/Divider'
 import '@fontsource/cairo'
-import Image from "next/legacy/image"
+import Image from 'next/image'
 import AddIcon from '@mui/icons-material/Add'
 import RemoveIcon from '@mui/icons-material/Remove'
 import styles from './accordion.module.css'

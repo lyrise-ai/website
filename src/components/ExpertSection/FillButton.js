@@ -1,7 +1,7 @@
 import * as React from 'react'
 import PropTypes from 'prop-types'
 import { Button, Divider, Grid, Typography, useMediaQuery } from '@mui/material'
-import Image from "next/legacy/image"
+import Image from 'next/image'
 import { fillButtonStyle } from './style'
 
 export default function FillButton({ img, txt }) {

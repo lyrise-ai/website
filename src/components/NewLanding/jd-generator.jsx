@@ -7,7 +7,7 @@ const JD_GENERATOR_URL = ''
 
 export default function JDGenerator() {
   return (
-    (<section
+    <section
       className="flex flex-col items-center md:flex-row gap-5 md:gap-8 p-5 md:p-8 bg-white mx-auto md:max-w-6xl mt-12 md:mt-16 rounded-2xl max-md:mx-5"
       style={{
         boxShadow: '0px 9px 18px 0px rgba(0, 34, 158, 0.15)',
@@ -25,7 +25,7 @@ export default function JDGenerator() {
             Our AI model can generate a job description for any AI role you’re
             looking to hire.
           </p>
-          <Link href={JD_GENERATOR_URL} legacyBehavior>
+          <Link href={JD_GENERATOR_URL}>
             <ArrowButton showArrow className="!text-base md:!text-lg">
               Book a Demo!
             </ArrowButton>
@@ -36,8 +36,8 @@ export default function JDGenerator() {
         <MessageAvatar type="bot" />
         <JobDescriptionSceleton className="w-full h-auto rounded overflow-hidden" />
       </div>
-    </section>)
-  );
+    </section>
+  )
 }
 
 function JobDescriptionSceleton({ className }) {

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import Image from 'next/legacy/image'
+import Image from 'next/image'
 
 import first from '/src/assets/security/1.jpeg'
 import second from '/src/assets/security/2.jpeg'
@@ -59,10 +59,10 @@ function Security() {
   return (
     <div className="text-center w-full mt-20">
       <h3 className="text-neutral-500 font-secondary mb-3">
-        Data Security & Infrastructure
+        Data Security: Your data never leaves your premise.
       </h3>
       <h1 className="text-3xl lg:text-4xl max-w-[600px] m-auto font-medium mb-20 font-primary max-sm:max-w-[90%]">
-        Elevate Your Data Security with IBM Hyper Protect Infrastructure
+        Ensure your Data Security with IBM Hyper Protect Infrastructure
       </h1>
 
       <div className="md:grid gap-5 grid-cols-4 max-w-[1200px] m-auto">

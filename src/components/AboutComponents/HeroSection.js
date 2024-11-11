@@ -1,5 +1,5 @@
 import { Grid, Typography, useMediaQuery } from '@mui/material'
-import Image from "next/legacy/image"
+import Image from 'next/image'
 import heroImg from '../../assets/about/hero_img.png'
 import IBMLogo from '../../assets/about/IBM-logo.svg'
 import TechStartsLogo from '../../assets/about/techstars_logo.svg'

@@ -12,7 +12,7 @@ import healthCare2 from '/src/assets/hero/icons/healthcare/2.png'
 import healthCare3 from '/src/assets/hero/icons/healthcare/3.png'
 import healthCare4 from '/src/assets/hero/icons/healthcare/4.png'
 import healthCare5 from '/src/assets/hero/icons/healthcare/5.png'
-import Image from "next/legacy/image"
+import Image from 'next/image'
 import { ArrowRight } from '@mui/icons-material'
 
 // // manufacturing
