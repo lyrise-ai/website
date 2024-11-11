@@ -29,7 +29,6 @@ const playAndEnterFullscreen = (videoElement) => {
 
 export default function Video({ isShown }) {
   const videoRef = useRef(null)
-  const [hasPlayed, setHasPlayed] = useState(false)
   const [isInViewport, setIsInViewport] = useState(false)
 
   useEffect(() => {
@@ -42,10 +41,7 @@ export default function Video({ isShown }) {
       entries.forEach((entry) => {
         if (entry.isIntersecting) {
           setIsInViewport(true)
-          if (isShown && !hasPlayed) {
-            playAndEnterFullscreen(videoRef.current)
-            setHasPlayed(true)
-          } else if (hasPlayed) {
+          if (isShown) {
             videoRef.current.play()
           }
         } else {
@@ -67,7 +63,7 @@ export default function Video({ isShown }) {
         observer.unobserve(currentVideoRef)
       }
     }
-  }, [isShown, hasPlayed])
+  }, [isShown])
 
   return (
     <video

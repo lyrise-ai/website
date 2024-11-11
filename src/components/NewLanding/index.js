@@ -3,7 +3,7 @@ import React from 'react'
 import Layout from '../Layout/Layout'
 
 import FAQ from './faq'
-import ChatHeroSection from './hero/ChatHeroSection'
+import HeroSection from './hero/HeroSection'
 import Security from './security'
 import LandingTestimonials from './testimonials'
 import ExpertNetwork from './expert-network/ExpertNetwork'
@@ -20,11 +20,11 @@ export default function NewLanding() {
     <Layout isRaw={true}>
       <div className="w-full h-fit new-landing-container">
         <AcceleratorPromo />
-        <ChatHeroSection />
+        <HeroSection />
         {/* <AnotherIndustry /> */}
         <BackedBy />
+        <Solutions />
         <UseCases />
-        {/* <Solutions /> */}
         {/* <HowItWorks config={robHowItWorksConfig} /> */}
         {/* <ExpertNetwork /> */}
         <Security />
