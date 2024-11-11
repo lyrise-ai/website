@@ -18,12 +18,13 @@ export default function RegisterBottomSheet() {
       className="fixed bottom-0 left-0 right-0 bg-white p-4 shadow-xl h-fit z-30 px-4 py-3"
     >
       <SectionWrapper
-        title="Register your company now!"
+        title="Lyrise AI Accelerator!"
         className={'text-center'}
       >
         <h4 className="text-neutral-500 font-secondary text-base max-w-[75%]">
-          Register your company for a chance to win 3 months of AI building for
-          free!
+          Be one of our top 5 to win a{' '}
+              <span className="font-semibold">$45,000 grant</span> grant on your
+              next AI project built by LyRise.
         </h4>
         <ArrowButton
           showArrow
