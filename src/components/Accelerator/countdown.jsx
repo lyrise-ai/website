@@ -2,7 +2,10 @@ import { useEffect, useState } from 'react'
 
 import SectionWrapper from './section-wrapper'
 
-const Countdown = ({ timestamp = Date.now() + 100000 }) => {
+const Countdown = ({
+  timestamp = Date.now() + 100000,
+  withoutWrapper = false,
+}) => {
   // Initialize with null to prevent hydration mismatch
   const [mounted, setMounted] = useState(false)
   const [timeLeft, setTimeLeft] = useState({
@@ -51,8 +54,8 @@ const Countdown = ({ timestamp = Date.now() + 100000 }) => {
       timeLeft.minutes > 0 ||
       timeLeft.seconds > 0)
 
-  return (
-    <SectionWrapper title="Count Down!">
+  const renderContent = () => {
+    return (
       <div className="w-full max-w-sm mx-auto p-4 rounded-lg border-[0.642px] border-rose-200 bg-rose-50 text-card-foreground">
         <div className="flex justify-between items-center font-secondary text-rose-500">
           {hasTimeLeft ? (
@@ -66,7 +69,7 @@ const Countdown = ({ timestamp = Date.now() + 100000 }) => {
                   Days
                 </span>
               </div>
-              <span className="text-2xl font-semibold">:</span>
+              <span className="text-2xl font-semibold pb-5">:</span>
               <div className="flex flex-col items-center flex-1">
                 <span className="text-3xl font-semibold">
                   {addLeadingZero(timeLeft.hours)}
@@ -75,7 +78,7 @@ const Countdown = ({ timestamp = Date.now() + 100000 }) => {
                   Hours
                 </span>
               </div>
-              <span className="text-2xl font-semibold">:</span>
+              <span className="text-2xl font-semibold pb-5">:</span>
               <div className="flex flex-col items-center flex-1">
                 <span className="text-3xl font-semibold">
                   {addLeadingZero(timeLeft.minutes)}
@@ -84,7 +87,7 @@ const Countdown = ({ timestamp = Date.now() + 100000 }) => {
                   Mins
                 </span>
               </div>
-              <span className="text-2xl font-semibold">:</span>
+              <span className="text-2xl font-semibold pb-5">:</span>
               <div className="flex flex-col items-center flex-1">
                 <span className="text-3xl font-semibold">
                   {addLeadingZero(timeLeft.seconds)}
@@ -99,8 +102,14 @@ const Countdown = ({ timestamp = Date.now() + 100000 }) => {
           )}
         </div>
       </div>
-    </SectionWrapper>
-  )
+    )
+  }
+
+  if (withoutWrapper) {
+    return <>{renderContent()}</>
+  }
+
+  return <SectionWrapper title="Count Down!">{renderContent()}</SectionWrapper>
 }
 
 export default Countdown
