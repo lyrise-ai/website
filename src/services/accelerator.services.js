@@ -26,8 +26,7 @@ export async function getLeaderboard() {
  */
 export async function registerCompany(data) {
   try {
-    const response = await api.post('/leaderboard/', data)
-    return response
+    return await api.post('/leaderboard/', data)
   } catch (error) {
     console.log(error)
     throw new Error(error.response?.data?.error || 'Failed to register company')
