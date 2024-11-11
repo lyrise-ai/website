@@ -15,7 +15,7 @@ import { socialShareUrls } from '../src/constants/accelerator'
 import linkedinIcon from '@assets/linkedin.svg'
 import instagramIcon from '@assets/instagram.webp'
 import xIcon from '@assets/x.svg'
-import facebookIcon from '@assets/facebook.png'
+import facebookIcon from '@assets/facebook.webp'
 import Link from 'next/link'
 
 export default function CompanyRegistrationForm() {

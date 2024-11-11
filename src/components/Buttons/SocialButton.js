@@ -23,8 +23,7 @@ export default function SocialButton({
       providerClasses = 'bg-instagram-gradient text-white'
       break
     case 'facebook':
-      providerClasses =
-        'bg-white hover:bg-neutral-100 text-facebook border-2 border-facebook '
+      providerClasses = 'bg-facebook hover:bg-blue-700 text-white'
       break
     default:
       providerClasses = 'bg-white hover:bg-gray-100 text-black'
