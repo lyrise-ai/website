@@ -10,15 +10,17 @@ import { FormInput, FormSelect, FormPhoneInput } from '@components/Form'
 import StepsHeader from '@components/Accelerator/steps-header'
 import { registerCompany } from '@services/accelerator.services'
 import SectionWrapper from '../src/components/Accelerator/section-wrapper'
+import { socialShareUrls } from '../src/constants/accelerator'
 
 import linkedinIcon from '@assets/linkedin.svg'
 import instagramIcon from '@assets/instagram.webp'
 import xIcon from '@assets/x.svg'
+import facebookIcon from '@assets/facebook.png'
 import Link from 'next/link'
 
 export default function CompanyRegistrationForm() {
   const router = useRouter()
-  const [currentStep, setCurrentStep] = useState(1)
+  const [currentStep, setCurrentStep] = useState(3)
   const [formData, setFormData] = useState({
     companyName: '',
     companyWebsite: '',
@@ -189,23 +191,29 @@ export default function CompanyRegistrationForm() {
       default:
         return (
           <div className="w-full flex flex-col gap-2">
-            <SocialButton
-              provider="linkedin"
-              iconSrc={linkedinIcon}
-              onClick={() => {}}
-            >
-              Share to LinkedIn
-            </SocialButton>
-            <SocialButton
-              provider="instagram"
-              iconSrc={instagramIcon}
-              onClick={() => {}}
-            >
-              Share to Instagram
-            </SocialButton>
-            <SocialButton provider="x" iconSrc={xIcon} onClick={() => {}}>
-              Share to X
-            </SocialButton>
+            <Link href={socialShareUrls.linkedin} target="_blank">
+              <SocialButton
+                provider="linkedin"
+                iconSrc={linkedinIcon}
+                onClick={() => {}}
+              >
+                Share to LinkedIn
+              </SocialButton>
+            </Link>
+            <Link href={socialShareUrls.facebook} target="_blank">
+              <SocialButton
+                provider="facebook"
+                iconSrc={facebookIcon}
+                onClick={() => {}}
+              >
+                Share to Facebook
+              </SocialButton>
+            </Link>
+            <Link href={socialShareUrls.x} target="_blank">
+              <SocialButton provider="x" iconSrc={xIcon} onClick={() => {}}>
+                Share to X
+              </SocialButton>
+            </Link>
           </div>
         )
     }
