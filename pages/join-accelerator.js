@@ -92,7 +92,6 @@ export default function CompanyRegistrationForm() {
               placeholder="ex : https://example.com"
               value={formData.companyWebsite}
               onChange={handleInputChange}
-              pattern="https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)"
             />
             <FormInput
               label="AI Project title"
