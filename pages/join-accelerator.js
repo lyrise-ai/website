@@ -13,14 +13,13 @@ import SectionWrapper from '../src/components/Accelerator/section-wrapper'
 import { socialShareUrls } from '../src/constants/accelerator'
 
 import linkedinIcon from '@assets/linkedin.svg'
-import instagramIcon from '@assets/instagram.webp'
 import xIcon from '@assets/x.svg'
 import facebookIcon from '@assets/facebook.webp'
 import Link from 'next/link'
 
 export default function CompanyRegistrationForm() {
   const router = useRouter()
-  const [currentStep, setCurrentStep] = useState(3)
+  const [currentStep, setCurrentStep] = useState(1)
   const [formData, setFormData] = useState({
     companyName: '',
     companyWebsite: '',

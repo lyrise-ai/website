@@ -12,6 +12,8 @@ import BackedBy from './backed-by'
 
 import HowItWorks, { robHowItWorksConfig } from './how-it-works/HowItWorks'
 import AcceleratorPromo from './accelerator-promo'
+import AnotherIndustry from './another-industry'
+import UseCases from './use-cases/UseCases'
 
 export default function NewLanding() {
   return (
@@ -19,13 +21,15 @@ export default function NewLanding() {
       <div className="w-full h-fit new-landing-container">
         <AcceleratorPromo />
         <ChatHeroSection />
+        {/* <AnotherIndustry /> */}
         <BackedBy />
-        <Solutions />
-        <HowItWorks config={robHowItWorksConfig} />
-        <ExpertNetwork />
+        <UseCases />
+        {/* <Solutions /> */}
+        {/* <HowItWorks config={robHowItWorksConfig} /> */}
+        {/* <ExpertNetwork /> */}
         <Security />
-        <LandingTestimonials />
-        <FAQ />
+        {/* <LandingTestimonials /> */}
+        {/* <FAQ /> */}
         <br />
         <br />
       </div>
