@@ -42,6 +42,13 @@ const list = [
     target: '_blank',
     icon: BlogIcon,
   },
+  {
+    id: 3,
+    text: 'AI Accelerator',
+    href: '/accelerator',
+    target: '',
+    icon: AboutIcon,
+  },
   // {
   //   text: 'Product',
   //   href: '/product',
@@ -135,6 +142,12 @@ export default function Header({ isTalent }) {
               </Grid>
               <Grid item>
                 <ExternalLink text="Blog" link="https://blog.lyrise.ai/" />
+              </Grid>
+              <Grid item>
+                <InternalLink
+                  text="AI Accelerator"
+                  link="/accelerator"
+                />
               </Grid>
             </Grid>
           ) : null}
