@@ -66,7 +66,7 @@ function Solution({ title, imgSrc, subtitle, description, link, phase }) {
     //   </div>
     // </div>
 
-    <div className="col-span-1 h-auto p-5 bg-white rounded-2xl flex flex-col-reverse items-center justify-between md:grid grid-cols-2 max-sm:mx-5 max-sm:mb-5 max-w-6xl gap-4">
+    (<div className="col-span-1 h-auto p-5 bg-white rounded-2xl flex flex-col-reverse items-center justify-between md:grid grid-cols-2 max-sm:mx-5 max-sm:mb-5 max-w-6xl gap-4">
       <div>
         <h2 className="md:flex hidden text-3xl lg:text-5xl font-semibold my-4">
           {title}
@@ -104,6 +104,6 @@ function Solution({ title, imgSrc, subtitle, description, link, phase }) {
           {phase}
         </sup>
       </h2>
-    </div>
-  )
+    </div>)
+  );
 }

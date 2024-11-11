@@ -32,7 +32,7 @@ const HeroSection = ({
   const { pathname } = useRouter()
 
   return (
-    <div className="container">
+    (<div className="container">
       <Grid
         container
         direction={mid ? 'column-reverse' : 'row'}
@@ -88,64 +88,65 @@ const HeroSection = ({
                 : 'Looking for your next career move?'}
 
               <span style={{ marginLeft: '8px' }}>
-                <Link href={isTalent ? '/' : '/talents'} passHref>
-                  <a
-                    style={{
-                      fontFamily: 'Cairo',
-                      fontSize: under368px
-                        ? '12px'
-                        : under500px
-                        ? '16px'
-                        : '20px',
-                      fontWeight: '500',
-                      lineHeight: '24px',
-                      letterSpacing: '-0.006em',
-                      textAlign: 'left',
-                      cursor: 'pointer',
-                      display: 'inline',
-                      color: '#4200FF',
-                    }}
-                    onClick={() => {
-                      if (
-                        process.env.NEXT_PUBLIC_ENV === 'production' &&
-                        typeof window !== 'undefined' &&
-                        isTalent
-                      ) {
-                        const eventProperties = {
-                          section: 'talent-hero-section',
-                          page: pathname,
-                        }
-
-                        amplitude
-                          .getInstance()
-                          .logEvent('PressedStartHiring', eventProperties)
-                        ReactGA.event({
-                          category: 'TalentPage-HeroSection',
-                          action: 'PressedStartHiring',
-                        })
+                <Link
+                  href={isTalent ? '/' : '/talents'}
+                  passHref
+                  style={{
+                    fontFamily: 'Cairo',
+                    fontSize: under368px
+                      ? '12px'
+                      : under500px
+                      ? '16px'
+                      : '20px',
+                    fontWeight: '500',
+                    lineHeight: '24px',
+                    letterSpacing: '-0.006em',
+                    textAlign: 'left',
+                    cursor: 'pointer',
+                    display: 'inline',
+                    color: '#4200FF',
+                  }}
+                  onClick={() => {
+                    if (
+                      process.env.NEXT_PUBLIC_ENV === 'production' &&
+                      typeof window !== 'undefined' &&
+                      isTalent
+                    ) {
+                      const eventProperties = {
+                        section: 'talent-hero-section',
+                        page: pathname,
                       }
-                      if (
-                        process.env.NEXT_PUBLIC_ENV === 'production' &&
-                        typeof window !== 'undefined' &&
-                        !isTalent
-                      ) {
-                        const eventProperties = {
-                          section: 'employer-hero-section',
-                          page: pathname,
-                        }
 
-                        amplitude
-                          .getInstance()
-                          .logEvent('PressedApplyForJobs', eventProperties)
-                        ReactGA.event({
-                          category: 'MainLandingPage-HeroSection',
-                          action: 'PressedApplyForJobs',
-                        })
+                      amplitude
+                        .getInstance()
+                        .logEvent('PressedStartHiring', eventProperties)
+                      ReactGA.event({
+                        category: 'TalentPage-HeroSection',
+                        action: 'PressedStartHiring',
+                      })
+                    }
+                    if (
+                      process.env.NEXT_PUBLIC_ENV === 'production' &&
+                      typeof window !== 'undefined' &&
+                      !isTalent
+                    ) {
+                      const eventProperties = {
+                        section: 'employer-hero-section',
+                        page: pathname,
                       }
-                    }}
-                  >
-                    {isTalent ? 'Start Hiring' : ' Apply For Jobs'}
-                  </a>
+
+                      amplitude
+                        .getInstance()
+                        .logEvent('PressedApplyForJobs', eventProperties)
+                      ReactGA.event({
+                        category: 'MainLandingPage-HeroSection',
+                        action: 'PressedApplyForJobs',
+                      })
+                    }
+                  }}>
+
+                  {isTalent ? 'Start Hiring' : ' Apply For Jobs'}
+
                 </Link>
               </span>
             </Typography>
@@ -163,8 +164,8 @@ const HeroSection = ({
           />
         </Grid>
       </Grid>
-    </div>
-  )
+    </div>)
+  );
 }
 
 export default HeroSection

@@ -16,7 +16,7 @@
 
 @font-face {
   font-family: 'Space Grotesk';
-  src: url('../fonts/SpaceGrotesk-Medium.ttf');
+  src: url('../fonts/SpaceGrotesk-Medium.ttf') format('truetype');
   font-weight: 500;
 }
 
@@ -35,13 +35,18 @@
 @font-face {
   font-family: Poppins;
   src: url('../fonts/poppins.ttf') format('opentype');
-
   font-weight: 400;
 }
 
 @font-face {
   font-family: Poppins;
-  src: url('../fonts/Poppins-SemiBold.ttf') format('opentype');
+  src: url('../fonts/Poppins-Medium.ttf') format('truetype');
+  font-weight: 500;
+}
+
+@font-face {
+  font-family: Poppins;
+  src: url('../fonts/Poppins-SemiBold.ttf') format('truetype');
   font-weight: 600;
 }
 
@@ -514,4 +519,21 @@ li {
 abbr {
   text-decoration: none !important;
   font-family: Poppins;
+}
+
+/* react-international-phone customization */
+.react-international-phone-input-container > input,
+.react-international-phone-input-container > div > button {
+  padding-top: 1.2rem !important;
+  padding-bottom: 1.2rem !important;
+}
+
+.react-international-phone-input-container {
+  position: relative;
+  display: inline-block;
+}
+
+.react-international-phone-input-container:focus-within {
+  outline: 2px solid rgb(82 139 255);
+  border-radius: 0.375rem;
 }

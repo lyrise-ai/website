@@ -17,7 +17,10 @@ const GetInTouch = ({ Filter, BoxShadow, isTalent }) => {
     // <FirebaseConsumer>
     //   {(isPopup) => {
     //     return (
-    <div
+    //     )
+    //   }}
+    // </FirebaseConsumer>
+    (<div
       style={{
         width: aboveMobile ? '26.25rem' : '100%',
         padding: mobile ? '10px' : '20px',
@@ -37,7 +40,6 @@ const GetInTouch = ({ Filter, BoxShadow, isTalent }) => {
       >
         {isTalent ? 'Let us get in touch.' : 'Start your hiring process now'}
       </Typography>
-
       <ScheduleMeetingButton
         location="HeroSection"
         link={isTalent ? 'https://talents.lyrise.ai/' : '/Employer'}
@@ -47,11 +49,8 @@ const GetInTouch = ({ Filter, BoxShadow, isTalent }) => {
         isPopup={false}
         // isPopup={pathname === '/'}
       />
-    </div>
-    //     )
-    //   }}
-    // </FirebaseConsumer>
-  )
+    </div>)
+  );
 }
 
 GetInTouch.propTypes = {

@@ -1,7 +1,7 @@
 import React from 'react'
 
 import { Carousel, carousel } from '@material-tailwind/react'
-import Image from 'next/image'
+import Image from 'next/legacy/image'
 
 import healthcare from '../../../assets/hero/icons/healthcare.png'
 import manufacturing from '../../../assets/hero/icons/manufacturing.png'
@@ -59,12 +59,12 @@ export default function UseCases() {
 
   return (
     <div className="text-center w-full mt-32">
-      <h3 className="text-neutral-500 font-secondary mb-3">
+      {/* <h3 className="text-neutral-500 font-secondary mb-3">
         Industries & Use Cases
       </h3>
       <h1 className="text-3xl lg:text-4xl max-w-[500px] m-auto font-medium mb-20 font-primary max-sm:max-w-[90%]">
         Discover the Industry and Use Cases for your A.I. needs
-      </h1>
+      </h1> */}
 
       <div className="inline-flex max-sm:w-[90vw] flex-row lg:gap-10 lg:mx-20 xl:mx-52 border-neutral-400 border-b-2 max-md:overflow-x-scroll">
         {cases.map((item) => (

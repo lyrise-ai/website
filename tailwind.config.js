@@ -12,7 +12,9 @@ module.exports = {
     extend: {
       colors: {
         primary: 'rgba(41, 87, 255, 1)',
-        "primary-25": '#F7F9FF',
+        'primary-25': '#F7F9FF',
+        'primary-50': '#EFF2FF',
+        facebook: '#1877F2',
       },
       fontFamily: {
         primary: 'Space Grotesk',
@@ -24,6 +26,10 @@ module.exports = {
         medium: 500,
         semibold: 600,
         bold: 700,
+      },
+      backgroundImage: {
+        'instagram-gradient':
+          'radial-gradient(50% 50% at 50% 50%, rgba(140, 58, 170, 0.00) 64.4%, rgba(140, 58, 170, 0.20) 100%), radial-gradient(130.54% 130.55% at 13.29% 100.47%, #FA8F21 9%, #D82D7E 78%);',
       },
     },
   },

@@ -57,7 +57,6 @@ export default function ChatInput({
     <div
       className={
         'flex flex-row w-full items-center bg-white rounded-lg overflow-hidden min-h-fit py-1 '
-        // styles.fancy
       }
       style={{ boxShadow: '0px 4px 8px 0px rgba(0, 34, 158, 0.08)' }}
     >
@@ -69,7 +68,7 @@ export default function ChatInput({
         onKeyDown={handleKeyDown}
         onFocus={handleFocus}
         onBlur={handleBlur}
-        placeholder="Type your message..."
+        placeholder="What AI talent are you looking for?"
         className={styles.chat_textarea}
       />
       <button

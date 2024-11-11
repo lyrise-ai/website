@@ -1,6 +1,6 @@
 /* eslint-disable sonarjs/no-duplicate-string */
 import { Grid, useMediaQuery } from '@mui/material'
-import Image from 'next/image'
+import Image from "next/legacy/image"
 import PropTypes from 'prop-types'
 import React from 'react'
 import amplitude from 'amplitude-js'

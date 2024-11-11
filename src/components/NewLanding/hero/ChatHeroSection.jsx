@@ -7,7 +7,7 @@ import { ChatFocusContext } from '../../../providers/ChatFocusContext'
 import ArrowButton from '../../Buttons/ArrowButton'
 import BotChat from './BotChat'
 
-export default function HeroSection() {
+export default function ChatHeroSection() {
   const [isChatFocused, setIsChatFocused] = useState(false)
 
   return (
@@ -15,17 +15,18 @@ export default function HeroSection() {
     <div className="flex flex-col md:grid grid-cols-9 w-full relative m-auto md:mb-20 md:max-w-[84rem] gap-10 py-3 md:py-20 max-md:px-5">
       <div className="col-span-4 flex flex-col lg:gap-5 justify-center">
         <h1 className="text-5xl lg:text-7xl font-semibold font-primary max-sm:mt-10">
-          Helping SMEs Adopt AI Easier and Faster
+          Hire AI Talent Instantly
         </h1>
         <h3 className="pr-5 text-neutral-600 font-secondary text-lg md:text-xl lg:text-2xl font-medium lg:font-primary max-md:mb-2">
-          Unlocking AI for 1 Million Businesses
+          Our LLM will match you with the top 2% vetted AI engineers in north
+          Africa, for free!
         </h3>
-        <Link href={LYRISEAI_PRODUCT_URL + 'signup'}>
+        <Link href={LYRISEAI_PRODUCT_URL + 'signup'} legacyBehavior>
           <ArrowButton
             showArrow
             className="max-md:w-full justify-between font-medium py-3 max-w-fit"
           >
-            Try Now!
+            Hire Now!
           </ArrowButton>
         </Link>
       </div>
