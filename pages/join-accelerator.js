@@ -87,7 +87,7 @@ export default function CompanyRegistrationForm() {
             />
             <FormInput
               label="Company Website"
-              type="url"
+              type="text"
               name="companyWebsite"
               placeholder="ex : https://example.com"
               value={formData.companyWebsite}
