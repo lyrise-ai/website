@@ -30,11 +30,14 @@ export default function AcceleratorPromo() {
             Accelerator!
           </h1>
 
-          <div className="space-y-4 md:w-full lg:w-3/5 xl:w-2/3">
-            <p className="text-neutral-500 text-lg md:text-xl font-secondary leading-6 md:leading-7">
-              Be one of our top 5 to win a{' '}
-              <span className="font-semibold">$45,000 grant</span> grant on your
-              next AI project built by LyRise.
+          <div className="space-y-2 md:w-full lg:w-3/5 xl:w-2/3">
+            <p className="text-neutral-500 text-lg md:text-xl font-secondary leading-5 md:leading-7">
+              LyRise offers each of our top 5 voted startups:
+              <ul className="font-bold list-disc pl-3">
+                <li>• 2 months of AI development</li>
+                <li>• cloud storage</li>
+                <li>• 30% off future projects!</li>
+              </ul>
             </p>
           </div>
 
