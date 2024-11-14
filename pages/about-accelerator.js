@@ -89,8 +89,8 @@ function PerksSection() {
     <InfoSection title="Perks" color="rose" iconSrc={bookIcon}>
       <p className="text-rose-500 text-lg md:text-xl leading-5 font-secondary mt-2 w-full">
         Joining the LyRise Accelerator gives exclusive perks for{' '}
-        <strong>all participants</strong>, even if you don't make it to the Top
-        5:
+        <strong>all participants</strong>, even if you don&apos;t make it to the
+        Top 5:
       </p>
       <ul className="font-secondary text-rose-500 w-full">
         <li>
