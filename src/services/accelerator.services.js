@@ -1,4 +1,22 @@
-import api from './api.services'
+import axios from 'axios'
+
+// the leaderboard accelerator is only working on test backend
+// so we don't use api instance here and use a custom one
+
+const api = axios.create({
+  baseURL: 'https://test-chat.lyrise.ai/api',
+  headers: {
+    common: {
+      'Content-Type': 'application/json',
+      Accept: 'application/json',
+    },
+  },
+})
+
+api.interceptors.response.use(
+  (response) => response.data,
+  (error) => Promise.reject(error),
+)
 
 /**
  * Get all companies in the leaderboard
