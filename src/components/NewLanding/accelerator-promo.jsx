@@ -77,6 +77,13 @@ export default function AcceleratorPromo() {
               </ArrowButton>
             </Link>
           </div>
+          
+          <Link
+            className="underline text-rose-500 font-secondary text-base my-0 w-full text-center"
+            href="/about-accelerator"
+          >
+            See how it works?
+          </Link>
         </div>
       </div>
     </div>
