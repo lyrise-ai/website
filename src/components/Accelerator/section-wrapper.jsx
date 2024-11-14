@@ -8,7 +8,11 @@ export default function SectionWrapper({ children, className, title }) {
       px-4 py-3 gap-3
       ${className}`}
     >
-      {title && <h2 className="font-bold font-primary text-xl">{title}</h2>}
+      {title && (
+        <h2 className="font-bold font-primary text-xl w-full text-center">
+          {title}
+        </h2>
+      )}
       {children}
     </section>
   )
