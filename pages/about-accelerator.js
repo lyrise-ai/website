@@ -2,12 +2,35 @@ import InfoSection from '../src/components/Accelerator/info-section'
 import Layout from '../src/components/Layout/Layout'
 import RegisterBottomSheet from '@components/Accelerator/register-bottom-sheet'
 import bookIcon from '@assets/book.svg'
+import Link from 'next/link'
+
+import CloseIcon from '@assets/icons/closeIcon'
 
 export default function AboutAccelerator() {
   return (
     <Layout isRaw>
       <div className="bg-white w-full">
         <main className="relative flex items-center justify-center flex-col p-3 gap-3 bg-white max-w-7xl mx-auto mb-[30vh]">
+          <h1 className="text-4xl md:text-5xl lg:text-5xl font-bold leading-tight my-0 text-left w-full">
+            LyRise AI
+            <br />
+            Accelerator!
+          </h1>
+
+          <div className="space-y-4 md:w-full lg:w-3/5 xl:w-2/3">
+            <p className="text-neutral-500 text-lg md:text-xl font-secondary leading-6 md:leading-7">
+              Be one of our top 5 to win a{' '}
+              <span className="font-semibold">$45,000 grant</span> grant on your
+              next AI project built by LyRise.
+            </p>
+          </div>
+
+          <Link
+            href="/accelerator"
+            className="absolute right-2 top-2 rounded-sm opacity-70 hover:opacity-100 focus:outline-none"
+          >
+            <CloseIcon className="h-8 w-8" />
+          </Link>
           <HowItWorksSection />
           <PerksSection />
           <RegisterBottomSheet />
