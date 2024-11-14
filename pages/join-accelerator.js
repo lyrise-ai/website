@@ -15,7 +15,9 @@ import { socialShareUrls } from '../src/constants/accelerator'
 import linkedinIcon from '@assets/linkedin.svg'
 import xIcon from '@assets/x.svg'
 import facebookIcon from '@assets/facebook.webp'
+import bookIcon from '@assets/neutral-book.svg'
 import Link from 'next/link'
+import InfoSection from '../src/components/Accelerator/info-section'
 
 export default function CompanyRegistrationForm() {
   const router = useRouter()
@@ -240,7 +242,26 @@ export default function CompanyRegistrationForm() {
               className="mt-auto w-full"
               onSubmit={currentStep === 1 ? handleNext : handleSubmit}
             >
-              <h2 className="text-rose-500 font-bold mb-6 font-primary">
+              {currentStep === 3 ? (
+                <InfoSection
+                  title="Instructions:"
+                  iconSrc={bookIcon}
+                  color="neutral"
+                >
+                  <p className="text-base font-secondary text-neutral-800 bg-neutral-100">
+                    Great, you&apos;re all signed up! Make sure you share the
+                    Accelerator on social media using our hashtag{' '}
+                    <Link
+                      href="https://www.linkedin.com/search/results/all/?keywords=%23LyRiseAIAccelerator"
+                      className="font-bold"
+                    >
+                      #LyRiseAIAccelerator
+                    </Link>{' '}
+                    to get the most votes.
+                  </p>
+                </InfoSection>
+              ) : null}
+              <h2 className="text-rose-500 font-bold mb-6 font-primary mt-3">
                 {currentStep === 1
                   ? 'Company Info'
                   : currentStep === 2

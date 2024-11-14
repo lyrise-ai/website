@@ -24,7 +24,7 @@ export default function Accelerator() {
         <main className="relative flex items-center justify-center flex-col p-3 gap-3 bg-white max-w-7xl mx-auto mb-[30vh]">
           <Countdown timestamp={new Date('2024-11-16').getTime()} />
           <Leaderboard openVoteRegisterDialog={openVoteRegisterDialog} />
-          <RegisterBottomSheet />
+          <RegisterBottomSheet withHowItWorksLink />
           <VoteRegisterDialog
             isOpen={isVoteRegisterDialogOpen}
             onClose={closeVoteRegisterDialog}
