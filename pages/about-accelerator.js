@@ -33,7 +33,7 @@ export default function AboutAccelerator() {
           </Link>
           <HowItWorksSection />
           <PerksSection />
-          <RegisterBottomSheet />
+          {/* <RegisterBottomSheet /> */}
         </main>
       </div>
     </Layout>
