@@ -22,13 +22,13 @@ export default function Accelerator() {
     <Layout isRaw>
       <div className="bg-white w-full">
         <main className="relative flex items-center justify-center flex-col p-3 gap-3 bg-white max-w-7xl mx-auto mb-[30vh]">
-          <Countdown timestamp={new Date('2024-11-16').getTime()} />
+          {/* <Countdown timestamp={new Date('2024-11-16').getTime()} /> */}
           <Leaderboard openVoteRegisterDialog={openVoteRegisterDialog} />
-          <RegisterBottomSheet withHowItWorksLink />
-          <VoteRegisterDialog
+          {/* <RegisterBottomSheet withHowItWorksLink /> */}
+          {/* <VoteRegisterDialog
             isOpen={isVoteRegisterDialogOpen}
             onClose={closeVoteRegisterDialog}
-          />
+          /> */}
         </main>
       </div>
     </Layout>

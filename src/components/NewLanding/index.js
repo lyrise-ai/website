@@ -19,7 +19,6 @@ export default function NewLanding() {
   return (
     <Layout isRaw={true}>
       <div className="w-full h-fit new-landing-container">
-        <AcceleratorPromo />
         <HeroSection />
         {/* <AnotherIndustry /> */}
         <BackedBy />
