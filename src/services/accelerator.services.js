@@ -27,10 +27,7 @@ export async function getLeaderboard() {
     const response = await api.get('/leaderboard/')
     return response.companies
   } catch (error) {
-    console.log(error)
-    throw new Error(
-      error.response?.data?.error || 'Failed to fetch leaderboard',
-    )
+    window.alert(error.response?.data?.error || 'Failed to get leaderboard')
   }
 }
 
@@ -46,8 +43,7 @@ export async function registerCompany(data) {
   try {
     return await api.post('/leaderboard/', data)
   } catch (error) {
-    console.log(error)
-    throw new Error(error.response?.data?.error || 'Failed to register company')
+    window.alert(error.response?.data?.error || 'Failed to register company')
   }
 }
 
@@ -60,7 +56,7 @@ export async function voteForCompany(companyId) {
   try {
     await api.post(`/leaderboard/${companyId}/vote`)
   } catch (error) {
-    throw new Error(error.response?.data?.error || 'Failed to vote for company')
+    window.alert(error.response?.data?.error || 'Failed to vote')
   }
 }
 
@@ -73,7 +69,7 @@ export async function downvoteCompany(companyId) {
   try {
     await api.delete(`/leaderboard/${companyId}/vote`)
   } catch (error) {
-    throw new Error(error.response?.data?.error || 'Failed to remove vote')
+    window.alert(error.response?.data?.error || 'Failed to downvote')
   }
 }
 
