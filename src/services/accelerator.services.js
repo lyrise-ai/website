@@ -28,6 +28,7 @@ export async function getLeaderboard() {
     return response.companies
   } catch (error) {
     window.alert(error.response?.data?.error || 'Failed to get leaderboard')
+    return []
   }
 }
 
@@ -44,6 +45,7 @@ export async function registerCompany(data) {
     return await api.post('/leaderboard/', data)
   } catch (error) {
     window.alert(error.response?.data?.error || 'Failed to register company')
+    return error
   }
 }
 
