@@ -1,4 +1,8 @@
-import { PhoneInput } from 'react-international-phone'
+import {
+  PhoneInput,
+  defaultCountries,
+  parseCountry,
+} from 'react-international-phone'
 // import './phoneinput.css';
 import 'react-international-phone/style.css'
 
@@ -57,6 +61,11 @@ const FormSelect = ({ label, name, value, onChange, options, placeholder }) => (
   </div>
 )
 
+const countries = defaultCountries.filter((country) => {
+  const { iso2 } = parseCountry(country)
+  return ['ae', 'sa', 'qa', 'kw', 'om', 'bh'].includes(iso2)
+})
+
 function FormPhoneInput({
   label,
   type,
@@ -98,7 +107,8 @@ function FormPhoneInput({
               borderRight: '1px solid transparent',
             },
           }}
-          defaultCountry="us"
+          defaultCountry="qa"
+          countries={countries}
         />
       </label>
     </div>

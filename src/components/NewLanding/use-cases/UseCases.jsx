@@ -58,7 +58,7 @@ export default function UseCases() {
   }, [activeIndex])
 
   return (
-    <div className="text-center w-full mt-32">
+    <div className="text-center w-full mt-10 md:mt-32">
       {/* <h3 className="text-neutral-500 font-secondary mb-3">
         Industries & Use Cases
       </h3>

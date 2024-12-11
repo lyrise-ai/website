@@ -39,7 +39,8 @@ const items = [
   {
     title: 'Regulatory Compliance',
     subtitle:
-      'We ensure full compliance with GDPR, HIPAA, and all relevant industry standards, maintaining the highest level of data protection and regulatory adherence.',
+      'Adhere to GDPR, HIPAA, and industry standards for comprehensive compliance.',
+    // 'We ensure full compliance with GDPR, HIPAA, and all relevant industry standards, maintaining the highest level of data protection and regulatory adherence.',
     imgSrc: third,
   },
 ]
@@ -48,6 +49,12 @@ const findElse = {
   0: [1, 2],
   1: [0, 2],
   2: [0, 1],
+}
+
+const content = {
+  heading: 'Data Security & Infrastructure',
+  subheading:
+    'Elevate Your Data Security with IBM Hyper Protect Infrastructure',
 }
 
 function Security() {
@@ -59,10 +66,10 @@ function Security() {
   return (
     <div className="text-center w-full mt-20">
       <h3 className="text-neutral-500 font-secondary mb-3">
-        Data Security & Infrastructure
+        {content.heading}
       </h3>
-      <h1 className="text-3xl lg:text-4xl max-w-[600px] m-auto font-medium mb-20 font-primary max-sm:max-w-[90%]">
-        Elevate Your Data Security with IBM Hyper Protect Infrastructure
+      <h1 className="text-3xl lg:text-4xl max-w-[600px] m-auto font-medium mb-5 md:mb-20 font-primary max-sm:max-w-[90%]">
+        {content.subheading}
       </h1>
 
       <div className="md:grid gap-5 grid-cols-4 max-w-[1200px] m-auto">
@@ -99,13 +106,7 @@ function Security() {
                     Get Started
                   </button>
                 </div>
-                <Image
-                  src={items[item].imgSrc}
-                  objectFit="cover"
-                  // width={280}
-                  // height={200}
-                  // style={{ flexShrink: 0, flex: 1 }}
-                />
+                <Image src={items[item].imgSrc} objectFit="cover" />
               </div>
             ) : (
               <div className="flex items-center justify-center h-full w-full">
@@ -116,13 +117,6 @@ function Security() {
             )}
           </div>
         ))}
-        {/* <div className="col-span-1 hidden md:block">
-          <Image src={leftImg} />
-        </div> */}
-
-        {/* <div className="col-span-1 hidden md:block">
-          <Image src={rightImg} />
-        </div> */}
       </div>
     </div>
   )
@@ -133,12 +127,12 @@ export default Security
 function MobileVersion({ active, setActive }) {
   console.log('rendering mobile version', active)
   return (
-    <div className="text-center w-full mt-32">
-      <h3 className="text-neutral-500 font-secondary mb-3 max-w-[85%] mx-auto">
-        Data Security: Your data never leaves your premise.
+    <div className="text-center w-full mt-5">
+      <h3 className="text-neutral-500 font-secondary mb-3 text-base max-w-[85%] mx-auto">
+        {content.heading}
       </h3>
-      <h1 className="text-3xl lg:text-4xl max-w-[600px] m-auto font-medium mb-20 font-primary max-sm:max-w-[90%]">
-        Ensure your Data Security with IBM Hyper Protect Infrastructure
+      <h1 className="text-2xl lg:text-4xl max-w-[600px] m-auto font-medium mb-5 font-primary max-sm:max-w-[90%]">
+        {content.subheading}
       </h1>
       {/* active item */}
       <div
@@ -173,9 +167,8 @@ function MobileVersion({ active, setActive }) {
           <Image
             src={items[active].imgSrc}
             objectFit="cover"
-            // width={280}
-            // height={200}
-            // style={{ flexShrink: 0, flex: 1 }}
+            width={200}
+            height={200}
           />
         </div>
       </div>
