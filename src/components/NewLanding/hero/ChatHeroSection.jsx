@@ -17,7 +17,7 @@ export default function ChatHeroSection() {
         <h1 className="text-[2.75rem] leading-[2.5rem] lg:text-7xl font-semibold font-primary">
           Adopt AI Easier & Faster
         </h1>
-        <h3 className="pr-5 text-neutral-600 font-secondary text-lg md:text-xl lg:text-2xl font-medium lg:font-primary max-md:mb-2">
+        <h3 className="pr-5 text-neutral-600 font-secondary text-lg md:text-xl lg:text-2xl leading-5 mt-1 lg:font-primary max-md:mb-2">
           Our LLM will match you with the top 2% vetted AI engineers in north
           Africa, for free!
         </h3>
