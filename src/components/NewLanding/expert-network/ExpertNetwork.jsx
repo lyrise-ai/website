@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 import { EXPERTS } from './config'
 import ExpertCard from './ExpertCard'
+import PageSection from '@components/NewLanding/section/PageSection'
 
 import 'swiper/css'
 
@@ -26,8 +27,9 @@ export default function ExpertNetwork() {
   const above1000 = useMediaQuery('(min-width: 1000px)')
 
   return (
+    // PAGE-SECTION: removed max-md:my-10
     // added pading & margins to show the slides box shadow that is overflowing
-    (<div className="flex flex-col items-center gap-5 w-full max-md:overflow-hidden max-md:my-10 max-md:py-10">
+    <PageSection className="flex flex-col items-center gap-5 w-full max-md:overflow-hidden max-md:py-10">
       <div className="text-3xl lg:text-4xl font-semibold text-center font-primary mt-20">
         Our AI Expert Network
       </div>
@@ -50,6 +52,6 @@ export default function ExpertNetwork() {
           </SwiperSlide>
         ))}
       </Swiper>
-    </div>)
-  );
+    </PageSection>
+  )
 }

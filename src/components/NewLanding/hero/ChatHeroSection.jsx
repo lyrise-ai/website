@@ -6,13 +6,14 @@ import { LYRISEAI_PRODUCT_URL } from '../../../constants/main'
 import { ChatFocusContext } from '../../../providers/ChatFocusContext'
 import ArrowButton from '../../Buttons/ArrowButton'
 import BotChat from './BotChat'
+import PageSection from '@components/NewLanding/section/PageSection'
 
 export default function ChatHeroSection() {
   const [isChatFocused, setIsChatFocused] = useState(false)
 
   return (
     // note: overflow was hidden here
-    <div className="flex flex-col md:grid grid-cols-9 w-full relative m-auto md:mb-20 md:max-w-[84rem] gap-10 py-3 md:py-20 max-md:px-5">
+    <PageSection className="flex flex-col md:grid grid-cols-9 md:max-w-[84rem] w-full relative m-auto gap-10 py-3 md:py-20 max-md:px-5">
       <div className="col-span-4 flex flex-col lg:gap-5 justify-center">
         <h1 className="text-[2.75rem] leading-[2.5rem] lg:text-7xl font-semibold font-primary">
           Adopt AI Easier & Faster
@@ -45,6 +46,6 @@ export default function ChatHeroSection() {
           </ChatFocusContext.Provider>
         </div>
       </div>
-    </div>
+    </PageSection>
   )
 }

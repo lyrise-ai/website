@@ -1,4 +1,5 @@
 import React from 'react'
+import PageSection from '@components/NewLanding/section/PageSection'
 
 const questions = [
   {
@@ -44,7 +45,7 @@ const questions = [
 
 export default function FAQ() {
   return (
-    <div className="text-center w-full mt-32 font-primary">
+    <PageSection className="text-center w-full font-primary">
       <h1 className="text-4xl max-w-[500px] m-auto font-medium mb-20">
         Frequently Asked Questions
       </h1>
@@ -54,7 +55,7 @@ export default function FAQ() {
           <Question key={q.id} question={q.question} answer={q.answer} />
         ))}
       </div>
-    </div>
+    </PageSection>
   )
 }
 

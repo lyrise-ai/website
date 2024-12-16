@@ -31,7 +31,7 @@ export default function NewLanding() {
         {/* <ExpertNetwork /> */}
         <Security />
         {/* <LandingTestimonials /> */}
-        {/* <FAQ /> */}
+        <FAQ />
         <br />
         <br />
       </div>

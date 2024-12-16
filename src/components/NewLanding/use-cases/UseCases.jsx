@@ -10,6 +10,7 @@ import transportation from '../../../assets/hero/icons/transportation.png'
 import finance from '../../../assets/hero/icons/finance.png'
 import Img from '../../Product/Img'
 import { UseCasesCards } from './Card'
+import PageSection from '@components/NewLanding/section/PageSection'
 
 const cases = [
   {
@@ -58,7 +59,7 @@ export default function UseCases() {
   }, [activeIndex])
 
   return (
-    <div className="text-center w-full mt-10 md:mt-32">
+    <PageSection className="text-center w-full mt-10 md:mt-32">
       {/* <h3 className="text-neutral-500 font-secondary mb-3">
         Industries & Use Cases
       </h3>
@@ -99,7 +100,7 @@ export default function UseCases() {
       >
         {UseCasesCards}
       </Carousel>
-    </div>
+    </PageSection>
   )
 }
 

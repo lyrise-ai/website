@@ -3,6 +3,7 @@ import React from 'react'
 import { solutions } from './solutions.config'
 import Solution from './Solution'
 import Img from '../../Product/Img'
+import PageSection from '@components/NewLanding/section/PageSection'
 
 import useCaseFinderImage from '../../../assets/solutions/ai-use-case-finder.png'
 import gapAnalysisImage from '../../../assets/solutions/gap-analysis.png'
@@ -18,7 +19,7 @@ const images = {
 
 export default function Solutions() {
   return (
-    <div>
+    <PageSection>
       <div className="text-3xl lg:text-4xl font-semibold text-center font-primary mt-20">
         Lyrise LLM Solutions
       </div>
@@ -29,6 +30,6 @@ export default function Solutions() {
           </Solution>
         ))}
       </div>
-    </div>
+    </PageSection>
   )
 }

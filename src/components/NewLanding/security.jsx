@@ -6,6 +6,7 @@ import second from '/src/assets/security/2.jpeg'
 import third from '/src/assets/security/3.jpeg'
 import { useMediaQuery } from '@mui/material'
 import { LYRISEAI_PRODUCT_URL } from '../../constants/main'
+import PageSection from '@components/NewLanding/section/PageSection'
 
 const toBgColor = {
   0: ' bg-[#5277FF]',
@@ -64,7 +65,7 @@ function Security() {
   if (isMobile) return <MobileVersion active={active} setActive={setActive} />
 
   return (
-    <div className="text-center w-full mt-20">
+    <PageSection className="text-center w-full mt-20">
       <h3 className="text-neutral-500 font-secondary mb-3">
         {content.heading}
       </h3>
@@ -118,7 +119,7 @@ function Security() {
           </div>
         ))}
       </div>
-    </div>
+    </PageSection>
   )
 }
 
@@ -127,7 +128,7 @@ export default Security
 function MobileVersion({ active, setActive }) {
   console.log('rendering mobile version', active)
   return (
-    <div className="text-center w-full mt-5">
+    <PageSection className="text-center w-full">
       <h3 className="text-neutral-500 font-secondary mb-3 text-base max-w-[85%] mx-auto">
         {content.heading}
       </h3>
@@ -192,6 +193,6 @@ function MobileVersion({ active, setActive }) {
           </div>
         ))}
       </div>
-    </div>
+    </PageSection>
   )
 }

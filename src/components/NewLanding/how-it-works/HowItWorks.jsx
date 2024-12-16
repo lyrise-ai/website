@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import SectionTitle from '../../shared/SectionTitle/SectionTitle'
 import StickyProgress from '../../StickyProgress/StickyProgress'
+import PageSection from '@components/NewLanding/section/PageSection'
 import HowItWorksElement from './HowItWorksElement'
 
 import talentSuggetionsImage from '@assets/new-how/talent-suggetions.png'
@@ -49,7 +50,7 @@ export default function HowItWorks({ config }) {
   const [elementInView, setElementInView] = useState(0)
   const checkpoints = config.map((item) => item.name || item.title)
   return (
-    <section className="relative mt-20">
+    <PageSection className="relative mt-20">
       <SectionTitle title="Our Process" />
       <StickyProgress index={elementInView} checkpoints={checkpoints} />
       {config.map((item) => (
@@ -60,6 +61,6 @@ export default function HowItWorks({ config }) {
           isReversed={item.id % 2 === 0}
         />
       ))}
-    </section>
+    </PageSection>
   )
 }
