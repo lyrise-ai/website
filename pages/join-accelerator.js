@@ -99,7 +99,7 @@ export default function CompanyRegistrationForm() {
               label="AI Project title"
               type="text"
               name="aiProjectTitle"
-              placeholder="ex : Product Recommendation AI"
+              placeholder="ex : Dream AI Project"
               value={formData.aiProjectTitle}
               onChange={handleInputChange}
               maxLength={200}
@@ -130,12 +130,12 @@ export default function CompanyRegistrationForm() {
               onChange={handleInputChange}
               placeholder="ex : Pre-seed, Seed, Series A..."
               options={[
-                { value: 'pre-seed', label: 'Pre-seed' },
+                // { value: 'pre-seed', label: 'Pre-seed' },
                 { value: 'seed', label: 'Seed' },
                 { value: 'series-a', label: 'Series A' },
-                { value: 'series-b', label: 'Series B' },
-                { value: 'series-c', label: 'Series C' },
-                { value: 'series-d', label: 'Series D' },
+                // { value: 'series-b', label: 'Series B' },
+                // { value: 'series-c', label: 'Series C' },
+                // { value: 'series-d', label: 'Series D' },
               ]}
             />
           </div>

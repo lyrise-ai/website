@@ -1,13 +1,15 @@
 import React from 'react'
+import PageSection from '@components/NewLanding/section/PageSection'
+import PageSectionTitle from '@components/NewLanding/section/PageSectionTitle'
 import Testimonials from './../../Product/Testimonials'
 
 function LandingTestimonials() {
   return (
-    <div className="text-center w-full mt-32">
-      <h3 className="text-neutral-500 font-secondary mb-3">Testimonials</h3>
-      <h1 className="text-3xl lg:text-4xl max-w-[600px] m-auto font-medium mb-20 font-primary max-sm:max-w-[90%]">
-        What our clients say about us.
-      </h1>
+    <PageSection className="text-center w-full mt-32">
+      <PageSectionTitle
+        subtitle="Testimonials"
+        title="What our clients say about us."
+      />
 
       <div
         className="max-w-[1440px] w-[80vw] m-auto rounded-2xl overflow-hidden md:h-[60vh] flex flex-col items-center"
@@ -17,7 +19,7 @@ function LandingTestimonials() {
       >
         <Testimonials />
       </div>
-    </div>
+    </PageSection>
   )
 }
 

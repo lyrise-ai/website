@@ -1,5 +1,6 @@
 import Link from 'next/link'
 
+import PageSection from '@components/NewLanding/section/PageSection'
 import ArrowButton from '../Buttons/ArrowButton'
 import MessageAvatar from './hero/ui/MessageAvatar'
 
@@ -7,8 +8,8 @@ const JD_GENERATOR_URL = ''
 
 export default function JDGenerator() {
   return (
-    (<section
-      className="flex flex-col items-center md:flex-row gap-5 md:gap-8 p-5 md:p-8 bg-white mx-auto md:max-w-6xl mt-12 md:mt-16 rounded-2xl max-md:mx-5"
+    <PageSection
+      className="flex flex-col items-center md:flex-row gap-5 md:gap-8 p-5 md:p-8 bg-white mx-auto md:max-w-6xl rounded-2xl max-md:mx-5"
       style={{
         boxShadow: '0px 9px 18px 0px rgba(0, 34, 158, 0.15)',
       }}
@@ -36,8 +37,8 @@ export default function JDGenerator() {
         <MessageAvatar type="bot" />
         <JobDescriptionSceleton className="w-full h-auto rounded overflow-hidden" />
       </div>
-    </section>)
-  );
+    </PageSection>
+  )
 }
 
 function JobDescriptionSceleton({ className }) {

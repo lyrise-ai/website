@@ -51,13 +51,13 @@ export default function Leaderboard({ openVoteRegisterDialog }) {
 
   return (
     <>
-      {/* {email && (
+      {email && (
         <SectionWrapper className="border-1 border-neutral-200">
           <h1 className="text-sm font-medium font-primary text-green-600">
             Welcome, {email}
           </h1>
         </SectionWrapper>
-      )} */}
+      )}
       <SectionWrapper
         title="Leaderboard"
         className="[&>*:nth-child(2)]:border-2 [&>*:nth-child(2)]:border-rose-600 min-h-[60vh]"
@@ -159,8 +159,7 @@ const LeaderboardCompanyCard = ({
         <div className="flex flex-col justify-center items-center ml-auto">
           <button
             type="button"
-            // disabled={isLoading}
-            disabled={true}
+            disabled={isLoading}
             className={`space-x-1 disabled:opacity-50`}
             onClick={handleUpvote}
           >

@@ -22,7 +22,7 @@ export default function InfoSection({
   return (
     <SectionWrapper
       title={getTitleWithIcon()}
-      className={`border border-${color}-300 !text-${color}-800 !bg-${color}-100 gap-0`}
+      className={`border border-${color}-300 !text-${color}-800 !bg-${color}-100 gap-0 !p-5`}
     >
       {children}
     </SectionWrapper>

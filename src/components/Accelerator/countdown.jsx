@@ -109,7 +109,11 @@ const Countdown = ({
     return <>{renderContent()}</>
   }
 
-  return <SectionWrapper title="Last chance to join!">{renderContent()}</SectionWrapper>
+  return (
+    <SectionWrapper title="Last chance to join!">
+      {renderContent()}
+    </SectionWrapper>
+  )
 }
 
 export default Countdown
