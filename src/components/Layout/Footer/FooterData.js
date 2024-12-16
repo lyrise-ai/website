@@ -51,13 +51,6 @@ export const footerLinksFour = [
   // { id: 2, href: 'https://www.lyrise.ai/#FAQ', text: 'FAQs - Employer' },
 ]
 
-export const headingEnum = {
-  EMPLOYERS: 'Employers',
-  TALENTS: 'Talents',
-  COMPANY: 'Company',
-  CONTACTS: 'Contacts',
-}
-
 export const footerLinks = [
   {
     id: 1,
@@ -80,3 +73,10 @@ export const footerLinks = [
     icon: <InstagramIcon fontSize="30px" />,
   },
 ]
+
+export const headingEnum = {
+  EMPLOYERS: 'Employers',
+  TALENTS: 'Talents',
+  COMPANY: 'Company',
+  CONTACTS: 'Contacts',
+}

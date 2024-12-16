@@ -3,7 +3,7 @@ import * as React from 'react'
 import PropTypes from 'prop-types'
 import { useRouter } from 'next/router'
 import { Button, useMediaQuery, Typography, Grid } from '@mui/material'
-import Image from "next/legacy/image"
+import Image from 'next/legacy/image'
 import amplitude from 'amplitude-js'
 import ReactGA from 'react-ga'
 import Link from 'next/link'
@@ -23,7 +23,7 @@ export default function ScheduleMeetingButton({
 }) {
   const { pathname } = useRouter()
   const mobile = useMediaQuery((theme) => theme.breakpoints.down('sm'))
-  const smallScreen = useMediaQuery('(max-width: 300px)')
+  const smallScreen = useMediaQuery('(max-width: 420px)')
   const [isHovered, setIsHovered] = React.useState(false)
   const [open, setOpen] = React.useState(false)
 
@@ -46,11 +46,60 @@ export default function ScheduleMeetingButton({
       })
     }
   }
-
-  return (<>
-    <FormPopup open={open} handleClose={handleClose} location={location} />
-    {link ? (
-      <Link href={link} passHref legacyBehavior>
+  return (
+    <>
+      <FormPopup open={open} handleClose={handleClose} location={location} />
+      {link ? (
+        <Link href={link} passHref legacyBehavior className="w-full">
+          <Button
+            disableElevation
+            variant={white ? 'outlined' : 'contained'}
+            sx={{
+              ...(white ? WhiteButton : PurpleButton),
+              width: smallScreen ? '100% !important' : '16.875rem',
+              textAlign: mobile && 'center',
+            }}
+            onClick={onClickHandler}
+            onMouseEnter={() => setIsHovered(true)}
+            onMouseLeave={() => setIsHovered(false)}
+            // href={isPopup ? undefined : link}
+            // target={isPopup ? undefined : '_blank'}
+            // rel={isPopup ? undefined : 'noopener noreferrer'}
+          >
+            <Grid
+              container
+              direction="row"
+              alignItems="center"
+              gap={2}
+              justifyContent={mobile ? 'space-around' : 'center'}
+              flexWrap={'nowrap'}
+            >
+              <Grid item>
+                <Typography
+                  color={white ? 'primary' : '#FFF'}
+                  fontSize="1.3rem"
+                  className="font-secondary"
+                  fontWeight={500}
+                  whiteSpace={'nowrap'}
+                >
+                  {(pathname === '/' || pathname === '/about') &&
+                  [
+                    // eslint-disable-next-line sonarjs/no-duplicate-string
+                    'Schedule a meeting',
+                    'Start Hiring',
+                    'Hire a Talent',
+                  ].includes(text)
+                    ? 'Hire Vetted Talent'
+                    : text}
+                </Typography>
+              </Grid>
+              <Grid item>
+                <Image src={white ? PurpleRightArrow : WhiteRightArrow} />
+              </Grid>
+            </Grid>
+          </Button>
+        </Link>
+      ) : (
         <Button
           disableElevation
           variant={white ? 'outlined' : 'contained'}
@@ -62,9 +111,9 @@ export default function ScheduleMeetingButton({
           onClick={onClickHandler}
           onMouseEnter={() => setIsHovered(true)}
           onMouseLeave={() => setIsHovered(false)}
-          // href={isPopup ? undefined : link}
-          // target={isPopup ? undefined : '_blank'}
-          // rel={isPopup ? undefined : 'noopener noreferrer'}
+          href={isPopup ? undefined : link}
+          target={isPopup ? undefined : '_blank'}
+          rel={isPopup ? undefined : 'noopener noreferrer'}
         >
           <Grid
             container
@@ -74,15 +123,9 @@ export default function ScheduleMeetingButton({
             justifyContent={mobile ? 'space-around' : 'center'}
           >
             <Grid item>
-              <Typography
-                color={white ? 'primary' : '#FFF'}
-                fontSize="1.3rem"
-                className="font-secondary"
-                fontWeight={500}
-              >
-                {(pathname === '/' || pathname === '/about') &&
+              <Typography color={white ? 'primary' : '#FFF'} fontSize="1.3rem">
+                {pathname === '/' &&
                 [
-                  // eslint-disable-next-line sonarjs/no-duplicate-string
                   'Schedule a meeting',
                   'Start Hiring',
                   'Hire a Talent',
@@ -91,63 +134,23 @@ export default function ScheduleMeetingButton({
                   : text}
               </Typography>
             </Grid>
-            <Grid item>
-              <Image src={white ? PurpleRightArrow : WhiteRightArrow} />
+            <Grid
+              item
+              sx={{
+                transform: isHovered ? 'scaleX(1.3)' : undefined,
+              }}
+            >
+              <Image
+                src={white ? PurpleRightArrow : WhiteRightArrow}
+                width="100"
+                height="100"
+              />
             </Grid>
           </Grid>
         </Button>
-      </Link>
-    ) : (
-      <Button
-        disableElevation
-        variant={white ? 'outlined' : 'contained'}
-        sx={{
-          ...(white ? WhiteButton : PurpleButton),
-          width: smallScreen ? '100% !important' : '16.875rem',
-          textAlign: mobile && 'center',
-        }}
-        onClick={onClickHandler}
-        onMouseEnter={() => setIsHovered(true)}
-        onMouseLeave={() => setIsHovered(false)}
-        href={isPopup ? undefined : link}
-        target={isPopup ? undefined : '_blank'}
-        rel={isPopup ? undefined : 'noopener noreferrer'}
-      >
-        <Grid
-          container
-          direction="row"
-          alignItems="center"
-          gap={2}
-          justifyContent={mobile ? 'space-around' : 'center'}
-        >
-          <Grid item>
-            <Typography color={white ? 'primary' : '#FFF'} fontSize="1.3rem">
-              {pathname === '/' &&
-              [
-                'Schedule a meeting',
-                'Start Hiring',
-                'Hire a Talent',
-              ].includes(text)
-                ? 'Hire Vetted Talent'
-                : text}
-            </Typography>
-          </Grid>
-          <Grid
-            item
-            sx={{
-              transform: isHovered ? 'scaleX(1.3)' : undefined,
-            }}
-          >
-            <Image
-              src={white ? PurpleRightArrow : WhiteRightArrow}
-              width="100"
-              height="100"
-            />
-          </Grid>
-        </Grid>
-      </Button>
-    )}
-  </>);
+      )}
+    </>
+  )
 }
 
 ScheduleMeetingButton.propTypes = {
