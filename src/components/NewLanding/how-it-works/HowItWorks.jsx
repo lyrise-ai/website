@@ -1,7 +1,7 @@
 import { useState } from 'react'
-import SectionTitle from '../../shared/SectionTitle/SectionTitle'
 import StickyProgress from '../../StickyProgress/StickyProgress'
 import PageSection from '@components/NewLanding/section/PageSection'
+import PageSectionTitle from '@components/NewLanding/section/PageSectionTitle'
 import HowItWorksElement from './HowItWorksElement'
 
 import talentSuggetionsImage from '@assets/new-how/talent-suggetions.png'
@@ -51,7 +51,7 @@ export default function HowItWorks({ config }) {
   const checkpoints = config.map((item) => item.name || item.title)
   return (
     <PageSection className="relative mt-20">
-      <SectionTitle title="Our Process" />
+      <PageSectionTitle title="Our Process" />
       <StickyProgress index={elementInView} checkpoints={checkpoints} />
       {config.map((item) => (
         <HowItWorksElement

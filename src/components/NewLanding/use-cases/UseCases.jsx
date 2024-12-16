@@ -11,6 +11,7 @@ import finance from '../../../assets/hero/icons/finance.png'
 import Img from '../../Product/Img'
 import { UseCasesCards } from './Card'
 import PageSection from '@components/NewLanding/section/PageSection'
+import PageSectionTitle from '@components/NewLanding/section/PageSectionTitle'
 
 const cases = [
   {
@@ -60,12 +61,10 @@ export default function UseCases() {
 
   return (
     <PageSection className="text-center w-full mt-10 md:mt-32">
-      {/* <h3 className="text-neutral-500 font-secondary mb-3">
-        Industries & Use Cases
-      </h3>
-      <h1 className="text-3xl lg:text-4xl max-w-[500px] m-auto font-medium mb-20 font-primary max-sm:max-w-[90%]">
-        Discover the Industry and Use Cases for your A.I. needs
-      </h1> */}
+      {/* <PageSectionTitle
+        subtitle="Industries & Use Cases"
+        title="Discover the Industry and Use Cases for your A.I. needs"
+      /> */}
 
       <div className="inline-flex max-sm:w-[90vw] flex-row lg:gap-10 lg:mx-20 xl:mx-52 border-neutral-400 border-b-2 max-md:overflow-x-scroll">
         {cases.map((item) => (

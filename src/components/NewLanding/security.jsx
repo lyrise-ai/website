@@ -7,6 +7,7 @@ import third from '/src/assets/security/3.jpeg'
 import { useMediaQuery } from '@mui/material'
 import { LYRISEAI_PRODUCT_URL } from '../../constants/main'
 import PageSection from '@components/NewLanding/section/PageSection'
+import PageSectionTitle from '@components/NewLanding/section/PageSectionTitle'
 
 const toBgColor = {
   0: ' bg-[#5277FF]',
@@ -53,9 +54,8 @@ const findElse = {
 }
 
 const content = {
-  heading: 'Data Security & Infrastructure',
-  subheading:
-    'Elevate Your Data Security with IBM Hyper Protect Infrastructure',
+  subheading: 'Data Security & Infrastructure',
+  heading: 'Elevate Your Data Security with IBM Hyper Protect Infrastructure',
 }
 
 function Security() {
@@ -66,12 +66,7 @@ function Security() {
 
   return (
     <PageSection className="text-center w-full mt-20">
-      <h3 className="text-neutral-500 font-secondary mb-3">
-        {content.heading}
-      </h3>
-      <h1 className="text-3xl lg:text-4xl max-w-[600px] m-auto font-medium mb-5 md:mb-20 font-primary max-sm:max-w-[90%]">
-        {content.subheading}
-      </h1>
+      <PageSectionTitle title={content.heading} subtitle={content.subheading} />
 
       <div className="md:grid gap-5 grid-cols-4 max-w-[1200px] m-auto">
         {[0, 1, 2].map((item) => (
@@ -129,12 +124,8 @@ function MobileVersion({ active, setActive }) {
   console.log('rendering mobile version', active)
   return (
     <PageSection className="text-center w-full">
-      <h3 className="text-neutral-500 font-secondary mb-3 text-base max-w-[85%] mx-auto">
-        {content.heading}
-      </h3>
-      <h1 className="text-2xl lg:text-4xl max-w-[600px] m-auto font-medium mb-5 font-primary max-sm:max-w-[90%]">
-        {content.subheading}
-      </h1>
+      <PageSectionTitle title={content.heading} subtitle={content.subheading} />
+
       {/* active item */}
       <div
         key={active}

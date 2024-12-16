@@ -1,5 +1,6 @@
 import React from 'react'
 import PageSection from '@components/NewLanding/section/PageSection'
+import PageSectionTitle from '@components/NewLanding/section/PageSectionTitle'
 
 const questions = [
   {
@@ -46,9 +47,7 @@ const questions = [
 export default function FAQ() {
   return (
     <PageSection className="text-center w-full font-primary">
-      <h1 className="text-4xl max-w-[500px] m-auto font-medium mb-20">
-        Frequently Asked Questions
-      </h1>
+      <PageSectionTitle title="Frequently Asked Questions" />
 
       <div className="max-w-[1440px] w-[90vw] md:w-[70vw] lg:w-[60vw] m-auto flex flex-col gap-5">
         {questions.map((q) => (

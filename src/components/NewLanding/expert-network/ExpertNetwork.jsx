@@ -2,6 +2,7 @@ import React, { useState } from 'react'
 import { EXPERTS } from './config'
 import ExpertCard from './ExpertCard'
 import PageSection from '@components/NewLanding/section/PageSection'
+import PageSectionTitle from '@components/NewLanding/section/PageSectionTitle'
 
 import 'swiper/css'
 
@@ -30,9 +31,7 @@ export default function ExpertNetwork() {
     // PAGE-SECTION: removed max-md:my-10
     // added pading & margins to show the slides box shadow that is overflowing
     <PageSection className="flex flex-col items-center gap-5 w-full max-md:overflow-hidden max-md:py-10">
-      <div className="text-3xl lg:text-4xl font-semibold text-center font-primary mt-20">
-        Our AI Expert Network
-      </div>
+      <PageSectionTitle>Our AI Expert Network</PageSectionTitle>
       <Swiper
         loop={!above1000}
         navigation={true}
