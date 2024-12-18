@@ -6,6 +6,8 @@ import second from '/src/assets/security/2.jpeg'
 import third from '/src/assets/security/3.jpeg'
 import { useMediaQuery } from '@mui/material'
 import { LYRISEAI_PRODUCT_URL } from '../../constants/main'
+import PageSection from '@components/NewLanding/section/PageSection'
+import PageSectionTitle from '@components/NewLanding/section/PageSectionTitle'
 
 const toBgColor = {
   0: ' bg-[#5277FF]',
@@ -39,7 +41,8 @@ const items = [
   {
     title: 'Regulatory Compliance',
     subtitle:
-      'We ensure full compliance with GDPR, HIPAA, and all relevant industry standards, maintaining the highest level of data protection and regulatory adherence.',
+      'Adhere to GDPR, HIPAA, and industry standards for comprehensive compliance.',
+    // 'We ensure full compliance with GDPR, HIPAA, and all relevant industry standards, maintaining the highest level of data protection and regulatory adherence.',
     imgSrc: third,
   },
 ]
@@ -50,6 +53,11 @@ const findElse = {
   2: [0, 1],
 }
 
+const content = {
+  subheading: 'Data Security & Infrastructure',
+  heading: 'Elevate Your Data Security with IBM Hyper Protect Infrastructure',
+}
+
 function Security() {
   const [active, setActive] = useState(0)
   const isMobile = useMediaQuery('(max-width: 768px)')
@@ -57,13 +65,8 @@ function Security() {
   if (isMobile) return <MobileVersion active={active} setActive={setActive} />
 
   return (
-    <div className="text-center w-full mt-20">
-      <h3 className="text-neutral-500 font-secondary mb-3">
-        Data Security & Infrastructure
-      </h3>
-      <h1 className="text-3xl lg:text-4xl max-w-[600px] m-auto font-medium mb-20 font-primary max-sm:max-w-[90%]">
-        Elevate Your Data Security with IBM Hyper Protect Infrastructure
-      </h1>
+    <PageSection className="text-center w-full mt-20">
+      <PageSectionTitle title={content.heading} subtitle={content.subheading} />
 
       <div className="md:grid gap-5 grid-cols-4 max-w-[1200px] m-auto">
         {[0, 1, 2].map((item) => (
@@ -99,13 +102,7 @@ function Security() {
                     Get Started
                   </button>
                 </div>
-                <Image
-                  src={items[item].imgSrc}
-                  objectFit="cover"
-                  // width={280}
-                  // height={200}
-                  // style={{ flexShrink: 0, flex: 1 }}
-                />
+                <Image src={items[item].imgSrc} objectFit="cover" />
               </div>
             ) : (
               <div className="flex items-center justify-center h-full w-full">
@@ -116,15 +113,8 @@ function Security() {
             )}
           </div>
         ))}
-        {/* <div className="col-span-1 hidden md:block">
-          <Image src={leftImg} />
-        </div> */}
-
-        {/* <div className="col-span-1 hidden md:block">
-          <Image src={rightImg} />
-        </div> */}
       </div>
-    </div>
+    </PageSection>
   )
 }
 
@@ -133,13 +123,9 @@ export default Security
 function MobileVersion({ active, setActive }) {
   console.log('rendering mobile version', active)
   return (
-    <div className="text-center w-full mt-32">
-      <h3 className="text-neutral-500 font-secondary mb-3 max-w-[85%] mx-auto">
-        Data Security: Your data never leaves your premise.
-      </h3>
-      <h1 className="text-3xl lg:text-4xl max-w-[600px] m-auto font-medium mb-20 font-primary max-sm:max-w-[90%]">
-        Ensure your Data Security with IBM Hyper Protect Infrastructure
-      </h1>
+    <PageSection className="text-center w-full">
+      <PageSectionTitle title={content.heading} subtitle={content.subheading} />
+
       {/* active item */}
       <div
         key={active}
@@ -173,9 +159,8 @@ function MobileVersion({ active, setActive }) {
           <Image
             src={items[active].imgSrc}
             objectFit="cover"
-            // width={280}
-            // height={200}
-            // style={{ flexShrink: 0, flex: 1 }}
+            width={200}
+            height={200}
           />
         </div>
       </div>
@@ -199,6 +184,6 @@ function MobileVersion({ active, setActive }) {
           </div>
         ))}
       </div>
-    </div>
+    </PageSection>
   )
 }

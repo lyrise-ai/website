@@ -20,17 +20,17 @@ export default function RegisterBottomSheet({ withHowItWorksLink = false }) {
     >
       <SectionWrapper
         title="Lyrise AI Accelerator!"
-        className={'text-center !gap-1'}
+        className={'text-center !gap-1 !border-rose-200'}
       >
-        <h4 className="text-neutral-500 font-secondary text-base max-w-[75%]">
-          Be one of our top 5 to win a{' '}
-          <span className="font-semibold">$45,000 grant</span> grant on your
-          next AI project built by LyRise.
+        <h4 className="text-neutral-500 font-secondary text-base text-balance">
+          The most upvoted Startup will get a $45,000
+          <span className="font-semibold">$45,000 grant</span>grant to build
+          their AI Project!
         </h4>
         <ArrowButton
           showArrow
           onClick={handleRegister}
-          className="mt-4 bg-rose-500"
+          className="mt-4 bg-rose-500 !py-3 hover:!bg-rose-600"
         >
           Register Now
         </ArrowButton>

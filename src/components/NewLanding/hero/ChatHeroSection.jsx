@@ -6,18 +6,19 @@ import { LYRISEAI_PRODUCT_URL } from '../../../constants/main'
 import { ChatFocusContext } from '../../../providers/ChatFocusContext'
 import ArrowButton from '../../Buttons/ArrowButton'
 import BotChat from './BotChat'
+import PageSection from '@components/NewLanding/section/PageSection'
 
 export default function ChatHeroSection() {
   const [isChatFocused, setIsChatFocused] = useState(false)
 
   return (
     // note: overflow was hidden here
-    <div className="flex flex-col md:grid grid-cols-9 w-full relative m-auto md:mb-20 md:max-w-[84rem] gap-10 py-3 md:py-20 max-md:px-5">
+    <PageSection className="flex flex-col md:grid grid-cols-9 md:max-w-[84rem] w-full relative m-auto gap-10 py-3 md:py-20 max-md:px-5">
       <div className="col-span-4 flex flex-col lg:gap-5 justify-center">
-        <h1 className="text-5xl lg:text-7xl font-semibold font-primary max-sm:mt-10">
-          Hire AI Talent Instantly
+        <h1 className="text-[2.75rem] leading-[2.5rem] lg:text-7xl font-semibold font-primary">
+          Adopt AI Easier & Faster
         </h1>
-        <h3 className="pr-5 text-neutral-600 font-secondary text-lg md:text-xl lg:text-2xl font-medium lg:font-primary max-md:mb-2">
+        <h3 className="pr-5 text-neutral-600 font-secondary text-lg md:text-xl lg:text-2xl leading-5 mt-1 lg:font-primary max-md:mb-2">
           Our LLM will match you with the top 2% vetted AI engineers in north
           Africa, for free!
         </h3>
@@ -45,6 +46,6 @@ export default function ChatHeroSection() {
           </ChatFocusContext.Provider>
         </div>
       </div>
-    </div>
+    </PageSection>
   )
 }

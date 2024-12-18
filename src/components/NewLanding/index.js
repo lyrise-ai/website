@@ -4,6 +4,7 @@ import Layout from '../Layout/Layout'
 
 import FAQ from './faq'
 import HeroSection from './hero/HeroSection'
+import ChatHeroSection from './hero/ChatHeroSection'
 import Security from './security'
 import LandingTestimonials from './testimonials'
 import ExpertNetwork from './expert-network/ExpertNetwork'
@@ -19,16 +20,18 @@ export default function NewLanding() {
   return (
     <Layout isRaw={true}>
       <div className="w-full h-fit new-landing-container">
-        <HeroSection />
+        {/* <HeroSection /> */}
+        <ChatHeroSection />
+        <AcceleratorPromo />
         {/* <AnotherIndustry /> */}
         <BackedBy />
-        <Solutions />
+        {/* <Solutions /> */}
         <UseCases />
         {/* <HowItWorks config={robHowItWorksConfig} /> */}
         {/* <ExpertNetwork /> */}
         <Security />
         {/* <LandingTestimonials /> */}
-        {/* <FAQ /> */}
+        <FAQ />
         <br />
         <br />
       </div>
