@@ -55,14 +55,20 @@ const FooterMainV2 = ({ isTalent }) => {
                 placeholder="example@email.com"
                 name="email"
                 type="email"
-                onChange={(e) => console.log(e.target.value)}
               />
             </div>
 
             <div className="w-full">
-              <ArrowButton type="submit" variant="default" className="w-full">
-                Hire Now!
-              </ArrowButton>
+              <Link
+                href="https://lyrai-chat.lyrise.ai/signup"
+                passHref
+                target={'_blank'}
+                rel="noopener noreferrer"
+              >
+                <ArrowButton type="submit" variant="default" className="w-full">
+                  Hire Now!
+                </ArrowButton>
+              </Link>
             </div>
           </div>
           {/* logo */}

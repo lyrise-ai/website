@@ -16,6 +16,7 @@ import Logo from '../../../assets/LyRiseLogo.png'
 import ScheduleMeetingButton from '../../Buttons/ScheduleMeetingButton'
 import FooterColumnV2 from './FooterColumnV2'
 import ArrowButton from '../../Buttons/ArrowButton'
+import Link from 'next/link'
 
 const FooterMobileV2 = ({ isTalent }) => {
   return (
@@ -51,9 +52,16 @@ const FooterMobileV2 = ({ isTalent }) => {
         </div>
         {/* button */}
         <div className="w-full mt-2">
-          <ArrowButton type="submit" variant="default" className="w-full">
-            Hire Now!
-          </ArrowButton>
+          <Link
+            href="https://lyrai-chat.lyrise.ai/signup"
+            passHref
+            target={'_blank'}
+            rel="noopener noreferrer"
+          >
+            <ArrowButton type="submit" variant="default" className="w-full">
+              Hire Now!
+            </ArrowButton>
+          </Link>
         </div>
       </div>
     </footer>
