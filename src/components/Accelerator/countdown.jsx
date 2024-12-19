@@ -6,15 +6,13 @@ const Countdown = ({
   timestamp = Date.now() + 100000,
   withoutWrapper = false,
 }) => {
-  const userTimestamp = new Date(2025, 0, 1).getTime()
-  console.log(userTimestamp)
-  console.log(timestamp)
+  const userTimestamp = new Date('2025-1-1').getTime()
   // Initialize with null to prevent hydration mismatch
   const [mounted, setMounted] = useState(false)
   const [timeLeft, setTimeLeft] = useState(calculateTimeLeft())
 
   function calculateTimeLeft() {
-    const difference = userTimestamp - Date.now()
+    const difference = timestamp - Date.now()
     const timeLeft = {}
 
     if (difference > 0) {
@@ -35,7 +33,7 @@ const Countdown = ({
 
     return () => clearInterval(timer)
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [userTimestamp])
+  }, [timestamp])
 
   const addLeadingZero = (value) => {
     return value < 10 ? `0${value}` : value
