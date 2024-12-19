@@ -19,26 +19,31 @@ export const footerLinksOne = [
 export const footerLinksTwo = [
   {
     id: 1,
-    href: 'https://talents.lyrise.ai',
-    text: 'Apply For Jobs',
+    href: 'https://lyrai-chat.lyrise.ai/talent/signup',
+    text: 'Join as AI Talent',
   },
-  // {
-  //   id: 2,
-  //   href: 'https://discord.gg/QSgmJH3KPS',
-  //   text: 'AI & Community',
-  // },
+  {
+    id: 2,
+    href: 'https://lyrai-chat.lyrise.ai/talent/login',
+    text: 'Talent Login',
+  },
+  {
+    id: 2,
+    href: 'https://discord.gg/QSgmJH3KPS',
+    text: 'AI Community',
+  },
 ]
 
 export const footerLinksThree = [
   {
     id: 1,
-    href: 'https://blog.lyrise.ai/',
-    text: 'Blog',
+    href: '/about',
+    text: 'About',
   },
   {
     id: 2,
-    href: 'https://www.lyrise.ai/#FAQ',
-    text: 'FAQs',
+    href: 'https://blog.lyrise.ai/',
+    text: 'Blog',
   },
 ]
 

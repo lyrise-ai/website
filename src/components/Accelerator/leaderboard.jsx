@@ -36,7 +36,7 @@ export default function Leaderboard({ openVoteRegisterDialog }) {
   }
 
   const updateCompanies = (newCompanies) => {
-    const mappedCompanies = newCompanies.map((company) => ({
+    const mappedCompanies = newCompanies?.map((company) => ({
       id: company.id,
       name: company.name,
       useCase: company.ai_project_title,
@@ -62,7 +62,7 @@ export default function Leaderboard({ openVoteRegisterDialog }) {
         title="Leaderboard"
         className="[&>*:nth-child(2)]:border-2 [&>*:nth-child(2)]:border-rose-600 min-h-[60vh] !justify-start"
       >
-        {sortedCompanies.map((company, index) => (
+        {sortedCompanies?.map((company, index) => (
           <LeaderboardCompanyCard
             company={company}
             key={company.id}
@@ -213,7 +213,17 @@ const CompanyDetailsDialog = ({
           </p>
           <div className="text-primary bg-neutral-100 p-2 underline text-xs !text-left font-secondary rounded-lg mt-2 flex gap-1 items-center">
             <URLIcon />
-            <Link href={company.website}>{company.website}</Link>
+            <Link
+              target="_blank"
+              rel="noopener noreferrer"
+              href={`${
+                company.website.startsWith('http')
+                  ? company.website
+                  : `https://${company.website}`
+              }`}
+            >
+              {company.website}
+            </Link>
           </div>
         </LeaderboardCompanyCard>
       </div>

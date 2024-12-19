@@ -15,6 +15,7 @@ import HowItWorks, { robHowItWorksConfig } from './how-it-works/HowItWorks'
 import AcceleratorPromo from './accelerator-promo'
 import AnotherIndustry from './another-industry'
 import UseCases from './use-cases/UseCases'
+import AcceleratorPromoV2 from './accelerator-promo-v2'
 
 export default function NewLanding() {
   return (
@@ -22,7 +23,8 @@ export default function NewLanding() {
       <div className="w-full h-fit new-landing-container">
         {/* <HeroSection /> */}
         <ChatHeroSection />
-        <AcceleratorPromo />
+        {/* <AcceleratorPromo /> */}
+        <AcceleratorPromoV2 />
         {/* <AnotherIndustry /> */}
         <BackedBy />
         {/* <Solutions /> */}

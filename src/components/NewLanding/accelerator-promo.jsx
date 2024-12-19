@@ -5,8 +5,7 @@ import GiftIcon from '@assets/icons/giftIcon'
 import CloseIcon from '@assets/icons/closeIcon'
 import Link from 'next/link'
 import Image from 'next/image'
-
-import xIconSrc from '@assets/x.svg'
+import styles from './styles.module.css'
 import bannerSrc from '@assets/top-winners-banner.png'
 
 export default function AcceleratorPromo() {
@@ -21,8 +20,10 @@ export default function AcceleratorPromo() {
   if (!isOpen) return null
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center fade-in-out ">
-      <div className="max-w-md lg:max-w-lg lg:max-h-full overflow-y-scroll mx-auto p-6">
+    <div
+      className={`${styles.promo} fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center fade-in-out`}
+    >
+      <div className="max-w-md lg:max-w-lg lg:max-h-full overflow-y-scroll mx-auto p-6 max-h-screen">
         <div className="rounded-xl border-2 border-rose-500 p-3 md:p-8 lg:p-10 space-y-3 bg-primary-25 md:space-y-8 font-primary md:flex md:flex-wrap md:justify-between relative">
           <h1 className="text-4xl md:text-5xl lg:text-5xl font-primary font-bold leading-tight my-0">
             LyRise AI

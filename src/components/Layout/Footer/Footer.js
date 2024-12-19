@@ -1,9 +1,8 @@
 import React from 'react'
 import PropTypes from 'prop-types'
 import { useMediaQuery } from '@mui/material'
-import FooterMobile from './FooterMobile'
-import FooterMain from './FooterMain'
 import FooterMobileV2 from './FooterMobileV2'
+import FooterMainV2 from './FooterMainV2'
 
 const Footer = ({ isTalent }) => {
   const mobile = useMediaQuery('(max-width: 887px)')
@@ -12,7 +11,7 @@ const Footer = ({ isTalent }) => {
       {mobile ? (
         <FooterMobileV2 isTalent={isTalent} />
       ) : (
-        <FooterMain isTalent={isTalent} />
+        <FooterMainV2 isTalent={isTalent} />
       )}
     </>
   )

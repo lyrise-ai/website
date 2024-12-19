@@ -14,68 +14,46 @@ import {
 import FooterColumn from './FooterColumn'
 import Logo from '../../../assets/LyRiseLogo.png'
 import ScheduleMeetingButton from '../../Buttons/ScheduleMeetingButton'
+import FooterColumnV2 from './FooterColumnV2'
+import ArrowButton from '../../Buttons/ArrowButton'
 
 const FooterMobileV2 = ({ isTalent }) => {
   return (
-    <footer className="bg-white p-5 pt-8">
+    <footer className="bg-white p-5 py-8">
       <div className="container flex flex-col gap-2">
         {/* logo */}
         <div className="flex flex-col justify-between">
           <div>
             <Image src={Logo} width={105} height={37} />
           </div>
-          <div className="flex justify-start">
-            {footerLinks.map((link) => (
-              <div key={link.id}>
-                <a
-                  href={link.href}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  style={{ color: '#4D4361' }}
-                >
-                  {link.icon}
-                </a>
-              </div>
-            ))}
-          </div>
         </div>
         {/* 4 columns */}
         <div className="flex flex-col justify-between gap-2">
           <div className="flex justify-between">
             {/* first column */}
-            <FooterColumn
+            <FooterColumnV2
               heading={headingEnum.EMPLOYERS}
               links={footerLinksOne}
             />
             {/* 2nd column */}
-            <FooterColumn
+            <FooterColumnV2
               heading={headingEnum.TALENTS}
               links={footerLinksTwo}
             />
           </div>
           <div className="flex justify-between">
             {/* 3rd column - Form */}
-            <FooterColumn
+            <FooterColumnV2
               heading={headingEnum.COMPANY}
               links={footerLinksThree}
-            />
-            {/* 4th column - Form */}
-            <FooterColumn
-              heading={headingEnum.CONTACTS}
-              links={footerLinksFour}
             />
           </div>
         </div>
         {/* button */}
-        <div className="flex w-full">
-          <ScheduleMeetingButton
-            location="FooterSection"
-            // link={isTalent ? 'https://talents.lyrise.ai/' : '/Employer'}
-            link="https://meetings.hubspot.com/sales-lyrise"
-            text={isTalent ? 'Apply Now' : undefined}
-            eventType={isTalent ? 'PressedApplyNow' : undefined}
-            isTalent={false}
-          />
+        <div className="w-full mt-2">
+          <ArrowButton type="submit" variant="default" className="w-full">
+            Hire Now!
+          </ArrowButton>
         </div>
       </div>
     </footer>
