@@ -60,7 +60,7 @@ export default function Leaderboard({ openVoteRegisterDialog }) {
       )}
       <SectionWrapper
         title="Leaderboard"
-        className="[&>*:nth-child(2)]:border-2 [&>*:nth-child(2)]:border-rose-600 min-h-[60vh]"
+        className="[&>*:nth-child(2)]:border-2 [&>*:nth-child(2)]:border-rose-600 min-h-[60vh] !justify-start"
       >
         {sortedCompanies.map((company, index) => (
           <LeaderboardCompanyCard
@@ -72,6 +72,11 @@ export default function Leaderboard({ openVoteRegisterDialog }) {
             setExpandedCompany={setExpandedCompany}
           />
         ))}
+        {sortedCompanies.length === 0 && (
+          <div className="text-neutral-500 text-center font-secondary text-base border-none">
+            No companies registered yet.
+          </div>
+        )}
       </SectionWrapper>
       <CompanyDetailsDialog
         company={expandedCompany}
