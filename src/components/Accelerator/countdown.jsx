@@ -7,6 +7,8 @@ const Countdown = ({
   withoutWrapper = false,
 }) => {
   const userTimestamp = new Date(2025, 0, 1).getTime()
+  console.log(userTimestamp)
+  console.log(timestamp)
   // Initialize with null to prevent hydration mismatch
   const [mounted, setMounted] = useState(false)
   const [timeLeft, setTimeLeft] = useState(calculateTimeLeft())
