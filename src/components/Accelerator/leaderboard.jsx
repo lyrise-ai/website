@@ -215,12 +215,11 @@ const CompanyDetailsDialog = ({
             <URLIcon />
             <Link
               target="_blank"
-              rel="noopener noreferrer"
-              href={`${
+              href={
                 company.website.startsWith('http')
                   ? company.website
                   : `https://${company.website}`
-              }`}
+              }
             >
               {company.website}
             </Link>
