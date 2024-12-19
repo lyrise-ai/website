@@ -20,11 +20,9 @@ export default function AcceleratorPromo() {
   if (!isOpen) return null
 
   return (
-    <div
-      className={`${styles.promo} fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center fade-in-out`}
-    >
-      <div className="max-w-md lg:max-w-lg lg:max-h-full overflow-y-scroll mx-auto p-6 max-h-screen">
-        <div className="rounded-xl border-2 border-rose-500 p-3 md:p-8 lg:p-10 space-y-3 bg-primary-25 md:space-y-8 font-primary md:flex md:flex-wrap md:justify-between relative">
+    <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center fade-in-out ">
+      <div className="max-w-md lg:max-w-lg lg:max-h-full mx-auto p-6">
+        <div className="rounded-xl border-2 border-rose-500 p-3 md:p-6 lg:p-8 space-y-3 bg-primary-25 font-primary md:flex md:flex-wrap md:justify-between relative">
           <h1 className="text-4xl md:text-5xl lg:text-5xl font-primary font-bold leading-tight my-0">
             LyRise AI
             <br />
@@ -45,7 +43,7 @@ export default function AcceleratorPromo() {
           <button
             type="button"
             onClick={() => setIsOpen(false)}
-            className="absolute right-2 -top-2 rounded-sm opacity-70 hover:opacity-100 focus:outline-none"
+            className="absolute right-2 -top-1 rounded-sm opacity-70 hover:opacity-100 focus:outline-none"
           >
             <CloseIcon className="h-8 w-8" />
           </button>

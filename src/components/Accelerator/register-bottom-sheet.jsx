@@ -23,9 +23,9 @@ export default function RegisterBottomSheet({ withHowItWorksLink = false }) {
         className={'text-center !gap-1 !border-rose-200'}
       >
         <h4 className="text-neutral-500 font-secondary text-base text-balance">
-          The most upvoted Startup will get a $45,000
-          <span className="font-semibold">$45,000 grant</span>grant to build
-          their AI Project!
+          The most upvoted Startup will get a
+          <span className="font-semibold">$45,000 grant</span> to build their AI
+          Project!
         </h4>
         <ArrowButton
           showArrow

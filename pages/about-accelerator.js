@@ -27,10 +27,9 @@ export default function AboutAccelerator() {
           </h1>
           <div className="space-y-4 md:w-full lg:w-3/5 xl:w-2/3">
             <p className="text-neutral-500 text-lg md:text-xl font-secondary leading-6 md:leading-7">
-              A 2-months program to help Seed to Series A startups build AI
-              agents/teams. The program offers the tools, expertise, and support
-              needed to transform your business operations and customer
-              experiences!
+              The 2nd Cohort of our AI Accelerator is launching Q1 of next year,
+              but we are offering a “Golden Ticket” opportunity to guarantee a
+              spot in our AI Accelerator.
             </p>
           </div>
           <HowItWorksSection />
@@ -150,7 +149,7 @@ function WhoCanApplySection() {
         <li className="list-disc">
           <p className="text-lg md:text-xl font-bold">GCC-based Companies</p>
           <p className="text-base md:text-lg">
-            Your company is headquartered or mainly operates in one of the GCCs.
+            Your company is headquartered or mainly operates in the gulf region.
           </p>
         </li>
         <li className="list-disc">
