@@ -1,7 +1,7 @@
 'use client'
 
 import { useRouter } from 'next/router'
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 
 import Layout from '@components/Layout/Layout'
 import ArrowButton from '@components/Buttons/ArrowButton'
@@ -18,9 +18,11 @@ import facebookIcon from '@assets/facebook.webp'
 import bookIcon from '@assets/neutral-book.svg'
 import Link from 'next/link'
 import InfoSection from '../src/components/Accelerator/info-section'
+import useRegisterationEvents from '../src/hooks/useRegisterationEvents'
 
 export default function CompanyRegistrationForm() {
   const router = useRouter()
+  const hasInvalidField = useRef(false)
   const [currentStep, setCurrentStep] = useState(1)
   const [formData, setFormData] = useState({
     companyName: '',
@@ -34,6 +36,13 @@ export default function CompanyRegistrationForm() {
   })
   const [isSubmitting, setIsSubmitting] = useState(false)
 
+  const {
+    sendFirstFormFailureEvent,
+    sendFirstFormSuccessEvent,
+    sendSecondFormFailureEvent,
+    sendSecondFormSuccessEvent,
+  } = useRegisterationEvents()
+
   const handleInputChange = (e) => {
     const { name, value } = e.target
     setFormData((prev) => ({
@@ -44,11 +53,14 @@ export default function CompanyRegistrationForm() {
 
   const handleNext = (e) => {
     e.preventDefault()
+    hasInvalidField.current = false
+    sendFirstFormSuccessEvent(formData)
     setCurrentStep(2)
   }
 
   const handleSubmit = async (e) => {
     e.preventDefault()
+    hasInvalidField.current = false
     setIsSubmitting(true)
 
     try {
@@ -62,6 +74,7 @@ export default function CompanyRegistrationForm() {
         contact_email: formData.workEmail,
         contact_number: formData.phoneNumber,
       })
+      sendSecondFormSuccessEvent(formData)
       setCurrentStep(3)
       // router.push('/accelerator')
     } catch (error) {
@@ -69,6 +82,24 @@ export default function CompanyRegistrationForm() {
       alert("Couldn't register your company, please try again.")
     } finally {
       setIsSubmitting(false)
+    }
+  }
+
+  const sendFormFailureEvent = (e) => {
+    if (hasInvalidField.current) {
+      e.preventDefault()
+      return
+    }
+
+    hasInvalidField.current = true
+    setTimeout(() => {
+      hasInvalidField.current = false
+    }, 500)
+
+    if (currentStep === 1) {
+      sendFirstFormFailureEvent(formData)
+    } else {
+      sendSecondFormFailureEvent(formData)
     }
   }
 
@@ -85,7 +116,6 @@ export default function CompanyRegistrationForm() {
               value={formData.companyName}
               onChange={handleInputChange}
               maxLength={100}
-              pattern="[A-Za-z0-9\s\-\_\.]+"
             />
             <FormInput
               label="Company Website"
@@ -241,6 +271,7 @@ export default function CompanyRegistrationForm() {
             <form
               className="mt-auto w-full"
               onSubmit={currentStep === 1 ? handleNext : handleSubmit}
+              onInvalid={sendFormFailureEvent}
             >
               {currentStep === 3 ? (
                 <InfoSection
