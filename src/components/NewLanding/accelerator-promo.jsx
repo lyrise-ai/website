@@ -52,7 +52,7 @@ export default function AcceleratorPromo() {
 
           <div className="w-full pt-2">
             <Countdown
-              timestamp={new Date('2025-01-01').getTime()}
+              timestamp={new Date(2025, 0, 1).getTime()}
               withoutWrapper
             />
           </div>
