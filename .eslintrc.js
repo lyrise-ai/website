@@ -132,6 +132,7 @@ module.exports = {
     'react/jsx-no-bind': 'off',
     'react/self-closing-comp': 'off',
     'no-use-before-define': 'off',
+    'security/detect-object-injection': 'off',
     camelcase: 'off',
     'block-scoped-var': 'off',
     'jsx-a11y/no-noninteractive-element-interactions': 'off',
@@ -139,5 +140,6 @@ module.exports = {
     'no-await-in-loop': 'off',
     'prefer-destructuring': 'off',
     'no-param-reassign': 'off',
+    'react/no-array-index-key': 'off',
   },
 }

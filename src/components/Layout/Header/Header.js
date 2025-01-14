@@ -38,8 +38,7 @@ const list = [
   {
     id: 2,
     text: 'Blog',
-    href: 'https://blog.lyrise.ai/',
-    target: '_blank',
+    href: '/blogs',
     icon: BlogIcon,
   },
   {
@@ -139,7 +138,12 @@ export default function Header({ isTalent }) {
                 />
               </Grid>
               <Grid item>
-                <ExternalLink text="Blog" link="https://blog.lyrise.ai/" />
+                {/* <ExternalLink text="Blog" link="https://blog.lyrise.ai/" /> */}
+                <InternalLink
+                  text="Blogs"
+                  link="/blogs"
+                  active={asPath === '/blogs'}
+                />
               </Grid>
               <Grid item>
                 <InternalLink
@@ -173,7 +177,7 @@ export default function Header({ isTalent }) {
                   sx={{
                     '& .MuiDrawer-paper': {
                       width: '100%',
-                      marginTop: '9vh',
+                      marginTop: '12.5vh',
                       backgroundColor: 'white',
                       boxShadow: 'none',
                       paddingBottom: '10vh',
