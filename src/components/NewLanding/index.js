@@ -23,7 +23,7 @@ export default function NewLanding() {
       <div className="w-full h-fit new-landing-container">
         {/* <HeroSection /> */}
         <ChatHeroSection />
-        <AcceleratorPromo />
+        {/* <AcceleratorPromo /> */}
         {/* <AcceleratorPromoV2 /> */}
         {/* <AnotherIndustry /> */}
         <BackedBy />
