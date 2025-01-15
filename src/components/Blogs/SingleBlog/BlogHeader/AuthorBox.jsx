@@ -27,7 +27,7 @@ function AuthorBox() {
         anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
         variant="dot"
       >
-        <Avatar alt="Remy Sharp" src="/static/images/avatar/1.jpg" />
+        <Avatar alt="Phoenix Baker" src="/static/images/avatar/1.jpg" />
       </StyledBadge>
       <div className="flex flex-col">
         <p className="text-[#101828] text-[16px] font-[600] leading-[20px]">

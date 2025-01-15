@@ -4,7 +4,7 @@ import DetailsSections from '../DetailsSections'
 
 function AllDetailsSection() {
   return (
-    <div className="relative grid grid-cols-[0.3fr_1fr] px-[7%] gap-[64px] !font-secondary">
+    <div className="relative grid grid-cols-1 lg:grid-cols-[0.5fr_1fr] xl:grid-cols-[0.3fr_1fr] px-5 lg:px-[7%]  lg:gap-[32px] xl:gap-[64px] !font-secondary">
       <FixedDetailsSideBar />
       <DetailsSections />
     </div>

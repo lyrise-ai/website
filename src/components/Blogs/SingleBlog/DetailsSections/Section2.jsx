@@ -2,7 +2,7 @@ import React from 'react'
 
 function Section2() {
   return (
-    <section id="section2" className="w-full flex flex-col">
+    <section id="section2" className="w-full flex flex-col gap-1 sm:gap-0">
       <h2 className="text-[#101828] text-[25px] md:text-[30px] font-semibold">
         Software and tools
       </h2>

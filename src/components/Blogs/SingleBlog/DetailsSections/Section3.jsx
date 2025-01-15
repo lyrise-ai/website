@@ -5,7 +5,7 @@ import StaticImage from '../../../../assets/staticImages/StaticImage4.png'
 
 function Section3() {
   return (
-    <section id="section3" className="w-full flex flex-col">
+    <section id="section3" className="w-full flex flex-col gap-1 sm:gap-0">
       <h2 className="text-[#101828] text-[25px] md:text-[30px] font-semibold">
         Other resources
       </h2>
@@ -26,9 +26,9 @@ function Section3() {
         <div className="w-full h-full flex justify-center">
           <Image src={StaticImage} alt="introImage" />
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1 sm:gap-2">
           <LinkIcon />
-          <p className="text-[#475467] text-[14px] font-[400] leading-5">
+          <p className="text-[#475467] text-[13px] sm:text-[14px] font-[400] leading-5">
             Image courtesy of Jasmin Chew via{' '}
             <span className="underline">Pexels</span>
           </p>
@@ -40,6 +40,7 @@ function Section3() {
         Libero sit et imperdiet bibendum quisque dictum vestibulum in non.
         Pretium ultricies tempor non est diam. Enim ut enim amet amet integer
         cursus. Sit ac commodo pretium sed etiam turpis suspendisse at.
+        <br /> <br />
         Tristique odio senectus nam posuere ornare leo metus, ultricies. Blandit
         duis ultricies vulputate morbi feugiat cras placerat elit. Aliquam
         tellus lorem sed ac. Montes, sed mattis pellentesque suscipit accumsan.

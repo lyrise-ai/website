@@ -5,7 +5,7 @@ import LinkIcon from '../../../../assets/icons/linkIcon'
 
 function Intro() {
   return (
-    <section id="intro" className="w-full flex flex-col">
+    <section id="intro" className="w-full flex flex-col gap-1 sm:gap-0">
       <h2 className="text-[#101828] text-[25px] md:text-[30px] font-semibold">
         Introduction
       </h2>
@@ -25,9 +25,9 @@ function Intro() {
         <div className="w-full h-full flex justify-start">
           <Image src={StaticImage} alt="introImage" />
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1 sm:gap-2">
           <LinkIcon />
-          <p className="text-[#475467] text-[14px] font-[400] leading-5">
+          <p className="text-[#475467] text-[13px] sm:text-[14px] font-[400] leading-5">
             Image courtesy of Vlada Karpovich via{' '}
             <span className="underline">Pexels</span>
           </p>
@@ -45,8 +45,8 @@ function Intro() {
         neural networks an exciting area to watch.
       </p>
 
-      <div className="flex flex-col gap-5 mt-10 border-l-[2px] border-[#7F56D9]  pl-[22px]">
-        <blockquote className="text-[#101828] text-[20px] md:text-[24px] font-[500] leading-9 italic">
+      <div className="flex flex-col gap-5 mt-10 sm:border-l-[2px] border-[#7F56D9]  sm:pl-[22px]">
+        <blockquote className="text-[#101828] text-[20px] md:text-[24px] font-[500] leading-9 italic text-center sm:text-left">
           “In a world older and more complete than ours they move finished and
           complete, gifted with extensions of the senses we have lost or never
           attained, living by voices we shall never hear.”

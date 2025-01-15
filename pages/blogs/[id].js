@@ -9,7 +9,7 @@ function BlogDetails() {
   return (
     <Layout isRaw>
       <div className="w-full font-primary bg-white">
-        <main className="relative flex flex-col gap-[80px] pt-5 px-[6%] mx-auto pb-[30vh]">
+        <main className="relative flex flex-col gap-[32px] sm:gap-[80px] pt-5 px-[0%] sm:px-[6%] mx-auto pb-[10vh] sm:pb-[20vh] lg:pb-[30vh]">
           <BlogHeader />
           <AllDetailsSection />
         </main>
