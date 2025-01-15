@@ -7,7 +7,7 @@ function AllBlogs() {
 
   return (
     <div className="flex flex-col gap-3 w-full">
-      <h3 className="text-[#101828] text-[28px] md:text-[40px] font-[500]">
+      <h3 className="text-[#101828] text-[28px] md:text-[40px] font-[500] hidden sm:block">
         LyRise Blogs
       </h3>
       <div className="flex flex-col gap-8">

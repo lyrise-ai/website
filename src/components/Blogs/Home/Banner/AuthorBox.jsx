@@ -27,13 +27,20 @@ function AuthorBox() {
         anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
         variant="dot"
       >
-        <Avatar alt="Remy Sharp" src="/static/images/avatar/1.jpg" />
+        <Avatar
+          alt="Phoenix Baker"
+          src="/static/images/avatar/1.jpg"
+          sx={{
+            width: { xs: '35px', md: '40px' },
+            height: { xs: '35px', md: '40px' },
+          }}
+        />
       </StyledBadge>
       <div className="flex flex-col">
-        <p className="text-[#101828] text-[16px] font-[600] leading-[20px]">
+        <p className="text-[#101828] text-[14px] md:text-[16px] font-[600] leading-[16.2px] md:leading-[20px]">
           Phoenix Baker
         </p>
-        <p className="text-[#475467] text-[14px] font-[400] leading-[20.6px]">
+        <p className="text-[#475467] text-[12px] md:text-[14px] font-[400] leading-[16.2px] md:leading-[20.6px]">
           Product Manager
         </p>
       </div>
