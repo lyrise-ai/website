@@ -20,13 +20,13 @@ const FooterColumnV2 = ({ heading, links }) => {
   }
   return (
     <div className="flex flex-col gap-2 md:gap-2 w-fit">
-      <h3 className="font-semibold text-[20px] md:text-[24px] text-[#1C1C1C]">
+      <h3 className="font-primary font-semibold text-[20px] md:text-[24px] text-[#1C1C1C]">
         {heading}
       </h3>
       <div className="flex flex-col">
-        {links.map(({ id, href, text }) => (
+        {links.map(({ id, href, text }, index) => (
           <Link
-            key={id}
+            key={index}
             passHref
             href={href}
             scroll={false}
@@ -34,7 +34,7 @@ const FooterColumnV2 = ({ heading, links }) => {
             rel="noopener noreferrer"
             onClick={pathname === href && scrollToTop}
           >
-            <span className="font-normal text-[16px] md:text-[20px] text-[#1C1C1C] leading-4">
+            <span className="font-secondary font-normal text-[16px] md:text-[20px] text-[#1C1C1C] leading-4">
               {text}
             </span>
           </Link>

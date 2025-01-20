@@ -38,18 +38,16 @@ function FixedDetailsSideBar() {
         }))
       },
       {
-        root: null, // Observing the viewport
-        threshold: 0.3, // Trigger when 10% of the element is visible
+        root: null,
+        threshold: 0.4,
       },
     )
 
-    // Observe each section
     sideBarElements.forEach(({ link }) => {
       const element = document.getElementById(link)
       if (element) observer.observe(element)
     })
 
-    // Cleanup on component unmount
     return () => observer.disconnect()
   }, [])
 

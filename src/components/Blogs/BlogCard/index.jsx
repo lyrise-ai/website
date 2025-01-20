@@ -23,7 +23,7 @@ function BlogCard({ id }) {
         <Link href={`/blogs/${id}`} className="w-full">
           <TitleBox id={id} />
         </Link>
-        <p className="text-[16px] text-[#667085] font-400] max-w-[440px] leading-[19.2px] mb-1">
+        <p className="text-[13px] text-[#667085] font-400] max-w-[440px] leading-[16.2px] mb-1">
           How do you create compelling presentations that wow your colleagues
           and impress your managers?
         </p>
