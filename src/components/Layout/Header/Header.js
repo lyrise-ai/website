@@ -142,12 +142,12 @@ export default function Header({ isTalent }) {
                 <ExternalLink text="Blog" link="https://blog.lyrise.ai/" />
               </Grid>
               <Grid item>
-                <InternalLink
+                {/* <InternalLink
                   color="#f43f5e"
                   className="text-rose-500"
                   text="AI Accelerator"
                   link="/accelerator"
-                />
+                /> */}
               </Grid>
             </Grid>
           ) : null}
