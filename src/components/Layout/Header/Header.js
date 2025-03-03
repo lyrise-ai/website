@@ -42,13 +42,13 @@ const list = [
     target: '_blank',
     icon: BlogIcon,
   },
-  {
-    id: 3,
-    text: 'AI Accelerator',
-    href: '/accelerator',
-    target: '',
-    icon: AboutIcon,
-  },
+  // {
+  //   id: 3,
+  //   text: 'AI Accelerator',
+  //   href: '/accelerator',
+  //   target: '',
+  //   icon: AboutIcon,
+  // },
   // {
   //   text: 'Product',
   //   href: '/product',
