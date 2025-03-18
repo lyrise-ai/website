@@ -1,6 +1,9 @@
 /* ---chat-input-height: 1.2lh; this is the default height */
 
 .chat_textarea {
+  background: #202842;
+  color: #ffffff;
+
   @apply text-base resize-none outline-none;
   flex: 1;
   height: var(--chat-input-height);

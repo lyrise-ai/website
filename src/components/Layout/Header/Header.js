@@ -11,13 +11,13 @@ import {
 import Grid from '@mui/material/Grid'
 import SwipeableDrawer from '@mui/material/SwipeableDrawer'
 import useMediaQuery from '@mui/material/useMediaQuery'
-import Image from 'next/legacy/image'
 import Link from 'next/link'
 import { useRouter } from 'next/router'
 import PropTypes from 'prop-types'
 import * as React from 'react'
 import Hamburger from '../../../assets/Hamburger.svg'
 import LyRiseLogo from '../../../assets/LyRiseLogo.png'
+import WhiteLyRiseLogo from '../../../assets/WhiteLyRiseLogo.svg'
 import AboutIcon from '../../../assets/about.png'
 import BlogIcon from '../../../assets/book-closed.png'
 import Close from '../../../assets/x-close.png'
@@ -27,6 +27,9 @@ import ExternalLink from './ExternalLink'
 import InternalLink from './InternalLink'
 import { gridStyle } from './style'
 import HeaderButtons from './HeaderButtons'
+import Image from 'next/image'
+import MenuRoundedIcon from '@mui/icons-material/MenuRounded'
+import CloseRoundedIcon from '@mui/icons-material/CloseRounded'
 
 const list = [
   {
@@ -42,24 +45,10 @@ const list = [
     target: '_blank',
     icon: BlogIcon,
   },
-  // {
-  //   id: 3,
-  //   text: 'AI Accelerator',
-  //   href: '/accelerator',
-  //   target: '',
-  //   icon: AboutIcon,
-  // },
-  // {
-  //   text: 'Product',
-  //   href: '/product',
-  //   icon: CaseStudiesIcon,
-  // },
 ]
 
-export default function Header({ isTalent }) {
-  const { pathname, asPath } = useRouter()
+export default function Header() {
   const medium = useMediaQuery('(max-width:1000px)')
-  const employerPathname = '/Employer'
   const [open, setOpen] = React.useState(false)
 
   const toggleDrawer = (opened) => (event) => {
@@ -75,213 +64,111 @@ export default function Header({ isTalent }) {
   }
 
   return (
-    <div style={{ backgroundColor: '#FFF', borderBottom: '2px solid #E2E2E2' }}>
-      <div
-        className={pathname !== employerPathname ? 'container' : undefined}
-        style={{
-          ...(pathname === employerPathname && {
-            width: '90%',
-            minHeight: '80px',
-            margin: '0 auto',
-            display: 'flex',
-          }),
-        }}
-      >
-        <Grid
-          container
-          direction="row"
-          wrap="nowrap"
-          justifyContent="space-between"
-          alignItems="center"
-          sx={{
-            gridStyle,
-            // padding: medium ? '30px 20px 20px 20px' : '8px 0px',
-            padding: '8px 0',
-          }}
-        >
-          <Grid
-            item
-            container
-            xs={medium ? 6 : 3} // 6 columns for mobile, 2 for desktop
-            wrap="nowrap"
-            gap="20px"
-            alignItems="center"
-          >
+    <header className="pt-7 pb-5 px-3">
+      <div className="container flex items-center justify-between gap-4 shadow-[0px_0px_4px_0px_#2957FF] py-3 px-4 rounded-[4px] ">
+        <div className="w-full">
+          <Link href="/">
+            <Image src={WhiteLyRiseLogo} alt="logo" />
+          </Link>
+        </div>
+        {!medium ? (
+          <ul class="hidden md:flex items-center gap-4 font-space-grotesk font-normal text-[#ffffff]">
+            {list.map(({ text, href, id }) => (
+              <li key={id}>
+                <a
+                  href={href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="text-[20px] leading-[19.2px] inline-block relative after:absolute after:start-1/2 after:-translate-x-1/2 after:bottom-[1px] after:h-[1px] after:w-full after:transition-transform after:scale-0 hover:after:scale-100 after:rounded-full after:bg-[#ffffff]"
+                >
+                  {text}
+                </a>
+              </li>
+            ))}
+          </ul>
+        ) : null}
+        {medium ? (
+          <>
             <Grid
               item
               sx={{
-                marginTop: '9px',
+                cursor: 'pointer',
               }}
             >
-              <Link href="/">
-                <Image
-                  src={LyRiseLogo}
-                  width={120}
-                  height={40}
-                  objectFit="contain"
-                />
-              </Link>
-            </Grid>
-          </Grid>
-          {!medium ? (
-            <Grid
-              item
-              container
-              wrap="nowrap"
-              gap="40px"
-              justifyContent={'start'}
-            >
-              <Grid item>
-                <InternalLink
-                  text="About"
-                  link="/about"
-                  active={asPath === '/about'}
-                />
-              </Grid>
-              <Grid item>
-                <ExternalLink text="Blog" link="https://blog.lyrise.ai/" />
-              </Grid>
-              <Grid item>
-                {/* <InternalLink
-                  color="#f43f5e"
-                  className="text-rose-500"
-                  text="AI Accelerator"
-                  link="/accelerator"
-                /> */}
-              </Grid>
-            </Grid>
-          ) : null}
-          {medium ? (
-            <>
-              <Grid
-                item
+              <div
+                className="flex items-center justify-center w-10 h-10 rounded-lg bg-primary/15"
+                onClick={toggleDrawer(!open)}
+              >
+                {open ? (
+                  <CloseRoundedIcon className="text-primary" />
+                ) : (
+                  <MenuRoundedIcon className="text-primary" />
+                )}
+              </div>
+              <SwipeableDrawer
+                BackdropProps={{ invisible: true }}
+                anchor="right"
+                open={open}
+                onClose={toggleDrawer(false)}
+                onOpen={toggleDrawer(true)}
                 sx={{
-                  cursor: 'pointer',
+                  '& .MuiDrawer-paper': {
+                    width: '100%',
+                    marginTop: '16vh',
+                    backgroundColor: '#20273b',
+                    boxShadow: 'none',
+                    height: 'calc(100vh - 16vh)',
+                    paddingBottom: '10vh',
+                  },
                 }}
               >
-                <Image
-                  src={open ? Close : Hamburger}
-                  onClick={toggleDrawer(!open)}
-                  alt="menu"
-                />
-                <SwipeableDrawer
-                  BackdropProps={{ invisible: true }}
-                  anchor="right"
-                  open={open}
-                  onClose={toggleDrawer(false)}
-                  onOpen={toggleDrawer(true)}
+                <Box
                   sx={{
-                    '& .MuiDrawer-paper': {
-                      width: '100%',
-                      marginTop: '9vh',
-                      backgroundColor: 'white',
-                      boxShadow: 'none',
-                      paddingBottom: '10vh',
-                    },
+                    display: 'flex',
+                    flexDirection: 'column',
+                    height: '100%',
+                    gap: '16px',
                   }}
+                  role="presentation"
+                  onClick={toggleDrawer(false)}
+                  onKeyDown={toggleDrawer(false)}
+                  className="container"
                 >
-                  <Divider
-                    sx={{
-                      backgroundImage:
-                        'linear-gradient(180deg, #000000 0%, #D1DBFF 0.01%, #737CFE 100%)',
-                      height: '1px',
-                      width: '100%',
-                    }}
-                  />
-                  <Box
-                    sx={{
-                      width: '100%',
-                      display: 'flex',
-                      flexDirection: 'column',
-                      justifyContent: 'space-between',
-                      height: '100%',
-                    }}
-                    role="presentation"
-                    onClick={toggleDrawer(false)}
-                    onKeyDown={toggleDrawer(false)}
+                  <div className="mt-3 flex flex-col gap-2">
+                    {list.map((item) => (
+                      <Link
+                        href={item.href}
+                        target={item.target || '_self'}
+                        rel="noreferrer noopener"
+                        style={{
+                          width: '100%',
+                        }}
+                      >
+                        <h3 className="font-secondary font-[500] text-2xl leading-[120%] text-white">
+                          {item.text}
+                        </h3>
+                      </Link>
+                    ))}
+                  </div>
+                  <Grid
+                    container
+                    direction="column"
+                    spacing={2}
+                    sx={{ padding: '16px' }}
+                    width={'fit-content'}
                   >
-                    <List>
-                      {list.map((item) => (
-                        <ListItem key={item.id}>
-                          <Link
-                            href={item.href}
-                            target={item.target || '_self'}
-                            rel="noreferrer noopener"
-                            style={{
-                              width: '100%',
-                            }}
-                          >
-                            <ListItemButton
-                              sx={{
-                                color: '#000000',
-                                width: '100%',
-                                '&:hover, &:focus': {
-                                  backgroundColor: '#red',
-                                },
-                              }}
-                            >
-                              {/* <ListItemIcon>
-                                <Image src={item.icon} />
-                              </ListItemIcon> */}
-                              <ListItemText
-                                primary={item.text}
-                                primaryTypographyProps={{
-                                  sx: {
-                                    fontFamily: 'Poppins, sans-serif',
-                                    fontStyle: 'normal',
-                                    fontWeight: 500,
-                                    fontSize: '1.5rem',
-                                    lineHeight: '120%',
-                                  },
-                                }}
-                                className={
-                                  item.text === 'AI Accelerator'
-                                    ? 'text-rose-500'
-                                    : ''
-                                }
-                              />
-                            </ListItemButton>
-                          </Link>
-                        </ListItem>
-                      ))}
-                    </List>
-                    <Grid
-                      container
-                      direction="column"
-                      spacing={2}
-                      sx={{ padding: '16px' }}
-                    >
-                      <HeaderButtons />
-                    </Grid>
-                  </Box>
-                </SwipeableDrawer>
-              </Grid>
-            </>
-          ) : (
-            <Grid item container>
-              <Grid
-                item
-                container
-                alignItems="center"
-                justifyContent="flex-end"
-                direction={'row'}
-                wrap="nowrap"
-                gap={3}
-              >
-                <HeaderButtons />
-              </Grid>
+                    <HeaderButtons />
+                  </Grid>
+                </Box>
+              </SwipeableDrawer>
             </Grid>
-          )}
-        </Grid>
+          </>
+        ) : (
+          <div className="flex justify-end w-full">
+            <HeaderButtons />
+          </div>
+        )}
       </div>
-    </div>
+    </header>
   )
-}
-
-Header.propTypes = {
-  isTalent: PropTypes.bool,
-}
-
-Header.defaultProps = {
-  isTalent: false,
 }

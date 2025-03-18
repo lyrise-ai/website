@@ -16,24 +16,28 @@ import AcceleratorPromo from './accelerator-promo'
 import AnotherIndustry from './another-industry'
 import UseCases from './use-cases/UseCases'
 import AcceleratorPromoV2 from './accelerator-promo-v2'
+import Section1 from './Section1'
 
 export default function NewLanding() {
   return (
     <Layout isRaw={true}>
       <div className="w-full h-fit new-landing-container">
-        {/* <HeroSection /> */}
+        <Section1 />
         <ChatHeroSection />
+        {/* <HeroSection /> */}
         {/* <AcceleratorPromo /> */}
         {/* <AcceleratorPromoV2 /> */}
         {/* <AnotherIndustry /> */}
-        <BackedBy />
         {/* <Solutions /> */}
-        <UseCases />
         {/* <HowItWorks config={robHowItWorksConfig} /> */}
         {/* <ExpertNetwork /> */}
-        <Security />
         {/* <LandingTestimonials /> */}
-        <FAQ />
+        {/*  */}
+        {/* 
+        <BackedBy />
+        <UseCases />
+        <Security />
+        <FAQ /> */}
         <br />
         <br />
       </div>

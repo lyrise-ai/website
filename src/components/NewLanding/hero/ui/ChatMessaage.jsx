@@ -3,6 +3,7 @@ import TalentCard from './TalentCard'
 import MessageAvatar from './MessageAvatar'
 
 export default function ChatMessaage({ message, index, sessionId }) {
+  // ${message.type === 'user' ? '' : 'bg-transparent'}
   return (
     <div
       key={message.id}
@@ -10,10 +11,11 @@ export default function ChatMessaage({ message, index, sessionId }) {
       className={`
         message ${message.type}
         text-base font-secondary text-wrap
-        text-[rgb(55,65,81)]
         w-full p-4
-        flex gap-2 max-md:flex-col
-        ${message.type === 'user' ? 'bg-[#eff2ff]' : 'bg-transparent'}
+        flex gap-2 max-md:flex-col  items-center
+        text-white
+        rounded-lg
+          ${message.type === 'user' ? 'bg-[#192957] ' : ''}
         ${index === 0 ? 'mt-auto' : ''}
       `}
     >

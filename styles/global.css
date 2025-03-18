@@ -272,10 +272,6 @@ li {
   grid-column-start: 2;
 }
 
-#__next {
-  background-color: #f5f7ff;
-}
-
 .terms-privacy {
   padding: 20px;
   max-width: 1440px;
@@ -433,10 +429,35 @@ li {
   }
 }
 
-.new-landing-container {
-  background-image: url('../src/assets/hero/background.png') !important;
-  background-size: cover !important;
+/* new landing page March 2025 */
+#__next {
+  background-color: #20273b;
 }
+.section1-bg {
+  background-image: url('../src/assets/gif/section1_bg.gif') !important;
+  background-repeat: no-repeat !important;
+  background-position: center !important;
+  background-size: 100vh !important;
+}
+@media screen and (max-width: 768px) {
+  .section1-bg {
+    background-size: contain !important;
+  }
+}
+.chatBot-container::-webkit-scrollbar {
+  height: 1rem;
+  width: 0.5rem;
+}
+
+.chatBot-container::-webkit-scrollbar-thumb {
+  background-color: #888;
+  border-radius: 0.5rem;
+}
+
+/* .new-landing-container {
+  background-image: url('../src/assets/hero/background.png') !important; 
+   background-size: cover !important;
+} */
 
 /* new landing page how it works scroll effect */
 

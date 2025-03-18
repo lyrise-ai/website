@@ -56,9 +56,8 @@ export default function ChatInput({
   return (
     <div
       className={
-        'flex flex-row w-full items-center bg-white rounded-lg overflow-hidden min-h-fit py-1 '
+        'flex flex-row w-full items-center bg-[#202842] rounded-lg overflow-hidden min-h-fit py-1 shadow-[0px_0px_8px_0px_#5571baa1] backdrop-blur-[36px] '
       }
-      style={{ boxShadow: '0px 4px 8px 0px rgba(0, 34, 158, 0.08)' }}
     >
       <ChatFileInput setUserInput={setUserInput} />
       <textarea

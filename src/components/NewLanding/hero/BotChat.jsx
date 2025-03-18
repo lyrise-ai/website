@@ -13,6 +13,7 @@ import useScrollOnNewContent from '../../../hooks/useScrollOnNewContent'
 import desktopInstructionsImage from '../../../assets/hero/desktop-instructions.png'
 import mobileInstructionsImage from '../../../assets/hero/mobile-instructions.png'
 import { useChatFocus } from '../../../providers/ChatFocusContext'
+import MessageAvatar from './ui/MessageAvatar'
 
 const BotChat = () => {
   const { conversation, sessionId, isLoading, addMessage, sendMessage } =
@@ -21,7 +22,6 @@ const BotChat = () => {
   const scrollRef = useRef(null)
 
   // scroll down whenever a new message is added
-  useScrollOnNewContent(scrollRef, conversation)
 
   const [userInput, setUserInput] = useState('')
 
@@ -40,9 +40,10 @@ const BotChat = () => {
   }
 
   return (
-    <div className="relative bg-primary-25 shadow-lg rounded-2xl py-3 w-full h-full flex flex-col justify-between border-2 lg:border-[4px] border-primary">
+    <div className="relative shadow-[0px_0px_4px_0px_#2957FF] rounded-2xl py-8 px-10 w-full h-full flex flex-col justify-between ">
+      <LyriseAiName />
       <div
-        className="flex flex-col h-full overflow-y-auto scroll-smooth"
+        className="chatBot-container flex flex-col h-full overflow-y-auto scroll-smooth "
         ref={scrollRef}
       >
         {conversation.map((message, index) => (
@@ -66,6 +67,7 @@ const BotChat = () => {
       </form>
       {/* <DesktopInstructions />
       <MobileInstructions /> */}
+      <ChatFooter />
     </div>
   )
 }
@@ -101,6 +103,31 @@ function MobileInstructions() {
         width={200}
         height={200}
       />
+    </div>
+  )
+}
+
+// backdrop-filter: blur(36px)
+
+const LyriseAiName = () => {
+  return (
+    <div className="absolute top-5 left-[50%] translate-x-[-50%] bg-[#202842] rounded-lg  shadow-[0px_0px_8px_0px_#5571baa1] backdrop-blur-[36px] px-3 py-2 flex items-center gap-2">
+      <MessageAvatar type="bot" />
+      <h1 className="text-[20px] text-white font-secondary ">LyRiseAI</h1>
+    </div>
+  )
+}
+
+const ChatFooter = () => {
+  return (
+    <div className="flex justify-between items-center mt-4 px-6">
+      <p className="text-sm text-gray-400">
+        © 2025 LyRise AI. All Rights Reserved.
+      </p>
+      <div className="flex items-center gap-4">
+        <p className="text-sm text-gray-400">Terms of Use</p>
+        <p className="text-sm text-gray-400">Privacy Policy</p>
+      </div>
     </div>
   )
 }

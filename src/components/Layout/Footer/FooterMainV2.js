@@ -15,12 +15,17 @@ import {
 import Logo from '../../../assets/LyRiseLogo.png'
 import FooterColumnV2 from './FooterColumnV2'
 import ArrowButton from '../../Buttons/ArrowButton'
+import WhiteLyRiseLogo from '../../../assets/WhiteLyRiseLogo.svg'
 
 const FooterMainV2 = ({ isTalent }) => {
   const mobile = useMediaQuery('(max-width: 887px)')
+
   return (
-    <footer className="bg-white p-[60px_10%] ">
-      <div className=" flex justify-between gap-4 ">
+    <footer className="bg-newPrimary p-[60px_10%]">
+      <div
+        className="flex justify-between gap-4 p-[40px_36px] bg-[#1F294982]
+ rounded-[4px] shadow-[0px_0px_4px_0px_#2957FF] backdrop-blur-[15.199999809265137px]"
+      >
         <div className="flex gap-[83px] flex-wrap">
           {/* first column */}
           <FooterColumnV2
@@ -72,8 +77,8 @@ const FooterMainV2 = ({ isTalent }) => {
             </div>
           </div>
           {/* logo */}
-          <div className="flex justify-end w-full">
-            <Image src={Logo} />
+          <div className="flex justify-center w-full">
+            <Image src={WhiteLyRiseLogo} />
           </div>
         </div>
       </div>
