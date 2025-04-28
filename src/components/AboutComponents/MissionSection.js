@@ -1,5 +1,5 @@
 import { Box, Grid, useMediaQuery } from '@mui/material'
-import Image from "next/legacy/image"
+import Image from 'next/legacy/image'
 import Title from '../shared/Title/Title'
 import TinyTitle from './TinyTitle'
 import Quote from '../../assets/about/quote.svg'
@@ -63,7 +63,7 @@ const MissionSection = () => {
             margin="12px 0 36px 0"
             padding="0 30px"
           >
-            Augmenting Intelligence
+            Augmenting Intelligence for Companies
           </Title>
           <TinyTitle text="Our mission" />
           <Title
@@ -75,8 +75,7 @@ const MissionSection = () => {
             margin="12px 0 0 0"
             padding={under400 ? '0 10px' : '0 30px'}
           >
-            Connecting global organizations with AI expertise to maximize
-            impact.
+            Unlock AI for 1M Companies
           </Title>
         </Grid>
       </Grid>

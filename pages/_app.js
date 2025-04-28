@@ -16,6 +16,7 @@ import createEmotionCache from '../src/utilities/createEmotionCache'
 import '../styles/global.css'
 import { initAmplitude } from '../src/utilities/amplitude'
 import useScript from '../src/utilities/useScript'
+import LenisProvider from '../src/components/LenisProvider'
 
 import { SessionProvider } from 'next-auth/react'
 
@@ -173,7 +174,9 @@ export default function MyApp(props) {
         <ThemeProvider theme={theme}>
           {/* CssBaseline kickstart an elegant, consistent, and simple baseline to build upon. */}
           <CssBaseline />
-          <Component {...pageProps} />
+          <LenisProvider>
+            <Component {...pageProps} />
+          </LenisProvider>
           <noscript>
             <iframe
               src="https://www.googletagmanager.com/ns.html?id=GTM-MF93SZM"

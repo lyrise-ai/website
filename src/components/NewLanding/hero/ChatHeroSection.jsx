@@ -26,6 +26,7 @@ export default function ChatHeroSection() {
           <ArrowButton
             showArrow
             className="max-md:w-full justify-between font-medium py-3 max-w-fit"
+            id="mr2"
           >
             Hire Now!
           </ArrowButton>
