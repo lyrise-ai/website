@@ -4,26 +4,28 @@ import Image from 'next/legacy/image'
 import ArrowRightAltIcon from '@mui/icons-material/ArrowRightAlt'
 
 function WhyLyriseCards({ card }) {
-  const { image, title, description, linkUrl } = card
+  const { image, title, description, linkUrl, linkText } = card || {}
 
   const [cardImage, setCardImage] = useState(null)
   const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
-    const loadImage = async () => {
-      try {
-        setIsLoading(true)
-        const imageModule = await import(
-          `../../../../assets/pages/why-lyrise/${image.src}`
-        )
-        setCardImage(imageModule.default)
-      } catch (error) {
-        console.error(`Failed to load image ${image.src}:`, error)
-      } finally {
-        setIsLoading(false)
+    if (card) {
+      const loadImage = async () => {
+        try {
+          setIsLoading(true)
+          const imageModule = await import(
+            `../../../../assets/pages/why-lyrise/${image.src}`
+          )
+          setCardImage(imageModule.default)
+        } catch (error) {
+          console.error(`Failed to load image ${image.src}:`, error)
+        } finally {
+          setIsLoading(false)
+        }
       }
+      loadImage()
     }
-    loadImage()
   }, [image.src])
 
   return (
@@ -40,17 +42,19 @@ function WhyLyriseCards({ card }) {
           {description}
         </p>
       </div>
-      <a
-        href={linkUrl}
-        target="_blank"
-        rel="noreferrer"
-        className="flex items-center gap-3"
-      >
-        <p className="text-[#3863FF] font-poppins text-[16px] font-[600]">
-          View all Use Cases
-        </p>
-        <ArrowRightAltIcon className="transition-transform group-hover:translate-x-1 !size-6 text-[#3863FF]" />
-      </a>
+      {linkText && linkUrl && (
+        <a
+          href={linkUrl}
+          target="_blank"
+          rel="noreferrer"
+          className="flex items-center gap-3"
+        >
+          <p className="text-[#3863FF] font-poppins text-[16px] font-[600]">
+            {linkText}
+          </p>
+          <ArrowRightAltIcon className="transition-transform group-hover:translate-x-1 !size-6 text-[#3863FF]" />
+        </a>
+      )}
       {/* <div className={styles.icon}>
       <Image src={images[FOLDER_PATH + card.image.src]()} alt={card.image.alt} />
       <p>{card.image.alt}</p>

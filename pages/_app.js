@@ -19,11 +19,14 @@ import useScript from '../src/utilities/useScript'
 import LenisProvider from '../src/components/LenisProvider'
 
 import { SessionProvider } from 'next-auth/react'
+import useSectionsContent from '../src/hooks/useSectionsContent'
 
 // Client-side cache, shared for the whole session of the user in the browser.
 const clientSideEmotionCache = createEmotionCache()
 
 export default function MyApp(props) {
+  const { getMetadata } = useSectionsContent()
+  const { title, description, keywords } = getMetadata()
   const {
     Component,
     emotionCache = clientSideEmotionCache,
@@ -146,18 +149,28 @@ export default function MyApp(props) {
           <meta name="viewport" content="initial-scale=1, width=device-width" />
           <link rel="icon" href="/images/LogoIcon.ico" />
           <meta name="theme-color" content="#6666ff" />
-          <title>LyRise AI: The Platform to Adopt AI Easier and Faster</title>
+          <title>
+            {title || 'LyRise AI: The Platform to Adopt AI Easier and Faster'}
+          </title>
           <meta
             name="description"
-            content="Helping you Adopt AI, by either developing your AI Solutions or Hiring The Top AI Developers for you!"
+            content={`${
+              description ||
+              'Helping you Adopt AI, by either developing your AI Solutions or Hiring The Top AI Developers for you!'
+            }`}
           />
           <meta
             property="og:title"
-            content="LyRise AI: The Platform to Adopt AI Easier and Faster"
+            content={`${
+              title || 'LyRise AI: The Platform to Adopt AI Easier and Faster'
+            }`}
           />
           <meta
             property="og:description"
-            content="Helping you Adopt AI, by either developing your AI Solutions or Hiring The Top AI Developers for you!"
+            content={`${
+              description ||
+              'Helping you Adopt AI, by either developing your AI Solutions or Hiring The Top AI Developers for you!'
+            }`}
           />
           <meta
             property="og:image"

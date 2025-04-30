@@ -3,53 +3,55 @@ import styles from '../styles.module.css'
 import Image from 'next/legacy/image'
 
 function ExpertCard({ expert }) {
-  const { name, title, avatar, companies } = expert
+  const { name, title, avatar, companies } = expert || {}
 
   const [expertImage, setExpertImage] = useState(null)
   const [companyImages, setCompanyImages] = useState([])
   const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
-    const loadImages = async () => {
-      try {
-        setIsLoading(true)
+    if (expert) {
+      const loadImages = async () => {
+        try {
+          setIsLoading(true)
 
-        // Load expert image
-        const expertImageModule = await import(
-          `../../../../assets/pages/expert-network/experts/${avatar}`
-        )
-        setExpertImage(expertImageModule.default)
+          // Load expert image
+          const expertImageModule = await import(
+            `../../../../assets/pages/expert-network/experts/${avatar}`
+          )
+          setExpertImage(expertImageModule.default)
 
-        // Load all company logos in parallel
-        const companyImagePromises = companies.map(async (company) => {
-          try {
-            const companyImageModule = await import(
-              `../../../../assets/pages/expert-network/companies/${company.logo}`
-            )
-            return {
-              id: company.id || company.name,
-              src: companyImageModule.default,
-              name: company.name,
+          // Load all company logos in parallel
+          const companyImagePromises = companies.map(async (company) => {
+            try {
+              const companyImageModule = await import(
+                `../../../../assets/pages/expert-network/companies/${company.logo}`
+              )
+              return {
+                id: company.id || company.name,
+                src: companyImageModule.default,
+                name: company.name,
+              }
+            } catch (err) {
+              console.error(
+                `Failed to load company logo for ${company.name}:`,
+                err,
+              )
+              return null
             }
-          } catch (err) {
-            console.error(
-              `Failed to load company logo for ${company.name}:`,
-              err,
-            )
-            return null
-          }
-        })
+          })
 
-        const loadedCompanyImages = await Promise.all(companyImagePromises)
-        setCompanyImages(loadedCompanyImages.filter(Boolean))
-      } catch (err) {
-        console.error('Error loading images:', err)
-      } finally {
-        setIsLoading(false)
+          const loadedCompanyImages = await Promise.all(companyImagePromises)
+          setCompanyImages(loadedCompanyImages.filter(Boolean))
+        } catch (err) {
+          console.error('Error loading images:', err)
+        } finally {
+          setIsLoading(false)
+        }
       }
-    }
 
-    loadImages()
+      loadImages()
+    }
   }, [companies, avatar])
 
   return (

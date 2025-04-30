@@ -1,22 +1,40 @@
 {
   "title": "LyRise AI: The Platform to Adopt AI Easier and Faster",
   "description": "Helping you Adopt AI, by either developing your AI Solutions or Hiring The Top AI Developers for you!",
-  "image": "index.jpg",
   "keywords": "LyRise, Ai, Artificial Intelligence, Solutions, Development, Software, Developers, Hire, Top, Best, Platform, Adopt, Easier, Faster",
+  "navbar": [
+    {
+      "name": "Hire Now",
+      "url": "Section2"
+    },
+    {
+      "name": "Process",
+      "url": "Section3"
+    },
+    {
+      "name": "Expert Network",
+      "url": "Section5"
+    }
+  ],
   "sections": [
     {
-      "key": "HERO",
+      "key": "Section1",
       "content": {
         "title": "Hire AI Talent Instantly",
-        "description": "Build your own AI product, to discover the true meaning of productivity, growth, and efficiency."
+        "description": "Build your own AI product, to discover the true meaning of productivity, growth, and efficiency.",
+        "btnText": "Call it in Action",
+        "btnUrl": "Section2",
+        "structure_note": "btnUrl should be section number with Capital letter at first or url which includes http or https"
       }
     },
     {
-      "key": "CHAT_SECTION",
-      "content": {}
+      "key": "Section2",
+      "content": {
+        "visible": true
+      }
     },
     {
-      "key": "PROCESS",
+      "key": "Section3",
       "content": {
         "subtitle": "Process",
         "title": "The fastest AI Talent Hiring",
@@ -41,13 +59,13 @@
       }
     },
     {
-      "key": "LOGO_SECTION",
+      "key": "Section4",
       "content": {
         "logoNumbers": 9
       }
     },
     {
-      "key": "EXPERTS_NETWORK",
+      "key": "Section5",
       "content": {
         "title": "LyRise AI Experts",
         "subtitle": "Our AI Network",
@@ -136,7 +154,7 @@
       }
     },
     {
-      "key": "WHY_LYRISE",
+      "key": "Section6",
       "content": {
         "text": "Access our pre-vetted  ready-to-work AI talents. Save 50% on time and costs spent on talent acquisition while securing the best for your team.",
         "title": "Why LyRise",
@@ -144,36 +162,39 @@
         "cards": [
           {
             "image": {
-              "src": "paper-sheild.svg",
+              "src": "1.svg",
               "alt": "Vetted AI Talents Icon"
             },
             "title": "Vetted AI Talents",
             "description": "Only the top talents make the cut – carefully vetted to ensure they bring the highest level of expertise.",
+            "linkText": "View all use cases",
             "linkUrl": "/"
           },
           {
             "image": {
-              "src": "strike.svg",
+              "src": "2.svg",
               "alt": "Time and Money Saving Icon"
             },
             "title": "Fastest AI Talent Acquisition",
             "description": "Cut hiring costs and timelines in half with our AI Talent Acquisition Platform.",
+            "linkText": "View all use cases",
             "linkUrl": "/"
           },
           {
             "image": {
-              "src": "people.svg",
+              "src": "3.svg",
               "alt": "Expert Network Icon"
             },
             "title": "Expert Network",
             "description": "Access a trusted network of industry experts, ready to add immediate value to your projects.",
+            "linkText": "View all use cases",
             "linkUrl": "/"
           }
         ]
       }
     },
     {
-      "key": "SECURITY",
+      "key": "Section7",
       "content": {
         "title": "State-of-the-art Data Security & Privacy",
         "subtitle": "Elevate Your Data Security with IBM Hyper Protect Infrastructure.",
@@ -186,7 +207,10 @@
               "alt": "Privacy Preservation"
             },
             "title": "Privacy Preservation",
-            "description": "Our Hyper Protect Platform ensures data security, privacy, and sovereignty."
+            "description": "Our Hyper Protect Platform ensures data security, privacy, and sovereignty.",
+            "linkText": "Get Started",
+            "linkUrl": "Section2",
+            "structure_note": "linkUrl should be section number with Capital letter at first or url which includes http or https"
           },
           {
             "index": 1,
@@ -195,7 +219,10 @@
               "alt": "Confidential Lifecycle"
             },
             "title": "Confidential Lifecycle",
-            "description": "Utilize Secure Service Container technology to maintain data integrity throughout its journey. Data remains secure in storage and transit, accessible only to authorized parties."
+            "description": "Utilize Secure Service Container technology to maintain data integrity throughout its journey. Data remains secure in storage and transit, accessible only to authorized parties.",
+            "linkText": "Get Started",
+            "linkUrl": "Section2",
+            "structure_note": "linkUrl should be section number with Capital letter at first or url which includes http or https"
           },
           {
             "index": 2,
@@ -204,7 +231,10 @@
               "alt": "Regulatory Compliance"
             },
             "title": "Regulatory Compliance",
-            "description": "Adhere to GDPR, HIPAA, and industry standards for comprehensive compliance."
+            "description": "Adhere to GDPR, HIPAA, and industry standards for comprehensive compliance.",
+            "linkText": "Get Started",
+            "linkUrl": "Section2",
+            "structure_note": "linkUrl should be section number with Capital letter at first or url which includes http or https"
           }
         ]
       }

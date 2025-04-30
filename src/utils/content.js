@@ -6,8 +6,8 @@ export const getSectionContent = (key) => {
 }
 
 export const getSiteMetadata = () => {
-  const { title, description, image, keywords } = siteContent
-  return { title, description, image, keywords }
+  const { title, description, image, keywords, navbar } = siteContent
+  return { title, description, image, keywords, navbar }
 }
 
 export default siteContent
