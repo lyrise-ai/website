@@ -11,7 +11,7 @@ export const footerLinksOne = [
   },
   {
     id: 2,
-    href: '/calendar',
+    href: 'https://calendly.com/elena-lyrise/30min',
     text: 'Book A Meeting',
   },
 ]

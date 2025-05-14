@@ -537,3 +537,26 @@ abbr {
   outline: 2px solid rgb(82 139 255);
   border-radius: 0.375rem;
 }
+
+.custom-landing-pages {
+  background-color: #20273b;
+}
+
+.custom-landing-pages .custom-container {
+  width: 100%;
+  margin-right: auto;
+  margin-left: auto;
+  padding-right: 1.4rem /* 22.4px */;
+  padding-left: 1.4rem /* 22.4px */;
+}
+
+@media (min-width: 1400px) {
+  .custom-landing-pages .custom-container {
+    max-width: 1400px;
+  }
+}
+
+.hire-ai-developer-container {
+  background-image: url('../src/assets/hero/background.png') !important;
+  background-size: cover !important;
+}

@@ -6,12 +6,18 @@ import ReactGA from 'react-ga'
 import PrimaryButton from '../shared/PrimaryButton/PrimaryButton'
 import SecondaryButton from '../shared/SecondaryButton/SecondaryButton'
 import { useFormData } from './FormContext/FormContext'
+import { useEffect } from 'react'
 
 export default function FormThree() {
   const under678 = useMediaQuery('(max-width: 678px)')
   const under500 = useMediaQuery('(max-width: 500px)')
   const router = useRouter()
   const { formOne } = useFormData()
+
+  // useEffect(() => {
+
+  // },[])
+
   return (
     <Grid
       item

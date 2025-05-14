@@ -1,5 +1,5 @@
 import { Grid, Typography, useMediaQuery } from '@mui/material'
-import Image from "next/legacy/image"
+import Image from 'next/legacy/image'
 import heroImg from '../../assets/about/hero_img.png'
 import IBMLogo from '../../assets/about/IBM-logo.svg'
 import TechStartsLogo from '../../assets/about/techstars_logo.svg'
@@ -45,11 +45,10 @@ const HeroSection = () => {
                     color: '#667085',
                   }}
                 >
-                  Lyrise was founded and inspired by the legacy of Al-Khwarizmi
-                  as he’s considered to be the father of algorithms and is
-                  widely regarded as the starting point of the field of computer
-                  science. His contributions to mathematics and computational
-                  thinking laid the foundation for the development of AI.
+                  LyRise was founded and inspired by Marc Banoub, our co-founder
+                  who was tired and frustrated of doing repetitive tasks or
+                  “donkey-work” in his previous job as a transformation analyst
+                  in a leading private equity firm in Egypt.
                 </Typography>
                 <Typography
                   sx={{
@@ -60,10 +59,9 @@ const HeroSection = () => {
                     marginTop: '11px',
                   }}
                 >
-                  LyRise is a platform for companies to work with AI talents
-                  faster through connecting them with Top AI experts from the
-                  MENA region. We provide for companies a tailored secure data
-                  infrastructure and efficient cloud compute resource.
+                  He felt that something was deeply wrong with work, and that
+                  many employees and companies globally had the same issue:
+                  operational inefficiencies & redundant work.
                 </Typography>
                 <Typography
                   sx={{
@@ -74,11 +72,9 @@ const HeroSection = () => {
                     marginTop: '11px',
                   }}
                 >
-                  Our talents have a strong background and experience backed by
-                  companies like Google, IBM, Microsoft. We are the 1st AI
-                  talent marketplace to join the IBM Hyperprotect Accelerator,
-                  and Techstars powered by JP Morgan to expand to over 10,000 AI
-                  engineers & scientists from Africa.
+                  He was inspired by the movie Iron Man, and his AI robot
+                  “Jarvis” that handled the operations for Iron Man be a super
+                  hero.6
                 </Typography>
                 <Typography
                   sx={{
@@ -89,8 +85,9 @@ const HeroSection = () => {
                     marginTop: '11px',
                   }}
                 >
-                  LyRise is backed by Techstars Atlanta powered by JP Morgan and
-                  Google for Startups and IBM Hyper Protect Accelerator.
+                  This lead him to study AI/Machine Learning via Stanford &
+                  launch LyRise to solve global operational inefficiencies in
+                  SMEs
                 </Typography>
               </Grid>
               <Grid

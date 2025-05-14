@@ -15,11 +15,15 @@ module.exports = {
         'primary-25': '#F7F9FF',
         'primary-50': '#EFF2FF',
         facebook: '#1877F2',
+        main: 'rgba(41, 87, 255, 1)',
       },
       fontFamily: {
         primary: 'Space Grotesk',
         secondary: 'Poppins',
+        'space-grotesk': 'Space Grotesk',
+        poppins: 'Poppins',
       },
+
       fontWeight: {
         light: 300,
         normal: 400,
