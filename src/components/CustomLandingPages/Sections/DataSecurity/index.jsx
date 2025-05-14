@@ -1,14 +1,16 @@
-import React, { useEffect, useState } from 'react'
+import React, { useContext, useEffect, useState } from 'react'
 import useSectionsContent from '../../../../hooks/useSectionsContent'
 import styles from '../styles.module.css'
 import ArrowRightAltIcon from '@mui/icons-material/ArrowRightAlt'
 import Image from 'next/legacy/image'
 import { scrollToSection } from '../../../../utilities/helpers'
+import { PageBuilderContext } from '../../../../context/PageBuilderContext'
 
 const LYRISEAI_PRODUCT_URL = 'https://lyrai-chat.lyrise.ai'
 
 function DataSecurity() {
-  const { getContent } = useSectionsContent()
+  const { siteContent } = useContext(PageBuilderContext)
+  const { getContent } = useSectionsContent(siteContent)
   const section7Content = getContent('Section7')
   const { title, subtitle, text, cards } = section7Content || {}
   const [isHovered, setIsHovered] = useState(false)

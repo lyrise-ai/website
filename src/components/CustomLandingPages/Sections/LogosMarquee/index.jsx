@@ -1,11 +1,13 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useContext } from 'react'
 import useSectionsContent from '../../../../hooks/useSectionsContent'
 import styles from '../styles.module.css'
 import MarqueeWrapper from './MarqueeWrapper'
 import Image from 'next/legacy/image'
+import { PageBuilderContext } from '../../../../context/PageBuilderContext'
 
 function LogosMarquee() {
-  const { getContent } = useSectionsContent()
+  const { siteContent } = useContext(PageBuilderContext)
+  const { getContent } = useSectionsContent(siteContent)
   const section4Content = getContent('Section4')
   const { logoNumbers } = section4Content || {}
   const [logos, setLogos] = useState([])

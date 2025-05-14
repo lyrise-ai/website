@@ -1,9 +1,11 @@
-import React from 'react'
+import React, { useContext } from 'react'
 import useSectionsContent from '../../../../hooks/useSectionsContent'
 import ExpertCard from './ExpertCard'
+import { PageBuilderContext } from '../../../../context/PageBuilderContext'
 
 function ExpertsNetwork() {
-  const { getContent } = useSectionsContent()
+  const { siteContent } = useContext(PageBuilderContext)
+  const { getContent } = useSectionsContent(siteContent)
   const section5Content = getContent('Section5')
   const { title, subtitle, experts } = section5Content || {}
 

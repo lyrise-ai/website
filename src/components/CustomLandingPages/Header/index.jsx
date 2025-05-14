@@ -15,8 +15,8 @@ const BUTTONS = [
   },
 ]
 
-export default function Header() {
-  const { getMetadata } = useSectionsContent()
+export default function Header({ siteContent }) {
+  const { getMetadata } = useSectionsContent(siteContent)
   const { navbar } = getMetadata()
 
   const NAVIGATIONS = navbar.map((item) => ({

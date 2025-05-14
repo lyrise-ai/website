@@ -1,10 +1,12 @@
-import React, { useRef } from 'react'
+import React, { useContext, useRef } from 'react'
 import useSectionsContent from '../../../../hooks/useSectionsContent'
 import { motion, useScroll, useTransform } from 'framer-motion'
 import ProcessCard from './ProcessCard'
+import { PageBuilderContext } from '../../../../context/PageBuilderContext'
 
 function Process() {
-  const { getContent } = useSectionsContent()
+  const { siteContent } = useContext(PageBuilderContext)
+  const { getContent } = useSectionsContent(siteContent)
   const section3Content = getContent('Section3')
   const { title, text, steps, subtitle } = section3Content || {}
 

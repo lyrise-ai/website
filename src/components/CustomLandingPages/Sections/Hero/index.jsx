@@ -1,11 +1,13 @@
-import React from 'react'
+import React, { useContext } from 'react'
 import useSectionsContent from '../../../../hooks/useSectionsContent'
 import styles from '../styles.module.css'
 import ArrowRightAltIcon from '@mui/icons-material/ArrowRightAlt'
 import { scrollToSection } from '../../../../utilities/helpers'
+import { PageBuilderContext } from '../../../../context/PageBuilderContext'
 
 const Hero = () => {
-  const { getContent } = useSectionsContent()
+  const { siteContent } = useContext(PageBuilderContext)
+  const { getContent } = useSectionsContent(siteContent)
   const section1Content = getContent('Section1')
   const section2Content = getContent('Section2')
   const { visible: section2Visible } = section2Content || {}

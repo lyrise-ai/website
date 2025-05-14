@@ -1,10 +1,12 @@
-import React, { useRef } from 'react'
+import React, { useRef, useContext } from 'react'
 import useSectionsContent from '../../../../hooks/useSectionsContent'
 import { motion, useScroll, useTransform } from 'framer-motion'
 import WhyLyriseCards from './WhyLyriseCards'
+import { PageBuilderContext } from '../../../../context/PageBuilderContext'
 
 function WhyLyRise() {
-  const { getContent } = useSectionsContent()
+  const { siteContent } = useContext(PageBuilderContext)
+  const { getContent } = useSectionsContent(siteContent)
   const section6Content = getContent('Section6')
   const { title, subtitle, text, cards } = section6Content || {}
 

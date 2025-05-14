@@ -6,7 +6,7 @@ import siteContent from '../src/data/test2-url.json'
 export default function Test2Url() {
   return (
     <main className="w-full min-h-screen h-full relative custom-landing-pages flex flex-col">
-      <Header  siteContent={siteContent}/>
+      <Header siteContent={siteContent} />
       <HireAiPage siteContent={siteContent} />
       <Footer />
     </main>

@@ -1,12 +1,12 @@
 import { getSectionContent, getSiteMetadata } from '../utils/content'
 
-const useSectionsContent = () => {
+const useSectionsContent = (siteContent) => {
   const getContent = (key) => {
-    return getSectionContent(key)
+    return getSectionContent(siteContent, key)
   }
 
   const getMetadata = () => {
-    return getSiteMetadata()
+    return getSiteMetadata(siteContent)
   }
 
   return {

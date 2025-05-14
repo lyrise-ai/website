@@ -1,12 +1,14 @@
-import { useState } from 'react'
+import { useState, useContext } from 'react'
 
 import { ChatFocusContext } from '../../context/chat-focus'
 import BotChat from './BotChat'
 import useSectionsContent from '../../../../hooks/useSectionsContent'
+import { PageBuilderContext } from '../../../../context/PageBuilderContext'
 
 export default function ChatAi() {
+  const { siteContent } = useContext(PageBuilderContext)
   const [isChatFocused, setIsChatFocused] = useState(false)
-  const { getContent } = useSectionsContent()
+  const { getContent } = useSectionsContent(siteContent)
   const section2Content = getContent('Section2')
   const { visible } = section2Content || {}
   return (
