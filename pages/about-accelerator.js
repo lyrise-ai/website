@@ -27,10 +27,13 @@ export default function AboutAccelerator() {
             Accelerator!
           </h1>
           <div className="space-y-4 md:w-full lg:w-3/5 xl:w-2/3">
-            <p className="text-neutral-500 text-lg md:text-xl font-secondary leading-6 md:leading-7">
-              The 2nd Cohort of our AI Accelerator is launching Q1 of next year,
-              but we are offering a “Golden Ticket” opportunity to guarantee a
-              spot in our AI Accelerator.
+            <p className="text-neutral-500 text-lg md:text-xl font-secondary leading-6 md:leading-7 text-center">
+              The LyRise AI Accelerator is a 1 year partnership that starts with
+              a 35K grant covering 2-month scoping and project roadmap program,
+              the accelerator is designed to empower visionary startups to build
+              transformative AI solutions. With only 10 exclusive seats, the
+              program offers the tools, expertise, and support needed to
+              revolutionize your business operations and customer experiences.
             </p>
           </div>
           <HowItWorksSection />
@@ -49,34 +52,60 @@ function HowItWorksSection() {
         <li className="grid grid-cols-12 md:grid-cols-[auto_1fr] gap-4">
           <span className="text-lg md:text-xl font-bold">1.</span>
           <div className="max-md:col-span-11">
-            <h4 className="text-lg md:text-xl font-bold">
-              Register your startup
-            </h4>
+            <h4 className="text-lg md:text-xl font-bold">Online Application</h4>
             <p className="text-sm md:text-base font-normal leading-5">
-              Submit your company’s details to showcase your startup and its
-              mission.
+              Complete our application form, detailing your startup, team,
+              product, and vision for adopting AI, including your commitment to
+              a $100K AI project investment.
             </p>
           </div>
         </li>
         <li className="grid grid-cols-12 md:grid-cols-[auto_1fr] gap-4">
           <span className="text-lg md:text-xl font-bold">2.</span>
           <div className="max-md:col-span-11">
-            <h4 className="text-lg md:text-xl font-bold">
-              Get Community Votes
-            </h4>
+            <h4 className="text-lg md:text-xl font-bold">Initial Review:</h4>
             <p className="text-sm md:text-base font-normal leading-5">
-              Rally your peers and fellow entrepreneurs to vote for your
-              startup. Show them why you deserve the top spot!
+              Our team evaluates applications for alignment with the
+              accelerator’s focus and criteria. Selected applicants receive an
+              invitation to proceed.
             </p>
           </div>
         </li>
         <li className="grid grid-cols-12 md:grid-cols-[auto_1fr] gap-4">
           <span className="text-lg md:text-xl font-bold">3.</span>
           <div className="max-md:col-span-11">
-            <h4 className="text-lg md:text-xl font-bold">Be Voted #1</h4>
+            <h4 className="text-lg md:text-xl font-bold">
+              AI Strategy Discussion
+            </h4>
             <p className="text-sm md:text-base font-normal leading-5">
-              The startup with the most votes wins the coveted Golden Ticket and
-              access to the accelerator&apos;s full suite of benefits.
+              Participate in a one-on-one call with our selection team to
+              explore your goals, AI readiness, and potential impact.
+            </p>
+          </div>
+        </li>
+        <li className="grid grid-cols-12 md:grid-cols-[auto_1fr] gap-4">
+          <span className="text-lg md:text-xl font-bold">4.</span>
+          <div className="max-md:col-span-11">
+            <h4 className="text-lg md:text-xl font-bold">
+              Selection Committee Review
+            </h4>
+            <p className="text-sm md:text-base font-normal leading-5">
+              A panel of AI experts and industry leaders evaluates shortlisted
+              startups based on innovation, impact, and alignment with program
+              objectives.
+            </p>
+          </div>
+        </li>
+        <li className="grid grid-cols-12 md:grid-cols-[auto_1fr] gap-4">
+          <span className="text-lg md:text-xl font-bold">5.</span>
+          <div className="max-md:col-span-11">
+            <h4 className="text-lg md:text-xl font-bold">
+              Acceptance & Onboarding
+            </h4>
+            <p className="text-sm md:text-base font-normal leading-5">
+              Selected startups receive an official offer, sign a contract for
+              $40K in-kind support and a $60K investment, and begin onboarding
+              with a tailored AI roadmap.
             </p>
           </div>
         </li>
@@ -88,45 +117,33 @@ function HowItWorksSection() {
 function PerksSection() {
   return (
     <InfoSection title="Perks" color="rose" iconSrc={giftIcon}>
-      <p className="text-rose-500 text-sm md:text-xl leading-5 font-secondary w-full">
-        Joining the LyRise Accelerator gives exclusive perks for{' '}
-        <strong>all participants</strong>, even if you don&apos;t make it to the
-        Top 5:
-      </p>
-      <ul className="font-secondary text-rose-500 w-full space-y-2">
-        <li>
-          <div>
-            <p className="text-sm md:text-lg">
-              <span className="font-bold">50% Discount on any AI project</span>{' '}
-              (up to $5,000 per month).
-            </p>
-          </div>
+      <ul className="font-secondary text-rose-500 w-full list-disc [&>li]:ml-5 space-y-2">
+        <li className="list-disc">
+          <p className="text-lg md:text-xl font-bold">
+            Custom AI Agent MVP Delivered in 1 Month
+          </p>
+          <p className="text-base md:text-lg">
+            Includes model training, validation, optimization, and scalability -
+            Estimated Value: $15,000
+          </p>
         </li>
-        <li>
-          <div>
-            <p className="text-sm md:text-lg">
-              <span className="font-bold">Free AI Consultation</span> Tailored
-              specifically to your industry and use case.
-            </p>
-          </div>
+        <li className="list-disc">
+          <p className="text-lg md:text-xl font-bold">
+            End-to-End Strategic Consultancy for One Year
+          </p>
+          <p className="text-base md:text-lg">
+            In-person sessions with regular touchpoints and strategic guidance
+            throughout the year - Estimated Value: $15,000
+          </p>
         </li>
-        <li>
-          <div>
-            <p className="text-sm md:text-lg">
-              <span className="font-bold">
-                ROI Analysis & Competitive Edge Assessment
-              </span>{' '}
-              To evaluate the potential impact of your project.
-            </p>
-          </div>
-        </li>
-        <li>
-          <div>
-            <p className="text-sm md:text-lg">
-              <span className="font-bold">Complete Project Roadmap</span>{' '}
-              Including tech stack, timeline, and detailed cost breakdown.
-            </p>
-          </div>
+        <li className="list-disc">
+          <p className="text-lg md:text-xl font-bold">
+            Dedicated Support & Quarterly Performance Reviews
+          </p>
+          <p className="text-base md:text-lg">
+            Ongoing support with in-depth analysis and improvement of AI Agent
+            performance - Estimated Value: $5,000
+          </p>
         </li>
       </ul>
     </InfoSection>
@@ -142,21 +159,30 @@ function WhoCanApplySection() {
       </p>
       <ul className="font-secondary text-rose-500 w-full list-disc [&>li]:ml-5 space-y-2">
         <li className="list-disc">
-          <p className="text-lg md:text-xl font-bold">Seed to Series A Stage</p>
+          <p className="text-lg md:text-xl font-bold">Visionary Leadership</p>
           <p className="text-base md:text-lg">
-            You have achieved product-market fit and are scaling your business.
+            Your team is dedicated to driving innovation through AI.
           </p>
         </li>
         <li className="list-disc">
-          <p className="text-lg md:text-xl font-bold">GCC-based Companies</p>
+          <p className="text-lg md:text-xl font-bold">Financial Commitment</p>
           <p className="text-base md:text-lg">
-            Your company is headquartered or mainly operates in the gulf region.
+            You are prepared to invest $100K in a transformative AI project.
           </p>
         </li>
         <li className="list-disc">
           <p className="text-lg md:text-xl font-bold">Operational Capability</p>
           <p className="text-base md:text-lg">
             Your company is equipped to execute AI projects.
+          </p>
+        </li>
+        <li className="list-disc">
+          <p className="text-lg md:text-xl font-bold">
+            Global Impact Potential
+          </p>
+          <p className="text-base md:text-lg">
+            You’re solving meaningful problems with significant impact
+            potential.
           </p>
         </li>
       </ul>

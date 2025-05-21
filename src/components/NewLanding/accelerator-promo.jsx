@@ -33,9 +33,8 @@ export default function AcceleratorPromo() {
             <p className="text-neutral-500 text-lg md:text-xl font-secondary leading-6 md:leading-7">
               LyRise will offer the top upvoted startup:
               <ul className="font-bold list-disc pl-3 mt-2">
-                <li>• 2 months of AI development</li>
-                <li>• cloud storage</li>
-                <li>• 30% off future projects!</li>
+                $35,000 worth of AI MVP Development for 1 winning company golden
+                Ticket and 9 selected companies from the accelerator
               </ul>
             </p>
           </div>
@@ -48,7 +47,7 @@ export default function AcceleratorPromo() {
             <CloseIcon className="h-8 w-8" />
           </button>
 
-          <Image src={bannerSrc} alt="Top Winners Banner" />
+          {/* <Image src={bannerSrc} alt="Top Winners Banner" /> */}
 
           <div className="w-full pt-2">
             <Countdown
