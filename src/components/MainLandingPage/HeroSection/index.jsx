@@ -17,7 +17,7 @@ function HeroSection() {
         </div>
       </section>
       <section
-        className={`flex items-center justify-center  w-full ${styles.sectionBg}`}
+        className={` flex md:hidden items-center justify-center  w-full ${styles.sectionBg}`}
       >
         <div className="flex flex-col items-center gap-10">
           <div className="flex flex-col items-center justify-start gap-2 md:gap-0">
