@@ -9,6 +9,7 @@ import HeroSection from '../src/components/MainLandingPage/HeroSection'
 import AcceleratorPromo from '../src/components/NewLanding/accelerator-promo'
 import LogoSection from '../src/components/MainLandingPage/LogoSection'
 import PlugnHireSection from '../src/components/MainLandingPage/PlugnHireSection'
+import VideoSection from '../src/components/MainLandingPage/VideoSection'
 
 export default function Index() {
   React.useEffect(() => {
@@ -51,6 +52,7 @@ export default function Index() {
       <HeroSection />
       <LogoSection />
       <PlugnHireSection />
+      <VideoSection />
     </MainLayout>
   )
 }
