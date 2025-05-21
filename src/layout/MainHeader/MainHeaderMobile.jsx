@@ -4,6 +4,8 @@ import { useState } from 'react'
 import logo from '../../assets/rebranding/logo_black.svg'
 import Image from 'next/legacy/image'
 import CloseIcon from '@mui/icons-material/Close'
+import { useRouter } from 'next/navigation'
+import { scrollToSection } from '../../utilities/helpers'
 
 const MainHeaderMobile = ({ navigation, buttons }) => {
   const [isOpen, setIsOpen] = useState(false)
@@ -16,6 +18,11 @@ const MainHeaderMobile = ({ navigation, buttons }) => {
       return
     }
     setIsOpen(open)
+  }
+
+  const router = useRouter()
+  const navigate = (path) => {
+    router.push(path)
   }
 
   return (
@@ -57,21 +64,25 @@ const MainHeaderMobile = ({ navigation, buttons }) => {
             </div>
           </div>
           <ul className="mt-4 flex flex-col gap-0 font-space-grotesk font-normal text-new-black">
-            {navigation.map(({ id, label, path }) => (
+            {navigation.map(({ id, label, path, isPage }) => (
               <li key={id}>
-                <a
-                  href={'#' + path}
-                  target="_blank"
-                  rel="noopener noreferrer"
+                <div
+                  onClick={() => {
+                    if (isPage) {
+                      navigate(path)
+                    } else {
+                      scrollToSection(path)
+                    }
+                    toggleDrawer(false)
+                  }}
                   className={`text-[16px] inline-block relative after:absolute after:start-1/2 after:-translate-x-1/2 after:bottom-[1px] after:h-[1px] after:w-full after:transition-transform after:scale-0 hover:after:scale-100 after:rounded-full after:bg-new-black ${
                     label === 'AI Accelerator'
                       ? 'text-[#DE0000] after:bg-[#DE0000]'
                       : 'text-new-black after:bg-new-black'
                   }`}
-                  onClick={toggleDrawer(false)}
                 >
                   {label}
-                </a>
+                </div>
               </li>
             ))}
           </ul>
