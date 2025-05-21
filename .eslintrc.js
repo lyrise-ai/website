@@ -139,5 +139,6 @@ module.exports = {
     'no-await-in-loop': 'off',
     'prefer-destructuring': 'off',
     'no-param-reassign': 'off',
+    'react/no-array-index-key': 'off',
   },
 }

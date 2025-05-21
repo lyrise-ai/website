@@ -15,10 +15,11 @@ import { socialShareUrls } from '../src/constants/accelerator'
 import linkedinIcon from '@assets/linkedin.svg'
 import xIcon from '@assets/x.svg'
 import facebookIcon from '@assets/facebook.webp'
-import bookIcon from '@assets/neutral-book.svg'
+import bookIcon from '@assets/info.svg'
 import Link from 'next/link'
 import InfoSection from '../src/components/Accelerator/info-section'
 import useRegisterationEvents from '../src/hooks/useRegisterationEvents'
+import MainLayout from '../src/layout'
 
 export default function CompanyRegistrationForm() {
   const router = useRouter()
@@ -61,10 +62,10 @@ export default function CompanyRegistrationForm() {
   const handleSubmit = async (e) => {
     e.preventDefault()
     hasInvalidField.current = false
-    setIsSubmitting(true)
 
     try {
-      await registerCompany({
+      setIsSubmitting(true)
+      const response = await registerCompany({
         name: formData.companyName,
         website: formData.companyWebsite,
         ai_project_title: formData.aiProjectTitle,
@@ -74,12 +75,16 @@ export default function CompanyRegistrationForm() {
         contact_email: formData.workEmail,
         contact_number: formData.phoneNumber,
       })
-      sendSecondFormSuccessEvent(formData)
-      setCurrentStep(3)
-      // router.push('/accelerator')
+
+      if (response) {
+        sendSecondFormSuccessEvent(formData)
+        setCurrentStep(3)
+      }
     } catch (error) {
+      window.alert(error || 'Failed to register company')
       console.error('Submission error:', error)
-      alert("Couldn't register your company, please try again.")
+      sendSecondFormFailureEvent(formData)
+      // Don't proceed to next step on error
     } finally {
       setIsSubmitting(false)
     }
@@ -219,33 +224,7 @@ export default function CompanyRegistrationForm() {
           </div>
         )
       default:
-        return (
-          <div className="w-full flex flex-col gap-2">
-            <Link href={socialShareUrls.linkedin} target="_blank">
-              <SocialButton
-                provider="linkedin"
-                iconSrc={linkedinIcon}
-                onClick={() => {}}
-              >
-                Share to LinkedIn
-              </SocialButton>
-            </Link>
-            <Link href={socialShareUrls.facebook} target="_blank">
-              <SocialButton
-                provider="facebook"
-                iconSrc={facebookIcon}
-                onClick={() => {}}
-              >
-                Share to Facebook
-              </SocialButton>
-            </Link>
-            <Link href={socialShareUrls.x} target="_blank">
-              <SocialButton provider="x" iconSrc={xIcon} onClick={() => {}}>
-                Share to X
-              </SocialButton>
-            </Link>
-          </div>
-        )
+        return null
     }
   }
 
@@ -260,10 +239,10 @@ export default function CompanyRegistrationForm() {
   }
 
   return (
-    <Layout isRaw>
-      <div className="w-full bg-white">
-        <div className="bg-white px-4 py-4 max-w-3xl mx-auto">
-          <SectionWrapper className="mx-auto min-h-[85vh]">
+    <MainLayout>
+      <div className="w-full ">
+        <div className=" px-4 py-4 max-w-3xl mx-auto">
+          <SectionWrapper className="mx-auto  ">
             <h1 className="text-[2.4rem] font-medium mb-3 font-primary leading-10">
               Register your company info.
             </h1>
@@ -275,21 +254,21 @@ export default function CompanyRegistrationForm() {
             >
               {currentStep === 3 ? (
                 <InfoSection
-                  title="Instructions:"
+                  title="One more step:"
                   iconSrc={bookIcon}
                   color="neutral"
                 >
-                  <p className="text-base font-secondary text-neutral-800 bg-neutral-100">
-                    Great, you&apos;re all signed up! Make sure you share the
-                    Accelerator on social media using our hashtag{' '}
-                    <Link
-                      href="https://www.linkedin.com/search/results/all/?keywords=%23LyRiseAIAccelerator"
-                      className="font-bold"
-                    >
-                      #LyRiseAIAccelerator
-                    </Link>{' '}
-                    to get the most votes.
+                  <p className="text-[20px] font-secondary text-neutral-800 bg-neutral-100">
+                    To confirm your registration, you need to
                   </p>
+                  <a
+                    href="https://calendly.com/elena-lyrise/30min"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="group relative text-[20px] font-[400] flex items-center justify-center gap-2 p-2 px-5 leading-[24px]  rounded-[30px] text-white bg-new-black transition-colors hover:bg-new-black/85 "
+                  >
+                    Book a Meeting
+                  </a>
                 </InfoSection>
               ) : null}
               <h2 className="text-rose-500 font-bold mb-6 font-primary mt-3">
@@ -297,7 +276,7 @@ export default function CompanyRegistrationForm() {
                   ? 'Company Info'
                   : currentStep === 2
                   ? 'Contact Info'
-                  : 'Share to win!'}
+                  : ''}
               </h2>
               {renderFormStep()}
               {currentStep !== 3 ? (
@@ -323,6 +302,6 @@ export default function CompanyRegistrationForm() {
           </SectionWrapper>
         </div>
       </div>
-    </Layout>
+    </MainLayout>
   )
 }

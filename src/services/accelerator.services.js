@@ -44,8 +44,9 @@ export async function registerCompany(data) {
   try {
     return await api.post('/leaderboard/', data)
   } catch (error) {
-    window.alert(error.response?.data?.error || 'Failed to register company')
-    return error
+    const errorMessage =
+      error.response?.data?.error || 'Failed to register company'
+    throw new Error(errorMessage)
   }
 }
 
