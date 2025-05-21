@@ -47,7 +47,7 @@ export default function Index() {
 
   return (
     <MainLayout>
-      {/* <AcceleratorPromo /> */}
+      <AcceleratorPromo />
       <HeroSection />
       <LogoSection />
       <PlugnHireSection />
