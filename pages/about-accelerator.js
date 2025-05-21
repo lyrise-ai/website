@@ -8,12 +8,13 @@ import infoIcon from '@assets/info.svg'
 import Link from 'next/link'
 
 import CloseIcon from '@assets/icons/closeIcon'
+import MainLayout from '../src/layout'
 
 export default function AboutAccelerator() {
   return (
-    <Layout isRaw>
-      <div className="bg-white w-full">
-        <main className="relative flex items-center justify-center flex-col p-3 gap-3 bg-white max-w-7xl mx-auto mb-[30vh]">
+    <MainLayout>
+      <div className=" w-full">
+        <main className="relative flex items-center justify-center flex-col p-3 gap-3  max-w-7xl mx-auto mb-[30vh]">
           <Link
             href="/accelerator"
             className="absolute right-2 top-2 rounded-sm opacity-70 hover:opacity-100 focus:outline-none"
@@ -38,7 +39,7 @@ export default function AboutAccelerator() {
           <RegisterBottomSheet withHowItWorksLink />
         </main>
       </div>
-    </Layout>
+    </MainLayout>
   )
 }
 function HowItWorksSection() {

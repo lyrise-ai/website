@@ -12,6 +12,7 @@ import Link from 'next/link'
 export default function Leaderboard({ openVoteRegisterDialog }) {
   const [companies, setCompanies] = useState([])
   const [expandedCompany, setExpandedCompany] = useState(null)
+  const [isLoading, setIsLoading] = useState(true)
   const { email } = useWeakAuth()
 
   const updateLeaderboard = (newData) => {
@@ -32,7 +33,10 @@ export default function Leaderboard({ openVoteRegisterDialog }) {
   }, [])
 
   const fetchCompanies = () => {
-    getLeaderboard().then(updateCompanies)
+    setIsLoading(true)
+    getLeaderboard()
+      .then(updateCompanies)
+      .finally(() => setIsLoading(false))
   }
 
   const updateCompanies = (newCompanies) => {
@@ -50,7 +54,7 @@ export default function Leaderboard({ openVoteRegisterDialog }) {
   const sortedCompanies = [...companies].sort((a, b) => b.score - a.score)
 
   return (
-    <>
+    <div className="w-full min-w-[80vw] md:min-w-[50vw]">
       {email && (
         <SectionWrapper className="border-1 border-neutral-200">
           <h1 className="text-sm font-medium font-primary text-green-600">
@@ -58,26 +62,32 @@ export default function Leaderboard({ openVoteRegisterDialog }) {
           </h1>
         </SectionWrapper>
       )}
-      <SectionWrapper
-        title="Leaderboard"
-        className="[&>*:nth-child(2)]:border-2 [&>*:nth-child(2)]:border-rose-600 min-h-[60vh] !justify-start"
-      >
-        {sortedCompanies?.map((company, index) => (
-          <LeaderboardCompanyCard
-            company={company}
-            key={company.id}
-            index={index}
-            openVoteRegisterDialog={openVoteRegisterDialog}
-            fetchCompanies={fetchCompanies}
-            setExpandedCompany={setExpandedCompany}
-          />
-        ))}
-        {sortedCompanies.length === 0 && (
-          <div className="text-neutral-500 text-center font-secondary text-base border-none">
-            No companies registered yet.
-          </div>
-        )}
-      </SectionWrapper>
+      {isLoading ? (
+        <div className="flex items-center justify-center w-full h-full">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-rose-600"></div>
+        </div>
+      ) : (
+        <SectionWrapper
+          title="Leaderboard"
+          className="[&>*:nth-child(2)]:border-2 [&>*:nth-child(2)]:border-rose-600 min-h-[60vh] !justify-start"
+        >
+          {sortedCompanies?.map((company, index) => (
+            <LeaderboardCompanyCard
+              company={company}
+              key={company.id}
+              index={index}
+              openVoteRegisterDialog={openVoteRegisterDialog}
+              fetchCompanies={fetchCompanies}
+              setExpandedCompany={setExpandedCompany}
+            />
+          ))}
+          {sortedCompanies.length === 0 && (
+            <div className="text-neutral-500 text-center font-secondary text-base border-none">
+              No companies registered yet.
+            </div>
+          )}
+        </SectionWrapper>
+      )}
       <CompanyDetailsDialog
         company={expandedCompany}
         setCompany={setExpandedCompany}
@@ -89,7 +99,7 @@ export default function Leaderboard({ openVoteRegisterDialog }) {
             : null
         }
       />
-    </>
+    </div>
   )
 }
 

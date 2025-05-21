@@ -16,10 +16,13 @@ module.exports = {
         'primary-50': '#EFF2FF',
         facebook: '#1877F2',
         main: 'rgba(41, 87, 255, 1)',
+        'new-black': '#2C2C2C',
       },
       fontFamily: {
         primary: 'Space Grotesk',
         secondary: 'Poppins',
+        outfit: 'Outfit',
+        toxigenesis: 'Toxigenesis',
         'space-grotesk': 'Space Grotesk',
         poppins: 'Poppins',
       },

@@ -3,9 +3,12 @@ import amplitude from 'amplitude-js'
 import Script from 'next/script'
 import * as React from 'react'
 import ReactGA from 'react-ga'
-import { ToastContainer } from 'react-toastify'
-// import { FlagsProvider } from '../src/providers/RemoteConfigFirebase/FlagsProvider'
 import NewLanding from '../src/components/NewLanding'
+import MainLayout from '../src/layout'
+import HeroSection from '../src/components/MainLandingPage/HeroSection'
+import AcceleratorPromo from '../src/components/NewLanding/accelerator-promo'
+import LogoSection from '../src/components/MainLandingPage/LogoSection'
+import PlugnHireSection from '../src/components/MainLandingPage/PlugnHireSection'
 
 export default function Index() {
   React.useEffect(() => {
@@ -43,32 +46,11 @@ export default function Index() {
   }, [])
 
   return (
-    <>
-      {/* <Script
-        type="text/javascript"
-        id="hs-script-loader"
-        async
-        src="//js.hs-scripts.com/8514634.js"
-        strategy="lazyOnload"
-      /> */}
-      <ToastContainer />
-      {/* <FlagsProvider> */}
-      {/* <MembersSection /> this puts extra margin in the children's for loop in the layout.js */}
-      {/* <ExpertSection /> */}
-      {/* 🟢 old landing page */}
-      {/* <Layout>
-        <HeroSection />
-        <LeaveToLyRise cards={expertsSection} />
-        <TopPartners />
-        <HiringType />
-        <GoogleStartups />
-        <AISection />
-        <ForbesSection />
-        <FAQSection />
-      </Layout> */}
-      {/* 🟢 new landing page */}
-      <NewLanding />
-      {/* </FlagsProvider> */}
-    </>
+    <MainLayout>
+      <AcceleratorPromo />
+      <HeroSection />
+      <LogoSection />
+      <PlugnHireSection />
+    </MainLayout>
   )
 }

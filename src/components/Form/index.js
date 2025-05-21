@@ -16,6 +16,7 @@ const FormInput = ({
   required = true,
   pattern,
   maxLength,
+  className,
 }) => (
   <div>
     <label htmlFor={name} className="block text-sm mb-1 font-secondary">
@@ -31,13 +32,21 @@ const FormInput = ({
         required={required}
         pattern={pattern}
         maxLength={maxLength}
-        className={`w-full px-2 py-2 border rounded-md focus:outline-none`}
+        className={`w-full px-2 py-2 border rounded-md focus:outline-none ${className}`}
       />
     </label>
   </div>
 )
 
-const FormSelect = ({ label, name, value, onChange, options, placeholder }) => (
+const FormSelect = ({
+  label,
+  name,
+  value,
+  onChange,
+  options,
+  placeholder,
+  className,
+}) => (
   <div>
     <label htmlFor={name} className="block text-sm mb-1 font-secondary">
       {label}
@@ -48,7 +57,7 @@ const FormSelect = ({ label, name, value, onChange, options, placeholder }) => (
         value={value}
         onChange={onChange}
         required
-        className={`w-full px-2 py-2 border rounded-md focus:outline-none appearance-none bg-white`}
+        className={`w-full px-2 py-2 border rounded-md focus:outline-none appearance-none bg-white ${className}`}
       >
         <option value="">{placeholder}</option>
         {options.map((option) => (
@@ -75,6 +84,7 @@ function FormPhoneInput({
   onChange,
   required = true,
   maxLength,
+  className,
 }) {
   return (
     <div>
@@ -107,8 +117,8 @@ function FormPhoneInput({
               borderRight: '1px solid transparent',
             },
           }}
-          defaultCountry="qa"
-          countries={countries}
+          defaultCountry="us"
+          countries={defaultCountries}
         />
       </label>
     </div>

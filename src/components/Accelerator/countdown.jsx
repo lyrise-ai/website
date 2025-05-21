@@ -6,7 +6,7 @@ const Countdown = ({
   timestamp = Date.now() + 100000,
   withoutWrapper = false,
 }) => {
-  const usedTimestamp = new Date(2025, 0, 1).getTime()
+  const usedTimestamp = new Date(2025, 4, 26).getTime()
 
   // Initialize with null to prevent hydration mismatch
   const [mounted, setMounted] = useState(false)

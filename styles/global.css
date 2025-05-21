@@ -50,6 +50,35 @@
   font-weight: 600;
 }
 
+@font-face {
+  font-family: Outfit;
+  src: url('../fonts/Outfit-Regular.ttf') format('truetype');
+  font-weight: 400;
+}
+
+@font-face {
+  font-family: Outfit;
+  src: url('../fonts/Outfit-Medium.ttf') format('truetype');
+  font-weight: 500;
+}
+
+@font-face {
+  font-family: Outfit;
+  src: url('../fonts/Outfit-SemiBold.ttf') format('truetype');
+  font-weight: 600;
+}
+@font-face {
+  font-family: Outfit;
+  src: url('../fonts/Outfit-Bold.ttf') format('truetype');
+  font-weight: 700;
+}
+
+@font-face {
+  font-family: Toxigenesis;
+  src: url('../fonts/Toxigenesis.otf') format('opentype');
+  font-weight: 700;
+}
+
 :root {
   --section-spacing: 120px;
   --section-padding: 40px;
@@ -536,6 +565,23 @@ abbr {
 .react-international-phone-input-container:focus-within {
   outline: 2px solid rgb(82 139 255);
   border-radius: 0.375rem;
+}
+
+.rebranding-landing-page {
+  background-color: #f8f8f8;
+}
+
+.rebranding-landing-page .custom-container {
+  width: 100%;
+  margin-right: auto;
+  margin-left: auto;
+  padding-right: 2.4rem /* 22.4px */;
+  padding-left: 2.4rem /* 22.4px */;
+}
+
+@media (min-width: 1400px) {
+  .rebranding-landing-page .custom-container {
+  }
 }
 
 .custom-landing-pages {
