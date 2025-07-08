@@ -10,9 +10,9 @@ function HeroSection() {
       >
         <div className="custom-container w-full flex items-center justify-center relative ">
           <div className=" flex flex-col gap-[25px]">
-            <PlugnnHireBtn />
+            {/* <PlugnnHireBtn /> */}
             <GetYourAgentBtn />
-            <CommingSoonBtn />
+            {/* <CommingSoonBtn /> */}
           </div>
         </div>
       </section>
