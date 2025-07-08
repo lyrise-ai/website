@@ -10,6 +10,13 @@ import AcceleratorPromo from '../src/components/NewLanding/accelerator-promo'
 import LogoSection from '../src/components/MainLandingPage/LogoSection'
 import PlugnHireSection from '../src/components/MainLandingPage/PlugnHireSection'
 import VideoSection from '../src/components/MainLandingPage/VideoSection'
+import LogosMarquee from '../src/components/MainLandingPage/LogosMarquee'
+import HowItWorksSection from '../src/components/MainLandingPage/HowItWorksSection'
+import OurGuarantee from '../src/components/MainLandingPage/OurGuarantee'
+import OurExperts from '../src/components/MainLandingPage/OurExperts'
+import MediaEvents from '../src/components/MainLandingPage/MediaEvents'
+import CaseStudies from '../src/components/MainLandingPage/CaseStudies'
+import LastSection from '../src/components/MainLandingPage/LastSection'
 
 export default function Index() {
   React.useEffect(() => {
@@ -48,11 +55,18 @@ export default function Index() {
 
   return (
     <MainLayout>
-      <AcceleratorPromo />
+      {/* <AcceleratorPromo /> */}
       <HeroSection />
-      <LogoSection />
-      <PlugnHireSection />
-      <VideoSection />
+      <LogosMarquee />
+      <HowItWorksSection />
+      <OurGuarantee />
+      {/* <PlugnHireSection /> */}
+      <CaseStudies />
+      <OurExperts />
+      {/* <LogoSection /> */}
+      <MediaEvents />
+      <LastSection />
+      {/* <VideoSection /> */}
     </MainLayout>
   )
 }

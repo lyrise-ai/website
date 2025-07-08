@@ -9,8 +9,8 @@ const logoNumbers = 8
 
 function LogoSection() {
   return (
-    <div className="mt-[30vh] md:mt-[-150px] lg:mt-[-50px]">
-      <h1 className=" text-center text-[36px] leading-[100%] font-bold text-new-black font-outfit">
+    <div className="mb-[25vh]">
+      <h1 className=" text-center text-[32px] leading-[100%] font-semibold text-new-black font-outfit">
         Associated with
       </h1>
       <div className="flex justify-center items-center flex-wrap  gap-[8vw]">

@@ -154,23 +154,20 @@ export default function MyApp(props) {
           </title>
           <meta
             name="description"
-            content={`${
-              description ||
+            content={`${description ||
               'Helping you Adopt AI, by either developing your AI Solutions or Hiring The Top AI Developers for you!'
-            }`}
+              }`}
           />
           <meta
             property="og:title"
-            content={`${
-              title || 'LyRise AI: The Platform to Adopt AI Easier and Faster'
-            }`}
+            content={`${title || 'LyRise AI: The Platform to Adopt AI Easier and Faster'
+              }`}
           />
           <meta
             property="og:description"
-            content={`${
-              description ||
+            content={`${description ||
               'Helping you Adopt AI, by either developing your AI Solutions or Hiring The Top AI Developers for you!'
-            }`}
+              }`}
           />
           <meta
             property="og:image"
@@ -187,9 +184,7 @@ export default function MyApp(props) {
         <ThemeProvider theme={theme}>
           {/* CssBaseline kickstart an elegant, consistent, and simple baseline to build upon. */}
           <CssBaseline />
-          <LenisProvider>
-            <Component {...pageProps} />
-          </LenisProvider>
+          <Component {...pageProps} />
           <noscript>
             <iframe
               src="https://www.googletagmanager.com/ns.html?id=GTM-MF93SZM"
