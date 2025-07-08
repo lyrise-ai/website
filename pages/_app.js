@@ -150,7 +150,7 @@ export default function MyApp(props) {
           <link rel="icon" href="/images/LogoIcon.ico" />
           <meta name="theme-color" content="#6666ff" />
           <title>
-            {title || 'LyRise AI: The Platform to Adopt AI Easier and Faster'}
+            {title || 'LyRise AI: The Platform For SMEs To 3X Profits'}
           </title>
           <meta
             name="description"
@@ -160,13 +160,13 @@ export default function MyApp(props) {
           />
           <meta
             property="og:title"
-            content={`${title || 'LyRise AI: The Platform to Adopt AI Easier and Faster'
+            content={`${title || 'LyRise AI: The Platform For SMEs To 3X Profits'
               }`}
           />
           <meta
             property="og:description"
             content={`${description ||
-              'Helping you Adopt AI, by either developing your AI Solutions or Hiring The Top AI Developers for you!'
+              'LyRise AI: The Platform For SMEs To 3X Profits'
               }`}
           />
           <meta
