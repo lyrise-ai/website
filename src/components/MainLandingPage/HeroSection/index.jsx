@@ -22,17 +22,17 @@ function HeroSection() {
         <div className="flex flex-col items-center gap-10">
           <div className="flex flex-col items-center justify-start gap-2 md:gap-0">
             <h2 className="font-space-grotesk text-center text-[32px] leading-[100%] font-bold text-new-black ">
-              AI Agents for
+              The Platform For
             </h2>
             <h2 className="font-space-grotesk text-center text-[32px] leading-[100%] font-bold text-new-black ">
-              Operational Teams
+              SMEs To 3X Profits
             </h2>
           </div>
           <a
             href="https://calendly.com/elena-lyrise/30min"
             target="_blank"
             rel="noopener noreferrer"
-            className="group relative text-[18px] lg:text-[24px] flex items-center justify-center gap-2 p-1 lg:p-2 px-2 lg:px-4 leading-[24px]  rounded-[30px] text-white bg-new-black transition-colors hover:bg-new-black/85 "
+            className="group relative text-[18px] lg:text-[24px] flex items-center justify-center gap-2 p-1 lg:p-2 px-4 lg:px-4 leading-[24px]  rounded-[30px] text-white bg-new-black transition-colors hover:bg-new-black/85 "
           >
             Get Your AI Agent
           </a>
