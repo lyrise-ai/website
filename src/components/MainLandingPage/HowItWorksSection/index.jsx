@@ -2,6 +2,7 @@ import React, { useContext, useRef } from 'react'
 import { motion, useScroll, useTransform } from 'framer-motion'
 import HowItWorksCard from './HowItWorksCard'
 import styles from './styles.module.css'
+import { useMediaQuery } from '@mui/material'
 
 const content = {
   title: 'How It Works',
@@ -30,6 +31,7 @@ const content = {
 }
 
 function HowItWorksSection() {
+  const maxWidth768 = useMediaQuery('(max-width: 768px)')
   const { title, text, steps, subtext } = content || {}
 
   const targetRef = useRef(null)
@@ -44,10 +46,12 @@ function HowItWorksSection() {
         <section
           id={'Section3'}
           ref={targetRef}
-          className="relative lg:h-[350vh] xl:h-[300vh] bg-transparent mb-[10vh] md:mb-[5vh] lg:mb-[0vh] xl:mb-0 mt-[-10vh]"
+          className="relative lg:h-[350vh] xl:h-[300vh] bg-transparent mb-[10vh] md:mb-[5vh] lg:mb-[0vh] xl:mb-0 md:mt-[-10vh]"
         >
           <div
-            className={`lg:sticky lg:section1-bg top-0 flex flex-col gap-[20px] md:gap-[30px] lg:h-screen lg:overflow-hidden ${styles.bg}`}
+            className={`lg:sticky lg:section1-bg top-0 flex flex-col gap-[20px] md:gap-[30px] lg:h-screen lg:overflow-hidden ${
+              maxWidth768 ? '' : styles.bg
+            }`}
           >
             <div className="w-full flex flex-col items-start justify-end gap-2 md:gap-3 relative z-2 lg:mb-[-10vh] mt-[10vh] lg:mt-[20vh] px-[10vw]">
               <h3 className="drop-shadow-[0px_0px_12.58px_#B1BAE559] text-[#2C2C2C] font-outfit font-[700] text-[28px] md:text-[30px] lg:text-[40px] lg:w-[30vw]">

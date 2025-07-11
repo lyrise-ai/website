@@ -320,21 +320,17 @@ function CaseStudies() {
       <section>
         <div className="w-full flex flex-col gap-12 text-white py-10 mb-12 px-0">
           {/* Header Section */}
-          <div className="flex flex-col gap-3 mx-[11vw]">
+          <div className="flex flex-col gap-3 xl:mx-[11vw] px-5 xl:px-0">
             <div className="flex flex-col gap-1">
               {/* title */}
-              <h1 className="text-[32px] leading-[100%] font-semibold text-new-black font-outfit mb-2">
+              <h1 className="text-[32px] leading-[100%] font-semibold text-new-black font-outfit md:mb-2">
                 {title}
               </h1>
-              {/* subtitle */}
-              <p className="text-lg text-new-black leading-[120%] ">
-                {subtitle}
-              </p>
             </div>
           </div>
 
           {/* Cards Section */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-9 max-w-6xl w-full mx-[11vw]">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-9 max-w-6xl w-full xl:mx-[11vw] px-5 xl:px-0">
             {cards.map((card) => (
               <div
                 key={card.index}
