@@ -86,9 +86,9 @@ function MediaEvents() {
   return (
     <>
       <section id="Section7">
-        <div className="w-full flex flex-col gap-12 text-white  mb-[20vh]">
+        <div className="w-full flex flex-col gap-12 text-white  mb-[20vh] mt-[10vh] md:mt-0">
           {/* Header Section */}
-          <div className="flex flex-col gap-3 mx-[11vw]">
+          <div className="flex flex-col gap-3 xl:mx-[11vw] px-5 xl:px-0">
             <div className="flex flex-col gap-1">
               {/* title */}
               <h1 className="text-[32px] leading-[100%] font-semibold text-new-black font-outfit mb-2">
@@ -98,18 +98,24 @@ function MediaEvents() {
               <p className="text-lg text-new-black leading-[120%] ">
                 {subtitle}
               </p>
-              <p className="text-lg text-new-black leading-[120%]">{text}</p>
+              <p className="text-lg text-new-black leading-[120%] mt-2 md:mt-0">
+                {text}
+              </p>
             </div>
           </div>
 
           {/* Cards Section */}
-          <div className="grid grid-cols-1 lg:grid-cols-4 gap-9 max-w-6xl w-full mx-[11vw]">
-            {cards.map((card) => (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-9 max-w-6xl w-full xl:mx-[11vw] px-5 xl:px-0">
+            {cards.map((card, index) => (
               <Link
                 href={card.link}
                 target="_blank"
                 key={card.index}
-                className={`${styles.security_card} ${'xl:hover:scale-[1.1]'}`}
+                className={`${styles.security_card} ${'xl:hover:scale-[1.1]'} ${
+                  index === 3
+                    ? 'lg:col-start-2 lg:col-end-3 xl:col-start-auto xl:col-end-auto'
+                    : ''
+                }`}
                 onMouseEnter={() => setIsHovered(true)}
                 onMouseLeave={() => setIsHovered(false)}
               >
@@ -125,7 +131,7 @@ function MediaEvents() {
                   <h3 className="text-[20px] font-[700] font-outfit leading-[120%] ">
                     {card.title}
                   </h3>
-                  <p className="text-[15px] font-[400] font-outfit leading-[120%]">
+                  <p className="text-[15px] font-[400] font-outfit leading-[120%] ">
                     {card.description}
                   </p>
                 </div>
