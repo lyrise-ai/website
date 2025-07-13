@@ -16,21 +16,6 @@ const Main = () => {
         className={`h-full flex justify-between gap-4 p-[40px_36px]
  rounded-[4px]  ${styles.mainFooter}`}
       >
-        <div className="flex gap-[83px] flex-wrap">
-          {/* first column */}
-          <FooterColumn
-            heading={headingEnum.EMPLOYERS}
-            links={footerLinksOne}
-          />
-          {/* 2nd column */}
-          <FooterColumn heading={headingEnum.TALENTS} links={footerLinksTwo} />
-          {/* 3rd column - Form */}
-          <FooterColumn
-            heading={headingEnum.COMPANY}
-            links={footerLinksThree}
-          />
-        </div>
-
         {/* 4th column - Form */}
         <div className="flex flex-col gap-[60px]">
           {/* <div className="rounded-lg bg-white shadow-[0px_6px_12px_0px_#00229E1C] flex flex-col gap-4 p-6 justify-center"> */}

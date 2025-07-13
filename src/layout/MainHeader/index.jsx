@@ -16,24 +16,24 @@ const BUTTONS = [
 ]
 
 const NAVIGATIONS = [
-  {
-    id: 'nav_0',
-    label: 'Our Products',
-    path: '/',
-    isPage: false,
-  },
+  // {
+  //   id: 'nav_0',
+  //   label: 'Our Products',
+  //   path: '/',
+  //   isPage: false,
+  // },
   {
     id: 'nav_1',
-    label: 'Blog',
+    label: 'Our Blog',
     path: 'https://blog.lyrise.ai/',
     isPage: false,
   },
-  {
-    id: 'nav_2',
-    label: 'Who are we?',
-    path: '/about',
-    isPage: true,
-  },
+  // {
+  //   id: 'nav_2',
+  //   label: 'Who are we?',
+  //   path: '/about',
+  //   isPage: true,
+  // },
 
   // {
   //   id: 'nav_3',
@@ -76,10 +76,11 @@ export default function MainHeader() {
                     scrollToSection(path)
                   }
                 }}
-                className={`text-[20px] font-[600] leading-[19.2px] inline-block relative after:absolute after:start-1/2 after:-translate-x-1/2 after:bottom-[1px] after:h-[1px] after:w-full after:transition-transform after:scale-0 hover:after:scale-100 after:rounded-full cursor-pointer ${label === 'AI Accelerator'
-                  ? 'text-[#DE0000] after:bg-[#DE0000] '
-                  : 'text-new-black after:bg-new-black '
-                  }`}
+                className={`text-[20px] font-[600] leading-[19.2px] inline-block relative after:absolute after:start-1/2 after:-translate-x-1/2 after:bottom-[1px] after:h-[1px] after:w-full after:transition-transform after:scale-0 hover:after:scale-100 after:rounded-full cursor-pointer ${
+                  label === 'AI Accelerator'
+                    ? 'text-[#DE0000] after:bg-[#DE0000] '
+                    : 'text-new-black after:bg-new-black '
+                }`}
               >
                 {label}
               </div>

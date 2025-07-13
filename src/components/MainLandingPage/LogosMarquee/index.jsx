@@ -41,9 +41,9 @@ function LogosMarquee() {
         className={styles.logo_section}
         style={{ marginTop: '10vh' }}
       >
-        <h1 className=" text-center md:text-[32px] text-[24px] leading-[100%] font-semibold text-new-black font-outfit md:mb-[10vh] mb-[2vh]">
-          People We Worked With
-        </h1>
+        <h3 className="drop-shadow-[0px_0px_12.58px_#B1BAE559] text-[#2C2C2C] font-outfit font-[700] text-[28px] md:text-[30px] lg:text-[40px] text-center mb-10">
+          Companies we worked with
+        </h3>
         <MarqueeWrapper>
           <div className="flex items-center gap-[20px] pe-[20px] md:gap-[50px] md:pe-[50px]">
             {logos.map((logo, index) => (

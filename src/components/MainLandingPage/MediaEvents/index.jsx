@@ -91,9 +91,9 @@ function MediaEvents() {
           <div className="flex flex-col gap-3 xl:mx-[11vw] px-5 xl:px-0">
             <div className="flex flex-col gap-1">
               {/* title */}
-              <h1 className="text-[32px] leading-[100%] font-semibold text-new-black font-outfit mb-2">
+              <h3 className="drop-shadow-[0px_0px_12.58px_#B1BAE559] text-[#2C2C2C] font-outfit font-[700] text-[28px] md:text-[30px] lg:text-[40px] lg:w-[30vw]">
                 {title}
-              </h1>
+              </h3>
               {/* subtitle */}
               <p className="text-lg text-new-black leading-[120%] ">
                 {subtitle}
