@@ -4,11 +4,7 @@ import MobileFooter from './MobileFooter'
 
 function MainFooter() {
   const mobile = useMediaQuery('(max-width: 887px)')
-  return (
-    <footer className="w-full h-full mt-auto">
-      {mobile ? <MobileFooter /> : <Main />}
-    </footer>
-  )
+  return <footer className="w-full h-full mt-auto">{<Main />}</footer>
 }
 
 export default MainFooter

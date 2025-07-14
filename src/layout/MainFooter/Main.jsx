@@ -12,25 +12,22 @@ import FooterColumn from './FooterColumn'
 const Main = () => {
   return (
     <footer className="p-[60px_10%]">
-      <div
-        className={`h-full flex justify-between gap-4 p-[40px_36px]
- rounded-[4px]  ${styles.mainFooter}`}
-      >
-        {/* 4th column - Form */}
-        <div className="grid grid-cols-[1fr_0.6fr] gap-[60px]">
-          {/* <div className="rounded-lg bg-white shadow-[0px_6px_12px_0px_#00229E1C] flex flex-col gap-4 p-6 justify-center"> */}
-
-          {/* logo */}
-          <div className="flex justify-center w-full">
+      <div className={`${styles.mainFooter} rounded-[4px] p-[40px_36px]`}>
+        {/* Horizontal layout with logo and booking card on opposite sides */}
+        <div className="flex flex-col md:flex-row items-center justify-around gap-[60px] w-full">
+          {/* Logo section - Left side */}
+          <div className="flex justify-center items-center">
             <Image
               src={WhiteLyRiseLogo}
-              width={105}
-              height={37}
+              width={250}
+              height={80}
               alt="LyRise Logo"
             />
           </div>
-          <div className={styles.bookMeetingCard}>
-            <div className="text-[18px] md:text-[24px]  font-semibold leading-[24px] text-white">
+
+          {/* Booking card section - Right side */}
+          <div className={`${styles.bookMeetingCard} max-w-[400px]`}>
+            <div className="text-[18px] md:text-[24px] font-semibold leading-[24px] text-white text-center">
               Book an AI Consultation Now!
             </div>
 
