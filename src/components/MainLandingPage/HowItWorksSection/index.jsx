@@ -46,7 +46,7 @@ function HowItWorksSection() {
         <section
           id={'Section3'}
           ref={targetRef}
-          className="relative lg:h-[350vh] xl:h-[300vh] bg-transparent mb-[10vh] md:mb-[5vh] lg:mb-[0vh] xl:mb-0 md:mt-[-10vh]"
+          className="relative lg:h-[350vh] xl:h-[300vh] bg-transparent mb-[10vh] md:mb-[5vh] lg:mb-[0vh] xl:mb-0 md:mt-[-15vh]"
         >
           <div
             className={`lg:sticky lg:section1-bg top-0 flex flex-col gap-[20px] md:gap-[30px] lg:h-screen lg:overflow-hidden ${

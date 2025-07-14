@@ -6,17 +6,17 @@ import LyriseLogo from '../../../assets/rebranding/lyriselogo.png'
 function LastSection() {
   return (
     <div className={styles.bg}>
-      <div className="flex justify-center items-center h-full">
+      <div className="flex justify-center items-center h-full md:flex-row flex-col md:py-10">
         <div>
-          <Image src={LyriseLogo} alt="Lyrise Logo" className="mx-[10vw]" />
+          <Image src={LyriseLogo} alt="Lyrise Logo" className="md:mx-[10vw]" />
         </div>
-        <div className="flex flex-col gap-3">
-          <div className="flex flex-col gap-3 mr-[10vw]">
-            <h3 className="text-[24px] font-[400] text-white mb-2 font-outfit leading-[120%] w-[30vw]">
+        <div className="flex flex-col gap-3 justify-center items-center md:items-start ">
+          <div className="flex flex-col gap-3 md:mr-[10vw] mx-[10vw] md:mx-0">
+            <h3 className="text-[28px] font-[500] text-white mb-2 font-outfit leading-[120%] md:w-[30vw] w-full ">
               The journey to transforming your business starts with a
               conversation.
             </h3>
-            <p className="w-[30vw] text-[16px] font-[400] text-white mb-2 font-outfit leading-[120%]">
+            <p className="md:w-[30vw] w-full text-center md:text-left text-[18px] font-[400] text-white mb-2 font-outfit leading-[120%]">
               Let’s map your process, show you the opportunities for
               improvement, and demonstrate how we can help you achieve 3x
               profits. No pressure, no commitment—just results.
@@ -26,9 +26,9 @@ function LastSection() {
             href="https://calendly.com/elena-lyrise/30min"
             target={'_blank'}
             rel="noopener noreferrer"
-            className="w-fit mt-[5vh] bg-white text-black rounded-full px-8 py-3 text-[16px] font-semibold"
+            className="w-fit mt-[5vh] mb-10 md:mb-0 bg-white text-black rounded-full px-8 py-3 text-[16px] font-semibold"
           >
-            Book Your Free Consultation
+            Book Your Consultation
           </a>
         </div>
       </div>

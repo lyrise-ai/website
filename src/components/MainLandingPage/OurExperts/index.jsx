@@ -93,7 +93,7 @@ function OurExperts() {
 
   return (
     <>
-      <section id="Section5" className="pb-12 md:mb-[25vh] mt-[15vh]">
+      <section id="Section5" className="pb-12 md:mb-[15vh] mt-[15vh]">
         <div className="container flex flex-col items-center justify-center gap-6">
           <div className="flex flex-col items-center gap-2">
             <h3 className="drop-shadow-[0px_0px_12.58px_#B1BAE559] text-[#2C2C2C] font-outfit font-[700] text-[28px] md:text-[30px] lg:text-[40px] lg:w-[30vw]">

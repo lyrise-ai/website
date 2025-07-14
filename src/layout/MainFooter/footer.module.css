@@ -10,7 +10,7 @@
   border-bottom: 0.227px solid #b1bae5;
   border-left: 0.227px solid #b1bae5;
   background: #2c2c2c;
-  width: fit-content;
+  width: 100%;
 }
 
 .bookMeetingBtn {

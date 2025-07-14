@@ -44,52 +44,62 @@ function OurGuarantee() {
 
   return (
     <>
-      <div className="hidden lg:flex items-center justify-center my-[10vh]">
-        <div
-          className={`${styles.bg} flex justify-center items-start  flex-row  w-[95vw] lg:w-[80vw] xl:w-[90vw]  `}
-        >
-          <div className="flex flex-col ms-0 !w-[30vw] mt-[10vh] border-r pr-[5vw] mr-[5vw]">
-            <div className="flex flex-col gap-3">
-              <p className="text-[24px] font-[400] text-[#2C2C2C] mb-2 font-outfit leading-[120%]">
-                If we can’t show you how to make $30K/month or 3x your current
-                profits, we won’t work with you.
-              </p>
-              <h3 className="text-[20px] font-bold text-[#2c2c2c] mb-2 font-outfit leading-[120%]">
-                No upfront costs, no hidden fees—just results.
-              </h3>
-            </div>
-
-            <a
-              href="https://calendly.com/elena-lyrise/30min"
-              target={'_blank'}
-              rel="noopener noreferrer"
-              className="w-fit mt-[5vh] bg-black text-white rounded-full px-8 py-3 text-[16px] font-semibold hover:bg-gray-900 transition-colors duration-200"
-            >
-              Start now
-            </a>
+      <div className="hidden lg:flex items-center justify-center my-[8vh] mb-5 ">
+        <div className="flex flex-col items-center justify-center gap-2">
+          <div className="flex flex-col items-center justify-center gap-2">
+            <h3 className="text-[#2C2C2C] font-outfit font-[700] text-[28px] md:text-[30px] lg:text-[40px] leading-[120%]">
+              Our Guarantee
+            </h3>
+            <p className="text-center text-[18px] text-new-black font-outfit">
+              Results-Guaranteed or You Don’t Pay
+            </p>
           </div>
-          <div className="flex flex-col justify-center gap-0 rounded-[20px] max-w-[420px] h-[50vh] mt-[-40px]">
-            <h2 className="text-center text-[28px] font-bold text-black mb-2 border-b  pb-2">
-              Our Promise
-            </h2>
-            <ul className="flex flex-col gap-1 mb-4 mt-2">
-              <li className="flex items-start gap-2 text-[16px] text-new-black font-outfit">
-                <span className="text-new-black ">&#10003;</span>
-                <span>Transparent Process Mapping</span>
-              </li>
-              <li className="flex items-start gap-2 text-[16px] text-new-black font-outfit">
-                <span className="text-new-black ">&#10003;</span>
-                <span>Custom AI Solutions Tailored to Your Needs</span>
-              </li>
-              <li className="flex items-start gap-2 text-[16px] text-new-black font-outfit">
-                <span className="text-new-black ">&#10003;</span>
-                <span>Guaranteed Results</span>
-              </li>
-              <li className="flex items-start gap-2 text-[16px] text-new-black font-outfit">
-                <span className="text-new-black ">&#10003;</span>
-                <span>Pay Only When You See Profit Improvement</span>
-              </li>
-            </ul>
+          <div
+            className={`bg-[#ececec] rounded-[20px] px-[10vw] grid grid-cols-[1fr_0.6fr]  w-[80vw]`}
+          >
+            <div className="flex flex-col ms-0  mt-[10vh] border-r pr-[1vw] mr-[6vw]">
+              <div className="flex flex-col gap-3">
+                <p className="text-[24px] font-[400] text-[#2C2C2C] mb-2 font-outfit leading-[120%]">
+                  If we can’t show you how to make $30K/month or 3x your current
+                  profits, we won’t work with you.
+                </p>
+                <h3 className="text-[20px] font-bold text-[#2c2c2c] mb-2 font-outfit leading-[120%]">
+                  No upfront costs, no hidden fees—just results.
+                </h3>
+              </div>
+
+              <a
+                href="https://calendly.com/elena-lyrise/30min"
+                target={'_blank'}
+                rel="noopener noreferrer"
+                className="w-fit mt-[5vh] bg-black text-white rounded-full px-8 py-3 text-[16px] font-semibold hover:bg-gray-900 transition-colors duration-200"
+              >
+                Start now
+              </a>
+            </div>
+            <div className="flex flex-col justify-center gap-0 rounded-[20px] h-[50vh] mt-[-40px]">
+              <h2 className="text-center text-[28px] font-bold text-black mb-2 border-b  pb-2">
+                Our Promise
+              </h2>
+              <ul className="flex flex-col gap-1 mb-4 mt-2">
+                <li className="flex items-start gap-2 text-[16px] text-new-black font-outfit">
+                  <span className="text-new-black ">&#10003;</span>
+                  <span>Transparent Process Mapping</span>
+                </li>
+                <li className="flex items-start gap-2 text-[16px] text-new-black font-outfit">
+                  <span className="text-new-black ">&#10003;</span>
+                  <span>Custom AI Solutions Tailored to Your Needs</span>
+                </li>
+                <li className="flex items-start gap-2 text-[16px] text-new-black font-outfit">
+                  <span className="text-new-black ">&#10003;</span>
+                  <span>Guaranteed Results</span>
+                </li>
+                <li className="flex items-start gap-2 text-[16px] text-new-black font-outfit">
+                  <span className="text-new-black ">&#10003;</span>
+                  <span>Pay Only When You See Profit Improvement</span>
+                </li>
+              </ul>
+            </div>
           </div>
         </div>
       </div>

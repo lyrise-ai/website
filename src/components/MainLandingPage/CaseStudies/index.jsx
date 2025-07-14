@@ -330,7 +330,7 @@ function CaseStudies() {
           </div>
 
           {/* Cards Section */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-9 max-w-6xl w-full xl:mx-[11vw] px-5 xl:px-0">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-9 w-full xl:px-[11vw] px-5">
             {cards.map((card) => (
               <div
                 key={card.index}

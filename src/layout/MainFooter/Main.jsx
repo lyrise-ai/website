@@ -17,8 +17,18 @@ const Main = () => {
  rounded-[4px]  ${styles.mainFooter}`}
       >
         {/* 4th column - Form */}
-        <div className="flex flex-col gap-[60px]">
+        <div className="grid grid-cols-[1fr_0.6fr] gap-[60px]">
           {/* <div className="rounded-lg bg-white shadow-[0px_6px_12px_0px_#00229E1C] flex flex-col gap-4 p-6 justify-center"> */}
+
+          {/* logo */}
+          <div className="flex justify-center w-full">
+            <Image
+              src={WhiteLyRiseLogo}
+              width={105}
+              height={37}
+              alt="LyRise Logo"
+            />
+          </div>
           <div className={styles.bookMeetingCard}>
             <div className="text-[18px] md:text-[24px]  font-semibold leading-[24px] text-white">
               Book an AI Consultation Now!
@@ -35,15 +45,6 @@ const Main = () => {
                 </button>
               </a>
             </div>
-          </div>
-          {/* logo */}
-          <div className="flex justify-center w-full">
-            <Image
-              src={WhiteLyRiseLogo}
-              width={105}
-              height={37}
-              alt="LyRise Logo"
-            />
           </div>
         </div>
       </div>

@@ -59,13 +59,14 @@ export default function Index() {
       <HeroSection />
       <LogosMarquee />
       <HowItWorksSection />
+      <LastSection />
+
       <OurGuarantee />
       {/* <PlugnHireSection /> */}
       <CaseStudies />
       <OurExperts />
       {/* <LogoSection /> */}
       <MediaEvents />
-      <LastSection />
       {/* <VideoSection /> */}
     </MainLayout>
   )
