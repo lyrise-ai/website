@@ -4,6 +4,7 @@ import Image from 'next/legacy/image'
 import styles from './styles.module.css'
 import { useMediaQuery } from '@mui/material'
 import PlugnHireMobile from '../../../assets/rebranding/plugnhire-logo.svg'
+import { WaitlistModal } from './WaitlistModal'
 
 const content = [
   {
@@ -51,7 +52,7 @@ function OurGuarantee() {
               Our Guarantee
             </h3>
             <p className="text-center text-[18px] text-new-black font-outfit">
-              Results-Guaranteed or You Don’t Pay
+              Results-Guaranteed or You Don&apos;t Pay
             </p>
           </div>
           <div
@@ -60,22 +61,19 @@ function OurGuarantee() {
             <div className="flex flex-col ms-0  mt-[10vh] border-r pr-[1vw] mr-[6vw]">
               <div className="flex flex-col gap-3">
                 <p className="text-[24px] font-[400] text-[#2C2C2C] mb-2 font-outfit leading-[120%]">
-                  If we can’t show you how to make $30K/month or 3x your current
-                  profits, we won’t work with you.
+                  If we can&apos;t show you how to make $30K/month or 3x your
+                  current profits, we won&apos;t work with you.
                 </p>
                 <h3 className="text-[20px] font-bold text-[#2c2c2c] mb-2 font-outfit leading-[120%]">
                   No upfront costs, no hidden fees—just results.
                 </h3>
               </div>
 
-              <a
-                href="https://calendly.com/elena-lyrise/30min"
-                target={'_blank'}
-                rel="noopener noreferrer"
-                className="w-fit mt-[5vh] bg-black text-white rounded-full px-8 py-3 text-[16px] font-semibold hover:bg-gray-900 transition-colors duration-200"
-              >
-                Start now
-              </a>
+              <WaitlistModal
+                triggerLabel="Start now"
+                triggerClassName="mt-[5vh] bg-black text-white rounded-full px-8 py-3 text-[16px] font-semibold hover:bg-gray-900 transition-colors duration-200"
+                showIcon={false}
+              />
             </div>
             <div className="flex flex-col justify-center gap-0 rounded-[20px] h-[50vh] mt-[-40px]">
               <h2 className="text-center text-[28px] font-bold text-black mb-2 border-b  pb-2">
@@ -110,29 +108,26 @@ function OurGuarantee() {
             Our Guarantee
           </h1>
           <p className="text-center text-[16px] text-new-black font-outfit">
-            Results-Guaranteed or You Don’t Pay
+            Results-Guaranteed or You Don&apos;t Pay
           </p>
         </div>
         <div className="flex items-center justify-center flex-col sm:flex-row gap-2 bg-[#ececec] rounded-[20px] p-2  pt-5 w-full px-10">
           <div className="flex flex-col ms-0  w-[50vw] border-r pr-[5vw] mr-[5vw]">
             <div className="flex flex-col gap-3">
               <p className="text-[20px] font-[400] text-[#2C2C2C] mb-2 font-outfit leading-[120%] ">
-                If we can’t show you how to make $30K/month or 3x your current
-                profits, we won’t work with you.
+                If we can&apos;t show you how to make $30K/month or 3x your
+                current profits, we won&apos;t work with you.
               </p>
               <h3 className="text-[18px] font-bold text-[#2c2c2c] mb-2 font-outfit leading-[120%] ">
                 No upfront costs, no hidden fees—just results.
               </h3>
             </div>
 
-            <a
-              href="https://calendly.com/elena-lyrise/30min"
-              target={'_blank'}
-              rel="noopener noreferrer"
-              className="w-fit mt-[5vh] bg-black text-white rounded-full px-8 py-3 text-[16px] font-semibold hover:bg-gray-900 transition-colors duration-200 text-center"
-            >
-              Start now
-            </a>
+            <WaitlistModal
+              triggerLabel="Start now"
+              triggerClassName="mt-[5vh] bg-black text-white rounded-full px-8 py-3 text-[16px] font-semibold hover:bg-gray-900 transition-colors duration-200 text-center"
+              showIcon={false}
+            />
           </div>
 
           <div className="flex flex-col justify-center gap-0 rounded-[20px] max-w-[420px] h-[50vh] mt-[-40px] ">

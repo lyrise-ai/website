@@ -14,12 +14,12 @@ const content = {
         {
           id: 'pwc',
           name: 'PwC',
-          logo: 'pwc.webp',
+          logo: 'pwc.png',
         },
         {
           id: 'udacity',
           name: 'Udacity',
-          logo: 'udacity.webp',
+          logo: 'udacity.png',
         },
       ],
     },
@@ -32,12 +32,12 @@ const content = {
         {
           id: 'sympl',
           name: 'Sympl',
-          logo: 'sympl.webp',
+          logo: 'sympl.png',
         },
         {
           id: 'visa',
           name: 'Visa',
-          logo: 'visa.webp',
+          logo: 'visa.png',
         },
       ],
     },
@@ -50,7 +50,7 @@ const content = {
         {
           id: 'vodafone',
           name: 'Vodafone',
-          logo: 'vodafone.webp',
+          logo: 'vodafone.png',
         },
       ],
     },
@@ -63,7 +63,7 @@ const content = {
         {
           id: 'userpilot',
           name: 'Userpilot',
-          logo: 'userpilot.webp',
+          logo: 'userpilot.png',
         },
       ],
     },
@@ -76,12 +76,12 @@ const content = {
         {
           id: 'procter-&-gamble',
           name: 'Procter & Gamble',
-          logo: 'p&g.webp',
+          logo: 'p&g.png',
         },
         {
           id: 'career-foundry',
           name: 'Career Foundry',
-          logo: 'cf.webp',
+          logo: 'cf.png',
         },
       ],
     },

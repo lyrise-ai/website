@@ -16,28 +16,13 @@ import {
 
 // Validation schema using Yup
 const WaitlistSchema = Yup.object().shape({
-  firstName: Yup.string().required('First name is required'),
-  lastName: Yup.string().required('Last name is required'),
+  name: Yup.string().required('Name is required'),
+  company: Yup.string().required('Company is required'),
+  mobile: Yup.string().required('Mobile number is required'),
   email: Yup.string()
     .email('Invalid email address')
-    .required('Email is required')
-    .test('is-business-email', 'Please use a business email', (value) => {
-      if (!value) return false
-      // Common personal email domains to exclude
-      const personalDomains = [
-        'gmail.com',
-        'yahoo.com',
-        'hotmail.com',
-        'outlook.com',
-        'aol.com',
-        'icloud.com',
-        'protonmail.com',
-        'mail.com',
-        'zoho.com',
-      ]
-      const domain = value.split('@')[1]
-      return !personalDomains.includes(domain)
-    }),
+    .required('Email is required'),
+  message: Yup.string().required('Please tell us how we can help you'),
 })
 
 export function WaitlistModal({
@@ -110,16 +95,24 @@ export function WaitlistModal({
             </Typography>
 
             <Formik
-              initialValues={{ firstName: '', lastName: '', email: '' }}
+              initialValues={{
+                name: '',
+                company: '',
+                mobile: '',
+                email: '',
+                message: '',
+              }}
               validationSchema={WaitlistSchema}
               onSubmit={(values, { setSubmitting, resetForm }) => {
                 const formData = new FormData()
-                formData.append('first_name', values.firstName)
-                formData.append('last_name', values.lastName)
+                formData.append('name', values.name)
+                formData.append('company', values.company)
+                formData.append('mobile', values.mobile)
                 formData.append('email', values.email)
+                formData.append('message', values.message)
 
                 fetch(
-                  'https://script.google.com/macros/s/AKfycbzzaZRCfgzXPzt2Hs5BK_BctBhTvZhTuwE4CmdZe5IeVgJ39DEX5QgY6hOsmawWcCYx/exec',
+                  'https://script.google.com/a/macros/lyrise.ai/s/AKfycbxe6U1sG51W6nWi9sCIhs_wsPRcczmUveEpqJ4DTzks8lpkddmhF2UXYGAzK9fmg_e-/exec',
                   {
                     method: 'POST',
                     body: formData,
@@ -140,9 +133,9 @@ export function WaitlistModal({
                     as={TextField}
                     fullWidth
                     size="small"
-                    id="firstName"
-                    name="firstName"
-                    label="First Name"
+                    id="name"
+                    name="name"
+                    label="Name"
                     margin="dense"
                     sx={{
                       '& .MuiOutlinedInput-root': {
@@ -154,17 +147,17 @@ export function WaitlistModal({
                         '&.Mui-focused fieldset': { borderColor: '#4f46e5' },
                       },
                     }}
-                    error={touched.firstName && Boolean(errors.firstName)}
-                    helperText={touched.firstName && errors.firstName}
+                    error={touched.name && Boolean(errors.name)}
+                    helperText={touched.name && errors.name}
                   />
 
                   <Field
                     as={TextField}
                     fullWidth
                     size="small"
-                    id="lastName"
-                    name="lastName"
-                    label="Last Name"
+                    id="company"
+                    name="company"
+                    label="Company"
                     margin="dense"
                     sx={{
                       '& .MuiOutlinedInput-root': {
@@ -176,8 +169,30 @@ export function WaitlistModal({
                         '&.Mui-focused fieldset': { borderColor: '#4f46e5' },
                       },
                     }}
-                    error={touched.lastName && Boolean(errors.lastName)}
-                    helperText={touched.lastName && errors.lastName}
+                    error={touched.company && Boolean(errors.company)}
+                    helperText={touched.company && errors.company}
+                  />
+
+                  <Field
+                    as={TextField}
+                    fullWidth
+                    size="small"
+                    id="mobile"
+                    name="mobile"
+                    label="Mobile Number"
+                    margin="dense"
+                    sx={{
+                      '& .MuiOutlinedInput-root': {
+                        borderRadius: '8px',
+                        backgroundColor: '#f9fafb',
+                        boxShadow: '0 1px 2px rgba(0,0,0,0.05)',
+                        '& fieldset': { borderColor: '#e5e7eb' },
+                        '&:hover fieldset': { borderColor: '#d1d5db' },
+                        '&.Mui-focused fieldset': { borderColor: '#4f46e5' },
+                      },
+                    }}
+                    error={touched.mobile && Boolean(errors.mobile)}
+                    helperText={touched.mobile && errors.mobile}
                   />
 
                   <Field
@@ -186,7 +201,8 @@ export function WaitlistModal({
                     size="small"
                     id="email"
                     name="email"
-                    label="Business Email"
+                    label="Email"
+                    type="email"
                     margin="dense"
                     sx={{
                       '& .MuiOutlinedInput-root': {
@@ -200,6 +216,30 @@ export function WaitlistModal({
                     }}
                     error={touched.email && Boolean(errors.email)}
                     helperText={touched.email && errors.email}
+                  />
+
+                  <Field
+                    as={TextField}
+                    fullWidth
+                    size="small"
+                    id="message"
+                    name="message"
+                    label="How can we help you?"
+                    multiline
+                    rows={3}
+                    margin="dense"
+                    sx={{
+                      '& .MuiOutlinedInput-root': {
+                        borderRadius: '8px',
+                        backgroundColor: '#f9fafb',
+                        boxShadow: '0 1px 2px rgba(0,0,0,0.05)',
+                        '& fieldset': { borderColor: '#e5e7eb' },
+                        '&:hover fieldset': { borderColor: '#d1d5db' },
+                        '&.Mui-focused fieldset': { borderColor: '#4f46e5' },
+                      },
+                    }}
+                    error={touched.message && Boolean(errors.message)}
+                    helperText={touched.message && errors.message}
                   />
 
                   <Button
