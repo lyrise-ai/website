@@ -80,7 +80,7 @@ const GetYourAgentBtn = () => {
       className={`${styles.floatingBtn1} absolute rounded-full w-fit  p-2 px-3 flex flex-row items-center justify-center gap-3 cursor-pointer ml-[-115px] `}
     >
       <a
-        href="https://lyrai-chat.lyrise.ai/signup"
+        href="https://calendly.com/elena-lyrise/30min"
         target="_blank"
         rel="noopener noreferrer"
         className="group relative text-[18px] lg:text-[24px] flex items-center justify-center gap-2 p-1 lg:p-2 px-2 lg:px-4 leading-[24px]  rounded-[30px] text-white bg-new-black transition-colors hover:bg-new-black/85 "

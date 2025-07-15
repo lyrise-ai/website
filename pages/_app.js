@@ -173,13 +173,13 @@ export default function MyApp(props) {
           />
           <meta
             property="og:image"
-            content="https://lyrise.ai/images/lyrise-logo.jpg"
+            content="https://i.ibb.co/VYtV50zn/lyrise-logo.jpg"
           />
           <meta property="og:type" content="website" />
           <meta property="og:url" content="https://lyrise.ai/" />
           <link
             rel="apple-touch-icon"
-            href="https://lyrise.ai/images/lyrise-logo.jpg"
+            href="https://i.ibb.co/VYtV50zn/lyrise-logo.jpg"
           />
           <link rel="manifest" href="manifest.json" />
         </Head>

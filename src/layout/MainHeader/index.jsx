@@ -11,7 +11,7 @@ const BUTTONS = [
   {
     id: 'btn_0',
     label: 'Get your AI Agent',
-    path: 'https://lyrai-chat.lyrise.ai/signup',
+    path: 'https://calendly.com/elena-lyrise/30min',
   },
 ]
 
