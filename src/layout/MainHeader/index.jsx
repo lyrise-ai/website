@@ -75,7 +75,7 @@ export default function MainHeader() {
                     scrollToSection(path)
                   }
                 }}
-                className={`text-[20px] font-[600] leading-[19.2px] inline-block relative after:absolute after:start-1/2 after:-translate-x-1/2 after:bottom-[1px] after:h-[1px] after:w-full after:transition-transform after:scale-0 hover:after:scale-100 after:rounded-full cursor-pointer ${
+                className={`text-[20px] font-[600] leading-[19.2px] inline-block relative after:absolute after:start-1/2 after:-translate-x-1/2 after:bottom-[1px] after:h-[1px] after:w-full after:transition-transform after:scale-0 hover:after:scale-100 after:rounded-full cursor-pointer font-outfit ${
                   label === 'AI Accelerator'
                     ? 'text-[#DE0000] after:bg-[#DE0000] '
                     : 'text-new-black after:bg-new-black '
@@ -92,7 +92,7 @@ export default function MainHeader() {
             <WaitlistModal>
               <div
                 key={path}
-                className="cursor-pointer group relative text-[20px] font-[400] flex items-center justify-center gap-2 p-2 px-5 leading-[24px]  rounded-[30px] text-white bg-new-black transition-colors hover:bg-new-black/85 "
+                className="cursor-pointer group relative text-[22px] font-[400] flex items-center justify-center gap-2 p-2 px-5 leading-[24px]  rounded-[30px] text-white bg-new-black transition-colors hover:bg-new-black/85 font-outfit"
               >
                 {label}
               </div>

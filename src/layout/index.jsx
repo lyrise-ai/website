@@ -7,7 +7,7 @@ function MainLayout({ children }) {
     <main className="w-full min-h-screen h-full relative rebranding-landing-page flex flex-col">
       <MainHeader />
       {children}
-      <MainFooter />
+      {/* <MainFooter /> */}
     </main>
   )
 }
