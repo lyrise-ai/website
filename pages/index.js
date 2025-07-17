@@ -17,6 +17,7 @@ import OurExperts from '../src/components/MainLandingPage/OurExperts'
 import MediaEvents from '../src/components/MainLandingPage/MediaEvents'
 import CaseStudies from '../src/components/MainLandingPage/CaseStudies'
 import LastSection from '../src/components/MainLandingPage/LastSection'
+import NewTestimonials from '../src/components/MainLandingPage/NewTestimonials'
 
 export default function Index() {
   React.useEffect(() => {
@@ -60,13 +61,13 @@ export default function Index() {
       <LogosMarquee />
       <HowItWorksSection />
       <LastSection />
-
       <OurGuarantee />
       {/* <PlugnHireSection /> */}
       <CaseStudies />
       <OurExperts />
       {/* <LogoSection /> */}
       <MediaEvents />
+      <NewTestimonials />
       {/* <VideoSection /> */}
     </MainLayout>
   )

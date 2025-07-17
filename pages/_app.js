@@ -154,22 +154,19 @@ export default function MyApp(props) {
           </title>
           <meta
             name="description"
-            content={`${
-              description ||
+            content={`${description ||
               'Helping you Adopt AI, by either developing your AI Solutions or Hiring The Top AI Developers for you!'
-            }`}
+              }`}
           />
           <meta
             property="og:title"
-            content={`${
-              title || 'LyRise AI: The Platform For Company To 3X Profits'
-            }`}
+            content={`${title || 'LyRise AI: The Platform For Company To 3X Profits'
+              }`}
           />
           <meta
             property="og:description"
-            content={`${
-              description || 'LyRise AI: The Platform For Company To 3X Profits'
-            }`}
+            content={`${description || 'LyRise AI: The Platform For Company To 3X Profits'
+              }`}
           />
           <meta
             property="og:image"

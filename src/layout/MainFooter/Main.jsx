@@ -8,6 +8,7 @@ import {
 } from '../../components/Layout/Footer/FooterData'
 import Image from 'next/legacy/image'
 import FooterColumn from './FooterColumn'
+import { WaitlistModal } from '../../components/MainLandingPage/OurGuarantee/WaitlistModal'
 
 const Main = () => {
   return (
@@ -32,15 +33,11 @@ const Main = () => {
             </div>
 
             <div className="w-full">
-              <a
-                href="https://calendly.com/elena-lyrise/30min"
-                target={'_blank'}
-                rel="noopener noreferrer"
-              >
+              <WaitlistModal>
                 <button className={styles.bookMeetingBtn} type="button">
                   Book a Meeting
                 </button>
-              </a>
+              </WaitlistModal>
             </div>
           </div>
         </div>

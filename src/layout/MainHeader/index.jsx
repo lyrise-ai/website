@@ -6,6 +6,7 @@ import { scrollToSection } from '../../utilities/helpers'
 import MainHeaderMobile from './MainHeaderMobile'
 import { useRouter } from 'next/navigation'
 import styles from './styles.module.css'
+import { WaitlistModal } from '../../components/MainLandingPage/OurGuarantee/WaitlistModal'
 
 const BUTTONS = [
   {
@@ -53,17 +54,15 @@ export default function MainHeader() {
       <div
         className={`custom-container flex items-center justify-between gap-4 py-3 ${styles.navbar}`}
       >
-        <Link href="/" title="LyRise">
-          <div className="h-[36px]">
-            <Image
-              src={Logo}
-              alt="LyRise AI"
-              width={120}
-              height={40}
-              objectFit="contain"
-            />
-          </div>
-        </Link>
+        <div className="h-[36px]">
+          <Image
+            src={Logo}
+            alt="LyRise AI"
+            width={120}
+            height={40}
+            objectFit="contain"
+          />
+        </div>
 
         <ul className="hidden lg:flex items-center gap-10 font-outfit font-normal text-new-black">
           {NAVIGATIONS.map(({ label, path, isPage }) => (
@@ -90,15 +89,14 @@ export default function MainHeader() {
 
         <div className="hidden lg:block">
           {BUTTONS.map(({ label, path }) => (
-            <a
-              key={path}
-              href={path}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="group relative text-[20px] font-[400] flex items-center justify-center gap-2 p-2 px-5 leading-[24px]  rounded-[30px] text-white bg-new-black transition-colors hover:bg-new-black/85 "
-            >
-              {label}
-            </a>
+            <WaitlistModal>
+              <div
+                key={path}
+                className="cursor-pointer group relative text-[20px] font-[400] flex items-center justify-center gap-2 p-2 px-5 leading-[24px]  rounded-[30px] text-white bg-new-black transition-colors hover:bg-new-black/85 "
+              >
+                {label}
+              </div>
+            </WaitlistModal>
           ))}
         </div>
 

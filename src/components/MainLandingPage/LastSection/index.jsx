@@ -2,11 +2,12 @@ import React from 'react'
 import styles from './styles.module.css'
 import Image from 'next/image'
 import LyriseLogo from '../../../assets/rebranding/lyriselogo.png'
+import { WaitlistModal } from '../OurGuarantee/WaitlistModal'
 
 function LastSection() {
   return (
     <div className={styles.bg}>
-      <div className="flex justify-center items-center h-full md:flex-row flex-col md:py-10">
+      <div className="flex justify-center items-center h-full md:flex-row flex-col md:py-10 mb-[4vh]">
         <div>
           <Image src={LyriseLogo} alt="Lyrise Logo" className="md:mx-[10vw]" />
         </div>
@@ -22,14 +23,11 @@ function LastSection() {
               profits. No pressure, no commitment—just results.
             </p>
           </div>
-          <a
-            href="https://calendly.com/elena-lyrise/30min"
-            target={'_blank'}
-            rel="noopener noreferrer"
-            className="w-fit mt-[5vh] mb-10 md:mb-0 bg-white text-black rounded-full px-8 py-3 text-[16px] font-semibold"
-          >
-            Book Your Consultation
-          </a>
+          <WaitlistModal>
+            <div className="cursor-pointer hover:bg-gray-200 transition-all duration-300 w-fit mt-[5vh] mb-10 md:mb-0 bg-white text-black rounded-full px-8 py-3 text-[16px] font-semibold">
+              Book Your Consultation
+            </div>
+          </WaitlistModal>
         </div>
       </div>
     </div>

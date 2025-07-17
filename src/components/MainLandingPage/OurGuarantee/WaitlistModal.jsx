@@ -28,7 +28,8 @@ const WaitlistSchema = Yup.object().shape({
 export function WaitlistModal({
   triggerLabel = 'Join Waitlist',
   triggerClassName = '',
-  showIcon = true,
+  showIcon = false,
+  children = null,
 }) {
   const [openModal, setOpenModal] = useState(false)
 
@@ -53,15 +54,19 @@ export function WaitlistModal({
 
   return (
     <>
-      <div
-        onClick={() => setOpenModal(true)}
-        className={`group w-fit  flex items-center gap-2 px-5 py-2 cursor-pointer rounded-[4px] text-white  ${triggerClassName}`}
-      >
-        {triggerLabel}
-        {showIcon && (
-          <ArrowForwardIcon className="transition-transform group-hover:translate-x-1 !size-6" />
-        )}
-      </div>
+      {children ? (
+        <div onClick={() => setOpenModal(true)}>{children}</div>
+      ) : (
+        <div
+          onClick={() => setOpenModal(true)}
+          className={`group w-fit  flex items-center gap-2 px-5 py-2 cursor-pointer rounded-[4px] text-white  ${triggerClassName}`}
+        >
+          {triggerLabel}
+          {showIcon && (
+            <ArrowForwardIcon className="transition-transform group-hover:translate-x-1 !size-6" />
+          )}
+        </div>
+      )}
 
       <Modal
         open={openModal}
@@ -91,7 +96,7 @@ export function WaitlistModal({
                 fontSize: { xs: '1.25rem', sm: '1.5rem' },
               }}
             >
-              Let&apos;s get in touch
+              Let&apos;s get in touch!
             </Typography>
 
             <Formik
@@ -123,8 +128,15 @@ export function WaitlistModal({
                     setSubmitting(false)
                     resetForm()
                     onCloseModal()
+                    window.open(
+                      'https://calendly.com/elena-lyrise/30min',
+                      '_blank',
+                    )
                   })
                   .catch((err) => console.log(err))
+                  .finally(() => {
+                    setSubmitting(false)
+                  })
               }}
             >
               {({ isSubmitting, errors, touched }) => (
@@ -256,9 +268,14 @@ export function WaitlistModal({
                       fontWeight: 600,
                       backgroundColor: '#000',
                       '&:hover': { backgroundColor: '#111' },
+                      '&:disabled': {
+                        backgroundColor: '#ccc',
+                        color: '#666',
+                        cursor: 'not-allowed',
+                      },
                     }}
                   >
-                    {isSubmitting ? 'Submitting...' : 'Submit'}
+                    {isSubmitting ? 'Loading...' : 'Book a Meeting'}
                   </Button>
                 </Form>
               )}
