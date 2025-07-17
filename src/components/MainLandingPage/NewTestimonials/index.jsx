@@ -16,7 +16,6 @@ const content = {
       index: 0,
       name: 'Robert Pratt',
       jobTitle: 'Head of Data Science',
-      email: 'rprattuk@gmail.com',
       whatSaid:
         'Scale, Speed & Owning Problems are three reasons why I would wholeheartedly recommend LyRise.',
 
@@ -27,7 +26,6 @@ const content = {
       index: 1,
       name: 'Melissa Pegus',
       jobTitle: 'Managing Director',
-      email: 'melissa.pegus@techstars.com',
       whatSaid:
         'LyRise’s innovative approach to talent acquisition and management has the capacity to fundamentally transform the way companies are built.',
 
@@ -38,7 +36,6 @@ const content = {
       index: 2,
       name: 'Ranjan Dharmaraja',
       jobTitle: 'Founder & CEO',
-      email: '',
       whatSaid:
         'LyRise helped Quantrax build strong AI models fast, enabling success in a tough industry. Highly recommended.',
 
@@ -85,11 +82,6 @@ function NewTestimonials() {
                   <p className="text-[#2C2C2C] font-outfit font-[400] text-[16px] opacity-80 leading-[120%]">
                     {card.jobTitle}
                   </p>
-                  {card.email && (
-                    <p className="text-[#2C2C2C] font-outfit font-[400] text-[14px] opacity-60 italic leading-[120%]">
-                      {card.email}
-                    </p>
-                  )}
                 </div>
               </div>
 
