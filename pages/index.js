@@ -60,7 +60,7 @@ export default function Index() {
       <HeroSection />
       <LogosMarquee />
       <HowItWorksSection />
-      <LastSection />
+      {/* <LastSection /> */}
       <OurGuarantee />
       {/* <PlugnHireSection /> */}
       <CaseStudies />
