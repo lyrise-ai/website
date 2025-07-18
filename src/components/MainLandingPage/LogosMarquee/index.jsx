@@ -43,7 +43,7 @@ function LogosMarquee() {
         <MarqueeWrapper>
           <div className="flex items-center gap-[20px] pe-[20px] md:gap-[50px] md:pe-[50px]">
             {logos.map((logo, index) => (
-              <div className="flex items-center justify-center  md:px-10 px-5 py-2 bg-[#2C2C2C5C] rounded-[8px] hover:scale-105 transition-all duration-300 cursor-pointer">
+              <div className="flex items-center justify-center  md:px-10 px-5 py-2 bg-[#2C2C2C5C] rounded-[8px] hover:scale-105 transition-all duration-300 ">
                 <Image
                   key={`logo-${index + 1}`}
                   src={logo.src}
