@@ -74,7 +74,7 @@ function AiAgents() {
   const isMobile = useMediaQuery('(max-width: 768px)')
 
   return (
-    <section className="bg-[#F8F9FA] py-16 mt-[10vh]">
+    <section className="bg-[#F8F9FA] py-16 mt-[10vh] mb-[10vh]">
       <div className="w-full flex flex-col gap-12 px-5 xl:px-[11vw]">
         {/* Header Section */}
         <div className="flex flex-col gap-3 text-center md:text-left">
