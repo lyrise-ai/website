@@ -60,7 +60,7 @@ const MainHeaderMobile = ({ navigation, buttons }) => {
                 />
               </div>
               <div className="text-[16px] leading-[120%] text-new-black">
-                LyRise AI: The Platform to Adopt AI Easier and Faster
+                LyRise AI: The Platform For Companies To 3X Profits.
               </div>
             </div>
           </div>
