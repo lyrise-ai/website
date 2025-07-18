@@ -45,7 +45,7 @@ function OurGuarantee() {
 
   return (
     <>
-      <div className="hidden lg:flex items-center justify-center my-[8vh] mb-5 ">
+      <div className="hidden lg:flex items-center justify-center my-[10vh] mt-[6vh]">
         <div className="flex flex-col items-center justify-center gap-2">
           <div className="flex flex-col items-center justify-center gap-2">
             <h3 className="text-[#2C2C2C] font-outfit font-[700] text-[28px] md:text-[30px] lg:text-[40px] leading-[120%] mb-4">
