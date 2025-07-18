@@ -75,7 +75,7 @@ export default function MainHeader() {
                     scrollToSection(path)
                   }
                 }}
-                className={`text-[20px] font-[600] leading-[19.2px] inline-block relative after:absolute after:start-1/2 after:-translate-x-1/2 after:bottom-[1px] after:h-[1px] after:w-full after:transition-transform after:scale-0 hover:after:scale-100 after:rounded-full cursor-pointer font-outfit ${
+                className={`text-[20px] font-[600] leading-[19.2px] inline-block relative after:absolute after:start-1/2 after:-translate-x-1/2 after:bottom-[1px] after:h-[1px] after:w-full after:transition-transform after:scale-0 hover:after:scale-100 after:rounded-full cursor-pointer font-outfit  ${
                   label === 'AI Accelerator'
                     ? 'text-[#DE0000] after:bg-[#DE0000] '
                     : 'text-new-black after:bg-new-black '

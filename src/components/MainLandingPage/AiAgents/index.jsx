@@ -6,6 +6,7 @@ import {
   People as PeopleIcon,
   TrendingUp as TrendingUpIcon,
 } from '@mui/icons-material'
+import { WaitlistModal } from '../OurGuarantee/WaitlistModal'
 
 const iconComponents = {
   finance: AttachMoneyIcon,
@@ -17,7 +18,7 @@ const iconComponents = {
 const content = {
   title: 'AI Agent Customization',
   subtitle:
-    'After the roadmap, we implement the most impactful automation flows using custom AI agents. These agents reduce manual effort across operations—legal, finance, HR, sales, and compliance.',
+    'After the roadmap, we implement the most impactful automation flows using custom AI agents. These agents reduce manual effort across operations—legal, finance, HR, sales, and others.',
   cards: [
     {
       title: 'Finance AI Agent',
@@ -101,6 +102,18 @@ function AiAgents() {
               icon={card.icon}
             />
           ))}
+        </div>
+        <div className="rounded-[16px] bg-[#000000] p-3 px-[5vw] w-fit mx-auto">
+          <div className="text-white font-outfit font-[400] text-[18px] md:text-[20px] lg:text-[28px] leading-[110%] ">
+            <span className="inline">
+              <WaitlistModal>
+                Got an AI Agent Idea?{' '}
+                <span className=" font-medium cursor-pointer">
+                  <b> Let&apos;s Build It!</b>
+                </span>
+              </WaitlistModal>
+            </span>
+          </div>
         </div>
       </div>
     </section>
