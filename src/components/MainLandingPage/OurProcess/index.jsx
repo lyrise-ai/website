@@ -125,13 +125,35 @@ function OurProcess() {
               <p className="text-[#3f3f3f] font-outfit font-[700] text-[16px] md:text-[20px] lg:text-[24px] leading-[110%]">
                 Includes:
               </p>
-              <p className="text-[#3f3f3f] font-outfit font-[400] text-[16px] md:text-[20px] lg:text-[24px] leading-[110%]">
-                2-week workshop with stakeholders BPMN-based process map
-                Time/cost/role tagging Throughput + cost analysis ROI calculator
-              </p>
-              <p className="text-[#3f3f3f] font-outfit font-[400] text-[16px] md:text-[20px] lg:text-[24px] leading-[110%]">
-                AI + Automation Roadmap (2–5x profit potential)
-              </p>
+              <div className="text-[#3f3f3f] font-outfit font-[400] text-[16px] md:text-[20px] lg:text-[24px] leading-[110%] ml-6">
+                <div className="flex items-start gap-2 mb-1">
+                  <span className="text-black font-bold">•</span>
+                  <span>2-week workshop with stakeholders</span>
+                </div>
+                <div className="flex items-start gap-2 mb-1">
+                  <span className="text-black font-bold">•</span>
+                  <span>BPMN-based process map</span>
+                </div>
+                <div className="flex items-start gap-2 mb-1">
+                  <span className="text-black font-bold">•</span>
+                  <span>Time/cost/role tagging</span>
+                </div>
+                <div className="flex items-start gap-2 mb-1">
+                  <span className="text-black font-bold">•</span>
+                  <span>Throughput + cost analysis</span>
+                </div>
+                <div className="flex items-start gap-2 mb-1">
+                  <span className="text-black font-bold">•</span>
+                  <span>
+                    ROI calculator: AI + Automation Roadmap (2–5x profit
+                    potential)
+                  </span>
+                </div>
+              </div>
+              {/* <p className="text-[#3f3f3f] font-outfit font-[700] text-[16px] md:text-[20px] lg:text-[24px] leading-[110%]"> */}
+
+              {/* </p> */}
+              <p className="text-[#3f3f3f] font-outfit font-[400] text-[16px] md:text-[20px] lg:text-[24px] leading-[110%]"></p>
             </div>
           </div>
           <div className="flex flex-col gap-4">

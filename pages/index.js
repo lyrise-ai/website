@@ -65,9 +65,9 @@ export default function Index() {
       <HeroSection />
       <div className="flex flex-col gap-10 sm:gap-[5vh] md:gap-[10vh]">
         <LogosMarquee />
+        <HowItWorksSection />
         <OurProcess />
         <AiAgents />
-        <HowItWorksSection />
         <OurGuarantee />
         <CaseStudies />
         <OurExperts />
