@@ -21,7 +21,9 @@ const ROIVisualization = () => {
         {/* Left side - ROI Circle */}
         <div className="relative">
           <div className="mb-2">
-            <span className="text-gray-600 font-medium text-lg">ROI</span>
+            <span className="text-gray-600 font-medium text-lg md:text-2xl">
+              ROI
+            </span>
           </div>
           <div className="relative w-40 lg:w-60 h-40 lg:h-60">
             {/* Background circle */}
