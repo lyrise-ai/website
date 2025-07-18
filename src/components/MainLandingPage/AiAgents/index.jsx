@@ -79,17 +79,17 @@ function AiAgents() {
     <section className="bg-[#F8F9FA] py-16 ">
       <div className="w-full flex flex-col gap-12 px-5 xl:px-[11vw]">
         {/* Header Section */}
-        <div className="flex flex-col gap-3 text-center md:text-left">
+        <div className="flex flex-col gap-3 md:gap-7 text-center md:text-left">
           <div className="flex flex-col gap-2">
             {/* Title */}
             <h2 className="text-[#2C2C2C] font-outfit font-[700] text-[28px] md:text-[32px] lg:text-[40px] leading-[120%]">
               {title}
             </h2>
             {/* Subtitle */}
-            <p className="text-[#666666] font-outfit font-[400] text-[16px] md:text-[18px] lg:text-[20px] leading-[140%] max-w-[600px] mx-auto md:mx-0">
-              {subtitle}
-            </p>
           </div>
+          <p className="text-[#3f3f3f] font-outfit font-[400] text-[16px] md:text-[20px] lg:text-[24px] leading-[110%]">
+            {subtitle}
+          </p>
         </div>
 
         {/* Cards Section */}
