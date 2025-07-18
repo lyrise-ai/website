@@ -86,7 +86,7 @@ function MediaEvents() {
   return (
     <>
       <section id="Section7">
-        <div className="w-full flex flex-col gap-12 text-white  mb-[20vh] mt-[10vh] md:mt-0">
+        <div className="w-full flex flex-col gap-12 text-white  ">
           {/* Header Section */}
           <div className="flex flex-col gap-3 xl:mx-[11vw] px-5 xl:px-0">
             <div className="flex flex-col gap-1">

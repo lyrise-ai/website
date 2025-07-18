@@ -59,21 +59,22 @@ export default function Index() {
   return (
     <MainLayout>
       {/* <AcceleratorPromo /> */}
-      <HeroSection />
-      <LogosMarquee />
-      <OurProcess />
-      <AiAgents />
-      <HowItWorksSection />
-      {/* <LastSection /> */}
-      <OurGuarantee />
       {/* <PlugnHireSection /> */}
-      <CaseStudies />
-      <OurExperts />
       {/* <LogoSection /> */}
-      <MediaEvents />
-      <NewTestimonials />
       {/* <VideoSection /> */}
-      <LastSection />
+      <HeroSection />
+      <div className="flex flex-col gap-10 sm:gap-[5vh] md:gap-[10vh]">
+        <LogosMarquee />
+        <OurProcess />
+        <AiAgents />
+        <HowItWorksSection />
+        <OurGuarantee />
+        <CaseStudies />
+        <OurExperts />
+        <MediaEvents />
+        <NewTestimonials />
+        <LastSection />
+      </div>
     </MainLayout>
   )
 }

@@ -36,11 +36,7 @@ function LogosMarquee() {
 
   return (
     <>
-      <div
-        id="Section4"
-        className={styles.logo_section}
-        style={{ marginTop: '10vh' }}
-      >
+      <div id="Section4" className={styles.logo_section}>
         <h3 className="drop-shadow-[0px_0px_12.58px_#B1BAE559] text-[#2C2C2C] font-outfit font-[700] text-[28px] md:text-[30px] lg:text-[40px] text-center mb-10">
           Companies we worked with
         </h3>

@@ -91,7 +91,7 @@ function OurProcess() {
   const { title, subtitle } = content
   return (
     <section>
-      <div className="w-full flex flex-col gap-12 text-white py-10 mb-12 px-0 font-outfit">
+      <div className="w-full flex flex-col gap-5 md:gap-7 text-white py-10 px-0 font-outfit">
         {/* Header Section */}
         <div className="flex flex-col gap-3 xl:mx-[11vw] px-5 xl:px-0">
           <div className="flex flex-col gap-1">

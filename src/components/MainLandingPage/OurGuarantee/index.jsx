@@ -45,7 +45,7 @@ function OurGuarantee() {
 
   return (
     <>
-      <div className="hidden lg:flex items-center justify-center my-[10vh] mt-[6vh]">
+      <div className="hidden lg:flex items-center justify-center ">
         <div className="flex flex-col items-center justify-center gap-2">
           <div className="flex flex-col items-center justify-center gap-2">
             <h3 className="text-[#2C2C2C] font-outfit font-[700] text-[28px] md:text-[30px] lg:text-[40px] leading-[120%] mb-4">
@@ -56,7 +56,7 @@ function OurGuarantee() {
             </p> */}
           </div>
           <div
-            className={`bg-[#ececec] rounded-[20px] px-[10vw] grid grid-cols-[1fr_0.6fr]  w-[80vw]`}
+            className={`bg-[#ececec57] shadow-lg rounded-[20px] px-[10vw] grid grid-cols-[1fr_0.6fr]  w-[80vw]`}
           >
             <div className="flex flex-col ms-0  mt-[10vh] border-r pr-[1vw] mr-[6vw]">
               <div className="flex flex-col gap-3">
@@ -97,11 +97,11 @@ function OurGuarantee() {
       {/* mobile view */}
       <div className="lg:hidden flex items-center justify-center flex-col gap-5  mt-[10vh] mb-[10vh] px-[5vw]">
         <div className="flex flex-col items-center justify-center gap-2">
-          <h1 className=" text-center md:text-[32px] text-[24px] leading-[100%] font-semibold text-new-black font-outfit">
+          <h3 className="text-[#2C2C2C] font-outfit font-[700] text-[28px] md:text-[30px] lg:text-[40px] leading-[120%] ">
             Our Guarantee
-          </h1>
+          </h3>
         </div>
-        <div className="flex items-center justify-center flex-col sm:flex-row gap-2 bg-[#ececec] rounded-[20px] p-2  pt-5 w-full px-10">
+        <div className="flex items-center justify-center flex-col sm:flex-row gap-2 bg-[#ececec57] shadow-lg rounded-[20px] p-2  pt-5 w-full px-10">
           <div className="flex flex-col ms-0 items-center md:items-start md:w-[50vw] md:border-r md:pr-[5vw] md:mr-[5vw] text-center md:text-left">
             <div className="flex flex-col gap-3">
               <p className="text-[20px] font-[400] text-[#2C2C2C] mb-2 font-outfit leading-[120%] ">

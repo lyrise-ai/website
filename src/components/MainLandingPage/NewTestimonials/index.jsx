@@ -49,7 +49,7 @@ function NewTestimonials() {
   const { title, cards } = content
   return (
     <section>
-      <div className="w-full flex flex-col gap-12 text-white py-10 mb-12 px-0">
+      <div className="w-full flex flex-col gap-12 text-white py-10 px-0">
         {/* Header Section */}
         <div className="flex flex-col gap-3 xl:mx-[11vw] px-5 xl:px-0">
           <div className="flex flex-col gap-1">
