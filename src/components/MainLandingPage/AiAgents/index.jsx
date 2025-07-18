@@ -15,28 +15,29 @@ const iconComponents = {
 }
 
 const content = {
-  title: 'AI Agent customization',
-  subtitle: 'How would you like to build your AI report summarization tool?',
+  title: 'AI Agent Customization',
+  subtitle:
+    'After the roadmap, we implement the most impactful automation flows using custom AI agents. These agents reduce manual effort across operations—legal, finance, HR, sales, and compliance.',
   cards: [
     {
-      title: 'Finance AI agent',
+      title: 'Finance AI Agent',
       description:
         'AI to manage your financial statements and all your company finances!',
       icon: 'finance',
     },
     {
-      title: 'Legal AI agent',
+      title: 'Legal AI Agent',
       description:
         'AI to generate contracts, adhere to policies, and manage conflict of interest.',
       icon: 'legal',
     },
     {
-      title: 'HR AI agent',
+      title: 'HR AI Agent',
       description: 'Talent acquisition and HR assistance.',
       icon: 'hr',
     },
     {
-      title: 'Sales AI agent',
+      title: 'Sales AI Agent',
       description:
         'Generates leads, taylors messaging to the profile of the lead, then sends emails & Linkedin messages to book meetings.',
       icon: 'sales',

@@ -3,7 +3,7 @@ import { useMediaQuery } from '@mui/material'
 
 const content = {
   title: 'Process Map',
-  subtitle: 'when,what and why?',
+  // subtitle: 'when,what and why?',
 }
 
 // ROI Visualization Component
@@ -90,7 +90,7 @@ const ROIVisualization = () => {
 }
 
 function OurProcess() {
-  const { title, subtitle } = content
+  const { title } = content
   return (
     <section>
       <div className="w-full flex flex-col gap-5 md:gap-7 text-white py-10 px-0 font-outfit">
@@ -101,9 +101,9 @@ function OurProcess() {
             <h3 className="drop-shadow-[0px_0px_12.58px_#B1BAE559] text-[#2C2C2C] font-outfit font-[700] text-[28px] md:text-[30px] lg:text-[40px] lg:w-[30vw] leading-[120%]">
               {title}
             </h3>
-            <p className="text-[#999999] font-outfit font-[400] text-[16px] md:text-[20px] lg:text-[24px] lg:w-[30vw] leading-[100%]">
+            {/* <p className="text-[#999999] font-outfit font-[400] text-[16px] md:text-[20px] lg:text-[24px] lg:w-[30vw] leading-[100%]">
               {subtitle}
-            </p>
+            </p> */}
           </div>
         </div>
 
