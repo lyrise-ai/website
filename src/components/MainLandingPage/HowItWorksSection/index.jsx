@@ -10,19 +10,19 @@ const content = {
   subtext: 'Here’s how we make it happen:',
   steps: [
     {
-      title: 'Phase 1',
+      title: 'Step 1',
       subtitle: 'Map Your Current Process',
       description:
         'We’ll model your existing business processes, assigning time durations, mapping roles, systems, and costs.',
     },
     {
-      title: 'Phase 2',
+      title: 'Step 2',
       subtitle: 'Identify Opportunities',
       description:
         'Using data-driven insights, we’ll show how improvements will save time, increase revenue, and hit your KPIs—plus, a simple ROI calculator will demonstrate a potential 3x profit boost.',
     },
     {
-      title: 'Phase 3',
+      title: 'Step 3',
       subtitle: 'Implement with AI Agents',
       description:
         'We integrate powerful AI agents into your operations, streamlining finance, HR, sales, legal, and more to boost efficiency and profitability.',

@@ -18,6 +18,8 @@ import MediaEvents from '../src/components/MainLandingPage/MediaEvents'
 import CaseStudies from '../src/components/MainLandingPage/CaseStudies'
 import LastSection from '../src/components/MainLandingPage/LastSection'
 import NewTestimonials from '../src/components/MainLandingPage/NewTestimonials'
+import OurProcess from '../src/components/MainLandingPage/OurProcess'
+import AiAgents from '../src/components/MainLandingPage/AiAgents'
 
 export default function Index() {
   React.useEffect(() => {
@@ -59,6 +61,8 @@ export default function Index() {
       {/* <AcceleratorPromo /> */}
       <HeroSection />
       <LogosMarquee />
+      <OurProcess />
+      <AiAgents />
       <HowItWorksSection />
       {/* <LastSection /> */}
       <OurGuarantee />

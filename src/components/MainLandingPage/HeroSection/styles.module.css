@@ -1,10 +1,61 @@
-.bg {
-  background-image: url('../../../assets/rebranding/joseph-ai-bg.png') !important;
-  background-size: cover !important;
-  background-repeat: no-repeat !important;
-  background-position: 0dvw -5dvw !important;
+/* Hero Section with Particle Network Background */
+.heroSection {
+  position: relative;
+  background-size: 400% 400%;
+  animation: subtleGradientShift 20s ease infinite;
 }
 
+.particleCanvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1;
+}
+
+.gradientOverlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: radial-gradient(
+    ellipse at center,
+    rgba(255, 255, 255, 0.3) 0%,
+    rgba(248, 249, 250, 0.02) 35%,
+    rgba(241, 243, 244, 0.03) 70%,
+    rgba(255, 255, 255, 0.1) 100%
+  );
+  z-index: 2;
+}
+
+/* Subtle background animation */
+@keyframes subtleGradientShift {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .heroSection {
+    background-size: 200% 200%;
+  }
+}
+
+/* .sectionBg {
+  background-image: url('../../../assets/GIF/section_bg.gif') !important;
+  background-repeat: no-repeat !important;
+  background-position: center !important;
+  background-size: 100vh !important;
+} */
 .btn0 {
   background: radial-gradient(
       56.77% 51.5% at 43.23% 51.52%,

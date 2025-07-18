@@ -6,8 +6,8 @@ import { WaitlistModal } from '../OurGuarantee/WaitlistModal'
 
 function LastSection() {
   return (
-    <div className={styles.bg}>
-      <div className="flex justify-center items-center h-full md:flex-row flex-col md:py-10 mb-[4vh]">
+    <div className={`${styles.bg} mt-[10vh]`}>
+      <div className="flex justify-center items-center h-full md:flex-row flex-col md:py-10">
         <div>
           <Image src={LyriseLogo} alt="Lyrise Logo" className="md:mx-[10vw]" />
         </div>

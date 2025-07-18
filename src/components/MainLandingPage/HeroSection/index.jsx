@@ -1,44 +1,142 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import styles from './styles.module.css'
 import { Grow } from '@mui/material'
 import { WaitlistModal } from '../OurGuarantee/WaitlistModal'
 
+class Particle {
+  constructor(canvasWidth, canvasHeight) {
+    this.x = Math.random() * canvasWidth
+    this.y = Math.random() * canvasHeight
+    this.vx = (Math.random() - 0.5) * 0.5
+    this.vy = (Math.random() - 0.5) * 0.5
+    this.radius = Math.random() * 2 + 1
+    this.opacity = Math.random() * 0.5 + 0.3
+    this.canvasWidth = canvasWidth
+    this.canvasHeight = canvasHeight
+  }
+
+  update() {
+    this.x += this.vx
+    this.y += this.vy
+
+    if (this.x < 0 || this.x > this.canvasWidth) this.vx *= -1
+    if (this.y < 0 || this.y > this.canvasHeight) this.vy *= -1
+  }
+
+  draw(ctx) {
+    ctx.save()
+    ctx.globalAlpha = this.opacity
+    ctx.beginPath()
+    ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2)
+    ctx.fillStyle = '#374151'
+    ctx.fill()
+    ctx.restore()
+  }
+}
+
+const drawConnections = (ctx, particles, maxDistance) => {
+  for (let i = 0; i < particles.length; i++) {
+    for (let j = i + 1; j < particles.length; j++) {
+      const dx = particles[i].x - particles[j].x
+      const dy = particles[i].y - particles[j].y
+      const distance = Math.sqrt(dx * dx + dy * dy)
+
+      if (distance < maxDistance) {
+        ctx.save()
+        ctx.globalAlpha = (1 - distance / maxDistance) * 0.15
+        ctx.beginPath()
+        ctx.moveTo(particles[i].x, particles[i].y)
+        ctx.lineTo(particles[j].x, particles[j].y)
+        ctx.strokeStyle = '#6b7280'
+        ctx.lineWidth = 1
+        ctx.stroke()
+        ctx.restore()
+      }
+    }
+  }
+}
+
 function HeroSection() {
+  const canvasRef = useRef(null)
+
+  useEffect(() => {
+    const canvas = canvasRef.current
+    if (!canvas) return
+
+    const ctx = canvas.getContext('2d')
+    let animationId
+    const particles = []
+    const particleCount = 50
+    const maxDistance = 150
+
+    const resizeCanvas = () => {
+      canvas.width = canvas.offsetWidth
+      canvas.height = canvas.offsetHeight
+    }
+
+    const initializeParticles = () => {
+      particles.length = 0
+      for (let i = 0; i < particleCount; i++) {
+        particles.push(new Particle(canvas.width, canvas.height))
+      }
+    }
+
+    const animate = () => {
+      ctx.clearRect(0, 0, canvas.width, canvas.height)
+
+      particles.forEach((particle) => {
+        particle.update()
+        particle.draw(ctx)
+      })
+
+      drawConnections(ctx, particles, maxDistance)
+      animationId = requestAnimationFrame(animate)
+    }
+
+    resizeCanvas()
+    initializeParticles()
+    animate()
+
+    const handleResize = () => resizeCanvas()
+    window.addEventListener('resize', handleResize)
+
+    // eslint-disable-next-line consistent-return
+    return () => {
+      window.removeEventListener('resize', handleResize)
+      if (animationId) {
+        cancelAnimationFrame(animationId)
+      }
+    }
+  }, [])
+
   return (
     <>
       <section
-        className={`hidden md:flex items-center justify-center h-screen w-full ${styles.bg}`}
+        id="Section1"
+        className={`${styles.heroSection} flex items-center justify-center h-[50vh] md:h-[80vh] w-full relative overflow-hidden`}
       >
-        <div className="custom-container w-full flex items-center justify-center relative ">
-          <div className=" flex flex-col gap-[25px]">
-            {/* <PlugnnHireBtn /> */}
-            <WaitlistModal>
-              <GetYourAgentBtn />
-            </WaitlistModal>
-            {/* <CommingSoonBtn /> */}
-          </div>
-        </div>
-      </section>
-      <section
-        className={` flex md:hidden items-center justify-center  w-full ${styles.sectionBg}`}
-      >
-        <div className="flex flex-col items-center gap-10">
+        <canvas ref={canvasRef} className={styles.particleCanvas} />
+
+        <div className={styles.gradientOverlay}></div>
+
+        <div className="flex flex-col items-center gap-10 relative z-10">
           <div className="flex flex-col items-center justify-start gap-2 md:gap-0">
-            <h2 className="font-space-grotesk text-center text-[32px] leading-[100%] font-bold text-new-black ">
+            <h2 className="font-outfit text-center text-[32px] md:text-[64px] font-bold text-[#2C2C2C] leading-[100%]">
               The Platform For
             </h2>
-            <h2 className="font-space-grotesk text-center text-[32px] leading-[100%] font-bold text-new-black ">
-              SMEs To 3X Profits
+            <h2 className="font-outfit text-center text-[32px] md:text-[64px] font-bold text-[#2C2C2C] ">
+              Companies To 3X Profits
             </h2>
+            <h3 className="font-outfit text-[20px] text-[#2C2C2C] text-center md:max-w-[45vw] lg:max-w-[35vw]">
+              Guranteed Results with our AI-Agents
+            </h3>
           </div>
-          <a
-            href="https://calendly.com/elena-lyrise/30min"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="group relative text-[18px] lg:text-[24px] flex items-center justify-center gap-2 p-1 lg:p-2 px-4 lg:px-4 leading-[24px]  rounded-[30px] text-white bg-new-black transition-colors hover:bg-new-black/85 "
-          >
-            Get Your AI Agent
-          </a>
+
+          <WaitlistModal>
+            <div className="group w-fit relative md:text-[24px] font-outfit font-[500] flex items-center gap-2 px-5 py-2 cursor-pointer rounded-[30px] text-white bg-new-black transition-colors hover:bg-new-black/85">
+              Map Your Process Now!
+            </div>
+          </WaitlistModal>
         </div>
       </section>
     </>
