@@ -28,7 +28,7 @@ function ROICalculator() {
             return
         }
 
-        const clientsNum = parseInt(clients)
+        const clientsNum = JSON.parseInt(clients)
         const hoursNum = parseFloat(hours)
         const costNum = parseFloat(cost)
 
@@ -190,6 +190,7 @@ This lead came from the KYC/AML ROI Calculator on the website.`
                                 />
 
                                 <button
+                                    type="button"
                                     onClick={calculateROI}
                                     className="w-full bg-black text-white rounded-lg px-8 py-4 text-[16px] font-semibold hover:bg-gray-900 transition-colors duration-200 font-outfit"
                                 >
@@ -308,6 +309,7 @@ This lead came from the KYC/AML ROI Calculator on the website.`
                         />
 
                         <button
+                            type="button"
                             onClick={calculateROI}
                             className="w-full bg-black text-white rounded-lg px-8 py-4 text-[16px] font-semibold hover:bg-gray-900 transition-colors duration-200 font-outfit"
                         >
