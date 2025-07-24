@@ -20,6 +20,7 @@ import LastSection from '../src/components/MainLandingPage/LastSection'
 import NewTestimonials from '../src/components/MainLandingPage/NewTestimonials'
 import OurProcess from '../src/components/MainLandingPage/OurProcess'
 import AiAgents from '../src/components/MainLandingPage/AiAgents'
+import ROICalculator from '../src/components/MainLandingPage/ROICalculator'
 
 export default function Index() {
   React.useEffect(() => {
@@ -69,6 +70,7 @@ export default function Index() {
         <OurProcess />
         <AiAgents />
         <OurGuarantee />
+        <ROICalculator />
         <CaseStudies />
         <OurExperts />
         <MediaEvents />
