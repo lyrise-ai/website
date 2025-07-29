@@ -117,7 +117,7 @@ export function WaitlistModal({
                 formData.append('message', values.message)
 
                 fetch(
-                  'https://script.google.com/a/macros/lyrise.ai/s/AKfycbxe6U1sG51W6nWi9sCIhs_wsPRcczmUveEpqJ4DTzks8lpkddmhF2UXYGAzK9fmg_e-/exec',
+                  'https://script.google.com/macros/s/AKfycbyFt8RV6QcAAU9YfAMa6vXGennqnpm3nAD1cICeS0vI_1mfjBIyimpMmMz97LYhOYU5/exec',
                   {
                     method: 'POST',
                     body: formData,
