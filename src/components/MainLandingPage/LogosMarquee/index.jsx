@@ -24,7 +24,10 @@ function LogosMarquee() {
             alt: `Logo ${i}`,
           })
         } catch (error) {
-          // console.error(`Failed to load logo ${i}:`, error)
+          if (process.env.NODE_ENV === 'development') {
+            // eslint-disable-next-line no-console
+            console.error(`Failed to load logo ${i}:`, error)
+          }
         }
       }
 
