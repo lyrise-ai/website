@@ -2,16 +2,43 @@ import React from 'react'
 import styles from './styles.module.css'
 import Image from 'next/image'
 import LyriseLogo from '../../../assets/rebranding/lyriselogo.png'
+import { FaFacebook, FaInstagram, FaLinkedin } from 'react-icons/fa'
 import { WaitlistModal } from '../OurGuarantee/WaitlistModal'
 
 function LastSection() {
   return (
     <div className={`${styles.bg} `}>
       <div className="flex justify-center items-center h-full md:flex-row flex-col md:py-10">
-        <div>
-          <Image src={LyriseLogo} alt="Lyrise Logo" className="md:mx-[10vw]" />
+        <div className="flex flex-col items-center md:mx-[10vw] md:mb-0 mb-[10vh]">
+          <Image src={LyriseLogo} alt="Lyrise Logo" width={300} height={100} />
+          <div className="flex gap-6 justify-center">
+            <a
+              href="https://www.facebook.com/LYRISEAI"
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="Visit our Facebook page"
+            >
+              <FaFacebook className="text-white text-3xl hover:text-gray-300 transition-colors" />
+            </a>
+            <a
+              href="https://www.instagram.com/lyriseai/"
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="Visit our Instagram page"
+            >
+              <FaInstagram className="text-white text-3xl hover:text-gray-300 transition-colors" />
+            </a>
+            <a
+              href="https://www.linkedin.com/company/lyriseai"
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="Visit our LinkedIn page"
+            >
+              <FaLinkedin className="text-white text-3xl hover:text-gray-300 transition-colors" />
+            </a>{' '}
+          </div>
         </div>
-        <div className="flex flex-col gap-3 justify-center items-center md:items-start ">
+        <div className="flex flex-col gap-3 justify-between h-full items-center md:items-start">
           <div className="flex flex-col gap-3 md:mr-[10vw] mx-[10vw] md:mx-0">
             <h3 className="text-[28px] font-[500] text-white mb-2 font-outfit leading-[120%] md:w-[30vw] w-full ">
               The journey to transforming your business starts with a

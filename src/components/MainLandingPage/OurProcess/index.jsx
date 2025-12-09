@@ -1,5 +1,7 @@
 import React from 'react'
 import { useMediaQuery } from '@mui/material'
+import Link from 'next/link'
+import { FaArrowRight } from 'react-icons/fa'
 
 const content = {
   title: 'Process Map',
@@ -154,6 +156,16 @@ function OurProcess() {
 
               {/* </p> */}
               <p className="text-[#3f3f3f] font-outfit font-[400] text-[16px] md:text-[20px] lg:text-[24px] leading-[110%]"></p>
+            </div>
+
+            <div className="mt-4">
+              <Link
+                href="/roi-report"
+                className="inline-flex items-center justify-center px-8 py-4 text-lg font-semibold text-white transition-all transform bg-[#2C2C2C] rounded-lg hover:bg-black hover:-translate-y-0.5 shadow-lg hover:shadow-gray-500/30 group"
+              >
+                Get Your Free ROI Report
+                <FaArrowRight className="ml-2 transition-transform group-hover:translate-x-1" />
+              </Link>
             </div>
           </div>
           <div className="flex flex-col gap-4">

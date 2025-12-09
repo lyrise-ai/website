@@ -24,7 +24,7 @@ function LogosMarquee() {
             alt: `Logo ${i}`,
           })
         } catch (error) {
-          console.error(`Failed to load logo ${i}:`, error)
+          // console.error(`Failed to load logo ${i}:`, error)
         }
       }
 
@@ -41,7 +41,7 @@ function LogosMarquee() {
           Companies we worked with
         </h3>
         <MarqueeWrapper>
-          <div className="flex items-center gap-[20px] pe-[20px] md:gap-[50px] md:pe-[50px]">
+          <div className="flex items-center gap-[20px] pe-[20px] md:gap-[50px] md:pe-[50px] overflow-y-hidden">
             {logos.map((logo, index) => (
               <div className="flex items-center justify-center  md:px-10 px-5 py-2 bg-[#2C2C2C5C] rounded-[8px] hover:scale-105 transition-all duration-300 ">
                 <Image
