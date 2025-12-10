@@ -55,7 +55,7 @@ const getStepUpdate = (step, value) => {
   return { status, text }
 }
 
-const LiveAgentWorkflow = ({ watch }) => {
+const LiveAgentWorkflow = ({ watch, isSimulating = false }) => {
   const [steps, setSteps] = useState([
     {
       id: 1,
@@ -94,6 +94,17 @@ const LiveAgentWorkflow = ({ watch }) => {
   const formValues = watch()
 
   useEffect(() => {
+    if (isSimulating) {
+      setSteps((currentSteps) =>
+        currentSteps.map((step) => ({
+          ...step,
+          status: 'done',
+          text: 'Input Verified',
+        })),
+      )
+      return
+    }
+
     setSteps((currentSteps) => {
       return currentSteps.map((step) => {
         const value = formValues[step.key]
@@ -115,6 +126,7 @@ const LiveAgentWorkflow = ({ watch }) => {
     formValues.website,
     formValues.linkedin,
     formValues.email,
+    isSimulating,
   ])
 
   return (
@@ -127,7 +139,7 @@ const LiveAgentWorkflow = ({ watch }) => {
         <div className="w-3 h-3 rounded-full bg-yellow-500" />
         <div className="w-3 h-3 rounded-full bg-green-500" />
         <span className="ml-auto text-xs text-gray-400 uppercase tracking-wider font-semibold">
-          Live Agent System
+          {isSimulating ? 'SYSTEM ACTIVE' : 'Live Agent System'}
         </span>
       </div>
 
@@ -216,7 +228,7 @@ const LiveAgentWorkflow = ({ watch }) => {
 
       {/* Decorative footer/terminal line */}
       <div className="relative mt-8 pt-4 border-t border-gray-600/30 flex justify-between text-[10px] text-gray-500 font-medium">
-        <span>SYS_STATUS: ONLINE</span>
+        <span>SYS_STATUS: {isSimulating ? 'EXECUTING...' : 'ONLINE'}</span>
         <span>LATENCY: 12ms</span>
       </div>
     </div>

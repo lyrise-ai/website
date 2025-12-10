@@ -6,7 +6,7 @@ export default async function handler(req, res) {
   try {
     const response = await fetch(
       process.env.N8N_WEBHOOK_URL ||
-        'https://marcbanoub.app.n8n.cloud/webhook/roi-gen-test',
+        'https://marcbanoub.app.n8n.cloud/webhook/roi-gen',
       {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },

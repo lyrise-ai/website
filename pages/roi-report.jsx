@@ -11,6 +11,7 @@ import clsx from 'clsx'
 import 'react-toastify/dist/ReactToastify.css'
 import LogosMarquee from '../src/components/MainLandingPage/LogosMarquee'
 import LiveAgentWorkflow from '../src/components/ROIGenerator/LiveAgentWorkflow'
+import ExecutionSimulation from '../src/components/ROIGenerator/ExecutionSimulation'
 import LastSection from '../src/components/MainLandingPage/LastSection'
 import MainHeader from '../src/layout/MainHeader'
 
@@ -174,7 +175,7 @@ const PageHeader = () => (
 
 export default function ROIReport() {
   const [isSubmitting, setIsSubmitting] = useState(false)
-  const [isSuccess, setIsSuccess] = useState(false)
+  const [viewState, setViewState] = useState('form') // 'form', 'simulating', 'success'
 
   const {
     register,
@@ -190,6 +191,8 @@ export default function ROIReport() {
 
   const onSubmit = async (data) => {
     setIsSubmitting(true)
+
+    // Fire and forget (or handle implicitly)
     try {
       const payload = {
         Email: data.email,
@@ -197,15 +200,24 @@ export default function ROIReport() {
         'Company Website URL': data.website,
         'Company LinkedIn URL': data.linkedin,
       }
-      await axios.post('/api/roi-report', payload)
-      setIsSuccess(true)
-      toast.success('Report request submitted successfully!')
+      axios
+        .post('/api/roi-report', payload)
+        .catch((err) => console.error('API Error (background):', err))
+
+      // Immediately start simulation
+      setViewState('simulating')
     } catch (error) {
-      // console.error('Submission error:', error.message || 'Unknown error');
       toast.error('Failed to submit. Please try again later.')
     } finally {
-      setIsSubmitting(false)
+      // We don't turn off isSubmitting here because we are transitioning to simulation
+      // and we want to prevent re-submission
     }
+  }
+
+  const handleSimulationComplete = () => {
+    setViewState('success')
+    setIsSubmitting(false)
+    toast.success('Report request submitted successfully!')
   }
 
   return (
@@ -232,18 +244,18 @@ export default function ROIReport() {
           pauseOnHover
         />
 
-        <div className="flex flex-col lg:flex-row gap-8 items-start justify-center w-full max-w-6xl z-10">
+        <div className="flex flex-col lg:flex-row gap-8 items-start justify-center w-full max-w-6xl z-10 transition-all duration-500 ease-in-out">
           <motion.div
             initial={{ opacity: 0, y: 20, scale: 0.85 }}
             animate={{ opacity: 1, y: 0, scale: 0.85 }}
             transition={{ duration: 0.6 }}
             className="w-full max-w-lg bg-[#f8f8f8] rounded-2xl shadow-xl overflow-hidden self-center lg:self-start "
           >
-            <PageHeader />
+            {viewState === 'form' && <PageHeader />}
 
-            <div className="p-8">
+            <div className={clsx('p-8', viewState === 'simulating' && 'p-0')}>
               <AnimatePresence mode="wait">
-                {!isSuccess ? (
+                {viewState === 'form' && (
                   <motion.form
                     key="form"
                     initial={{ opacity: 0, x: -20 }}
@@ -259,16 +271,33 @@ export default function ROIReport() {
                       isSubmitting={isSubmitting}
                     />
                   </motion.form>
-                ) : (
-                  <SuccessView />
                 )}
+
+                {viewState === 'simulating' && (
+                  <motion.div
+                    key="simulation"
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 1.1 }}
+                    className="w-full"
+                  >
+                    <ExecutionSimulation
+                      onComplete={handleSimulationComplete}
+                    />
+                  </motion.div>
+                )}
+
+                {viewState === 'success' && <SuccessView />}
               </AnimatePresence>
             </div>
           </motion.div>
 
           {/* Live Agent Workflow Component - Right side on Desktop, Below on Mobile */}
-          <div className="w-full max-w-lg lg:max-w-sm lg:mt-24 self-center lg:self-start">
-            <LiveAgentWorkflow watch={watch} />
+          <div className="w-full max-w-lg lg:max-w-sm lg:mt-24 self-center lg:self-start transition-all duration-500">
+            <LiveAgentWorkflow
+              watch={watch}
+              isSimulating={viewState === 'simulating'}
+            />
           </div>
         </div>
 

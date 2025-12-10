@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react'
 import styles from './styles.module.css'
 import { Grow } from '@mui/material'
-import { WaitlistModal } from '../OurGuarantee/WaitlistModal'
+import Link from 'next/link'
+import { FaArrowRight } from 'react-icons/fa'
 
 class Particle {
   constructor(canvasWidth, canvasHeight) {
@@ -132,11 +133,13 @@ function HeroSection() {
             </h3>
           </div>
 
-          <WaitlistModal>
-            <div className="group w-fit relative md:text-[24px] font-outfit font-[500] flex items-center gap-2 px-5 py-2 cursor-pointer rounded-[30px] text-white bg-new-black transition-colors hover:bg-new-black/85">
-              Map Your Process Now!
-            </div>
-          </WaitlistModal>
+          <Link
+            href="/roi-report"
+            className="inline-flex items-center justify-center px-8 py-4 text-lg font-semibold text-white transition-all transform bg-[#2C2C2C] rounded-full hover:bg-black hover:-translate-y-0.5 shadow-lg hover:shadow-gray-500/30 group"
+          >
+            Get Your ROI Report
+            <FaArrowRight className="ml-2 transition-transform group-hover:translate-x-1" />
+          </Link>
         </div>
       </section>
     </>
