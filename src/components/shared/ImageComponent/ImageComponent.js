@@ -1,4 +1,4 @@
-import Image from "next/legacy/image"
+import Image from 'next/legacy/image'
 import PropTypes from 'prop-types'
 import React from 'react'
 
@@ -13,7 +13,7 @@ export const ImgComponent = ({
   priority = false,
 }) => (
   // eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-static-element-interactions
-  (<div
+  <div
     style={{ width, height, display: 'block', position: 'relative', ...styles }}
     onClick={onClick}
   >
@@ -31,7 +31,7 @@ export const ImgComponent = ({
       height={100}
       style={{ objectFit: 'contain' }}
     />
-  </div>)
+  </div>
 )
 
 ImgComponent.propTypes = {

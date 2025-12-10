@@ -12,7 +12,7 @@ export default function Solution({
   children,
 }) {
   return (
-    (<section
+    <section
       className="flex flex-col items-center gap-5 md:gap-8 p-5 md:p-8 bg-white mx-auto md:max-w-6xl rounded-2xl max-md:mx-5"
       style={{
         boxShadow: '0px 9px 18px 0px rgba(0, 34, 158, 0.15)',
@@ -39,8 +39,8 @@ export default function Solution({
           </ArrowButton>
         </Link>
       </div>
-    </section>)
-  );
+    </section>
+  )
 }
 
 Solution.propTypes = {

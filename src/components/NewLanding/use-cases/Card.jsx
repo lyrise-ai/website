@@ -12,7 +12,7 @@ import healthCare2 from '/src/assets/hero/icons/healthcare/2.png'
 import healthCare3 from '/src/assets/hero/icons/healthcare/3.png'
 import healthCare4 from '/src/assets/hero/icons/healthcare/4.png'
 import healthCare5 from '/src/assets/hero/icons/healthcare/5.png'
-import Image from "next/legacy/image"
+import Image from 'next/legacy/image'
 import { ArrowRight } from '@mui/icons-material'
 
 // // manufacturing
@@ -255,7 +255,10 @@ const cases = [
 // export default UseCasesCards
 export const UseCasesCards = cases.map((_case) => {
   return (
-    <div className="flex flex-row gap-10 p-3 lg:p-10 lg:max-w-[1440px] w-[95vw] lg:w-[80vw] m-auto" key={_case.id}>
+    <div
+      className="flex flex-row gap-10 p-3 lg:p-10 lg:max-w-[1440px] w-[95vw] lg:w-[80vw] m-auto"
+      key={_case.id}
+    >
       <div className="flex-1 border-[3px] lg:border-2 border-primary flex flex-col bg-[#F7F9FF] gap-6 p-5 rounded-2xl lg:rounded-xl">
         {_case.items.map((item) => {
           return (

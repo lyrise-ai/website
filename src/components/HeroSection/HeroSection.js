@@ -32,7 +32,7 @@ const HeroSection = ({
   const { pathname } = useRouter()
 
   return (
-    (<div className="container">
+    <div className="container">
       <Grid
         container
         direction={mid ? 'column-reverse' : 'row'}
@@ -143,10 +143,9 @@ const HeroSection = ({
                         action: 'PressedApplyForJobs',
                       })
                     }
-                  }}>
-
+                  }}
+                >
                   {isTalent ? 'Start Hiring' : ' Apply For Jobs'}
-
                 </Link>
               </span>
             </Typography>
@@ -164,8 +163,8 @@ const HeroSection = ({
           />
         </Grid>
       </Grid>
-    </div>)
-  );
+    </div>
+  )
 }
 
 export default HeroSection

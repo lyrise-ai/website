@@ -109,29 +109,34 @@ export function WaitlistModal({
               }}
               validationSchema={WaitlistSchema}
               onSubmit={async (values, { setSubmitting, resetForm }) => {
-                const formData = new FormData();
-                formData.append('name', values.name);
-                formData.append('company', values.company);
-                formData.append('mobile', values.mobile);
-                formData.append('email', values.email);
-                formData.append('message', values.message);
-              
+                const formData = new FormData()
+                formData.append('name', values.name)
+                formData.append('company', values.company)
+                formData.append('mobile', values.mobile)
+                formData.append('email', values.email)
+                formData.append('message', values.message)
+
                 try {
                   // If your GAS doesn’t send CORS headers, use no-cors and don’t parse JSON.
-                  await fetch('https://script.google.com/macros/s/AKfycbyFt8RV6QcAAU9YfAMa6vXGennqnpm3nAD1cICeS0vI_1mfjBIyimpMmMz97LYhOYU5/exec', {
-                    method: 'POST',
-                    body: formData,
-                    mode: 'no-cors',
-                    keepalive: true, // lets request finish even if page navigates
-                  });
+                  await fetch(
+                    'https://script.google.com/macros/s/AKfycbyFt8RV6QcAAU9YfAMa6vXGennqnpm3nAD1cICeS0vI_1mfjBIyimpMmMz97LYhOYU5/exec',
+                    {
+                      method: 'POST',
+                      body: formData,
+                      mode: 'no-cors',
+                      keepalive: true, // lets request finish even if page navigates
+                    },
+                  )
                 } catch (e) {
-                  console.error(e);
+                  console.error(e)
                 } finally {
-                  resetForm();
-                  setSubmitting(false);
-                  onCloseModal();
+                  resetForm()
+                  setSubmitting(false)
+                  onCloseModal()
                   // Same-tab redirect is not treated as a popup:
-                  window.location.assign('https://calendly.com/elena-lyrise/30min');
+                  window.location.assign(
+                    'https://calendly.com/elena-lyrise/30min',
+                  )
                 }
               }}
             >

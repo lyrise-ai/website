@@ -1,5 +1,5 @@
 // a comopnent to display images without next.js span wrapper
-import Image from "next/legacy/image"
+import Image from 'next/legacy/image'
 
 export default function Img({
   src,

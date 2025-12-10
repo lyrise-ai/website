@@ -2,7 +2,7 @@ import { Box, ButtonBase, Grid, useMediaQuery } from '@mui/material'
 import Head from 'next/head'
 import Slider from 'react-slick'
 import PropTypes from 'prop-types'
-import Image from "next/legacy/image"
+import Image from 'next/legacy/image'
 import CarouselCard from './CarouselCard'
 import LeftArrow from '../../assets/about/leftArrow.png'
 import Title from '../shared/Title/Title'

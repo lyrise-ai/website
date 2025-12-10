@@ -1,4 +1,4 @@
-import Image from "next/legacy/image"
+import Image from 'next/legacy/image'
 import Link from 'next/link'
 import { useState } from 'react'
 import LyRiseLogo from '../src/assets/LyRiseLogo.png'
@@ -46,7 +46,7 @@ export default function LyriseAIBeta() {
   }
 
   return (
-    (<div className="h-screen relative flex flex-col">
+    <div className="h-screen relative flex flex-col">
       {/* navbar */}
       <div className="bg-white border-b-2 border-[#D0D5DD] w-full h-16 z-20 items-center justify-center flex">
         <Link href="/" className="flex" legacyBehavior>
@@ -133,8 +133,8 @@ export default function LyriseAIBeta() {
           </div>
         </form>
       </div>
-    </div>)
-  );
+    </div>
+  )
 }
 
 function FormInput({

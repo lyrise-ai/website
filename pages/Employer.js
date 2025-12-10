@@ -3,7 +3,7 @@
 import React, { useState } from 'react'
 import Grid from '@mui/material/Grid'
 import '@fontsource/poppins'
-import Image from "next/legacy/image"
+import Image from 'next/legacy/image'
 import { useRouter } from 'next/router'
 import { Typography, useMediaQuery } from '@mui/material'
 import Header from '../src/components/Layout/Header/Header'

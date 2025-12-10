@@ -14,7 +14,7 @@ import PropTypes from 'prop-types'
 import { MuiTelInput } from 'mui-tel-input'
 import styled from '@emotion/styled'
 import { Controller, useForm } from 'react-hook-form'
-import Image from "next/legacy/image"
+import Image from 'next/legacy/image'
 import * as yup from 'yup'
 import { yupResolver } from '@hookform/resolvers/yup'
 import amplitude from 'amplitude-js'

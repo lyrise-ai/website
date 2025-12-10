@@ -11,7 +11,7 @@ export default function Product() {
   return (
     // <div className="flex flex-col gap-10">
     // </div>
-    (<Layout isRaw>
+    <Layout isRaw>
       {/* <Navbar /> */}
       <Header />
       <Logos />
@@ -56,8 +56,8 @@ export default function Product() {
         component={<Testimonials />}
         className="bg-white md:bg-transparent m-5 md:m-0 rounded-2xl md:rounded-none border-primary border-4 md:border-0"
       />
-    </Layout>)
-  );
+    </Layout>
+  )
 }
 
 // export default App;

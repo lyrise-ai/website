@@ -1,6 +1,6 @@
 import React from 'react'
 import PropTypes from 'prop-types'
-import Image from "next/legacy/image"
+import Image from 'next/legacy/image'
 import { Grid, useMediaQuery } from '@mui/material'
 
 export function Card({ imagePack }) {
@@ -9,7 +9,7 @@ export function Card({ imagePack }) {
   const small = useMediaQuery('(max-width: 550px)')
   return (
     // eslint-disable-next-line jsx-a11y/click-events-have-key-events
-    (<Grid
+    <Grid
       container
       direction="column"
       justifyContent="center"
@@ -39,8 +39,8 @@ export function Card({ imagePack }) {
           <Image src={imagePack.greyImage} draggable={false} priority />
         )}
       </Grid>
-    </Grid>)
-  );
+    </Grid>
+  )
 }
 
 Card.propTypes = {

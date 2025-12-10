@@ -1,7 +1,7 @@
 import React from 'react'
 import PropTypes from 'prop-types'
 import { Grid } from '@mui/material'
-import Image from "next/legacy/image"
+import Image from 'next/legacy/image'
 import Title from '../../shared/Title/Title'
 import SubTitle from '../../shared/SubTitle/SubTitle'
 import code from '../../../assets/code.svg'

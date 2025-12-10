@@ -1,6 +1,6 @@
 /* eslint-disable @next/next/no-img-element */
 import { Grid, Typography, useMediaQuery } from '@mui/material'
-import Image from "next/legacy/image"
+import Image from 'next/legacy/image'
 import Link from 'next/link'
 import LinkedinIcon from '../../assets/about/linkedin.svg'
 import Marc from '../../assets/about/marcbanoub.png'
@@ -11,7 +11,7 @@ const FounderSection = () => {
   const under768 = useMediaQuery('(max-width: 768px)')
 
   return (
-    (<Grid container sx={{ backgroundColor: '#F9FAFC' }}>
+    <Grid container sx={{ backgroundColor: '#F9FAFC' }}>
       <Grid item xs={12} className="m-top">
         <div className="container" style={{ margin: '80px auto 90px auto' }}>
           <Typography
@@ -49,10 +49,10 @@ const FounderSection = () => {
                     fontSize: '20px',
                     fontWeight: '400',
                     lineHeight: '28px',
-                  }}>
-
-                  <Image src={LinkedinIcon} />Visit Linkedin
-                                    
+                  }}
+                >
+                  <Image src={LinkedinIcon} />
+                  Visit Linkedin
                 </Link>
               </Typography>
             </Grid>
@@ -85,8 +85,8 @@ const FounderSection = () => {
           </Grid>
         </div>
       </Grid>
-    </Grid>)
-  );
+    </Grid>
+  )
 }
 
 export default FounderSection

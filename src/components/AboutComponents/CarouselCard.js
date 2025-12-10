@@ -1,7 +1,7 @@
 import { Grid, useMediaQuery } from '@mui/material'
 import { Box } from '@mui/system'
 import PropTypes from 'prop-types'
-import Image from "next/legacy/image"
+import Image from 'next/legacy/image'
 import React from 'react'
 import SecondaryText from './SecondaryText'
 

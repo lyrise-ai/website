@@ -30,7 +30,7 @@ export default function HowItWorksElement({
   }, [isInView, setElementInView, id])
 
   return (
-    (<div
+    <div
       ref={ref}
       className={`h-fit md:h-[70vh] flex flex-col md:grid md:grid-cols-11 gap-5 lg:gap-20 mx-5 md:mx-16 lg:mx-32 my-5 md:my-10 lg:my-20`}
     >
@@ -65,6 +65,6 @@ export default function HowItWorksElement({
           style={{ zIndex: 0 }}
         />
       </div>
-    </div>)
-  );
+    </div>
+  )
 }
