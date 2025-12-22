@@ -54,10 +54,14 @@ const MainHeaderMobile = ({ navigation, buttons }) => {
                 <div className="text-lg font-semibold">
                   <Image src={logo} alt="Lyrise AI" className="w-28" />
                 </div>
-                <CloseIcon
-                  className="size-8 text-new-black"
+                <IconButton
                   onClick={toggleDrawer(false)}
-                />
+                  aria-label="Close menu"
+                  size="small"
+                  sx={{ padding: 0 }}
+                >
+                  <CloseIcon className="size-8 text-new-black" />
+                </IconButton>{' '}
               </div>
               <div className="text-[16px] leading-[120%] text-new-black">
                 LyRise AI: The Platform For Companies To 3X Profits.

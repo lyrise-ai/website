@@ -51,7 +51,7 @@ const FounderSection = () => {
                     lineHeight: '28px',
                   }}
                 >
-                  <Image src={LinkedinIcon} />
+                  <Image src={LinkedinIcon} alt="LinkedIn icon" />
                   Visit Linkedin
                 </Link>
               </Typography>

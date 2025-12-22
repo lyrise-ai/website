@@ -67,6 +67,7 @@
   src: url('../fonts/Outfit-SemiBold.ttf') format('truetype');
   font-weight: 600;
 }
+
 @font-face {
   font-family: Outfit;
   src: url('../fonts/Outfit-Bold.ttf') format('truetype');
@@ -251,8 +252,10 @@ li {
 
 /* Hide scrollbar for IE, Edge and Firefox */
 .without-h-scrollbar {
-  -ms-overflow-style: none; /* IE and Edge */
-  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none;
+  /* IE and Edge */
+  scrollbar-width: none;
+  /* Firefox */
 }
 
 .drop-sides-fade {
@@ -292,6 +295,7 @@ li {
   0% {
     opacity: 1;
   }
+
   100% {
     opacity: 0;
   }
@@ -323,7 +327,7 @@ li {
 /* // transition-all hover:max-w-full duration-1000 width-[400px] hover:flex-row */
 
 .animate-active {
-  transition: all 600 ease-in-out;
+  transition: all 600ms ease-in-out;
   width: 25vw;
   max-width: 100vw !important;
   z-index: 20;
@@ -370,6 +374,7 @@ li {
     transform: scale(0.8);
     background-color: aqua;
   }
+
   100% {
     background-color: red;
     top: 0;
@@ -388,9 +393,11 @@ li {
   0% {
     opacity: 0;
   }
+
   50% {
     opacity: 0;
   }
+
   100% {
     opacity: 0.44;
   }
@@ -406,6 +413,7 @@ li {
     opacity: 0;
     transform: translate(0, 0) scale(0);
   }
+
   100% {
     opacity: 1;
     transform: translate(-25vw, 10vh) scale(1);
@@ -422,6 +430,7 @@ li {
     opacity: 1;
     transform: translate(-25vw, 10vh) scale(1);
   }
+
   100% {
     opacity: 0;
     transform: translate(0, -20vh) scale(0);
@@ -439,6 +448,7 @@ li {
       opacity: 0;
       transform: translate(0, 0) scale(0);
     }
+
     100% {
       opacity: 1;
       transform: translate(0, 66vh) scale(1);
@@ -455,6 +465,7 @@ li {
       opacity: 1;
       transform: translate(0, 66vh) scale(1);
     }
+
     100% {
       opacity: 0;
       transform: translate(0, -20vh) scale(0);
@@ -476,8 +487,10 @@ li {
   height: 90vh !important;
   /* padding-right: 17px; /* Increase/decrease this value for cross-browser compatibility */
   /* box-sizing: content-box; */
-  -ms-overflow-style: none; /* Internet Explorer 10+ */
-  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none;
+  /* Internet Explorer 10+ */
+  scrollbar-width: none;
+  /* Firefox */
 }
 
 .howitworks-container > div {
@@ -485,16 +498,19 @@ li {
 }
 
 .howitworks-container::-webkit-scrollbar {
-  display: none; /* Safari and Chrome */
+  display: none;
+  /* Safari and Chrome */
 }
 
 @keyframes float {
   0% {
     transform: translatey(0px);
   }
+
   50% {
     transform: translatey(-20px);
   }
+
   100% {
     transform: translatey(0px);
   }
@@ -510,6 +526,7 @@ li {
     border-radius: 0.5rem;
   }
 }
+
 @media (max-width: 1024px) {
   .responsive-custom-rounded {
     border-top-left-radius: 1rem;
@@ -575,8 +592,6 @@ abbr {
   width: 100%;
   margin-right: auto;
   margin-left: auto;
-  padding-right: 2.4rem /* 22.4px */;
-  padding-left: 2.4rem /* 22.4px */;
 }
 
 @media (min-width: 1400px) {

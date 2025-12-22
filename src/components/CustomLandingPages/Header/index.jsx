@@ -29,7 +29,7 @@ export default function Header({ siteContent }) {
     <header className="py-4 mt-3 px-2">
       <div className="custom-container flex items-center justify-between gap-4 shadow-[0px_0px_4px_0px_#2957FF] py-3 rounded-[4px]">
         <Link href="/" title="LyRise">
-          <div className="h-[36px]">
+          <div className="pl-2 h-[36px]">
             <Image
               src={Logo}
               alt="LyRise AI"

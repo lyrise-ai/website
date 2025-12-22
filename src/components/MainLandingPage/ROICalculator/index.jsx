@@ -28,7 +28,7 @@ function ROICalculator() {
       return
     }
 
-    const clientsNum = JSON.parseInt(clients)
+    const clientsNum = parseInt(clients, 10)
     const hoursNum = parseFloat(hours)
     const costNum = parseFloat(cost)
 

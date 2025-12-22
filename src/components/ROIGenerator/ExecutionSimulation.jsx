@@ -5,146 +5,136 @@ import {
   FaGlobe,
   FaRobot,
   FaFilePdf,
-  FaCircleNotch,
+  FaCheckCircle,
 } from 'react-icons/fa'
 import clsx from 'clsx'
 
 const simulationSteps = [
   {
     id: 1,
-    label: 'Initializing Research Agent',
+    label: 'Market Research',
     icon: FaSearch,
-    description: 'Connecting to public business regitries...',
+    description: 'Analyzing public business data...',
   },
   {
     id: 2,
-    label: 'Scanning Business Workflows',
+    label: 'Workflow Analysis',
     icon: FaGlobe,
-    description: 'Analyzing digital footprint & public operational data...',
+    description: 'Scanning digital footprint...',
   },
   {
     id: 3,
-    label: 'Enriching Employee Data',
+    label: 'Data Enrichment',
     icon: FaRobot,
-    description: 'Cross-referencing industry benchmarks...',
+    description: 'Benchmarking against industry standards...',
   },
   {
     id: 4,
-    label: 'Compiling & Sending Report',
+    label: 'Report Generation',
     icon: FaFilePdf,
-    description: 'Standardizing data format & generating PDF...',
+    description: 'Compiling your personalized insights...',
   },
 ]
 
 const ExecutionSimulation = ({ onComplete }) => {
   const [activeStep, setActiveStep] = useState(0)
+  const onCompleteRef = React.useRef(onComplete)
+
+  // Keep ref synced with latest callback
+  useEffect(() => {
+    onCompleteRef.current = onComplete
+  }, [onComplete])
 
   useEffect(() => {
     if (activeStep < simulationSteps.length) {
       const timer = setTimeout(() => {
         setActiveStep((prev) => prev + 1)
-      }, 2500) // 2.5 seconds per step
+      }, 2000) // Slightly faster? 2.0 seconds
 
       return () => clearTimeout(timer)
     }
     // All steps done
     const completeTimer = setTimeout(() => {
-      onComplete()
+      if (onCompleteRef.current) {
+        onCompleteRef.current()
+      }
     }, 500)
     return () => clearTimeout(completeTimer)
-  }, [activeStep, onComplete])
+  }, [activeStep])
 
   return (
-    <div className="w-full h-full min-h-[400px] flex flex-col items-center justify-center relative overflow-hidden bg-[#2C2C2C] rounded-2xl p-8 border border-gray-700/50 shadow-2xl">
-      {/* Background Effects */}
-      <div className="absolute inset-0 bg-gradient-to-b from-blue-500/5 to-transparent pointer-events-none" />
-      <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20 brightness-100 contrast-150 mix-blend-overlay pointer-events-none"></div>
+    <div className="w-full h-full min-h-[400px] flex flex-col items-center justify-center relative overflow-hidden font-sans text-sm">
+      <div className="relative z-10 w-full max-w-lg space-y-6">
+        <div className="text-center mb-10">
+          <h3 className="text-xl font-semibold text-gray-900">
+            Configuring Your Report
+          </h3>
+          <p className="text-gray-500 mt-2">
+            Please wait while we analyze your business profile.
+          </p>
+        </div>
 
-      <div className="relative z-10 w-full max-w-md">
-        <AnimatePresence mode="popLayout" initial={false}>
+        <AnimatePresence mode="popLayout">
           {simulationSteps.map((step, index) => {
-            // Calculate offset for vertical carousel effect
-            // We want the active step to be roughly in the middle (index - activeStep)
-            const offset = index - activeStep
             const isActive = index === activeStep
-
-            // Only show steps around the active one to keep it clean (optional, but good for carousels)
-            if (offset < -1 || offset > 2) return null
+            const isDone = index < activeStep
 
             return (
               <motion.div
                 key={step.id}
-                layout
-                initial={{ opacity: 0, y: 50, scale: 0.8 }}
-                animate={{
-                  opacity: isActive ? 1 : 0.4,
-                  y: offset * 80, // Vertical spacing
-                  scale: isActive ? 1.1 : 0.9,
-                  zIndex: isActive ? 10 : 0,
-                  filter: isActive ? 'blur(0px)' : 'blur(2px)',
-                }}
-                exit={{ opacity: 0, y: -50, scale: 0.8 }}
-                transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
                 className={clsx(
-                  'absolute top-1/2 left-0 right-0 -mt-10 flex items-center p-4 rounded-xl border transition-colors duration-500',
+                  'flex items-center space-x-4 p-4 rounded-xl transition-all duration-500',
                   isActive
-                    ? 'bg-blue-900/20 border-blue-500/50 shadow-[0_0_30px_rgba(59,130,246,0.15)]'
-                    : 'bg-transparent border-transparent',
+                    ? 'bg-white shadow-lg border border-gray-100 scale-105'
+                    : 'opacity-50 grayscale',
                 )}
               >
                 <div
                   className={clsx(
-                    'flex items-center justify-center w-12 h-12 rounded-full mr-4 shrink-0 transition-colors duration-500',
+                    'w-10 h-10 flex items-center justify-center rounded-full transition-colors duration-300',
                     isActive
-                      ? 'bg-blue-500 text-white'
-                      : 'bg-gray-700 text-gray-400',
+                      ? 'bg-blue-600 text-white shadow-md shadow-blue-200'
+                      : isDone
+                      ? 'bg-green-500 text-white'
+                      : 'bg-gray-100 text-gray-400',
                   )}
                 >
-                  {isActive ? (
-                    <FaCircleNotch className="animate-spin text-xl" />
-                  ) : (
-                    <step.icon className="text-xl" />
-                  )}
+                  {isDone ? <FaCheckCircle /> : <step.icon />}
                 </div>
 
-                <div>
-                  <h3
-                    className={clsx(
-                      'font-bold text-lg transition-colors duration-500',
-                      isActive ? 'text-white' : 'text-gray-400',
+                <div className="flex-1">
+                  <div className="flex items-center justify-between">
+                    <span
+                      className={clsx(
+                        'font-semibold text-lg',
+                        isActive ? 'text-gray-900' : 'text-gray-500',
+                      )}
+                    >
+                      {step.label}
+                    </span>
+                    {isActive && (
+                      <span className="text-xs font-medium text-blue-600 bg-blue-50 px-2 py-1 rounded-full animate-pulse">
+                        Processing
+                      </span>
                     )}
-                  >
-                    {step.label}
-                  </h3>
+                  </div>
+
                   {isActive && (
-                    <motion.p
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      className="text-blue-200 text-sm mt-1"
+                    <motion.div
+                      initial={{ height: 0, opacity: 0 }}
+                      animate={{ height: 'auto', opacity: 1 }}
+                      className="text-gray-500 mt-1"
                     >
                       {step.description}
-                    </motion.p>
+                    </motion.div>
                   )}
                 </div>
               </motion.div>
             )
           })}
         </AnimatePresence>
-      </div>
-
-      {/* Progress Bar at bottom */}
-      <div className="absolute bottom-6 left-8 right-8 h-1 bg-gray-700 rounded-full overflow-hidden">
-        <motion.div
-          className="h-full bg-blue-500"
-          initial={{ width: '0%' }}
-          animate={{
-            width: `${Math.min(
-              (activeStep / simulationSteps.length) * 100,
-              100,
-            )}%`,
-          }}
-          transition={{ duration: 0.5 }}
-        />
       </div>
     </div>
   )

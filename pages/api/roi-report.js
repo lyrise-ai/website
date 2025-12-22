@@ -5,8 +5,10 @@ export default async function handler(req, res) {
 
   try {
     const response = await fetch(
-      process.env.N8N_WEBHOOK_URL ||
-        'https://marcbanoub.app.n8n.cloud/webhook/roi-gen',
+      process.env.NODE_ENV === 'development'
+        ? process.env.N8N_WEBHOOK_URL_test
+        : process.env.N8N_WEBHOOK_URL ||
+            'https://marcbanoub.app.n8n.cloud/webhook/roi-gen',
       {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -14,8 +16,20 @@ export default async function handler(req, res) {
       },
     )
 
-    const data = await response.json()
-    return res.status(response.ok ? 200 : 500).json(data)
+    const contentType = response.headers.get('content-type')
+    let data
+
+    try {
+      if (contentType && contentType.includes('application/json')) {
+        data = await response.json()
+      } else {
+        data = await response.text()
+      }
+    } catch (error) {
+      data = {}
+    }
+
+    return res.status(response.status).json(data)
   } catch (error) {
     // eslint-disable-next-line no-console
     console.error('Proxy error:', error)

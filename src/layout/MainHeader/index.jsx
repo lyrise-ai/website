@@ -50,11 +50,11 @@ export default function MainHeader() {
     router.push(path)
   }
   return (
-    <header className="py-4 mt-3 px-10  mb-10 lg:mb-0">
+    <header className="py-4 mt-3 px-2 sm:px-10  mb-10 lg:mb-0">
       <div
-        className={`custom-container flex items-center justify-between gap-4 py-3 ${styles.navbar}`}
+        className={`custom-container px-[1rem] sm:px[2.5rem] flex items-center justify-between gap-4 py-3 ${styles.navbar}`}
       >
-        <div className="h-[36px]">
+        <Link href="/" title="LyRise" className="h-[36px]">
           <Image
             src={Logo}
             alt="LyRise AI"
@@ -62,7 +62,7 @@ export default function MainHeader() {
             height={40}
             objectFit="contain"
           />
-        </div>
+        </Link>
 
         <ul className="hidden lg:flex items-center gap-10 font-outfit font-normal text-new-black">
           {NAVIGATIONS.map(({ label, path, isPage }) => (
