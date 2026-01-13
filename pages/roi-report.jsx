@@ -26,6 +26,7 @@ const schema = yup.object().shape({
     .url('Please enter a valid URL (e.g., https://example.com)')
     .optional(),
   linkedin: yup.string().url('Please enter a valid LinkedIn URL').optional(),
+  extraInfo: yup.string().optional(),
 })
 
 const InputField = ({
@@ -37,6 +38,7 @@ const InputField = ({
   type = 'text',
   required = false,
   description = '',
+  rows,
 }) => (
   <div className="flex flex-col">
     <label
@@ -49,18 +51,33 @@ const InputField = ({
       )}
     </label>
     <div className="relative">
-      <input
-        type={type}
-        id={id}
-        {...register(id)}
-        className={clsx(
-          'w-full px-4 py-3 rounded-lg border text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-offset-1 transition-all duration-200',
-          error
-            ? 'border-red-300 focus:border-red-500 focus:ring-red-200 bg-red-50/10'
-            : 'border-gray-200 focus:border-blue-500 focus:ring-blue-100 bg-white hover:border-gray-300',
-        )}
-        placeholder={placeholder}
-      />
+      {type === 'textarea' ? (
+        <textarea
+          id={id}
+          {...register(id)}
+          rows={rows || 4}
+          className={clsx(
+            'w-full px-4 py-3 rounded-lg border text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-offset-1 transition-all duration-200 resize-none',
+            error
+              ? 'border-red-300 focus:border-red-500 focus:ring-red-200 bg-red-50/10'
+              : 'border-gray-200 focus:border-blue-500 focus:ring-blue-100 bg-white hover:border-gray-300',
+          )}
+          placeholder={placeholder}
+        />
+      ) : (
+        <input
+          type={type}
+          id={id}
+          {...register(id)}
+          className={clsx(
+            'w-full px-4 py-3 rounded-lg border text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-offset-1 transition-all duration-200',
+            error
+              ? 'border-red-300 focus:border-red-500 focus:ring-red-200 bg-red-50/10'
+              : 'border-gray-200 focus:border-blue-500 focus:ring-blue-100 bg-white hover:border-gray-300',
+          )}
+          placeholder={placeholder}
+        />
+      )}
     </div>
     {error && (
       <p className="mt-1 text-sm text-red-500 flex items-center">
@@ -80,7 +97,15 @@ const ROIFormFields = ({ register, errors, isSubmitting }) => (
       placeholder="Acme Corp"
       required
     />
-
+    <InputField
+      id="email"
+      label="Work Email"
+      register={register}
+      error={errors.email}
+      placeholder="name@company.com"
+      type="email"
+      required
+    />
     <InputField
       id="website"
       label="Company Website"
@@ -102,15 +127,14 @@ const ROIFormFields = ({ register, errors, isSubmitting }) => (
     />
 
     <InputField
-      id="email"
-      label="Work Email"
+      id="extraInfo"
+      label="Additional Context"
       register={register}
-      error={errors.email}
-      placeholder="name@company.com"
-      type="email"
-      required
+      error={errors.extraInfo}
+      placeholder="Tell us about your specific challenges or goals..."
+      type="textarea"
+      description="(Optional)"
     />
-
     {/* Submit Button */}
     <button
       type="submit"
@@ -172,6 +196,7 @@ export default function ROIReport() {
       'Company Name': data.companyName,
       'Company Website URL': data.website,
       'Company LinkedIn URL': data.linkedin,
+      extraInfo: data.extraInfo,
     }
 
     // Fire and forget

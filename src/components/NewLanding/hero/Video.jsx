@@ -23,7 +23,7 @@ const playAndEnterFullscreen = (videoElement) => {
       requestFullscreen(videoElement)
     })
     .catch((error) => {
-      console.log('Error attempting to play the video:', error)
+      // console.log('Error attempting to play the video:', error)
     })
 }
 

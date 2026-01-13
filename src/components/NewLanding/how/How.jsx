@@ -229,8 +229,8 @@ function ContentSlot({
 }) {
   const direction = previousSectionIndex > sectionViewing ? 'up' : 'down'
 
-  console.log('scrolling', direction)
-  console.log('prev', previousSectionIndex, 'curr', sectionViewing)
+  // console.log('scrolling', direction)
+  // console.log('prev', previousSectionIndex, 'curr', sectionViewing)
 
   return (
     <motion.div
