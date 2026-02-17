@@ -6,16 +6,16 @@ export default async function handler(req, res) {
   }
 
   try {
-    const submissionId = nanoid()
-    const protocol = req.headers['x-forwarded-proto'] || 'http'
-    const host = req.headers.host
-    const feedbackLink = `${protocol}://${host}/roi-feedback?id=${submissionId}`
+    // const submissionId = nanoid()
+    // const protocol = req.headers['x-forwarded-proto'] || 'http'
+    // const host = req.headers.host
+    // const feedbackLink = `${protocol}://${host}/roi-feedback?id=${submissionId}`
 
-    console.log('Generated Link:', feedbackLink)
+    // console.log('Generated Link:', feedbackLink)
 
     const n8nUrl =
       process.env.NODE_ENV === 'development'
-        ? process.env.N8N_WEBHOOK_URL_test
+        ? process.env.N8N_WEBHOOK_URL
         : process.env.N8N_WEBHOOK_URL ||
           'https://marcbanoub.app.n8n.cloud/webhook/roi-gen'
 
@@ -24,8 +24,8 @@ export default async function handler(req, res) {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         ...req.body,
-        submissionId,
-        feedbackLink,
+        // submissionId,
+        // feedbackLink,
       }),
     })
 

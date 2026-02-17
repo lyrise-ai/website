@@ -24,10 +24,24 @@ const schema = yup.object().shape({
   website: yup
     .string()
     .url('Please enter a valid URL (e.g., https://example.com)')
-    .optional(),
+    .required('Company Website URL is required'),
+  industry: yup.string().required('Industry / Sector is required'),
   linkedin: yup.string().url('Please enter a valid LinkedIn URL').optional(),
-  extraInfo: yup.string().optional(),
 })
+
+const INDUSTRY_OPTIONS = [
+  'Financial Services & Banking',
+  'Healthcare & Life Sciences',
+  'Technology & Software',
+  'Manufacturing & Industrial',
+  'Retail & E-Commerce',
+  'Professional Services & Consulting',
+  'Real Estate & Construction',
+  'Energy & Utilities',
+  'Education',
+  'Government & Public Sector',
+  'Other',
+]
 
 const InputField = ({
   id,
@@ -39,6 +53,7 @@ const InputField = ({
   required = false,
   description = '',
   rows,
+  options = [],
 }) => (
   <div className="flex flex-col">
     <label
@@ -51,13 +66,31 @@ const InputField = ({
       )}
     </label>
     <div className="relative">
-      {type === 'textarea' ? (
+      {type === 'select' ? (
+        <select
+          id={id}
+          {...register(id)}
+          className={clsx(
+            'w-full px-3 py-2 rounded-lg border text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-offset-1 transition-all duration-200',
+            error
+              ? 'border-red-300 focus:border-red-500 focus:ring-red-200 bg-red-50/10'
+              : 'border-gray-200 focus:border-blue-500 focus:ring-blue-100 bg-white hover:border-gray-300',
+          )}
+        >
+          <option value="">Select an option...</option>
+          {options.map((opt) => (
+            <option key={opt} value={opt}>
+              {opt}
+            </option>
+          ))}
+        </select>
+      ) : type === 'textarea' ? (
         <textarea
           id={id}
           {...register(id)}
           rows={rows || 4}
           className={clsx(
-            'w-full px-4 py-3 rounded-lg border text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-offset-1 transition-all duration-200 resize-none',
+            'w-full px-3 py-2 rounded-lg border text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-offset-1 transition-all duration-200 resize-none',
             error
               ? 'border-red-300 focus:border-red-500 focus:ring-red-200 bg-red-50/10'
               : 'border-gray-200 focus:border-blue-500 focus:ring-blue-100 bg-white hover:border-gray-300',
@@ -70,7 +103,7 @@ const InputField = ({
           id={id}
           {...register(id)}
           className={clsx(
-            'w-full px-4 py-3 rounded-lg border text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-offset-1 transition-all duration-200',
+            'w-full px-3 py-2 rounded-lg border text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-offset-1 transition-all duration-200',
             error
               ? 'border-red-300 focus:border-red-500 focus:ring-red-200 bg-red-50/10'
               : 'border-gray-200 focus:border-blue-500 focus:ring-blue-100 bg-white hover:border-gray-300',
@@ -113,7 +146,18 @@ const ROIFormFields = ({ register, errors, isSubmitting }) => (
       error={errors.website}
       placeholder="https://acme.com"
       type="url"
-      description="(Optional)"
+      description="(Required)"
+      required
+    />
+
+    <InputField
+      id="industry"
+      label="Industry / Sector"
+      register={register}
+      error={errors.industry}
+      type="select"
+      options={INDUSTRY_OPTIONS}
+      required
     />
 
     <InputField
@@ -126,21 +170,12 @@ const ROIFormFields = ({ register, errors, isSubmitting }) => (
       description="(Optional)"
     />
 
-    <InputField
-      id="extraInfo"
-      label="Additional Context"
-      register={register}
-      error={errors.extraInfo}
-      placeholder="Tell us about your specific challenges or goals..."
-      type="textarea"
-      description="(Optional)"
-    />
     {/* Submit Button */}
     <button
       type="submit"
       disabled={isSubmitting}
       className={clsx(
-        'w-full group flex items-center justify-center py-4 px-6 rounded-lg text-lg font-semibold transition-all transform mt-6 shadow-md hover:shadow-xl',
+        'w-full group flex items-center justify-center py-3 px-6 rounded-lg text-base font-semibold transition-all transform mt-6 shadow-md hover:shadow-xl',
         isSubmitting
           ? 'bg-blue-400 text-white cursor-not-allowed'
           : 'bg-[#2C2C2C] text-white hover:bg-black hover:-translate-y-0.5',
@@ -162,11 +197,11 @@ const ROIFormFields = ({ register, errors, isSubmitting }) => (
 )
 
 const Header = () => (
-  <div className="mb-8 text-center">
-    <h1 className="text-3xl font-bold text-gray-900 mb-3">
+  <div className="mb-6 text-center">
+    <h1 className="text-2xl font-bold text-gray-900 mb-2">
       Calculate Your AI ROI
     </h1>
-    <p className="text-gray-600 text-lg max-w-sm mx-auto">
+    <p className="text-gray-600 text-base max-w-sm mx-auto">
       See exactly how much time and resources you can save with LyRise.
     </p>
   </div>
@@ -196,7 +231,7 @@ export default function ROIReport() {
       'Company Name': data.companyName,
       'Company Website URL': data.website,
       'Company LinkedIn URL': data.linkedin,
-      extraInfo: data.extraInfo,
+      'Industry / Sector': data.industry,
     }
 
     // Fire and forget
