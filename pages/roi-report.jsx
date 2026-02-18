@@ -40,6 +40,7 @@ const INDUSTRY_OPTIONS = [
   'Energy & Utilities',
   'Education',
   'Government & Public Sector',
+  'Legal',
   'Other',
 ]
 
