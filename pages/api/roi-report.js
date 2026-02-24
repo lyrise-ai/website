@@ -1,32 +1,16 @@
-import { nanoid } from 'nanoid'
-
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' })
   }
 
   try {
-    // const submissionId = nanoid()
-    // const protocol = req.headers['x-forwarded-proto'] || 'http'
-    // const host = req.headers.host
-    // const feedbackLink = `${protocol}://${host}/roi-feedback?id=${submissionId}`
-
-    // console.log('Generated Link:', feedbackLink)
-
-    const n8nUrl =
-      process.env.NODE_ENV === 'development'
-        ? process.env.N8N_WEBHOOK_URL
-        : process.env.N8N_WEBHOOK_URL ||
-          'https://marcbanoub.app.n8n.cloud/webhook/roi-gen'
+    const n8nUrl = process.env.N8N_WEBHOOK_URL
+    if (!n8nUrl) throw new Error('N8N_WEBHOOK_URL env var is not set')
 
     const response = await fetch(n8nUrl, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        ...req.body,
-        // submissionId,
-        // feedbackLink,
-      }),
+      body: JSON.stringify(req.body),
     })
 
     const contentType = response.headers.get('content-type')
