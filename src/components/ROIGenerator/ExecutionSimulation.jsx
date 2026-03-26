@@ -67,7 +67,7 @@ const ExecutionSimulation = ({ onComplete, currentStage }) => {
 
   // Controlled mode — advance based on real SSE stage events
   useEffect(() => {
-    if (!controlled) return
+    if (!controlled) return undefined
 
     if (currentStage === 'done') {
       setActiveStep(simulationSteps.length)
@@ -77,11 +77,12 @@ const ExecutionSimulation = ({ onComplete, currentStage }) => {
 
     const idx = stageToStepIndex(currentStage)
     if (idx >= 0) setActiveStep(idx)
+    return undefined
   }, [currentStage, controlled])
 
   // Timer-based fallback (original behaviour when no currentStage prop)
   useEffect(() => {
-    if (controlled) return
+    if (controlled) return undefined
 
     if (activeStep < simulationSteps.length) {
       const timer = setTimeout(() => setActiveStep((prev) => prev + 1), 2000)
