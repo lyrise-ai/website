@@ -9,6 +9,8 @@ module.exports = {
       '@hooks': path.resolve(__dirname, 'src/hooks'),
       '@assets': path.resolve(__dirname, 'src/assets'),
       '@services': path.resolve(__dirname, 'src/services'),
+      // ROI pipeline uses @/ as project root alias
+      '@': path.resolve(__dirname),
     }
     return config
   },

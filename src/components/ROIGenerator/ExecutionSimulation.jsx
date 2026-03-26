@@ -14,53 +14,82 @@ const simulationSteps = [
     id: 1,
     label: 'Market Research',
     icon: FaSearch,
-    description: 'Analyzing public business data...',
+    description: 'Analysing public business data…',
+    stages: ['research'],
   },
   {
     id: 2,
     label: 'Workflow Analysis',
     icon: FaGlobe,
-    description: 'Scanning digital footprint...',
+    description: 'Modelling financial assumptions…',
+    stages: ['modeler', 'calculator'],
   },
   {
     id: 3,
     label: 'Data Enrichment',
     icon: FaRobot,
-    description: 'Benchmarking against industry standards...',
+    description: 'Benchmarking against industry standards…',
+    stages: ['writer'],
   },
   {
     id: 4,
     label: 'Report Generation',
     icon: FaFilePdf,
-    description: 'Compiling your personalized insights...',
+    description: 'Compiling your personalised insights…',
+    stages: ['assemble', 'render'],
   },
 ]
 
-const ExecutionSimulation = ({ onComplete }) => {
+function stageToStepIndex(stage) {
+  for (let i = 0; i < simulationSteps.length; i++) {
+    if (simulationSteps[i].stages.includes(stage)) return i
+  }
+  return -1
+}
+
+/**
+ * ExecutionSimulation
+ *
+ * Props:
+ *   onComplete   — called when all steps are done
+ *   currentStage — optional pipeline stage name from SSE ('research'|'modeler'|…|'done')
+ *                  When provided, steps advance based on real pipeline events.
+ *                  When absent, falls back to the original timer-based animation.
+ */
+const ExecutionSimulation = ({ onComplete, currentStage }) => {
+  const controlled = currentStage !== undefined
   const [activeStep, setActiveStep] = useState(0)
   const onCompleteRef = React.useRef(onComplete)
 
-  // Keep ref synced with latest callback
   useEffect(() => {
     onCompleteRef.current = onComplete
   }, [onComplete])
 
+  // Controlled mode — advance based on real SSE stage events
   useEffect(() => {
-    if (activeStep < simulationSteps.length) {
-      const timer = setTimeout(() => {
-        setActiveStep((prev) => prev + 1)
-      }, 2000) // Slightly faster? 2.0 seconds
+    if (!controlled) return
 
+    if (currentStage === 'done') {
+      setActiveStep(simulationSteps.length)
+      const t = setTimeout(() => onCompleteRef.current?.(), 500)
+      return () => clearTimeout(t)
+    }
+
+    const idx = stageToStepIndex(currentStage)
+    if (idx >= 0) setActiveStep(idx)
+  }, [currentStage, controlled])
+
+  // Timer-based fallback (original behaviour when no currentStage prop)
+  useEffect(() => {
+    if (controlled) return
+
+    if (activeStep < simulationSteps.length) {
+      const timer = setTimeout(() => setActiveStep((prev) => prev + 1), 2000)
       return () => clearTimeout(timer)
     }
-    // All steps done
-    const completeTimer = setTimeout(() => {
-      if (onCompleteRef.current) {
-        onCompleteRef.current()
-      }
-    }, 500)
-    return () => clearTimeout(completeTimer)
-  }, [activeStep])
+    const t = setTimeout(() => onCompleteRef.current?.(), 500)
+    return () => clearTimeout(t)
+  }, [activeStep, controlled])
 
   return (
     <div className="w-full h-full min-h-[400px] flex flex-col items-center justify-center relative overflow-hidden font-sans text-sm">
@@ -70,7 +99,7 @@ const ExecutionSimulation = ({ onComplete }) => {
             Configuring Your Report
           </h3>
           <p className="text-gray-500 mt-2">
-            Please wait while we analyze your business profile.
+            Please wait while we analyse your business profile.
           </p>
         </div>
 

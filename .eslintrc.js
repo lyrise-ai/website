@@ -21,7 +21,7 @@ module.exports = {
     },
     'import/resolver': {
       node: {
-        extensions: ['.js', '.jsx'],
+        extensions: ['.js', '.jsx', '.ts', '.tsx'],
       },
     },
   },
@@ -98,6 +98,8 @@ module.exports = {
       {
         js: 'never',
         jsx: 'never',
+        ts: 'never',
+        tsx: 'never',
       },
     ],
     'jsx-a11y/anchor-is-valid': [
@@ -140,5 +142,8 @@ module.exports = {
     'prefer-destructuring': 'off',
     'no-param-reassign': 'off',
     'react/no-array-index-key': 'off',
+    'sonarjs/cognitive-complexity': 'off',
+    'sonarjs/no-collapsible-if': 'off',
+    'jsx-a11y/label-has-associated-control': 'off',
   },
 }

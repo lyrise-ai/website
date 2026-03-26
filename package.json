@@ -12,6 +12,7 @@
     "prepare": "husky install"
   },
   "dependencies": {
+    "@ai-sdk/openai": "^3.0.48",
     "@emailjs/browser": "^4.4.1",
     "@emotion/cache": "latest",
     "@emotion/css": "^11.10.5",
@@ -26,7 +27,9 @@
     "@mui/material": "latest",
     "@mui/system": "^5.11.11",
     "@rive-app/react-canvas": "^4.1.6",
+    "@sparticuz/chromium": "^143.0.4",
     "@studio-freight/lenis": "^1.0.42",
+    "ai": "^6.0.138",
     "amplitude-js": "^8.20.0",
     "axios": "^1.1.2",
     "axios-retry": "^3.3.1",
@@ -42,6 +45,7 @@
     "next": "^13.5.7",
     "next-auth": "^4.24.10",
     "prop-types": "latest",
+    "puppeteer-core": "^24.40.0",
     "react": "^18.3.1",
     "react-calendar": "^5.0.0",
     "react-dom": "^18.3.1",
@@ -61,7 +65,8 @@
     "socket.io-client": "^4.8.1",
     "swiper": "^9.0.4",
     "yup": "^0.32.11",
-    "yup-phone": "^1.3.2"
+    "yup-phone": "^1.3.2",
+    "zod": "^4.3.6"
   },
   "husky": {
     "hooks": {
