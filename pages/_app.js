@@ -150,7 +150,8 @@ export default function MyApp(props) {
           <link rel="icon" href="/images/LogoIcon.ico" />
           <meta name="theme-color" content="#6666ff" />
           <title>
-            {title || 'LyRise AI: The Platform For Companies To 3X Profits'}
+            {title ||
+              'Unlock $300K-$1M Hidden in Your Legal & Finance Operations'}
           </title>
           <meta
             name="description"
@@ -162,14 +163,15 @@ export default function MyApp(props) {
           <meta
             property="og:title"
             content={`${
-              title || 'LyRise AI: The Platform For Companies To 3X Profits'
+              title ||
+              'Unlock $300K-$1M Hidden in Your Legal & Finance Operations'
             }`}
           />
           <meta
             property="og:description"
             content={`${
               description ||
-              'LyRise AI: The Platform For Companies To 3X Profits'
+              'Unlock $300K-$1M Hidden in Your Legal & Finance Operations'
             }`}
           />
           <meta

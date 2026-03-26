@@ -64,7 +64,7 @@ const MainHeaderMobile = ({ navigation, buttons }) => {
                 </IconButton>{' '}
               </div>
               <div className="text-[16px] leading-[120%] text-new-black">
-                LyRise AI: The Platform For Companies To 3X Profits.
+                Unlock $300K-$1M Hidden in Your Legal & Finance Operations.
               </div>
             </div>
           </div>
