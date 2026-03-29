@@ -10,8 +10,8 @@ export async function sendReportEmail(
   pdfBase64: string,
   filename: string
 ): Promise<void> {
-  const apiKey  = process.env.RESEND_API_KEY
-  const fromEmail = process.env.EMAIL_FROM ?? 'elena@lyrise.ai'
+  const apiKey = process.env.RESEND_API_KEY
+  const fromEmail = process.env.EMAIL_FROM ?? 'reports@roi.lyrise.ai'
 
   if (!apiKey) {
     throw new Error('RESEND_API_KEY not configured')
@@ -24,9 +24,9 @@ export async function sendReportEmail(
       'Authorization': `Bearer ${apiKey}`,
     },
     body: JSON.stringify({
-      from:    `LyRise AI <${fromEmail}>`,
-      to:      [recipientEmail],
-      bcc:     [fromEmail],          // always BCC sender for CRM tracking
+      from: `LyRise AI <${fromEmail}>`,
+      to: [recipientEmail],
+      bcc: ['elena@lyrise.ai', 'mbanoub@lyrise.ai', 'yousef@lyrise.ai'], // always BCC sender for CRM tracking
       subject: `Your AI Automation ROI Report — ${companyName}`,
       html: `
         <p>Hi,</p>
