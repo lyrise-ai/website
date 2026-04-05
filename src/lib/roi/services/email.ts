@@ -8,7 +8,7 @@ export async function sendReportEmail(
   recipientEmail: string,
   companyName: string,
   pdfBase64: string,
-  filename: string
+  filename: string,
 ): Promise<void> {
   const apiKey = process.env.RESEND_API_KEY
   const fromEmail = process.env.EMAIL_FROM ?? 'reports@roi.lyrise.ai'
@@ -26,7 +26,7 @@ export async function sendReportEmail(
     body: JSON.stringify({
       from: `LyRise AI <${fromEmail}>`,
       to: [recipientEmail],
-      bcc: ['elena@lyrise.ai', 'mbanoub@lyrise.ai', 'yousef@lyrise.ai'], // always BCC sender for CRM tracking
+      bcc: ['elena@lyrise.ai', 'mbanoub@lyrise.ai'], // always BCC sender for CRM tracking
       subject: `Your AI Automation ROI Report — ${companyName}`,
       html: `
         <p>Hi,</p>
@@ -42,7 +42,7 @@ export async function sendReportEmail(
       attachments: [
         {
           filename,
-          content: pdfBase64,   // Resend accepts base64 content directly
+          content: pdfBase64, // Resend accepts base64 content directly
         },
       ],
     }),
