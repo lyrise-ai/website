@@ -38,7 +38,21 @@ COSTS:
 - implementationCost: MUST equal 6–10× estimated monthly labor savings.
 - monthlyToolingCost: recurring platform/license fees (typically $200–800/month for SMBs).
 
-LABOR:
+RULE 6A — PER-WORKFLOW SENIORITY-DIFFERENTIATED RATES:
+You MUST set fullyLoadedHourlyCostOverride for EACH workflow individually.
+Do NOT use the same rate for all workflows.
+Rate must reflect the seniority of the role that performs this task:
+  - Junior/admin roles (data entry, scheduling, reporting): use lower end of regional range
+  - Mid-level roles (account management, ops, compliance): use mid range
+  - Senior roles (strategy, sales, legal, finance): use upper end
+Source your rates from a named benchmark. Cite it in rateSource:
+  GCC: Gulf Talent or Bayt.com ($18–28/hr for junior, up to $45/hr for senior)
+  Turkey/Egypt: Glassdoor regional ($12–20/hr)
+  US/EU: Robert Half or LinkedIn Salary Insights ($45–75/hr)
+  UK: Robert Half UK ($40–65/hr)
+Set seniorityLevel to describe the role (e.g. "Junior operations analyst", "Senior sales executive").
+
+LABOR (global fallback — used if no override set):
 - fullyLoadedHourlyCost: blended rate for this country and industry.
   GCC: $18–28/hr | Turkey/Egypt: $12–20/hr | US/EU: $45–75/hr | UK: $40–65/hr
 - workWeeksPerYear: 48 for GCC/Egypt, 50 for US/EU/UK.
@@ -50,6 +64,9 @@ workflowAssumptions (exactly 4, names must match workflows input):
 - exceptionRate: 0.05–0.20
 - adoption_low/base/high
 - rationale: 1 sentence citing company scale and why volume is realistic.
+- fullyLoadedHourlyCostOverride: required for each workflow (Rule 6A)
+- rateSource: required — name the benchmark (Gulf Talent, Bayt.com, Robert Half, LinkedIn Salary Insights, Glassdoor)
+- seniorityLevel: required — describe the role seniority
 
 SANITY CHECK — annual labor savings = sum(volume × timeSaved/60 × rate × realization × 12):
 - Under 200 employees: $60K–$300K total
@@ -102,7 +119,8 @@ export const ROI_MODELER_SCHEMA = {
         type: 'object',
         additionalProperties: false,
         required: ['workflowName', 'monthlyVolume', 'minutesPerItemBefore', 'minutesPerItemAfter',
-          'exceptionRate', 'exceptionMinutes', 'adoption_low', 'adoption_base', 'adoption_high', 'rationale'],
+          'exceptionRate', 'exceptionMinutes', 'adoption_low', 'adoption_base', 'adoption_high',
+          'rationale', 'fullyLoadedHourlyCostOverride', 'rateSource', 'seniorityLevel'],
         properties: {
           workflowName: { type: 'string' },
           monthlyVolume: { type: 'number', minimum: 0 },
@@ -114,6 +132,10 @@ export const ROI_MODELER_SCHEMA = {
           adoption_base: { type: 'number', minimum: 0, maximum: 1 },
           adoption_high: { type: 'number', minimum: 0, maximum: 1 },
           rationale: { type: 'string' },
+          // Rule 6A — per-workflow seniority-differentiated rate
+          fullyLoadedHourlyCostOverride: { type: 'number', minimum: 1 },
+          rateSource: { type: 'string' },
+          seniorityLevel: { type: 'string' },
         },
       },
     },

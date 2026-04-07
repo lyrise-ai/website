@@ -7,7 +7,7 @@
 body {
   font-family: 'Helvetica Neue', Arial, Helvetica, sans-serif;
   font-size: 9.5pt;
-  color: #1e293b;
+  color: #1a1a1a;
   line-height: 1.55;
   background: #fff;
 }
@@ -18,56 +18,74 @@ body {
   page-break-after: always;
 }
 .page.last { page-break-after: auto; }
-.top-bar { height: 4px; background: #0a1628; margin-bottom: 10px; }
+.top-bar { height: 4px; background: #2957FF; margin-bottom: 10px; }
 h2 {
-  font-size: 11pt; font-weight: bold; color: #0a1628;
-  border-bottom: 2px solid #0a1628; padding-bottom: 4px;
-  margin-bottom: 6px; margin-top: 8px;
+  font-size: 11pt; font-weight: bold; color: #1a1a1a;
+  border-bottom: 2px solid #2957FF; padding-bottom: 4px;
+  margin-bottom: 6px; margin-top: 10px;
 }
 h2:first-child { margin-top: 0; }
-h3 { font-size: 10pt; font-weight: bold; color: #0a1628; margin-bottom: 4px; }
-p  { font-size: 9.5pt; margin-bottom: 4px; }
-.accent { color: #0a1628; font-weight: bold; }
-.muted  { color: #64748b; font-size: 8.5pt; }
+h3 { font-size: 10pt; font-weight: bold; color: #2d2d2d; margin-bottom: 4px; }
+p  { font-size: 9.5pt; margin-bottom: 5px; color: #2d2d2d; }
+.accent { color: #2957FF; font-weight: bold; }
+.muted  { color: #5a5a6e; font-size: 8.5pt; }
+
+/* Tables — horizontal borders only (McKinsey standard) */
 table { width: 100%; border-collapse: collapse; font-size: 9pt; margin-bottom: 4px; page-break-inside: avoid; }
 th {
-  background: #0a1628; color: #fff; font-weight: bold; font-size: 7.5pt;
+  background: #2957FF; color: #fff; font-weight: bold; font-size: 7.5pt;
   text-transform: uppercase; letter-spacing: 0.3px;
-  padding: 5px 7px; border: 1px solid #0a1628; text-align: left;
+  padding: 5px 7px; border: none; border-bottom: 2px solid #2957FF; text-align: left;
 }
-td { padding: 4px 7px; border: 1px solid #dde1e7; vertical-align: top; }
+td { padding: 4px 7px; border: none; border-bottom: 1px solid #e2e8f0; vertical-align: top; }
 tr:nth-child(even) td { background: #f9fafb; }
-.total-row td { border-top: 2px solid #0a1628; background: #f1f5f9 !important; font-weight: bold; }
+.total-row td { border-top: 2px solid #2957FF; background: #eef2ff !important; font-weight: bold; }
 .note {
-  font-size: 7.5pt; color: #64748b; padding: 2px 8px;
-  border-left: 2px solid #dde1e7; margin-top: 2px; margin-bottom: 4px; font-style: italic;
+  font-size: 7.5pt; color: #5a5a6e; padding: 2px 8px;
+  border-left: 2px solid #e2e8f0; margin-top: 2px; margin-bottom: 4px; font-style: italic;
 }
 .footer {
   margin-top: 8px; padding-top: 6px; border-top: 1px solid #e2e8f0;
   font-size: 7.5pt; color: #94a3b8;
   display: flex; justify-content: space-between; align-items: center;
 }
-.footer a { color: #0a1628; text-decoration: none; font-weight: bold; }
+.footer a { color: #2957FF; text-decoration: none; font-weight: bold; }
+
+/* Insight panel (LyRise-adapted McKinsey pattern) */
+.insight-panel { display: flex; border: 1px solid #e2e8f0; margin-bottom: 8px; border-radius: 2px; }
+.insight-stripe { width: 4px; background: #2957FF; flex-shrink: 0; border-radius: 2px 0 0 2px; }
+.insight-content { padding: 8px 12px; flex: 1; }
+
+/* Source badges */
+.badge-scraped     { background: #dcfce7; color: #166534; font-size: 6.5pt; padding: 1px 5px; border-radius: 3px; font-weight: bold; }
+.badge-benchmarked { background: #fef9c3; color: #854d0e; font-size: 6.5pt; padding: 1px 5px; border-radius: 3px; font-weight: bold; }
+.badge-assumed     { background: #fee2e2; color: #991b1b; font-size: 6.5pt; padding: 1px 5px; border-radius: 3px; font-weight: bold; }
+
+/* Confidence badge */
+.confidence-badge { font-size: 7pt; padding: 2px 8px; border-radius: 10px; display: inline-block; margin-top: 4px; font-weight: bold; }
+.confidence-high  { background: #dcfce7; color: #166534; }
+.confidence-low   { background: #fef9c3; color: #854d0e; }
+
 /* Cover */
 .eyebrow {
   font-size: 7pt; letter-spacing: 2px; text-transform: uppercase;
   color: #94a3b8; margin-top: 8mm; margin-bottom: 4px;
 }
 .co-name {
-  font-size: 26pt; font-weight: bold; color: #0a1628;
+  font-size: 26pt; font-weight: bold; color: #1a1a1a;
   line-height: 1.05; margin-bottom: 3px;
 }
 .headline {
-  font-size: 12pt; font-weight: bold; color: #0a1628;
+  font-size: 12pt; font-weight: bold; color: #2d2d2d;
   margin-bottom: 10px; line-height: 1.3;
 }
 .meta-line {
-  font-size: 8.5pt; color: #64748b; margin-bottom: 12px;
+  font-size: 8.5pt; color: #5a5a6e; margin-bottom: 12px;
 }
-.meta-line strong { color: #1e293b; }
+.meta-line strong { color: #1a1a1a; }
 .stat-table { margin-bottom: 8px; border-collapse: separate; border-spacing: 5px; }
 .stat-table td {
-  background: #f8fafc; border: 1px solid #dde1e7;
+  background: #f8fafc; border: 1px solid #e2e8f0;
   padding: 9px 11px; width: 25%; vertical-align: top;
 }
 .stat-label {
@@ -75,21 +93,22 @@ tr:nth-child(even) td { background: #f9fafb; }
   color: #94a3b8; font-weight: bold; margin-bottom: 3px; display: block;
 }
 .stat-value {
-  font-size: 17pt; font-weight: bold; color: #0a1628;
+  font-size: 17pt; font-weight: bold; color: #1a1a1a;
   line-height: 1.1; display: block;
 }
-.stat-sub { font-size: 7.5pt; color: #64748b; margin-top: 2px; display: block; }
+.stat-sub { font-size: 7.5pt; color: #5a5a6e; margin-top: 2px; display: block; }
+
 /* Cover 2-col */
 .cover-2col td {
   vertical-align: top; width: 50%;
-  background: #f8fafc; border: 1px solid #dde1e7; padding: 10px 12px;
+  background: #f8fafc; border: 1px solid #e2e8f0; padding: 10px 12px;
 }
 .scope-list { list-style: none; margin-top: 6px; }
 .scope-list li {
   padding: 3px 0 3px 14px; border-bottom: 1px dotted #e2e8f0;
   font-size: 9pt; position: relative;
 }
-.scope-list li:before { content: ">"; position: absolute; left: 0; color: #0a1628; font-weight: bold; }
+.scope-list li:before { content: ">"; position: absolute; left: 0; color: #2957FF; font-weight: bold; }
 .scope-list li:last-child { border-bottom: none; }
 .outcomes { list-style: none; margin-top: 6px; }
 .outcomes li {
@@ -97,329 +116,446 @@ tr:nth-child(even) td { background: #f9fafb; }
   border-bottom: 1px solid #e2e8f0; font-size: 9pt;
 }
 .outcomes li:last-child { border-bottom: none; }
-.oc-label { color: #64748b; }
-.oc-val   { font-weight: bold; color: #1e293b; }
-.oc-hi    { font-weight: bold; color: #0a1628; font-size: 10pt; }
-/* Disclaimer */
-.disc-box {
-  background: #fffbeb; border: 1px solid #fde68a;
-  border-left: 4px solid #f59e0b; padding: 8px 11px;
-  margin-top: 8px; margin-bottom: 0;
-}
-.disc-title {
-  font-size: 7.5pt; text-transform: uppercase; letter-spacing: 0.8px;
-  font-weight: bold; color: #92400e; margin-bottom: 3px;
-}
-.disc-box p { font-size: 8.5pt; color: #78350f; line-height: 1.4; }
+.oc-label { color: #5a5a6e; }
+
 /* Roadmap */
-.roadmap-table {
-  page-break-inside: avoid;
+.roadmap-phase {
+  display: inline-block; background: #eef2ff; border: 1px solid #2957FF;
+  border-radius: 4px; padding: 6px 10px; margin: 3px; text-align: center;
+  font-size: 8.5pt; min-width: 80px; vertical-align: top;
 }
-.roadmap-table td {
-  vertical-align: top; width: 25%; background: #f8fafc;
-  border: 1px solid #dde1e7; padding: 7px 9px;
-}
-.phase-weeks {
-  font-size: 7pt; text-transform: uppercase; letter-spacing: 0.7px;
-  color: #0a1628; font-weight: bold; margin-bottom: 3px;
-}
-.phase-title { font-size: 9pt; font-weight: bold; color: #0a1628; margin-bottom: 3px; }
-.phase-desc  { font-size: 8.5pt; color: #64748b; line-height: 1.35; }
-/* Checklist */
-.check-table { page-break-inside: avoid; }
-.check-table td { background: #f8fafc; border: 1px solid #dde1e7; padding: 5px 9px; width: 50%; font-size: 9pt; }
-.check-icon {
-  display: inline-block; width: 14px; height: 14px; background: #0a1628;
-  color: white; font-size: 8pt; font-weight: bold;
-  text-align: center; line-height: 14px; margin-right: 6px;
-  vertical-align: middle;
-}
-/* CTA */
-.cta-box {
-  background: #0a1628; padding: 14px 18px; text-align: center; margin-bottom: 8px;
-}
-.cta-box h3 { color: #fff; font-size: 11pt; margin-bottom: 5px; }
-.cta-box p  { color: #94a3b8; font-size: 9pt; margin-bottom: 8px; }
-.cta-btn {
-  display: inline-block; background: #0a1628; border: 1px solid #fff; color: #fff;
-  padding: 7px 20px; font-weight: bold; font-size: 9.5pt; text-decoration: none;
-}
-.cta-contact { font-size: 8pt; color: #64748b; margin-top: 6px; }
-.cta-contact a { color: #cbd5e1; text-decoration: none; }
-@media print {
-  body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-  .page { page-break-after: always; }
-  .page.last { page-break-after: auto; }
-}
+.roadmap-label { font-size: 7pt; text-transform: uppercase; color: #2957FF; font-weight: bold; }
 </style>
 </head>
 <body>
 
-<!-- PAGE 1 — COVER -->
+<!-- ══════════════════════════════════════════════════════════════════════ -->
+<!-- PAGE 1 — Cover                                                         -->
+<!-- ══════════════════════════════════════════════════════════════════════ -->
 <div class="page">
-<div class="top-bar"></div>
-<div class="eyebrow">AI Automation ROI Analysis — Prepared by LyRise AI</div>
-<div class="co-name">{{ $json.roi_data.company }}</div>
-<div class="headline">{{ $json.display.coverHeadline }}</div>
+  <div class="top-bar"></div>
+  <div class="eyebrow">Prepared by LyRise AI · Confidential</div>
+  <div class="co-name">{{$json.roi_data.company}}</div>
+  <div class="headline">{{$json.display.coverHeadline}}</div>
+  <div class="meta-line">
+    <strong>Prepared for:</strong> {{$json.display.recipientDisplay}} &nbsp;|&nbsp;
+    <strong>Date:</strong> {{$json.current_date}} &nbsp;|&nbsp;
+    <strong>Currency:</strong> {{$json.display.currencyCode}}
+  </div>
 
-<p class="meta-line">
-  <strong>Prepared for:</strong> {{ $json.display.recipientDisplay }} &nbsp;|&nbsp;
-  <strong>Prepared by:</strong> LyRise AI &nbsp;|&nbsp;
-  <strong>Date:</strong> {{ $json.current_date }} &nbsp;|&nbsp;
-  <strong>Currency:</strong> {{ $json.display.currencyCode }} ({{ $json.display.currencySymbol }})
-</p>
+  <!-- Confidence badge (EX-2) -->
+  <div>
+    <span class="confidence-badge {{$json.display.confidenceBadge}} == 'Insight-Driven Analysis' ? 'confidence-high' : 'confidence-low'">
+      {{$json.display.confidenceBadge}}
+    </span>
+  </div>
 
-<table class="stat-table">
-  <tr>
-    <td>
-      <span class="stat-label">Hours Returned / yr</span>
-      <span class="stat-value">{{ $json.display.statHours }}</span>
-      <span class="stat-sub">{{ $json.display.statHoursSub }} hrs freed / mo</span>
-    </td>
-    <td>
-      <span class="stat-label">Operational Dividend</span>
-      <span class="stat-value">{{ $json.display.statOD }}</span>
-      <span class="stat-sub">12-month direct savings</span>
-    </td>
-    <td>
-      <span class="stat-label">Total Financial Gain</span>
-      <span class="stat-value">{{ $json.display.statTF }}</span>
-      <span class="stat-sub">Operational Dividend + profit uplift</span>
-    </td>
-    <td>
-      <span class="stat-label">FTE Equivalent / yr</span>
-      <span class="stat-value">{{ $json.display.statFTE }}</span>
-      <span class="stat-sub">Across {{ $json.display.workflowCount }} workflows</span>
-    </td>
-  </tr>
-</table>
-
-<table class="cover-2col" style="border-collapse:separate;border-spacing:7px;margin-bottom:8px">
-  <tr>
-    <td>
-      <h3>Scope — {{ $json.display.workflowCount }} workflows in focus</h3>
-      <ul class="scope-list">{{ $json.display.scopeListHTML }}</ul>
-    </td>
-    <td>
-      <h3>12-Month Outcomes (Conservative)</h3>
-      <ul class="outcomes">
-        <li><span class="oc-label">Time returned</span><span class="oc-hi">{{ $json.display.totalAnnualHours }} hrs</span></li>
-        <li><span class="oc-label">Operational Dividend</span><span class="oc-val">{{ $json.display.od12 }}</span></li>
-        <li><span class="oc-label">Profit Uplift</span><span class="oc-val">{{ $json.display.pu12 }}</span></li>
-        <li><span class="oc-label">Total Financial Gain</span><span class="oc-hi">{{ $json.display.tf12 }}</span></li>
-      </ul>
-      <p class="muted" style="margin-top:6px">No implementation costs included. Validate with actual volumes and rates.</p>
-    </td>
-  </tr>
-</table>
-
-<h2 style="margin-top:8px">What Our Clients Have Achieved</h2>
-{{ $json.display.caseStudiesHTML }}
-
-<div class="disc-box">
-  <div class="disc-title">Analytical Estimate — Not an Audited Financial Statement</div>
-  <p>Figures are derived from your operational inputs, industry benchmarks, and LyRise process-mapping frameworks. All assumptions should be validated with {{ $json.roi_data.company }} stakeholders before implementation decisions are made. Results may vary &plusmn;10&ndash;25% depending on actual process design and adoption rate.</p>
-</div>
-
-<div class="footer">
-  <span>LyRise AI — Confidential</span>
-  <span>{{ $json.roi_data.company }} &middot; {{ $json.current_date }}</span>
-  <span><a href="https://lyrise.ai">lyrise.ai</a></span>
-</div>
-</div>
-
-
-<!-- PAGE 2 — AS-IS BASELINE -->
-<div class="page">
-<div class="top-bar"></div>
-
-<h2>As-Is Baseline — Run-Cost View</h2>
-<table>
-  <thead>
+  <!-- KPI bar -->
+  <table class="stat-table" style="margin-top:10px">
     <tr>
-      <th style="width:28%">Workflow</th>
-      <th style="width:16%">Owner</th>
-      <th style="width:8%">Vol/mo</th>
-      <th style="width:10%">Time/run</th>
-      <th style="width:11%">Rate</th>
-      <th style="width:12%">Cost/Run</th>
-      <th style="width:15%">Mo. Run-Cost</th>
+      <td>
+        <span class="stat-label">Hours Returned / Year</span>
+        <span class="stat-value">{{$json.display.statHours}}</span>
+        <span class="stat-sub">{{$json.display.statHoursSub}} hrs/month</span>
+      </td>
+      <td>
+        <span class="stat-label">Operational Dividend (12 mo)</span>
+        <span class="stat-value">{{$json.display.statOD}}</span>
+        <span class="stat-sub">Labor value recaptured</span>
+      </td>
+      <td>
+        <span class="stat-label">Total Financial Gain (12 mo)</span>
+        <span class="stat-value accent">{{$json.display.statTF}}</span>
+        <span class="stat-sub">OD + Profit Uplift</span>
+      </td>
+      <td>
+        <span class="stat-label">FTE Equivalent Returned</span>
+        <span class="stat-value">{{$json.display.statFTE}}</span>
+        <span class="stat-sub">Full-time equivalents</span>
+      </td>
     </tr>
-  </thead>
-  <tbody>{{ $json.display.asisTableBody }}</tbody>
-</table>
-<p class="note">Blended rates: pre-tax, fully-loaded conservative estimates (salary + benefits + overhead).</p>
+  </table>
 
-<div class="footer">
-  <span>LyRise AI — Confidential</span>
-  <span>{{ $json.roi_data.company }} &middot; {{ $json.current_date }}</span>
-  <span><a href="https://lyrise.ai">lyrise.ai</a></span>
-</div>
-</div>
+  <!-- Revenue context (Rule 6B) -->
+  <div class="insight-panel" style="margin-top:8px">
+    <div class="insight-stripe"></div>
+    <div class="insight-content">
+      <p style="font-size:8.5pt;margin:0;color:#2d2d2d">{{$json.display.revenueContextStatement}}</p>
+    </div>
+  </div>
 
+  <!-- Case studies (3 selected by industry) -->
+  <h2>Results We've Delivered for Similar Companies</h2>
+  {{$json.display.caseStudiesHTML}}
 
-<!-- PAGE 3 — BEFORE VS AFTER + WHAT WE'D DEPLOY -->
-<div class="page">
-<div class="top-bar"></div>
-
-<h2>Before vs After — Time &amp; Cost</h2>
-<table>
-  <thead>
-    <tr>
-      <th style="width:22%">Workflow</th>
-      <th style="width:8%">Volume</th>
-      <th style="width:9%">Before</th>
-      <th style="width:9%">After</th>
-      <th style="width:14%">Time Saved</th>
-      <th style="width:11%">Hrs Freed/mo</th>
-      <th style="width:10%">Rate</th>
-      <th style="width:17%">Value Recaptured/yr</th>
-    </tr>
-  </thead>
-  <tbody>{{ $json.display.bvaTableBody }}</tbody>
-</table>
-
-<h2>What We'd Deploy — by Workflow</h2>
-<table>
-  <thead>
-    <tr>
-      <th style="width:35%">Workflow + Target Outcome</th>
-      <th style="width:22%">AI Agent</th>
-      <th style="width:43%">Why It Fits</th>
-    </tr>
-  </thead>
-  <tbody>{{ $json.display.deployTableBody }}</tbody>
-</table>
-
-<div class="footer">
-  <span>LyRise AI — Confidential</span>
-  <span>{{ $json.roi_data.company }} &middot; {{ $json.current_date }}</span>
-  <span><a href="https://lyrise.ai">lyrise.ai</a></span>
-</div>
-</div>
-
-
-<!-- PAGE 4 — PROFIT UPLIFT + TOTAL FINANCIAL CASE -->
-<div class="page">
-<div class="top-bar"></div>
-
-<h2>Profit Uplift — Throughput &amp; Revenue Effects</h2>
-<table>
-  <thead>
-    <tr>
-      <th style="width:18%">Lever</th>
-      <th style="width:22%">Baseline</th>
-      <th style="width:22%">Assumption</th>
-      <th style="width:24%">Rationale</th>
-      <th style="width:14%">Profit Impact</th>
-    </tr>
-  </thead>
-  <tbody>{{ $json.display.profitLeversBody }}</tbody>
-</table>
-
-<h2>Total Financial Case — No Implementation Costs Included</h2>
-<table>
-  <thead>
-    <tr>
-      <th style="width:14%">Horizon</th>
-      <th style="width:20%">Hours Returned</th>
-      <th style="width:22%">Operational Dividend</th>
-      <th style="width:20%">Profit Uplift</th>
-      <th style="width:24%">Total Financial Gain</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr style="background:#f1f5f9">
-      <td><strong>12 months</strong></td>
-      <td>{{ $json.display.totalAnnualHours }} hrs</td>
-      <td>{{ $json.display.od12 }}</td>
-      <td>{{ $json.display.pu12 }}</td>
-      <td class="accent"><strong>{{ $json.display.tf12 }}</strong></td>
-    </tr>
-    <tr>
-      <td>24 months</td>
-      <td>{{ $json.display.hrs24 }} hrs</td>
-      <td>{{ $json.display.od24 }}</td>
-      <td>{{ $json.display.pu24 }}</td>
-      <td><strong>{{ $json.display.tf24 }}</strong></td>
-    </tr>
-    <tr style="background:#f9fafb">
-      <td>36 months</td>
-      <td>{{ $json.display.hrs36 }} hrs</td>
-      <td>{{ $json.display.od36 }}</td>
-      <td>{{ $json.display.pu36 }}</td>
-      <td><strong>{{ $json.display.tf36 }}</strong></td>
-    </tr>
-  </tbody>
-</table>
-<p class="note">Year 2 assumes 15% deeper adoption; Year 3 assumes full process maturity. Not a linear extrapolation.</p>
-
-<div class="footer">
-  <span>LyRise AI — Confidential</span>
-  <span>{{ $json.roi_data.company }} &middot; {{ $json.current_date }}</span>
-  <span><a href="https://lyrise.ai">lyrise.ai</a></span>
-</div>
-</div>
-
-
-<!-- PAGE 5 — DATA PROVENANCE + ROADMAP + CTA -->
-<div class="page last">
-<div class="top-bar"></div>
-
-<h2>Data Provenance &amp; Modelling Assumptions</h2>
-{{ $json.display.provenanceTableHTML }}
-
-<h2>Roadmap — 8 to 10 Weeks to Measurable Gains</h2>
-<table class="roadmap-table" style="border-collapse:separate;border-spacing:5px;margin-bottom:6px">
-  <tr>
-    <td>
-      <div class="phase-weeks">Weeks 1-2</div>
-      <div class="phase-title">Rapid Discovery &amp; Validation</div>
-      <div class="phase-desc">Map live workflows, validate volumes and task times, confirm automation priorities.</div>
-    </td>
-    <td>
-      <div class="phase-weeks">Weeks 3-6</div>
-      <div class="phase-title">Pilot Build &amp; Testing</div>
-      <div class="phase-desc">Deploy AI agents for the top-priority workflow. Integrate with existing systems and run parallel testing.</div>
-    </td>
-    <td>
-      <div class="phase-weeks">Weeks 7-8</div>
-      <div class="phase-title">Controlled Go-Live</div>
-      <div class="phase-desc">Launch with real data. Monitor exceptions, adoption rates, and time savings against predictions.</div>
-    </td>
-    <td>
-      <div class="phase-weeks">Weeks 9-10</div>
-      <div class="phase-title">ROI Validation &amp; Expansion</div>
-      <div class="phase-desc">Confirm realised savings vs. model. Present results to leadership and plan remaining rollout.</div>
-    </td>
-  </tr>
-</table>
-
-<h2>Next Steps &amp; Sign-Off Checklist</h2>
-<table class="check-table" style="border-collapse:separate;border-spacing:5px;margin-bottom:6px">
-  <tr>
-    <td><span class="check-icon">&#10003;</span>Confirm workflow volumes with operations team</td>
-    <td><span class="check-icon">&#10003;</span>Validate task times against actual staff feedback</td>
-  </tr>
-  <tr>
-    <td><span class="check-icon">&#10003;</span>Approve pilot workflow to begin in Week 3</td>
-    <td><span class="check-icon">&#10003;</span>Schedule validation &amp; process-mapping session</td>
-  </tr>
-</table>
-
-<div class="cta-box">
-  <h3>Book Your 30-Min Call</h3>
-  <p>{{ $json.display.cta }}</p>
-  <a href="https://calendly.com/elena-lyrise/30min" class="cta-btn">Book Your 30-Min Call</a>
-  <div class="cta-contact">
-    Questions? Email: <a href="mailto:elena@lyrise.ai">elena@lyrise.ai</a> &nbsp;|&nbsp; Web: <a href="https://lyrise.ai">lyrise.ai</a>
+  <div class="footer">
+    <span>LyRise AI · AI Automation for Enterprise Growth</span>
+    <a href="https://lyrise.ai">lyrise.ai</a>
   </div>
 </div>
 
-<div class="footer">
-  <span>LyRise AI Confidential &middot; Generated for {{ $json.roi_data.company }} &middot; {{ $json.current_date }}</span>
-  <span><a href="mailto:elena@lyrise.ai">elena@lyrise.ai</a> &nbsp;|&nbsp; <a href="https://calendly.com/elena-lyrise/30min">calendly.com/elena-lyrise/30min</a></span>
+<!-- ══════════════════════════════════════════════════════════════════════ -->
+<!-- PAGE 2 — About LyRise + Executive Summary + Disclaimer                -->
+<!-- ══════════════════════════════════════════════════════════════════════ -->
+<div class="page">
+  <div class="top-bar"></div>
+
+  <!-- About LyRise -->
+  <h2>About LyRise AI</h2>
+  <p>LyRise AI is a specialist AI automation consultancy that helps growth-stage and enterprise businesses identify and eliminate operational drag through intelligent agents and workflow automation. We have delivered measurable ROI for clients in financial services, legal, technology, and professional services across the GCC and globally.</p>
+  <table style="margin-top:6px;border-collapse:separate;border-spacing:4px">
+    <tr>
+      <td style="background:#eef2ff;border:1px solid #2957FF;padding:7px 10px;width:33%;vertical-align:top">
+        <div style="font-size:7pt;text-transform:uppercase;color:#2957FF;font-weight:bold;margin-bottom:2px">Strategy</div>
+        <div style="font-size:8.5pt">ROI discovery, process mapping, automation roadmaps</div>
+      </td>
+      <td style="background:#eef2ff;border:1px solid #2957FF;padding:7px 10px;width:33%;vertical-align:top">
+        <div style="font-size:7pt;text-transform:uppercase;color:#2957FF;font-weight:bold;margin-bottom:2px">Build</div>
+        <div style="font-size:8.5pt">Custom AI agents, integrations, and workflow deployments</div>
+      </td>
+      <td style="background:#eef2ff;border:1px solid #2957FF;padding:7px 10px;width:33%;vertical-align:top">
+        <div style="font-size:7pt;text-transform:uppercase;color:#2957FF;font-weight:bold;margin-bottom:2px">Scale</div>
+        <div style="font-size:8.5pt">Ongoing optimisation, monitoring, and capability expansion</div>
+      </td>
+    </tr>
+  </table>
+
+  <!-- Executive Summary -->
+  <h2 style="margin-top:10px">Executive Summary</h2>
+
+  <!-- Unified Pattern Thesis (KR-16) -->
+  <div class="insight-panel">
+    <div class="insight-stripe"></div>
+    <div class="insight-content">
+      <p style="font-size:9.5pt;line-height:1.6;margin:0;color:#2d2d2d">{{$json.display.unifiedPatternThesis}}</p>
+    </div>
+  </div>
+
+  <!-- Revenue context (if available) -->
+  <p style="font-size:8.5pt;color:#5a5a6e;margin-bottom:6px">{{$json.display.revenueContextStatement}}</p>
+
+  <!-- Key outcomes -->
+  <table class="cover-2col" style="border-collapse:separate;border-spacing:5px;margin-bottom:0">
+    <tr>
+      <td>
+        <div style="font-size:7pt;text-transform:uppercase;color:#2957FF;font-weight:bold;letter-spacing:0.8px;margin-bottom:4px">Workflows Identified</div>
+        <ul class="scope-list">{{$json.display.scopeListHTML}}</ul>
+      </td>
+      <td>
+        <div style="font-size:7pt;text-transform:uppercase;color:#2957FF;font-weight:bold;letter-spacing:0.8px;margin-bottom:4px">12-Month Financial Impact</div>
+        <ul class="outcomes">
+          <li><span class="oc-label">Hours Returned / Year</span><strong>{{$json.display.totalAnnualHours}}</strong></li>
+          <li><span class="oc-label">Operational Dividend</span><strong>{{$json.display.od12}}</strong></li>
+          <li><span class="oc-label">Profit Uplift</span><strong>{{$json.display.pu12}}</strong></li>
+          <li><span class="oc-label">Total Financial Gain</span><strong class="accent">{{$json.display.tf12}}</strong></li>
+          <li><span class="oc-label">FTE Equivalent</span><strong>{{$json.display.statFTE}}</strong></li>
+        </ul>
+      </td>
+    </tr>
+  </table>
+
+  <!-- Disclaimer -->
+  <h2 style="margin-top:10px">Disclaimer</h2>
+  <p class="note" style="padding:6px 10px;border-left:3px solid #e2e8f0;font-size:8pt">
+    This report is prepared by LyRise AI and is intended solely for the use of the named recipient. All financial projections are estimates based on industry benchmarks, publicly available company data, and information provided by the recipient. Actual results will vary. This report does not constitute formal business, financial, or legal advice. No business decisions should be made solely on the basis of this document. LyRise AI accepts no liability for decisions taken in reliance on this report without independent verification.
+  </p>
+
+  <div class="footer">
+    <span>{{$json.roi_data.company}} · AI ROI Assessment · {{$json.current_date}}</span>
+    <span>Page 2</span>
+  </div>
 </div>
+
+<!-- ══════════════════════════════════════════════════════════════════════ -->
+<!-- PAGE 3 — Company Snapshot + As-Is Baseline                            -->
+<!-- ══════════════════════════════════════════════════════════════════════ -->
+<div class="page">
+  <div class="top-bar"></div>
+
+  <!-- Company Snapshot -->
+  <h2>Company Snapshot</h2>
+  <table style="margin-bottom:8px;border-collapse:collapse">
+    <tr>
+      <td style="width:50%;vertical-align:top;padding-right:10px;border:none;border-bottom:none">
+        <div style="font-size:7pt;text-transform:uppercase;color:#94a3b8;font-weight:bold;margin-bottom:2px">Employees</div>
+        <div style="font-size:9.5pt;color:#1a1a1a">{{$json.display.employeesDisplay}}</div>
+        <div style="font-size:7pt;text-transform:uppercase;color:#94a3b8;font-weight:bold;margin-top:6px;margin-bottom:2px">Revenue (Est.)</div>
+        <div style="font-size:9.5pt;color:#1a1a1a">{{$json.display.revenueDisplay}}</div>
+      </td>
+      <td style="width:50%;vertical-align:top;border:none;border-bottom:none">
+        {{$json.display.companySnapshotHTML}}
+      </td>
+    </tr>
+  </table>
+
+  <!-- As-Is Baseline -->
+  <h2>As-Is Baseline — Current State</h2>
+  <p class="muted" style="margin-bottom:4px">Monthly run-cost of the {{$json.display.workflowCount}} identified workflows before automation.</p>
+  <table>
+    <thead>
+      <tr>
+        <th style="width:22%">Workflow</th>
+        <th style="width:13%">Owner / Function</th>
+        <th style="width:10%;text-align:center">Volume/mo</th>
+        <th style="width:11%;text-align:center">Time/Run</th>
+        <th style="width:11%">Rate</th>
+        <th style="width:11%">Cost/Run</th>
+        <th style="width:12%">Monthly Cost</th>
+      </tr>
+    </thead>
+    <tbody>{{$json.display.asisTableBody}}</tbody>
+  </table>
+
+  <div class="footer">
+    <span>{{$json.roi_data.company}} · AI ROI Assessment · {{$json.current_date}}</span>
+    <span>Page 3</span>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════════════ -->
+<!-- PAGE 4 — Before/After AI + Profit Uplift                              -->
+<!-- ══════════════════════════════════════════════════════════════════════ -->
+<div class="page">
+  <div class="top-bar"></div>
+
+  <!-- Before/After AI -->
+  <h2>Before vs. After AI Automation</h2>
+  <table>
+    <thead>
+      <tr>
+        <th style="width:20%">Workflow</th>
+        <th style="width:8%;text-align:center">Vol/mo</th>
+        <th style="width:9%;text-align:center">Before</th>
+        <th style="width:9%;text-align:center">After</th>
+        <th style="width:13%;text-align:center">Time Saved</th>
+        <th style="width:10%;text-align:center">Hrs/mo</th>
+        <th style="width:10%">Rate</th>
+        <th style="width:11%">Annual Value</th>
+      </tr>
+    </thead>
+    <tbody>{{$json.display.bvaTableBody}}</tbody>
+  </table>
+
+  <!-- Calculation transparency panel (Rule 6C) -->
+  {{$json.display.calculationPanelHTML}}
+
+  <!-- Profit Uplift -->
+  <h2 style="margin-top:10px">Profit Uplift Analysis</h2>
+  <p class="muted" style="margin-bottom:4px">Downstream revenue and margin gains from redirecting recaptured capacity. All arithmetic is shown for transparency.</p>
+  <table>
+    <thead>
+      <tr>
+        <th style="width:14%">Lever</th>
+        <th style="width:12%">Derived From</th>
+        <th style="width:16%">Baseline</th>
+        <th style="width:16%">Assumption</th>
+        <th style="width:24%">Arithmetic (Rule 6C)</th>
+        <th style="width:10%">Impact</th>
+      </tr>
+    </thead>
+    <tbody>{{$json.display.profitLeversBody}}</tbody>
+  </table>
+
+  <!-- OD vs PU distinction panel -->
+  {{$json.display.odVsPuPanelHTML}}
+
+  <div class="footer">
+    <span>{{$json.roi_data.company}} · AI ROI Assessment · {{$json.current_date}}</span>
+    <span>Page 4</span>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════════════ -->
+<!-- PAGE 5 — Total Financial Case + Cost of Delay + Resilience            -->
+<!-- ══════════════════════════════════════════════════════════════════════ -->
+<div class="page">
+  <div class="top-bar"></div>
+
+  <!-- Total Financial Case -->
+  <h2>Total Financial Case — 3-Year Projection</h2>
+  <table>
+    <thead>
+      <tr>
+        <th style="width:25%">Metric</th>
+        <th style="width:25%">Year 1 (12 months)</th>
+        <th style="width:25%">Year 2 (24 months)</th>
+        <th style="width:25%">Year 3 (36 months)</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Hours Returned</td>
+        <td>{{$json.display.totalAnnualHours}} hrs</td>
+        <td>{{$json.display.hrs24}} hrs</td>
+        <td>{{$json.display.hrs36}} hrs</td>
+      </tr>
+      <tr>
+        <td>Operational Dividend</td>
+        <td>{{$json.display.od12}}</td>
+        <td>{{$json.display.od24}}</td>
+        <td>{{$json.display.od36}}</td>
+      </tr>
+      <tr>
+        <td>Profit Uplift</td>
+        <td>{{$json.display.pu12}}</td>
+        <td>{{$json.display.pu24}}</td>
+        <td>{{$json.display.pu36}}</td>
+      </tr>
+      <tr class="total-row">
+        <td><strong>Total Financial Gain</strong></td>
+        <td><strong class="accent">{{$json.display.tf12}}</strong></td>
+        <td><strong class="accent">{{$json.display.tf24}}</strong></td>
+        <td><strong class="accent">{{$json.display.tf36}}</strong></td>
+      </tr>
+    </tbody>
+  </table>
+  <p class="note">Projections assume consistent adoption and compounding improvement. Year 2–3 figures apply a growth factor of 2.15× and 3.40× respectively to reflect ramp-up and process maturity.</p>
+
+  <!-- Cost of Delay (KR-18) -->
+  <h2 style="margin-top:10px">Cost of Delay</h2>
+  {{$json.display.costOfDelayHTML}}
+
+  <!-- Resilience Positioning (KR-17) -->
+  <h2 style="margin-top:10px">Resilience Positioning</h2>
+  <p style="font-size:9pt;color:#2d2d2d;margin-bottom:6px">The gap between automated and manual operations compounds over time — the following dimensions illustrate what acting now protects against.</p>
+  {{$json.display.resilienceTableHTML}}
+
+  <div class="footer">
+    <span>{{$json.roi_data.company}} · AI ROI Assessment · {{$json.current_date}}</span>
+    <span>Page 5</span>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════════════ -->
+<!-- PAGE 6 — What We'd Deploy + Data Provenance                           -->
+<!-- ══════════════════════════════════════════════════════════════════════ -->
+<div class="page">
+  <div class="top-bar"></div>
+
+  <!-- What We'd Deploy (WD-1) -->
+  <h2>What We'd Deploy</h2>
+  <table>
+    <thead>
+      <tr>
+        <th style="width:30%">Workflow</th>
+        <th style="width:22%">AI Agent</th>
+        <th style="width:48%">Why It Fits This Business</th>
+      </tr>
+    </thead>
+    <tbody>{{$json.display.deployTableBody}}</tbody>
+  </table>
+
+  <!-- Pilot recommendation (WD-1) -->
+  <div class="insight-panel" style="margin-top:6px">
+    <div class="insight-stripe"></div>
+    <div class="insight-content">
+      <div style="font-size:7pt;text-transform:uppercase;letter-spacing:0.8px;color:#2957FF;font-weight:bold;margin-bottom:4px">Recommended Starting Point</div>
+      <p style="font-size:9pt;margin:0;color:#2d2d2d">{{$json.display.pilotRecommendation}}</p>
+    </div>
+  </div>
+
+  <!-- Data Provenance -->
+  <h2 style="margin-top:10px">Data Provenance</h2>
+  <p class="muted" style="margin-bottom:4px">Every data point used in this report is traceable to a source. Review this table to understand the basis and confidence level for each figure.</p>
+  {{$json.display.provenanceTableHTML}}
+
+  <div class="footer">
+    <span>{{$json.roi_data.company}} · AI ROI Assessment · {{$json.current_date}}</span>
+    <span>Page 6</span>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════════════ -->
+<!-- PAGE 7 — Risks & Mitigations + Roadmap                                -->
+<!-- ══════════════════════════════════════════════════════════════════════ -->
+<div class="page">
+  <div class="top-bar"></div>
+
+  <!-- Risks & Mitigations -->
+  <h2>Risks &amp; Mitigations</h2>
+  <table>
+    <thead>
+      <tr>
+        <th style="width:42%">Risk</th>
+        <th style="width:14%;text-align:center">Likelihood</th>
+        <th style="width:44%">Mitigation</th>
+      </tr>
+    </thead>
+    <tbody>{{$json.display.risksTableBody}}</tbody>
+  </table>
+
+  <!-- Roadmap -->
+  <h2 style="margin-top:10px">Implementation Roadmap</h2>
+  <table>
+    <thead>
+      <tr>
+        <th style="width:18%">Phase</th>
+        <th style="width:20%">Timeline</th>
+        <th style="width:42%">Activities</th>
+        <th style="width:20%">Milestone</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>Phase 1 — Pilot</strong></td>
+        <td>Weeks 1–8</td>
+        <td>Scoping, data access, agent build for highest-value workflow. Team onboarding.</td>
+        <td>First agent live. Baseline metrics established.</td>
+      </tr>
+      <tr>
+        <td><strong>Phase 2 — Expand</strong></td>
+        <td>Months 3–5</td>
+        <td>Roll out remaining 3 workflows. Integration testing. Adoption monitoring.</td>
+        <td>All {{$json.display.workflowCount}} workflows automated. ROI tracking active.</td>
+      </tr>
+      <tr>
+        <td><strong>Phase 3 — Optimise</strong></td>
+        <td>Month 6+</td>
+        <td>Performance review, edge-case handling, scope expansion to new workflows.</td>
+        <td>Full Operational Dividend realised. Year 2 plan initiated.</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="footer">
+    <span>{{$json.roi_data.company}} · AI ROI Assessment · {{$json.current_date}}</span>
+    <span>Page 7</span>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════════════ -->
+<!-- PAGE 8 — Next Steps + Contact (last page)                              -->
+<!-- ══════════════════════════════════════════════════════════════════════ -->
+<div class="page last">
+  <div class="top-bar"></div>
+
+  <!-- Next Steps (NS-1 + NS-2) -->
+  <h2>Next Steps</h2>
+  {{$json.display.nextStepsHTML}}
+
+  <!-- Contact -->
+  <h2 style="margin-top:12px">Contact LyRise AI</h2>
+  <table style="border-collapse:separate;border-spacing:5px">
+    <tr>
+      <td style="background:#eef2ff;border:1px solid #2957FF;padding:10px 14px;width:50%;vertical-align:top">
+        <div style="font-size:7pt;text-transform:uppercase;color:#2957FF;font-weight:bold;letter-spacing:0.8px;margin-bottom:4px">Start Your Pilot</div>
+        <div style="font-size:9.5pt;font-weight:bold;color:#1a1a1a;margin-bottom:2px">Elena Easton</div>
+        <div style="font-size:9pt;color:#5a5a6e">Head of Operations</div>
+        <div style="font-size:9pt;color:#2957FF;margin-top:4px">elena@lyrise.ai</div>
+      </td>
+      <td style="background:#f8fafc;border:1px solid #e2e8f0;padding:10px 14px;width:50%;vertical-align:top">
+        <div style="font-size:7pt;text-transform:uppercase;color:#94a3b8;font-weight:bold;letter-spacing:0.8px;margin-bottom:4px">More Information</div>
+        <div style="font-size:9pt;color:#1a1a1a;margin-bottom:4px"><strong>Website:</strong> <span style="color:#2957FF">lyrise.ai</span></div>
+        <div style="font-size:9pt;color:#1a1a1a;margin-bottom:4px"><strong>LinkedIn:</strong> linkedin.com/company/lyrise-ai</div>
+        <div style="font-size:9pt;color:#1a1a1a"><strong>Report generated:</strong> {{$json.current_date}}</div>
+      </td>
+    </tr>
+  </table>
+
+  <div class="footer" style="margin-top:14px">
+    <span style="font-size:7pt;color:#94a3b8">This report is confidential and prepared exclusively for {{$json.display.recipientDisplay}}. All projections are estimates — verify independently before acting.</span>
+    <a href="https://lyrise.ai">lyrise.ai</a>
+  </div>
 </div>
 
 </body>

@@ -6,6 +6,8 @@ import clsx from 'clsx'
 import MainHeader from '../src/layout/MainHeader'
 import LogosMarquee from '../src/components/MainLandingPage/LogosMarquee'
 import LastSection from '../src/components/MainLandingPage/LastSection'
+import ReportViewer from '../src/components/ROIGenerator/ReportViewer'
+import { drainSSE } from '../src/lib/drainSSE'
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 
@@ -134,28 +136,6 @@ function deptToRole(dept) {
     Operations: 'Operations / Admin',
   }
   return map[dept] || ''
-}
-
-async function drainSSE(reader, decoder, onEvent, buffer = '') {
-  const { done, value } = await reader.read()
-  if (done) return
-  const chunk = buffer + decoder.decode(value, { stream: true })
-  const lines = chunk.split('\n')
-  const remaining = lines.pop()
-  // Parse valid JSON lines first (skip malformed), then dispatch without wrapping in try/catch
-  // so errors thrown by onEvent propagate up to the caller's try/catch
-  lines
-    .filter((l) => l.startsWith('data: '))
-    .reduce((acc, line) => {
-      try {
-        acc.push(JSON.parse(line.slice(6)))
-      } catch {
-        /* skip malformed */
-      }
-      return acc
-    }, [])
-    .forEach((event) => onEvent(event))
-  await drainSSE(reader, decoder, onEvent, remaining)
 }
 
 // ── Shared UI ─────────────────────────────────────────────────────────────────
@@ -698,22 +678,25 @@ function Step4({ data, onChange, errors }) {
 
 // ── Generating & Success views ────────────────────────────────────────────────
 
-function GeneratingView({ currentStage }) {
+function GeneratingView({ generationLog }) {
   return (
-    <div className="text-center py-16">
+    <div className="text-center py-12 px-8">
       <div
-        className="text-5xl mb-8 inline-block"
+        className="text-5xl mb-6 inline-block"
         style={{ animation: 'spin 1.2s linear infinite' }}
       >
         ⟳
       </div>
       <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
       <h2 className="text-xl font-bold text-gray-900 mb-2">
-        {STAGE_LABELS[currentStage] || 'Preparing your report…'}
+        Building your ROI report…
       </h2>
-      <p className="text-sm text-gray-500">
-        This takes about 30–60 seconds. Please don&apos;t close this tab.
+      <p className="text-sm text-gray-500 mb-6">
+        Our AI is researching your company and modelling your automation potential. This takes about 45–90 seconds.
       </p>
+      <div className="font-mono text-xs text-gray-600 bg-gray-50 rounded-lg p-4 h-32 overflow-y-auto text-left whitespace-pre-wrap border border-gray-100">
+        {generationLog || 'Starting…'}
+      </div>
     </div>
   )
 }
@@ -753,7 +736,8 @@ function SuccessView({ email }) {
 export default function ROIReport() {
   const [step, setStep] = useState(1)
   const [viewState, setViewState] = useState('form')
-  const [currentStage, setCurrentStage] = useState(null)
+  const [generationLog, setGenerationLog] = useState('')
+  const [reportState, setReportState] = useState(null)
   const [errorMessage, setErrorMessage] = useState('')
 
   // Step 1
@@ -926,7 +910,8 @@ export default function ROIReport() {
     }
 
     setViewState('generating')
-    setCurrentStage(null)
+    setGenerationLog('')
+    setReportState(null)
 
     const processRegistry = procs.map((p) => ({
       name: p.name,
@@ -978,16 +963,30 @@ export default function ROIReport() {
     }
 
     try {
-      const response = await fetch('/api/roi-report', {
+      const response = await fetch('/api/roi-agent', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
+        body: JSON.stringify({ mode: 'generate', formData: payload }),
       })
 
+      let latestState = null
       await drainSSE(response.body.getReader(), new TextDecoder(), (event) => {
-        if (event.type === 'progress') setCurrentStage(event.stage)
-        else if (event.type === 'done') setViewState('success')
-        else if (event.type === 'error') throw new Error(event.message)
+        if (event.type === 'text_delta') {
+          setGenerationLog(prev => (prev + event.delta).slice(-2000))
+        } else if (event.type === 'tool_start') {
+          setGenerationLog(prev => prev + `\n[${event.tool}]`)
+        } else if (event.type === 'report_update') {
+          latestState = event.state
+          setReportState(event.state)
+        } else if (event.type === 'done') {
+          if (latestState?.assembled) {
+            setViewState('preview')
+          } else {
+            setViewState('success')
+          }
+        } else if (event.type === 'error') {
+          throw new Error(event.message)
+        }
       })
     } catch (err) {
       setErrorMessage(err.message || 'Something went wrong. Please try again.')
@@ -1007,11 +1006,15 @@ export default function ROIReport() {
         <MainHeader />
         <div className="min-h-screen flex items-center justify-center p-4">
           <div className="w-full max-w-xl bg-white rounded-2xl shadow-xl border border-gray-100">
-            <GeneratingView currentStage={currentStage} />
+            <GeneratingView generationLog={generationLog} />
           </div>
         </div>
       </div>
     )
+  }
+
+  if (viewState === 'preview' && reportState) {
+    return <ReportViewer initialState={reportState} email={s4.email} />
   }
 
   if (viewState === 'success') {

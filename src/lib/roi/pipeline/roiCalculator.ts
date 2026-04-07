@@ -86,13 +86,18 @@ export function roiCalculator(
     wa.minutesPerItemBefore = Math.min(wa.minutesPerItemBefore, MAX_MIN)
     wa.minutesPerItemAfter  = Math.min(wa.minutesPerItemAfter, wa.minutesPerItemBefore)
 
+    // Rule 6A — use per-workflow rate override if the modeler provided one
+    const effectiveRate = (wa.fullyLoadedHourlyCostOverride != null && wa.fullyLoadedHourlyCostOverride > 0)
+      ? wa.fullyLoadedHourlyCostOverride
+      : hourlyCost
+
     const timeSaved  = wa.minutesPerItemBefore - wa.minutesPerItemAfter
     const savingsPct = wa.minutesPerItemBefore > 0
       ? Math.round(timeSaved / wa.minutesPerItemBefore * 100)
       : 0
-    const costPerRun  = (wa.minutesPerItemBefore / 60) * hourlyCost
+    const costPerRun  = (wa.minutesPerItemBefore / 60) * effectiveRate
     const monthlyCost = Math.round(wa.monthlyVolume * costPerRun)
-    const base        = calcScenario(wa, wa.adoption_base, realizationFactor, workingMonthFactor, hourlyCost)
+    const base        = calcScenario(wa, wa.adoption_base, realizationFactor, workingMonthFactor, effectiveRate)
 
     return {
       name:            wf.name,
@@ -110,10 +115,10 @@ export function roiCalculator(
       costPerRun:      Math.round(costPerRun),
       monthlyCost,
       monthlyHours:    Math.round(base.monthlyHours),
-      monthlyValue:    Math.round(base.monthlyHours * hourlyCost),
+      monthlyValue:    Math.round(base.monthlyHours * effectiveRate),
       annualHours:     Math.round(base.annualHours),
       annualValue:     Math.round(base.annualValue),
-      rate:            hourlyCost,
+      rate:            effectiveRate,
       rationale:       wa.rationale || '',
     }
   })

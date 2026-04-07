@@ -88,7 +88,7 @@ export interface WorkflowPlan {
   agentName: string
   expectedOutcome: string
   sourceType: 'user_stated' | 'inferred' | 'research_derived'
-  // Research-derived volume estimates (new — not in n8n version)
+  // Research-derived volume estimates
   monthlyVolume?: number
   minutesPerItemBefore?: number
   minutesPerItemAfter?: number
@@ -99,7 +99,7 @@ export interface ResearchAgentOutput {
   company_profile: CompanyProfile
   pain_points: PainPoint[]
   workflows: WorkflowPlan[]
-  researchSummary?: string  // What was found during research
+  researchSummary?: string
 }
 
 // ── ROI Modeler output ───────────────────────────────────────────────────────
@@ -121,6 +121,10 @@ export interface WorkflowAssumption {
   adoption_base: number
   adoption_high: number
   rationale: string
+  // v3.0 Rule 6A — per-workflow seniority-differentiated rate
+  fullyLoadedHourlyCostOverride?: number  // overrides labor.fullyLoadedHourlyCost for this workflow
+  rateSource?: string                      // e.g. "Gulf Talent mid-market rate, 2024"
+  seniorityLevel?: string                  // e.g. "Junior analyst", "Senior consultant"
 }
 
 export interface RoiModelerOutput {
@@ -222,24 +226,70 @@ export interface RoiCalculatorOutput {
   modelerNotes: string[]
 }
 
-// ── Report Writer output ─────────────────────────────────────────────────────
+// ── v3.0 Report Writer types ─────────────────────────────────────────────────
+
+// Company snapshot item with source provenance
+export interface CompanySnapshotItem {
+  text: string
+  sourceType: 'scraped' | 'benchmarked' | 'assumed'
+}
+
+// Cost of delay block (KR-18)
+export interface CostOfDelayData {
+  monthly_cost: number   // totalFinancialGain12mo / 12 — exact model number
+  narrative: string      // MUST end with: "Delay is not neutral — it carries a monthly price."
+}
+
+// Resilience positioning row (KR-17) — 4 rows × 2 columns
+export interface ResilienceRow {
+  dimension: string      // e.g. "Cost per unit", "Delivery speed"
+  act_now: string        // concrete automated-state outcome
+  defer: string          // concrete manual-state risk
+}
+
+// Risk row for Risks & Mitigations section
+export interface RiskRow {
+  risk: string
+  likelihood: 'Low' | 'Medium' | 'High'
+  mitigation: string
+}
+
+// Next steps checklist item (NS-2) — assignable to named individuals
+export interface ChecklistItem {
+  action: string
+  owner: string   // named individual or role
+  due: string     // e.g. "Within 5 business days"
+}
 
 export interface ProfitLever {
   lever_name: string
   baseline_data: string
   assumption: string
-  rationale: string
-  profit: string  // raw integer as string, no symbols
+  rationale: string                  // plain business sentence (kept for compat)
+  rationale_with_arithmetic: string  // Rule 6C: full arithmetic chain
+  derived_from: string               // workflow name(s) this lever originates from
+  profit: string                     // raw integer as string, no symbols
 }
 
 export interface ReportWriterOutput {
-  cta_paragraph: string
+  // Original fields
+  cta_paragraph: string              // NS-1: criteria-based, not marketing language
   profit_levers: ProfitLever[]
+
+  // v3.0 additions
+  unified_pattern_thesis: string          // KR-16: 2-3 sentences naming single operating pattern
+  company_snapshot: CompanySnapshotItem[] // 3-5 bullets with source tags
+  cost_of_delay: CostOfDelayData          // KR-18
+  resilience_rows: ResilienceRow[]        // KR-17: exactly 4 rows
+  pilot_recommendation: string            // WD-1: references specific company characteristics
+  risks: RiskRow[]                        // 3+ rows
+  next_steps_checklist: ChecklistItem[]   // NS-2: exactly 6 items with named owners
 }
 
 // ── Assemble Report output (display object) ──────────────────────────────────
 
 export interface DisplayObject {
+  // Original fields
   currencyCode: string
   currencySymbol: string
   workflowCount: string
@@ -273,6 +323,19 @@ export interface DisplayObject {
   deployTableBody: string
   provenanceTableHTML: string
   cta: string
+
+  // v3.0 additions
+  revenueContextStatement: string   // "This represents X% of your estimated annual revenue…"
+  companySnapshotHTML: string       // bullet list with source badges
+  confidenceBadge: string           // "Insight-Driven Analysis" | "Hypothesis-Driven Projection"
+  unifiedPatternThesis: string      // verbatim from writerOutput.unified_pattern_thesis
+  costOfDelayHTML: string           // KR-18 formatted insight panel
+  resilienceTableHTML: string       // KR-17 2-column comparison table
+  pilotRecommendation: string       // verbatim from writerOutput.pilot_recommendation
+  risksTableBody: string            // <tr> rows for Risks & Mitigations table
+  nextStepsHTML: string             // NS-1 criteria intro + NS-2 6-item checklist
+  odVsPuPanelHTML: string           // OD vs PU distinction panel (after Profit Uplift)
+  calculationPanelHTML: string      // arithmetic transparency panel (Rule 6C)
 }
 
 export interface AssembleReportOutput {
@@ -283,9 +346,41 @@ export interface AssembleReportOutput {
   recipient_email: string
 }
 
+// ── Unified Agent types ──────────────────────────────────────────────────────
+
+export interface ReportState {
+  normInput: NormalizedInput
+  researchOutput: ResearchAgentOutput | null
+  modelerOutput: RoiModelerOutput | null
+  calcOutput: RoiCalculatorOutput | null
+  writerOutput: ReportWriterOutput | null
+  assembled: AssembleReportOutput | null
+  renderedHtml: string | null
+  // v3.0 intelligence fields (set during research phase)
+  confidenceLevel: 'high' | 'low' | null
+  revenueAnchor: number | null          // estimated annual revenue in base currency
+  revenueAnchorSource: string | null    // e.g. "scraped from Clodura" / "headcount × industry avg"
+  coreThesis: string | null             // "[bottleneck] + [automation opportunity]"
+}
+
+export interface AgentCallbacks {
+  onTextDelta(delta: string): void
+  onToolStart(toolName: string): void
+  onReportUpdate(state: ReportState): void
+  onDone(): void
+  onError(err: Error): void
+}
+
 // ── SSE event types ──────────────────────────────────────────────────────────
 
 export type PipelineEvent =
   | { type: 'progress'; step: string; message: string }
   | { type: 'complete'; reportHtml: string; company: string; email: string }
+  | { type: 'error'; message: string }
+
+export type AgentEvent =
+  | { type: 'text_delta'; delta: string }
+  | { type: 'tool_start'; tool: string }
+  | { type: 'report_update'; state: ReportState }
+  | { type: 'done' }
   | { type: 'error'; message: string }

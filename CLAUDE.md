@@ -15,6 +15,8 @@ npm run prettier   # Format with Prettier
 
 No test suite is configured — linting is the only automated code quality check.
 
+A **Husky pre-commit hook** runs `lint-staged` on every commit: ESLint auto-fix on `.js`/`.jsx` and Prettier on `.js`, `.jsx`, `.json`, `.css`, `.md`.
+
 Node.js >= 24.0.0 is required.
 
 ## Architecture
@@ -43,14 +45,18 @@ This is a **Next.js 13 marketing + SaaS platform** for LyRise (AI-powered tech t
 
 The most complex part of the codebase. When a user submits the ROI form, `pages/api/roi-report.js` runs a multi-stage AI pipeline that streams progress via **Server-Sent Events (SSE)**:
 
-1. **research** — uses tool calling (Tavily web search + Puppeteer page fetch) to gather company data
-2. **modeler** — models the company's processes
-3. **calculator** — computes ROI metrics
-4. **writer** — writes the report sections
-5. **assemble** — combines sections
-6. **render** — generates PDF (Puppeteer) and sends email (Resend)
+1. **research** — `agents/researchAgent.ts` does tool-calling (Tavily search + Puppeteer fetch); `pipeline/researchAgent.ts` is the orchestrator
+2. **modeler** — `pipeline/roiModeler.ts` — structured JSON output via `fastModel` (gpt-4o-mini)
+3. **calculator** — `pipeline/roiCalculator.ts` — pure TypeScript, no LLM
+4. **writer** — `pipeline/reportWriter.ts` — prose generation via `researchModel` (gpt-4o)
+5. **assemble** — `pipeline/assembleReport.ts` — pure TypeScript, builds all `{{$json.display.*}}` template vars
+6. **render** — `services/pdf.ts` + `services/email.ts` — Puppeteer PDF (`@sparticuz/chromium`) + Resend email
 
-The pipeline uses `@ai-sdk/openai` (Vercel AI SDK) with structured outputs (Zod schemas in `src/lib/roi/prompts/`). The client-side SSE consumer is in `src/components/ROIGenerator/ExecutionSimulation.jsx`.
+The pipeline uses `@ai-sdk/openai` (Vercel AI SDK `ai@6.x`) with structured outputs (Zod schemas in `src/lib/roi/prompts/`). Model config lives in `src/lib/roi/llm.ts` — `researchModel` (gpt-4o) for research/writing, `fastModel` (gpt-4o-mini) for structured JSON. The file has instructions for switching to Claude. The client-side SSE consumer is in `src/components/ROIGenerator/ExecutionSimulation.jsx`.
+
+**Data flow**: The API route's `mapFormToPayload()` maps camelCase form fields → title-case keys expected by `normalizeInput()`. The HTML report template uses n8n-style `{{$json.display.key}}` placeholders replaced by `renderTemplate()`.
+
+**TypeScript boundary**: `src/lib/roi/` is TypeScript (`.ts`); everything else in the repo is JavaScript (`.js`/`.jsx`). The `@/` alias resolves to the project root in TS files.
 
 ### API Routes
 
