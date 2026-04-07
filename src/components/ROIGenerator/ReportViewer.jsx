@@ -151,6 +151,7 @@ export default function ReportViewer({ initialState, email }) {
         </div>
         <div style={{ display: 'flex', gap: 8 }}>
           <button
+            type="button"
             onClick={handleDownload}
             style={{
               padding: '6px 14px', fontSize: 13, fontWeight: 500,
@@ -161,6 +162,7 @@ export default function ReportViewer({ initialState, email }) {
             Download PDF
           </button>
           <button
+            type="button"
             onClick={handleResendEmail}
             disabled={emailStatus === 'sending'}
             style={{

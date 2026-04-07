@@ -1,3 +1,5 @@
+/* eslint-disable no-restricted-syntax */
+/* eslint-disable no-continue */
 // ─────────────────────────────────────────────────────────────────────────────
 // Unified ROI Report Agent
 // Single streamText agent handles both generation and chat-based editing.
@@ -51,8 +53,7 @@ function buildTools(state: ReportState, templateHtml: string, callbacks: AgentCa
         maxResults: z.number().optional().describe('Max results to return (default 5)'),
       }),
       execute: async ({ query, maxResults }: { query: string; maxResults?: number }) => {
-        const result = await webSearch(query, maxResults ?? 5)
-        return result
+        return webSearch(query, maxResults ?? 5)
       },
     }),
 
