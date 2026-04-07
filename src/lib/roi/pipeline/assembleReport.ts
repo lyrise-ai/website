@@ -11,6 +11,7 @@ import type {
   AssembleReportOutput,
   DisplayObject,
   ReportState,
+  RoiModelerOutput,
 } from '@/src/lib/roi/types'
 
 // ── Formatters ────────────────────────────────────────────────────────────────
@@ -104,20 +105,29 @@ function buildCaseStudiesHTML(studies: typeof CASE_STUDIES): string {
 
 // ── v3.0 HTML builders ────────────────────────────────────────────────────────
 
-function buildCompanySnapshotHTML(snapshot: ReportWriterOutput['company_snapshot']): string {
-  if (!snapshot?.length) return '<p class="muted">No company snapshot available.</p>'
-  const items = snapshot.map(item => {
-    const badgeClass = item.sourceType === 'scraped'
-      ? 'badge-scraped'
-      : item.sourceType === 'benchmarked'
-      ? 'badge-benchmarked'
-      : 'badge-assumed'
-    const badgeLabel = item.sourceType === 'scraped' ? 'Verified' : item.sourceType === 'benchmarked' ? 'Benchmarked' : 'Assumed'
-    return `<li style="padding:3px 0;border-bottom:1px dotted #e2e8f0;font-size:9pt;">`
-      + `${esc(item.text)} <span class="${badgeClass}">${badgeLabel}</span>`
-      + `</li>`
-  }).join('')
-  return `<ul style="list-style:none;margin:0;padding:0">${items}</ul>`
+function buildCompanySnapshotTableBody(
+  snapshot: ReportWriterOutput['company_snapshot'],
+  employees: number | null,
+  revenue: number | null,
+  sym: string,
+  revenueAnchorSource: string | null | undefined
+): string {
+  const rows: string[] = []
+  if (employees) {
+    rows.push(`<tr><td>${addCommas(employees)} employees</td><td><span class="badge-scraped">Scraped — LinkedIn</span></td></tr>`)
+  }
+  if (revenue) {
+    const src = esc(revenueAnchorSource ?? 'Benchmarked')
+    rows.push(`<tr><td>Revenue estimated ${sym}${revenue}M annually</td><td><span class="badge-benchmarked">${src}</span></td></tr>`)
+  }
+  if (snapshot?.length) {
+    snapshot.forEach(item => {
+      const cls = item.sourceType === 'scraped' ? 'badge-scraped' : item.sourceType === 'benchmarked' ? 'badge-benchmarked' : 'badge-assumed'
+      const label = item.sourceType === 'scraped' ? 'Scraped' : item.sourceType === 'benchmarked' ? 'Benchmarked' : 'Assumed'
+      rows.push(`<tr><td>${esc(item.text)}</td><td><span class="${cls}">${label}</span></td></tr>`)
+    })
+  }
+  return rows.join('')
 }
 
 function buildCostOfDelayHTML(sym: string, costOfDelay: ReportWriterOutput['cost_of_delay']): string {
@@ -152,14 +162,13 @@ function buildResilienceTableHTML(rows: ReportWriterOutput['resilience_rows']): 
 
 function buildRisksTableBody(risks: ReportWriterOutput['risks']): string {
   if (!risks?.length) return ''
-  return risks.map(r => {
-    const likelihoodColor = r.likelihood === 'High' ? '#991b1b' : r.likelihood === 'Medium' ? '#854d0e' : '#166534'
-    return `<tr>`
-      + `<td>${esc(r.risk)}</td>`
-      + `<td style="color:${likelihoodColor};font-weight:bold;text-align:center">${esc(r.likelihood)}</td>`
-      + `<td>${esc(r.mitigation)}</td>`
-      + `</tr>`
-  }).join('')
+  return risks.map(r =>
+    `<tr>`
+    + `<td style="font-weight:bold;width:20%">${esc(r.risk)}</td>`
+    + `<td style="width:42%;font-size:8.5pt">${esc(r.detail)}</td>`
+    + `<td style="width:38%">${esc(r.mitigation)}</td>`
+    + `</tr>`
+  ).join('')
 }
 
 function buildNextStepsHTML(
@@ -175,10 +184,15 @@ function buildNextStepsHTML(
     + `<td style="color:#64748b;font-style:italic">${esc(item.due)}</td>`
     + `</tr>`
   ).join('')
-  return `<div class="insight-panel" style="margin-bottom:10px">`
+  return `<div style="font-size:10pt;font-weight:bold;color:#1a1a1a;margin-bottom:6px">Process validation session</div>`
+    + `<div class="insight-panel" style="margin-bottom:10px">`
     + `<div class="insight-stripe"></div>`
-    + `<div class="insight-content" style="font-size:9pt">${esc(cta)}</div>`
-    + `</div>`
+    + `<div class="insight-content" style="font-size:9pt">`
+    + `<p style="margin:0 0 6px">${esc(cta)}</p>`
+    + `<div style="font-size:8.5pt;color:#2957FF;font-weight:bold">Book: calendly.com/elena-lyrise/30min &nbsp;|&nbsp; elena@lyrise.ai</div>`
+    + `</div></div>`
+    + `<div style="font-size:9pt;font-weight:bold;color:#1a1a1a;margin-bottom:6px">Six-point validation checklist</div>`
+    + `<p style="font-size:8.5pt;color:#64748b;margin-bottom:4px">Assign each item to a named team lead before the session:</p>`
     + `<table style="width:100%;border-collapse:collapse;font-size:9pt">`
     + `<thead><tr>`
     + `<th style="width:4%">#</th>`
@@ -206,16 +220,122 @@ function buildOdVsPuPanelHTML(sym: string, od: number, pu: number): string {
 
 function buildCalculationPanelHTML(
   sym: string,
-  topWorkflow: { name: string; volume: number; timeBefore: number; timeAfter: number; rate: number; monthlyHours: number; annualValue: number }
+  wfs: Array<{ name: string; volume: number; timeBefore: number; timeAfter: number; rate: number; monthlyHours: number }>,
+  totalMonthlyHours: number,
+  annualOD: number
 ): string {
-  const timeSavedMin = topWorkflow.timeBefore - topWorkflow.timeAfter
-  const timeSavedHrs = (topWorkflow.volume * timeSavedMin / 60).toFixed(1)
-  return `<div style="background:#f8fafc;border:1px solid #e2e8f0;padding:8px 12px;margin-top:6px;font-size:8.5pt">`
-    + `<div style="font-size:7pt;text-transform:uppercase;letter-spacing:0.8px;color:#2957FF;font-weight:bold;margin-bottom:4px">How This Is Calculated — ${esc(topWorkflow.name)}</div>`
-    + `<div style="color:#2d2d2d;line-height:1.7">`
-    + `<span style="font-family:monospace">${addCommas(topWorkflow.volume)} runs/mo × (${topWorkflow.timeBefore} − ${topWorkflow.timeAfter} min) ÷ 60 = ${timeSavedHrs} hrs/mo freed</span><br>`
-    + `<span style="font-family:monospace">${timeSavedHrs} hrs/mo × ${sym}${topWorkflow.rate}/hr × 12 mo = ${sym}${addCommas(topWorkflow.annualValue)}/yr (Operational Dividend from this workflow)</span>`
+  const topWf = wfs[0]
+  const savedHrs = ((topWf.timeBefore - topWf.timeAfter) / 60).toFixed(2)
+  const monthlyValue = Math.round(topWf.monthlyHours * topWf.rate)
+  const totalMonthlyValue = wfs.reduce((a, w) => a + Math.round(w.monthlyHours * w.rate), 0)
+  const ftes = (totalMonthlyHours * 12 / 2080).toFixed(1)
+  const sumLine = wfs.map(w => `${sym}${addCommas(Math.round(w.monthlyHours * w.rate))}`).join(' + ') + ` = ${sym}${addCommas(totalMonthlyValue)}/mo`
+  return `<div class="insight-panel" style="margin-top:6px">`
+    + `<div class="insight-stripe"></div>`
+    + `<div class="insight-content" style="font-size:8.5pt">`
+    + `<div style="font-size:7pt;text-transform:uppercase;letter-spacing:0.8px;color:#2957FF;font-weight:bold;margin-bottom:6px">How This Is Calculated</div>`
+    + `<div style="margin-bottom:4px"><strong>Formula:</strong> Value recaptured/mo = Volume × (Before AI hrs − After AI hrs) × Rate (${sym}/hr)</div>`
+    + `<div style="margin-bottom:4px"><strong>Worked example — ${esc(topWf.name)}:</strong> <span style="font-family:monospace">${addCommas(topWf.volume)} × ${savedHrs} hrs × ${sym}${addCommas(topWf.rate)}/hr = ${sym}${addCommas(monthlyValue)}/mo</span></div>`
+    + `<div style="margin-bottom:4px"><strong>Monthly total:</strong> <span style="font-family:monospace">${sumLine}</span></div>`
+    + `<div style="margin-bottom:2px"><strong>Annual hours returned:</strong> <span style="font-family:monospace">${addCommas(totalMonthlyHours)} × 12 = ${addCommas(totalMonthlyHours * 12)} hrs (~${ftes} FTEs at 2,080 hrs/yr)</span></div>`
+    + `<div><strong>Annual Operational Dividend:</strong> <span style="font-family:monospace">${sym}${addCommas(totalMonthlyValue)}/mo × 12 = ${sym}${addCommas(annualOD)}</span></div>`
     + `</div></div>`
+}
+
+function buildRoadmapTableBody(pilotWfName: string): string {
+  return [
+    ['Weeks 1–2', 'Rapid Discovery &amp; Validation',
+     `Validate workflow volumes and task times for ${esc(pilotWfName)}; confirm data access and integration scope; agree pilot selection.`],
+    ['Weeks 3–6', 'Pilot Build &amp; Testing',
+     `Deploy AI agent for ${esc(pilotWfName)}; QA and calibration cycles; weekly accuracy reports; human review gates active throughout.`],
+    ['Weeks 7–8', 'Controlled Go-Live',
+     `Full pilot rollout on approved workflows; performance instrumentation live; weekly dashboard; anomaly escalation active.`],
+    ['Weeks 9–10', 'ROI Validation &amp; Expansion',
+     `Measure actual hours returned vs. modelled; calculate realised Operational Dividend; present Phase 2 roadmap.`],
+  ].map(([timeline, phase, activities]) =>
+    `<tr>`
+    + `<td style="color:#2957FF;font-weight:bold;white-space:nowrap">${timeline}</td>`
+    + `<td><strong>${phase}</strong></td>`
+    + `<td>${activities}</td>`
+    + `</tr>`
+  ).join('')
+}
+
+function buildProvenanceTableBody(
+  roi: RoiCalculatorOutput['roi_data'],
+  modelerOut: RoiModelerOutput | null | undefined,
+  revenueAnchor: number | null | undefined,
+  revenueAnchorSource: string | null | undefined,
+  profitLevers: ReportWriterOutput['profit_levers']
+): string {
+  const sym = roi.currency.symbol
+  const rows: { input: string; detail: string; source: string; status: string }[] = []
+
+  if (revenueAnchor) {
+    rows.push({
+      input: 'Annual revenue anchor',
+      detail: `${sym}${revenueAnchor}M estimated`,
+      source: revenueAnchorSource ?? 'Benchmarked',
+      status: (revenueAnchorSource ?? '').toLowerCase().includes('scrap') ? 'Validated' : 'Needs validation',
+    })
+  }
+
+  if (roi.employees) {
+    rows.push({
+      input: 'Headcount',
+      detail: `${roi.employees.toLocaleString()} employees`,
+      source: 'Scraped — LinkedIn / Apollo',
+      status: 'Validated',
+    })
+  }
+
+  roi.workflows.forEach(wf => {
+    const wa = modelerOut?.workflowAssumptions?.find(a => a.workflowName === wf.name)
+    const seniorityLabel = wa?.seniorityLevel ? ` (${wa.seniorityLevel})` : ' (blended)'
+    rows.push({
+      input: `${wf.name} — blended rate`,
+      detail: `${sym}${wf.rate}/hr${seniorityLabel}`,
+      source: wa?.rateSource ?? 'Benchmarked',
+      status: 'Needs validation',
+    })
+    rows.push({
+      input: `${wf.name} — monthly volume`,
+      detail: `${wf.volume}/mo estimated`,
+      source: wf.source === 'user_stated' ? 'User-stated' : wf.source === 'research_derived' ? 'Scraped' : 'Benchmarked',
+      status: wf.source === 'user_stated' ? 'Validated' : 'Needs validation',
+    })
+  })
+
+  rows.push({
+    input: 'Automation time reduction %',
+    detail: roi.workflows.map(w => `${w.savingsPct}% — ${w.name}`).join('; '),
+    source: 'Benchmarked — LyRise + McKinsey 2023',
+    status: 'Industry standard',
+  })
+
+  if (profitLevers?.length) {
+    profitLevers.forEach(l => {
+      rows.push({
+        input: `Profit lever — ${l.lever_name}`,
+        detail: l.baseline_data,
+        source: 'Benchmarked',
+        status: 'Needs validation',
+      })
+    })
+  }
+
+  const statusStyle = (s: string) =>
+    s === 'Validated' ? 'color:#166534;font-weight:bold' :
+    s === 'Industry standard' ? 'color:#1d4ed8' : 'color:#92400e'
+
+  return rows.map(r =>
+    `<tr>`
+    + `<td><strong>${esc(r.input)}</strong></td>`
+    + `<td>${esc(r.detail)}</td>`
+    + `<td style="font-size:8.5pt;color:#64748b">${esc(r.source)}</td>`
+    + `<td style="font-size:8pt;${statusStyle(r.status)}">${esc(r.status)}</td>`
+    + `</tr>`
+  ).join('')
 }
 
 // ── Main function ─────────────────────────────────────────────────────────────
@@ -227,9 +347,6 @@ export function assembleReport(
   reportState?: Partial<ReportState>
 ): AssembleReportOutput {
   const roi          = calcOut.roi_data
-  const analystData  = calcOut.analystData
-  const painPoints   = analystData.pain_points ?? []
-  const modelerNotes = calcOut.modelerNotes    ?? []
   const sym          = roi.currency.symbol
   const s            = roi.summary
 
@@ -261,41 +378,49 @@ export function assembleReport(
   // Scope list
   const scopeListHTML = wfs.map(w => `<li>${esc(w.name)}</li>`).join('')
 
-  // As-Is Baseline table
-  const asisTableBody = wfs.map(wf =>
-    `<tr>`
-    + `<td><strong>${esc(wf.name)}</strong></td>`
-    + `<td>${esc(wf.owner || '—')}</td>`
-    + `<td style="text-align:center">${fmt(wf.volume)}</td>`
-    + `<td style="text-align:center">${fmt(wf.timeBefore)} min</td>`
-    + `<td>${sym}${fmt(wf.rate)}/hr</td>`
-    + `<td>${sym}${fmt(wf.costPerRun)}</td>`
-    + `<td><strong>${sym}${fmt(wf.monthlyCost)}</strong></td>`
-    + `</tr>`
-  ).join('')
+  // As-Is Baseline table — 8 cols including SOURCE
+  const asisTableBody = wfs.map(wf => {
+    const srcClass = wf.source === 'user_stated' ? 'badge-scraped' : wf.source === 'research_derived' ? 'badge-scraped' : 'badge-benchmarked'
+    const srcLabel = wf.source === 'user_stated' ? 'User-stated' : wf.source === 'research_derived' ? 'Scraped' : 'Benchmarked'
+    const timeBeforeHrs = (wf.timeBefore / 60).toFixed(2)
+    return `<tr>`
+      + `<td><strong>${esc(wf.name)}</strong></td>`
+      + `<td>${esc(wf.owner || '—')}</td>`
+      + `<td style="text-align:center">${fmt(wf.volume)}</td>`
+      + `<td style="text-align:center">${timeBeforeHrs} hrs</td>`
+      + `<td>${sym}${fmt(wf.rate)}/hr</td>`
+      + `<td>${sym}${fmt(wf.costPerRun)}</td>`
+      + `<td><strong>${sym}${fmt(wf.monthlyCost)}</strong></td>`
+      + `<td><span class="${srcClass}">${srcLabel}</span></td>`
+      + `</tr>`
+  }).join('')
   + `<tr class="total-row">`
-  + `<td colspan="6"><strong>Total monthly run-cost</strong></td>`
+  + `<td colspan="7"><strong>Total monthly run-cost</strong></td>`
   + `<td><strong>${sym}${fmt(totalMonthlyCost)}</strong></td>`
   + `</tr>`
 
-  // Before vs After table
-  const bvaTableBody = wfs.map(wf =>
-    `<tr>`
-    + `<td><strong>${esc(wf.name)}</strong></td>`
-    + `<td style="text-align:center">${fmt(wf.volume)}</td>`
-    + `<td style="text-align:center">${fmt(wf.timeBefore)} min</td>`
-    + `<td style="text-align:center">${fmt(wf.timeAfter)} min</td>`
-    + `<td style="text-align:center">${fmt(wf.timeSaved)} min (-${wf.savingsPct || 0}%)</td>`
-    + `<td style="text-align:center">${fmt(wf.monthlyHours)} hrs</td>`
-    + `<td>${sym}${fmt(wf.rate)}/hr</td>`
-    + `<td class="accent">${sym}${fmt(wf.annualValue)}</td>`
-    + `</tr>`
-  ).join('')
+  // Before vs After table — time in hours, last col monthly value
+  const bvaTableBody = wfs.map(wf => {
+    const beforeHrs = (wf.timeBefore / 60).toFixed(2)
+    const afterHrs  = (wf.timeAfter  / 60).toFixed(2)
+    const savedHrs  = ((wf.timeBefore - wf.timeAfter) / 60).toFixed(2)
+    const monthlyValue = Math.round(wf.monthlyHours * wf.rate)
+    return `<tr>`
+      + `<td><strong>${esc(wf.name)}</strong></td>`
+      + `<td style="text-align:center">${fmt(wf.volume)}</td>`
+      + `<td style="text-align:center">${beforeHrs} hrs</td>`
+      + `<td style="text-align:center">${afterHrs} hrs</td>`
+      + `<td style="text-align:center">${savedHrs} hrs</td>`
+      + `<td style="text-align:center">${fmt(wf.monthlyHours)} hrs</td>`
+      + `<td>${sym}${fmt(wf.rate)}/hr</td>`
+      + `<td class="accent"><strong>${sym}${fmt(monthlyValue)}</strong></td>`
+      + `</tr>`
+  }).join('')
   + `<tr class="total-row">`
   + `<td colspan="5"><strong>Monthly capacity unlocked</strong></td>`
   + `<td><strong>${fmt(totalMonthlyHours)} hrs</strong></td>`
   + `<td></td>`
-  + `<td class="accent"><strong>${sym}${fmt(s.operationalDividend12mo)}/yr</strong></td>`
+  + `<td class="accent"><strong>${sym}${fmt(totalMonthlyCost)}/mo</strong></td>`
   + `</tr>`
 
   // Profit Levers table — v3.0 includes derived_from + arithmetic rationale columns
@@ -315,59 +440,31 @@ export function assembleReport(
   + `<td class="accent"><strong>${sym}${fmt(s.profitUplift12mo)}</strong></td>`
   + `</tr>`
 
-  // Deploy table — v3.0 adds why it fits (WD-1)
+  // Deploy table — 4 separate columns
   const deployTableBody = wfs.map(wf =>
     `<tr>`
-    + `<td><strong>${esc(wf.name)}</strong><br>`
-    + `<span class="muted">${esc(wf.expectedOutcome ?? '')}</span></td>`
+    + `<td><strong>${esc(wf.name)}</strong></td>`
+    + `<td>${esc(wf.expectedOutcome ?? '')}</td>`
     + `<td class="accent"><strong>${esc(wf.agentName ?? '')}</strong></td>`
     + `<td>${esc(wf.whyItMatters ?? '')}</td>`
     + `</tr>`
   ).join('')
 
-  // Provenance table
-  const inputProcNames = normInput.processes.map(p => p.name).filter(Boolean)
-  const userWfNames    = wfs.filter(w => w.source === 'user_stated').map(w => w.name)
-  const unmatchedProcs = inputProcNames.filter(n => !userWfNames.includes(n))
-
-  const provRows: { source: string; point: string; basis: string; status: string }[] = []
-
-  painPoints.filter(p => p.source === 'user_stated').forEach(p => {
-    provRows.push({ source: 'Your input', point: `Pain point — "${p.title ?? ''}"`, basis: 'Captured directly from your submission', status: 'Validated' })
-  })
-  wfs.filter(w => w.source === 'user_stated').forEach(w => {
-    provRows.push({ source: 'Your input', point: `Workflow — ${w.name}`, basis: 'Identified as a bottleneck by your team', status: 'Validated' })
-  })
-  unmatchedProcs.forEach(n => {
-    provRows.push({ source: 'Your input', point: `Process — "${n}"`, basis: 'Submitted directly by your team', status: 'Needs validation' })
-  })
-  wfs.filter(w => w.source === 'research_derived').forEach(w => {
-    provRows.push({ source: 'Company research', point: `Workflow — ${w.name}`, basis: w.rationale || 'Derived from operational intelligence', status: 'Validated' })
-  })
-  wfs.filter(w => w.source === 'inferred').forEach(w => {
-    provRows.push({ source: 'Industry benchmark', point: `Workflow — ${w.name} (inferred)`, basis: w.rationale || 'Industry-typical for this sector', status: 'Industry standard' })
-  })
-  modelerNotes.filter(n => typeof n === 'string' && n.trim()).forEach(n => {
-    provRows.push({ source: 'Industry benchmark', point: 'Rate / volume assumption', basis: n, status: 'Industry standard' })
-  })
-
-  const provenanceTableHTML = provRows.length
-    ? `<table><thead><tr>`
-      + `<th style="width:16%">Source</th>`
-      + `<th style="width:32%">Data Point</th>`
-      + `<th style="width:38%">Basis</th>`
-      + `<th style="width:14%">Status</th>`
-      + `</tr></thead><tbody>`
-      + provRows.map(r =>
-          `<tr>`
-          + `<td><strong>${esc(r.source)}</strong></td>`
-          + `<td>${esc(r.point)}</td>`
-          + `<td>${esc(r.basis)}</td>`
-          + `<td style="font-size:8pt;color:#64748b;font-style:italic">${esc(r.status)}</td>`
-          + `</tr>`
-        ).join('')
-      + `</tbody></table>`
-    : `<p class="muted">All figures are based on industry benchmarks — no direct inputs captured.</p>`
+  // Provenance table — modeling assumptions (not user input rows)
+  const provenanceTableHTML = `<table><thead><tr>`
+    + `<th style="width:22%">Input</th>`
+    + `<th style="width:36%">Detail</th>`
+    + `<th style="width:28%">Source</th>`
+    + `<th style="width:14%">Status</th>`
+    + `</tr></thead><tbody>`
+    + buildProvenanceTableBody(
+        roi,
+        reportState?.modelerOutput,
+        reportState?.revenueAnchor,
+        reportState?.revenueAnchorSource,
+        writerOut.profit_levers
+      )
+    + `</tbody></table>`
 
   // ── v3.0 display fields ───────────────────────────────────────────────────
 
@@ -381,8 +478,14 @@ export function assembleReport(
   const confLevel = reportState?.confidenceLevel ?? 'low'
   const confidenceBadge = confLevel === 'high' ? 'Insight-Driven Analysis' : 'Hypothesis-Driven Projection'
 
-  // Company snapshot
-  const companySnapshotHTML = buildCompanySnapshotHTML(writerOut.company_snapshot ?? [])
+  // Company snapshot table body
+  const companySnapshotTableBody = buildCompanySnapshotTableBody(
+    writerOut.company_snapshot ?? [],
+    roi.employees,
+    roi.revenue,
+    sym,
+    reportState?.revenueAnchorSource
+  )
 
   // Cost of delay
   const costOfDelayHTML = buildCostOfDelayHTML(sym, writerOut.cost_of_delay ?? {
@@ -405,9 +508,13 @@ export function assembleReport(
   // OD vs PU distinction panel
   const odVsPuPanelHTML = buildOdVsPuPanelHTML(sym, s.operationalDividend12mo, s.profitUplift12mo)
 
-  // Calculation panel (top workflow example)
-  const topWf = wfs[0]
-  const calculationPanelHTML = topWf ? buildCalculationPanelHTML(sym, topWf) : ''
+  // Calculation panel (all workflows)
+  const calculationPanelHTML = wfs.length > 0
+    ? buildCalculationPanelHTML(sym, wfs, totalMonthlyHours, s.operationalDividend12mo)
+    : ''
+
+  // Roadmap table (pilot = highest-value workflow)
+  const roadmapTableBody = wfs.length > 0 ? buildRoadmapTableBody(wfs[0].name) : ''
 
   const display: DisplayObject = {
     // Original fields
@@ -456,7 +563,7 @@ export function assembleReport(
 
     // v3.0 fields
     revenueContextStatement,
-    companySnapshotHTML,
+    companySnapshotTableBody,
     confidenceBadge,
     unifiedPatternThesis: writerOut.unified_pattern_thesis ?? '',
     costOfDelayHTML,
@@ -466,6 +573,7 @@ export function assembleReport(
     nextStepsHTML,
     odVsPuPanelHTML,
     calculationPanelHTML,
+    roadmapTableBody,
   }
 
   return {

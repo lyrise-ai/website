@@ -11,25 +11,6 @@ import { drainSSE } from '../src/lib/drainSSE'
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 
-const SUGGESTIONS = [
-  { icon: '📄', name: 'Writing proposals or quotes', dept: 'Sales' },
-  { icon: '📊', name: 'Updating CRM after calls', dept: 'Sales' },
-  { icon: '📧', name: 'Email follow-ups & outreach', dept: 'Sales' },
-  { icon: '🤝', name: 'Onboarding new clients', dept: 'Operations' },
-  { icon: '📋', name: 'Project status reporting', dept: 'Operations' },
-  { icon: '📅', name: 'Scheduling meetings & calls', dept: 'Operations' },
-  { icon: '💬', name: 'Customer support & ticket triage', dept: 'Operations' },
-  { icon: '📦', name: 'Order processing & fulfilment', dept: 'Operations' },
-  { icon: '🧾', name: 'Processing invoices & billing', dept: 'Finance' },
-  { icon: '📈', name: 'Building management reports', dept: 'Finance' },
-  { icon: '📉', name: 'Financial reconciliation', dept: 'Finance' },
-  { icon: '📝', name: 'Creating contracts', dept: 'Legal' },
-  { icon: '🗂️', name: 'Compliance & regulatory filings', dept: 'Legal' },
-  { icon: '🧑‍💼', name: 'Recruiting & screening candidates', dept: 'HR' },
-  { icon: '🏁', name: 'Employee onboarding & offboarding', dept: 'HR' },
-  { icon: '🔍', name: 'Data entry & data cleaning', dept: 'Operations' },
-]
-
 const INDUSTRY_OPTS = [
   'Technology / SaaS',
   'Financial Services',
@@ -43,55 +24,6 @@ const INDUSTRY_OPTS = [
   'Education',
   'Government & Public Sector',
   'Other',
-]
-const EMPLOYEE_OPTS = ['1–10', '11–50', '51–200', '201–500', '500+']
-const REVENUE_OPTS = [
-  'Under $1M',
-  '$1M–$5M',
-  '$5M–$20M',
-  '$20M–$100M',
-  '$100M+',
-]
-const COUNTRY_OPTS = [
-  'Saudi Arabia',
-  'UAE',
-  'Qatar',
-  'Kuwait',
-  'Bahrain / Oman',
-  'Egypt',
-  'Europe',
-  'North America',
-  'Other',
-]
-const PRIORITY_OPTS = [
-  'Cut operating costs',
-  'Scale without hiring',
-  'Faster turnaround',
-  'Better client experience',
-  'Fewer errors & rework',
-  'Free up leadership time',
-  'Win more deals',
-  'Improve compliance',
-]
-const VOLS = [
-  { label: 'Fewer than 30/mo', value: 'Under 30 per month' },
-  { label: '30–100/mo', value: '30–100 per month' },
-  { label: '100–300/mo', value: '100–300 per month' },
-  { label: 'Over 300/mo', value: 'Over 300 per month' },
-]
-const TIMES = [
-  { label: 'Under 30 min', value: 'Under 30 minutes' },
-  { label: '30–60 min', value: '30–60 minutes' },
-  { label: '1–2 hours', value: '1–2 hours' },
-  { label: 'Over 2 hours', value: 'Over 2 hours' },
-]
-const ROLES = [
-  'Operations / Admin',
-  'Sales',
-  'Finance',
-  'HR / People',
-  'Legal',
-  'Leadership',
 ]
 const CURRENCIES = [
   'USD – US Dollar ($)',
@@ -107,35 +39,24 @@ const CURRENCIES = [
   'NGN – Nigerian Naira (₦)',
   'ZAR – South African Rand (R)',
 ]
-const STAGE_LABELS = {
-  research: 'Researching your company…',
-  modeler: 'Modelling financial assumptions…',
-  calculator: 'Calculating ROI…',
-  writer: 'Writing report copy…',
-  assemble: 'Assembling report…',
-  render: 'Finalising report…',
-}
-const TOTAL_STEPS = 4
+const TOTAL_STEPS = 2
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
-function inferDept(name) {
-  if (/proposal|quote|lead|sales|crm|prospect/i.test(name)) return 'Sales'
-  if (/invoice|billing|finance|payroll|reconcil/i.test(name)) return 'Finance'
-  if (/contract|legal|complian|regulat/i.test(name)) return 'Legal'
-  if (/recruit|hiring|hr|onboard.*employee|talent/i.test(name)) return 'HR'
-  return 'Operations'
-}
-
-function deptToRole(dept) {
-  const map = {
-    Sales: 'Sales',
-    Finance: 'Finance',
-    Legal: 'Legal',
-    HR: 'HR / People',
-    Operations: 'Operations / Admin',
+function validateStep(step, s1, s2) {
+  const errors = {}
+  if (step === 1) {
+    if (!s1.companyName.trim() || s1.companyName.trim().length < 2) {
+      errors.companyName = 'Please enter your company name'
+    }
   }
-  return map[dept] || ''
+  if (step === 2) {
+    if (!s2.email.trim() || !/\S+@\S+\.\S+/.test(s2.email)) {
+      errors.email = 'Please enter a valid work email'
+    }
+    if (!s2.currency) errors.currency = 'Please select a currency'
+  }
+  return errors
 }
 
 // ── Shared UI ─────────────────────────────────────────────────────────────────
@@ -174,36 +95,6 @@ function PillGroup({ options, value, onChange, error }) {
         ))}
       </div>
       {error && <p className="mt-1.5 text-xs text-red-500">{error}</p>}
-    </div>
-  )
-}
-
-function MultiPillGroup({ options, value, onChange, max }) {
-  const atCap = value.length >= max
-  return (
-    <div>
-      <div className="flex flex-wrap gap-1.5">
-        {options.map((opt) => {
-          const active = value.includes(opt)
-          return (
-            <Pill
-              key={opt}
-              label={opt}
-              active={active}
-              dimmed={atCap && !active}
-              onClick={() => {
-                if (active) onChange(value.filter((v) => v !== opt))
-                else if (!atCap) onChange([...value, opt])
-              }}
-            />
-          )
-        })}
-      </div>
-      {atCap && (
-        <p className="mt-1.5 text-xs text-gray-400">
-          {max} selected — deselect one to pick another
-        </p>
-      )}
     </div>
   )
 }
@@ -259,10 +150,9 @@ function Step1({ data, onChange, errors }) {
           Let&apos;s start with the basics
         </h2>
         <p className="text-sm text-gray-500">
-          Context that shapes the whole analysis — takes under a minute.
+          Takes under a minute — we research the rest automatically.
         </p>
       </div>
-
       <TextInput
         id="companyName"
         label="Company name"
@@ -272,19 +162,15 @@ function Step1({ data, onChange, errors }) {
         autoComplete="organization"
         error={errors.companyName}
       />
-
-      <div className="space-y-2">
-        <label className="text-[12.5px] font-semibold text-gray-800">
-          Industry
-        </label>
-        <PillGroup
-          options={INDUSTRY_OPTS}
-          value={data.industry}
-          onChange={(v) => onChange('industry', v)}
-          error={errors.industry}
-        />
-      </div>
-
+      <TextInput
+        id="website"
+        label="Company website"
+        value={data.website}
+        onChange={(v) => onChange('website', v)}
+        placeholder="e.g. acmecorp.com"
+        optional
+        autoComplete="url"
+      />
       <TextInput
         id="whatYouDo"
         label="What does your company sell or deliver?"
@@ -293,58 +179,14 @@ function Step1({ data, onChange, errors }) {
         placeholder="e.g. B2B management consulting for operations and strategy"
         optional
       />
-
-      <div className="grid grid-cols-2 gap-4">
-        <div className="space-y-2">
-          <label className="text-[12.5px] font-semibold text-gray-800">
-            How many people work here?
-          </label>
-          <PillGroup
-            options={EMPLOYEE_OPTS}
-            value={data.employees}
-            onChange={(v) => onChange('employees', v)}
-            error={errors.employees}
-          />
-        </div>
-        <div className="space-y-2">
-          <label className="text-[12.5px] font-semibold text-gray-800">
-            Approximate annual revenue
-          </label>
-          <PillGroup
-            options={REVENUE_OPTS}
-            value={data.revenue}
-            onChange={(v) => onChange('revenue', v)}
-            error={errors.revenue}
-          />
-        </div>
-      </div>
-
       <div className="space-y-2">
         <label className="text-[12.5px] font-semibold text-gray-800">
-          Country / Region{' '}
-          <span className="font-normal text-gray-400">
-            — optional, sets rate benchmarks
-          </span>
+          Industry <span className="font-normal text-gray-400">— helps us benchmark faster</span>
         </label>
         <PillGroup
-          options={COUNTRY_OPTS}
-          value={data.country}
-          onChange={(v) => onChange('country', v)}
-        />
-      </div>
-
-      <div className="space-y-2">
-        <label className="text-[12.5px] font-semibold text-gray-800">
-          Top priorities right now{' '}
-          <span className="font-normal text-gray-400">
-            — optional, pick up to 3
-          </span>
-        </label>
-        <MultiPillGroup
-          options={PRIORITY_OPTS}
-          value={data.priorities}
-          onChange={(v) => onChange('priorities', v)}
-          max={3}
+          options={INDUSTRY_OPTS}
+          value={data.industry}
+          onChange={(v) => onChange('industry', v)}
         />
       </div>
     </div>
@@ -353,258 +195,20 @@ function Step1({ data, onChange, errors }) {
 
 // ── Step 2 ────────────────────────────────────────────────────────────────────
 
-function Step2({
-  procs,
-  procInput,
-  onInputChange,
-  onAdd,
-  onRemove,
-  onSugClick,
-  suggestions,
-  sugIndex,
-  onKeyDown,
-  error,
-}) {
+function Step2({ data, onChange, errors }) {
   return (
     <div className="space-y-5">
       <div>
         <p className="text-[11px] font-semibold uppercase tracking-wider text-gray-400 mb-1">
-          Your operations
-        </p>
-        <h2 className="text-xl font-bold text-gray-900 mb-1">
-          What work eats the most time?
-        </h2>
-        <p className="text-sm text-gray-500">
-          Name every task your team does repeatedly that feels slow or manual.
-          Add one at a time.
-        </p>
-      </div>
-
-      <div className="flex gap-2">
-        <div className="flex-1 relative">
-          <input
-            type="text"
-            value={procInput}
-            onChange={(e) => onInputChange(e.target.value)}
-            onKeyDown={onKeyDown}
-            onBlur={() => setTimeout(() => onInputChange(''), 150)}
-            placeholder="e.g. Writing proposals, updating the CRM…"
-            autoComplete="off"
-            className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm text-gray-900 placeholder-gray-400 outline-none hover:border-gray-300 focus:border-gray-500 transition-colors"
-          />
-          {suggestions.length > 0 && (
-            <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-lg shadow-lg z-50 max-h-56 overflow-y-auto">
-              {suggestions.map((s, i) => (
-                <button
-                  key={s.name}
-                  type="button"
-                  onMouseDown={(e) => {
-                    e.preventDefault()
-                    onSugClick(s)
-                  }}
-                  className={clsx(
-                    'w-full flex items-center gap-2.5 px-3 py-2.5 text-left text-sm transition-colors',
-                    i === sugIndex ? 'bg-gray-50' : 'hover:bg-gray-50',
-                  )}
-                >
-                  <span className="text-base w-5 text-center flex-shrink-0">
-                    {s.icon}
-                  </span>
-                  <span className="flex-1 text-gray-800">{s.name}</span>
-                  <span className="text-[11px] text-gray-400 flex-shrink-0">
-                    {s.dept || 'custom'}
-                  </span>
-                </button>
-              ))}
-            </div>
-          )}
-        </div>
-        <button
-          type="button"
-          onClick={onAdd}
-          disabled={procInput.trim().length < 2}
-          className="flex-shrink-0 px-4 py-2.5 bg-gray-900 text-white text-sm font-semibold rounded-lg disabled:opacity-35 disabled:cursor-not-allowed hover:bg-gray-700 transition-colors"
-        >
-          Add
-        </button>
-      </div>
-
-      {procs.length === 0 ? (
-        <p className="text-sm text-center text-gray-400 py-6 leading-relaxed">
-          Start typing a process name above, or pick from the suggestions.
-          <br />
-          Add at least one — the more you add, the better the report.
-        </p>
-      ) : (
-        <div className="flex flex-col gap-2">
-          {procs.map((p, i) => (
-            <div
-              key={p.name}
-              className="flex items-center gap-2.5 border border-gray-200 rounded-lg px-3 py-2.5"
-            >
-              <span className="w-5 h-5 rounded-full bg-gray-100 text-[11px] font-semibold text-gray-500 flex items-center justify-center flex-shrink-0">
-                {i + 1}
-              </span>
-              <span className="text-base flex-shrink-0">{p.icon}</span>
-              <span className="flex-1 text-sm font-medium text-gray-800">
-                {p.name}
-              </span>
-              <span className="text-[11px] font-medium text-gray-500 bg-gray-100 rounded px-2 py-0.5 flex-shrink-0">
-                {p.dept}
-              </span>
-              <button
-                type="button"
-                onClick={() => onRemove(i)}
-                className="flex-shrink-0 w-5 h-5 rounded-full flex items-center justify-center text-gray-400 hover:bg-red-50 hover:text-red-500 transition-colors"
-              >
-                <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
-                  <path
-                    d="M1 1l8 8M9 1L1 9"
-                    stroke="currentColor"
-                    strokeWidth="1.5"
-                    strokeLinecap="round"
-                  />
-                </svg>
-              </button>
-            </div>
-          ))}
-        </div>
-      )}
-      {error && <p className="text-xs text-red-500">{error}</p>}
-    </div>
-  )
-}
-
-// ── Step 3 ────────────────────────────────────────────────────────────────────
-
-function ScalePills({ options, value, onChange }) {
-  return (
-    <div className="flex flex-wrap gap-1.5">
-      {options.map((opt) => {
-        const v = opt.value !== undefined ? opt.value : opt
-        const label = opt.label !== undefined ? opt.label : opt
-        return (
-          <button
-            key={v}
-            type="button"
-            onClick={() => onChange(v)}
-            className={clsx(
-              'px-3 py-1.5 rounded-full border text-xs font-medium transition-all cursor-pointer',
-              value === v
-                ? 'bg-gray-900 border-gray-900 text-white'
-                : 'border-gray-200 text-gray-500 hover:border-gray-400 hover:text-gray-900',
-            )}
-          >
-            {label}
-          </button>
-        )
-      })}
-      <button
-        type="button"
-        onClick={() => onChange('')}
-        className={clsx(
-          'px-3 py-1.5 rounded-full border text-xs font-medium transition-all cursor-pointer',
-          value === ''
-            ? 'bg-gray-900 border-gray-900 text-white'
-            : 'border-gray-200 text-gray-500 hover:border-gray-400 hover:text-gray-900',
-        )}
-      >
-        Not sure
-      </button>
-    </div>
-  )
-}
-
-function Step3({ procs, onUpdate }) {
-  return (
-    <div className="space-y-5">
-      <div>
-        <p className="text-[11px] font-semibold uppercase tracking-wider text-gray-400 mb-1">
-          Scale & effort
-        </p>
-        <h2 className="text-xl font-bold text-gray-900 mb-1">
-          Give us a sense of the workload
-        </h2>
-        <p className="text-sm text-gray-500">
-          For each process: how often it happens and how long one takes. Order
-          of magnitude is fine.
-        </p>
-      </div>
-      <div className="space-y-6">
-        {procs.map((p, i) => (
-          <div
-            key={p.name}
-            className={clsx(
-              'pb-6',
-              i < procs.length - 1 && 'border-b border-gray-100',
-            )}
-          >
-            <div className="flex items-center gap-2 mb-4">
-              <span>{p.icon}</span>
-              <span className="text-sm font-semibold text-gray-800">
-                {p.name}
-              </span>
-              <span className="text-[11px] font-medium text-gray-400 bg-gray-100 rounded px-2 py-0.5">
-                {p.dept}
-              </span>
-            </div>
-            <div className="space-y-3">
-              <div>
-                <p className="text-xs font-medium text-gray-500 mb-2">
-                  How often does this happen?
-                </p>
-                <ScalePills
-                  options={VOLS}
-                  value={p.volume}
-                  onChange={(v) => onUpdate(i, 'volume', v)}
-                />
-              </div>
-              <div>
-                <p className="text-xs font-medium text-gray-500 mb-2">
-                  How long does one take today?
-                </p>
-                <ScalePills
-                  options={TIMES}
-                  value={p.timePerItem}
-                  onChange={(v) => onUpdate(i, 'timePerItem', v)}
-                />
-              </div>
-              <div>
-                <p className="text-xs font-medium text-gray-500 mb-2">
-                  Who mainly does this?{' '}
-                  <span className="text-gray-400">(optional)</span>
-                </p>
-                <ScalePills
-                  options={ROLES}
-                  value={p.ownerRole}
-                  onChange={(v) => onUpdate(i, 'ownerRole', v)}
-                />
-              </div>
-            </div>
-          </div>
-        ))}
-      </div>
-    </div>
-  )
-}
-
-// ── Step 4 ────────────────────────────────────────────────────────────────────
-
-function Step4({ data, onChange, errors }) {
-  return (
-    <div className="space-y-5">
-      <div>
-        <p className="text-[11px] font-semibold uppercase tracking-wider text-gray-400 mb-1">
-          Almost done
+          Delivery
         </p>
         <h2 className="text-xl font-bold text-gray-900 mb-1">
           Where should we send your report?
         </h2>
         <p className="text-sm text-gray-500">
-          Your personalised AI ROI analysis will be ready in a few minutes.
+          Your report is generated and emailed — usually ready in 60 seconds.
         </p>
       </div>
-
       <TextInput
         id="email"
         label="Work email"
@@ -620,58 +224,29 @@ function Step4({ data, onChange, errors }) {
         label="Your name"
         value={data.recipientName}
         onChange={(v) => onChange('recipientName', v)}
-        placeholder="e.g. Sarah Al-Mansoori"
-        autoComplete="name"
+        placeholder="e.g. Sarah Al-Rashid"
         optional
+        autoComplete="name"
       />
       <TextInput
         id="recipientTitle"
         label="Your title"
         value={data.recipientTitle}
         onChange={(v) => onChange('recipientTitle', v)}
-        placeholder="e.g. COO"
-        autoComplete="organization-title"
+        placeholder="e.g. COO, Head of Operations"
         optional
       />
-
-      <div className="flex flex-col gap-1">
-        <label
-          htmlFor="currency"
-          className="text-[12.5px] font-semibold text-gray-800"
-        >
-          Currency for the report
+      <div className="space-y-2">
+        <label className="text-[12.5px] font-semibold text-gray-800">
+          Operating currency <span className="text-red-500">*</span>
         </label>
-        <select
-          id="currency"
+        <PillGroup
+          options={CURRENCIES}
           value={data.currency}
-          onChange={(e) => onChange('currency', e.target.value)}
-          className={clsx(
-            'w-full border rounded-lg px-3 py-2.5 text-sm text-gray-900 outline-none transition-colors appearance-none bg-white',
-            errors.currency
-              ? 'border-red-400 bg-red-50'
-              : 'border-gray-200 hover:border-gray-300 focus:border-gray-500',
-          )}
-        >
-          <option value="">Select your currency…</option>
-          {CURRENCIES.map((c) => (
-            <option key={c} value={c}>
-              {c}
-            </option>
-          ))}
-        </select>
-        {errors.currency && (
-          <p className="text-xs text-red-500 mt-1">{errors.currency}</p>
-        )}
+          onChange={(v) => onChange('currency', v)}
+          error={errors.currency}
+        />
       </div>
-
-      <TextInput
-        id="website"
-        label="Website"
-        value={data.website}
-        onChange={(v) => onChange('website', v)}
-        placeholder="yourcompany.com"
-        optional
-      />
     </div>
   )
 }
@@ -743,167 +318,36 @@ export default function ROIReport() {
   // Step 1
   const [s1, setS1] = useState({
     companyName: '',
-    industry: '',
+    website: '',
     whatYouDo: '',
-    employees: '',
-    revenue: '',
-    country: '',
-    priorities: [],
+    industry: '',
   })
 
   // Step 2
-  const [procs, setProcs] = useState([])
-  const [procInput, setProcInput] = useState('')
-  const [sugIndex, setSugIndex] = useState(-1)
-
-  // Step 4
-  const [s4, setS4] = useState({
+  const [s2, setS2] = useState({
     email: '',
     recipientName: '',
     recipientTitle: '',
     currency: '',
-    website: '',
   })
 
   const [errors, setErrors] = useState({})
-
-  // Derived suggestions
-  const suggestions =
-    procInput.trim().length >= 1
-      ? (() => {
-          const low = procInput.toLowerCase()
-          const existing = new Set(procs.map((p) => p.name))
-          const hits = SUGGESTIONS.filter(
-            (s) => !existing.has(s.name) && s.name.toLowerCase().includes(low),
-          )
-          const isNew = !SUGGESTIONS.some((s) => s.name.toLowerCase() === low)
-          if (isNew && procInput.trim().length >= 2) {
-            return [
-              ...hits.slice(0, 6),
-              {
-                icon: '✏️',
-                name: `Add "${procInput.trim()}"`,
-                custom: procInput.trim(),
-                dept: '',
-              },
-            ]
-          }
-          return hits.slice(0, 6)
-        })()
-      : []
 
   const changeS1 = useCallback((key, val) => {
     setS1((prev) => ({ ...prev, [key]: val }))
     setErrors((prev) => ({ ...prev, [key]: '' }))
   }, [])
 
-  const changeS4 = useCallback((key, val) => {
-    setS4((prev) => ({ ...prev, [key]: val }))
+  const changeS2 = useCallback((key, val) => {
+    setS2((prev) => ({ ...prev, [key]: val }))
     setErrors((prev) => ({ ...prev, [key]: '' }))
   }, [])
 
-  const addProc = useCallback((proc) => {
-    setProcs((prev) => {
-      if (prev.find((p) => p.name === proc.name)) return prev
-      return [
-        ...prev,
-        {
-          ...proc,
-          volume: '',
-          timePerItem: '',
-          ownerRole: deptToRole(proc.dept),
-        },
-      ]
-    })
-    setProcInput('')
-    setSugIndex(-1)
-    setErrors((prev) => ({ ...prev, procs: '' }))
-  }, [])
-
-  const addFromInput = useCallback(() => {
-    const val = procInput.trim()
-    if (val.length < 2) return
-    const match = SUGGESTIONS.find(
-      (s) => s.name.toLowerCase() === val.toLowerCase(),
-    )
-    if (match) addProc(match)
-    else addProc({ name: val, dept: inferDept(val), icon: '🔧' })
-  }, [procInput, addProc])
-
-  const removeProc = useCallback((i) => {
-    setProcs((prev) => prev.filter((_, idx) => idx !== i))
-  }, [])
-
-  const updateProc = useCallback((i, field, val) => {
-    setProcs((prev) =>
-      prev.map((p, idx) => (idx === i ? { ...p, [field]: val } : p)),
-    )
-  }, [])
-
-  const handleSugClick = useCallback(
-    (s) => {
-      if (s.custom)
-        addProc({ name: s.custom, dept: inferDept(s.custom), icon: '🔧' })
-      else addProc(s)
-    },
-    [addProc],
-  )
-
-  const handleSugKey = useCallback(
-    (e) => {
-      if (e.key === 'ArrowDown') {
-        e.preventDefault()
-        setSugIndex((prev) => Math.min(prev + 1, suggestions.length - 1))
-      } else if (e.key === 'ArrowUp') {
-        e.preventDefault()
-        setSugIndex((prev) => Math.max(prev - 1, 0))
-      } else if (e.key === 'Enter') {
-        e.preventDefault()
-        if (sugIndex >= 0 && suggestions[sugIndex]) {
-          handleSugClick(suggestions[sugIndex])
-        } else {
-          addFromInput()
-        }
-      } else if (e.key === 'Escape') {
-        setProcInput('')
-        setSugIndex(-1)
-      }
-    },
-    [suggestions, sugIndex, handleSugClick, addFromInput],
-  )
-
-  const handleInputChange = useCallback((val) => {
-    setProcInput(val)
-    setSugIndex(-1)
-  }, [])
-
-  const validate = useCallback(
-    (s) => {
-      const errs = {}
-      if (s === 1) {
-        if (!s1.companyName.trim()) errs.companyName = 'Required'
-        if (!s1.industry) errs.industry = 'Please select your industry'
-        if (!s1.employees) errs.employees = 'Required'
-        if (!s1.revenue) errs.revenue = 'Required'
-      }
-      if (s === 2) {
-        if (!procs.length) errs.procs = 'Add at least one process to continue'
-      }
-      if (s === 4) {
-        const em = s4.email.trim()
-        if (!em || !em.includes('@') || em.indexOf('.', em.indexOf('@')) < 0) {
-          errs.email = 'Please enter a valid email address'
-        }
-        if (!s4.currency) errs.currency = 'Required'
-      }
-      setErrors(errs)
-      return Object.keys(errs).length === 0
-    },
-    [s1, procs, s4],
-  )
-
   const next = useCallback(async () => {
-    if (!validate(step)) return
+    const currentErrors = validateStep(step, s1, s2)
+    setErrors(currentErrors)
+    if (Object.keys(currentErrors).length) return
+
     if (step < TOTAL_STEPS) {
       setStep((prev) => prev + 1)
       return
@@ -913,53 +357,20 @@ export default function ROIReport() {
     setGenerationLog('')
     setReportState(null)
 
-    const processRegistry = procs.map((p) => ({
-      name: p.name,
-      department: p.dept,
-      icon: p.icon,
-      volume_per_month: p.volume || null,
-      time_per_item: p.timePerItem || null,
-      owner_role: p.ownerRole || null,
-      systems_used: [],
-      decision_points: [],
-      handoffs: [],
-      steps: [],
-    }))
-
-    const rawSite = s4.website.trim()
-    const website = rawSite
-      ? rawSite.startsWith('http')
-        ? rawSite
-        : `https://${rawSite}`
-      : ''
-
     const payload = {
-      'Company Name': s1.companyName,
-      'Company Website URL': website,
-      'What does your company do?': s1.whatYouDo,
-      'Number of Employees': s1.employees,
-      'Estimated Annual Revenue': s1.revenue,
-      Email: s4.email,
-      'Recipient Name': s4.recipientName,
-      'Recipient Title': s4.recipientTitle,
-      'Operating Currency': s4.currency,
-      Industry: s1.industry,
-      Country: s1.country,
-      'Key Priorities': s1.priorities,
-      processes: processRegistry,
-      'Biggest time drain on your team': procs[0]?.name || '',
-      'Monthly volume of this process (approx.)':
-        procs[0]?.volume || 'Not sure',
-      'Primary process time per item': procs[0]?.timePerItem || '',
-      'Any other bottlenecks to mention? (optional)': procs
-        .slice(1)
-        .map((p) => {
-          let txt = p.name
-          if (p.volume) txt += ` (~${p.volume})`
-          if (p.timePerItem) txt += ` (~${p.timePerItem})`
-          return txt
-        })
-        .join('; '),
+      'Company Name': s1.companyName.trim(),
+      'Company Website URL': s1.website.trim(),
+      'What does your company do?': s1.whatYouDo.trim(),
+      Industry: s1.industry || '',
+      'Number of Employees': '',
+      'Estimated Annual Revenue': '',
+      'Operating Currency': s2.currency ? s2.currency.split(' – ')[0] : '',
+      Email: s2.email.trim(),
+      'Recipient Name': s2.recipientName.trim(),
+      'Recipient Title': s2.recipientTitle.trim(),
+      Country: '',
+      'Key Priorities': [],
+      processes: [],
     }
 
     try {
@@ -992,7 +403,7 @@ export default function ROIReport() {
       setErrorMessage(err.message || 'Something went wrong. Please try again.')
       setViewState('error')
     }
-  }, [step, validate, s1, s4, procs])
+  }, [step, s1, s2])
 
   const back = useCallback(() => {
     setStep((prev) => Math.max(prev - 1, 1))
@@ -1014,7 +425,7 @@ export default function ROIReport() {
   }
 
   if (viewState === 'preview' && reportState) {
-    return <ReportViewer initialState={reportState} email={s4.email} />
+    return <ReportViewer initialState={reportState} email={s2.email} />
   }
 
   if (viewState === 'success') {
@@ -1023,7 +434,7 @@ export default function ROIReport() {
         <MainHeader />
         <div className="min-h-screen flex flex-col items-center justify-center p-4">
           <div className="w-full max-w-xl bg-white rounded-2xl shadow-xl border border-gray-100">
-            <SuccessView email={s4.email} />
+            <SuccessView email={s2.email} />
           </div>
           <div className="md:w-1/2 w-full mt-12">
             <LogosMarquee />
@@ -1116,22 +527,7 @@ export default function ROIReport() {
                     <Step1 data={s1} onChange={changeS1} errors={errors} />
                   )}
                   {step === 2 && (
-                    <Step2
-                      procs={procs}
-                      procInput={procInput}
-                      onInputChange={handleInputChange}
-                      onAdd={addFromInput}
-                      onRemove={removeProc}
-                      onSugClick={handleSugClick}
-                      suggestions={suggestions}
-                      sugIndex={sugIndex}
-                      onKeyDown={handleSugKey}
-                      error={errors.procs}
-                    />
-                  )}
-                  {step === 3 && <Step3 procs={procs} onUpdate={updateProc} />}
-                  {step === 4 && (
-                    <Step4 data={s4} onChange={changeS4} errors={errors} />
+                    <Step2 data={s2} onChange={changeS2} errors={errors} />
                   )}
                 </motion.div>
               </AnimatePresence>
@@ -1151,7 +547,7 @@ export default function ROIReport() {
               </button>
 
               <div className="flex gap-1.5 items-center">
-                {[1, 2, 3, 4].map((s) => (
+                {[1, 2].map((s) => (
                   <div
                     key={s}
                     className={clsx(

@@ -82,7 +82,9 @@ NOT generic. Pattern: "Given [company]'s [N] employees and [workflow X] running 
 targeting [specific outcome]."
 
 8. risks (minimum 3 rows)
-Each: { risk: string, likelihood: "Low"|"Medium"|"High", mitigation: string }
+Each: { risk: string, detail: string, mitigation: string }
+detail: 2-3 sentences explaining why this specific risk is relevant to THIS company.
+Reference their industry, workflow types, team size, or specific business context.
 Risks specific to this company and industry — not generic automation risks.
 
 9. next_steps_checklist (NS-2 — exactly 6 items)
@@ -169,10 +171,10 @@ export const REPORT_WRITER_SCHEMA = {
       items: {
         type: 'object',
         additionalProperties: false,
-        required: ['risk', 'likelihood', 'mitigation'],
+        required: ['risk', 'detail', 'mitigation'],
         properties: {
           risk: { type: 'string' },
-          likelihood: { type: 'string', enum: ['Low', 'Medium', 'High'] },
+          detail: { type: 'string', description: '2-3 sentences explaining why this risk matters for this specific company' },
           mitigation: { type: 'string' },
         },
       },

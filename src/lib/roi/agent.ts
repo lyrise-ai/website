@@ -257,7 +257,7 @@ function buildTools(state: ReportState, templateHtml: string, callbacks: AgentCa
         pilot_recommendation: z.string(),
         risks: z.array(z.object({
           risk: z.string(),
-          likelihood: z.enum(['Low', 'Medium', 'High']),
+          detail: z.string().describe('2-3 sentences specific to this company explaining why this risk is relevant'),
           mitigation: z.string(),
         })).min(3),
         next_steps_checklist: z.array(z.object({
@@ -355,7 +355,7 @@ function buildTools(state: ReportState, templateHtml: string, callbacks: AgentCa
       inputSchema: z.object({
         risks: z.array(z.object({
           risk: z.string(),
-          likelihood: z.enum(['Low', 'Medium', 'High']),
+          detail: z.string().describe('2-3 sentences specific to this company explaining why this risk is relevant'),
           mitigation: z.string(),
         })).min(3),
       }),

@@ -250,7 +250,7 @@ export interface ResilienceRow {
 // Risk row for Risks & Mitigations section
 export interface RiskRow {
   risk: string
-  likelihood: 'Low' | 'Medium' | 'High'
+  detail: string       // 2-3 sentences explaining why this risk matters for this specific company
   mitigation: string
 }
 
@@ -325,17 +325,18 @@ export interface DisplayObject {
   cta: string
 
   // v3.0 additions
-  revenueContextStatement: string   // "This represents X% of your estimated annual revenue…"
-  companySnapshotHTML: string       // bullet list with source badges
-  confidenceBadge: string           // "Insight-Driven Analysis" | "Hypothesis-Driven Projection"
-  unifiedPatternThesis: string      // verbatim from writerOutput.unified_pattern_thesis
-  costOfDelayHTML: string           // KR-18 formatted insight panel
-  resilienceTableHTML: string       // KR-17 2-column comparison table
-  pilotRecommendation: string       // verbatim from writerOutput.pilot_recommendation
-  risksTableBody: string            // <tr> rows for Risks & Mitigations table
-  nextStepsHTML: string             // NS-1 criteria intro + NS-2 6-item checklist
-  odVsPuPanelHTML: string           // OD vs PU distinction panel (after Profit Uplift)
-  calculationPanelHTML: string      // arithmetic transparency panel (Rule 6C)
+  revenueContextStatement: string       // "This represents X% of your estimated annual revenue…"
+  companySnapshotTableBody: string      // <tr> rows for Company Snapshot table (Detail | Source)
+  confidenceBadge: string              // "Insight-Driven Analysis" | "Hypothesis-Driven Projection"
+  unifiedPatternThesis: string          // verbatim from writerOutput.unified_pattern_thesis
+  costOfDelayHTML: string              // KR-18 formatted insight panel
+  resilienceTableHTML: string          // KR-17 2-column comparison table
+  pilotRecommendation: string          // verbatim from writerOutput.pilot_recommendation
+  risksTableBody: string               // <tr> rows for Risks & Mitigations table
+  nextStepsHTML: string                // NS-1 criteria intro + NS-2 6-item checklist
+  odVsPuPanelHTML: string              // OD vs PU distinction panel (after Profit Uplift)
+  calculationPanelHTML: string         // arithmetic transparency panel (Rule 6C)
+  roadmapTableBody: string             // <tr> rows for company-specific roadmap table
 }
 
 export interface AssembleReportOutput {

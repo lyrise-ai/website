@@ -133,21 +133,30 @@ tr:nth-child(even) td { background: #f9fafb; }
 <!-- PAGE 1 — Cover                                                         -->
 <!-- ══════════════════════════════════════════════════════════════════════ -->
 <div class="page">
-  <div class="top-bar"></div>
-  <div class="eyebrow">Prepared by LyRise AI · Confidential</div>
-  <div class="co-name">{{$json.roi_data.company}}</div>
-  <div class="headline">{{$json.display.coverHeadline}}</div>
-  <div class="meta-line">
-    <strong>Prepared for:</strong> {{$json.display.recipientDisplay}} &nbsp;|&nbsp;
-    <strong>Date:</strong> {{$json.current_date}} &nbsp;|&nbsp;
-    <strong>Currency:</strong> {{$json.display.currencyCode}}
-  </div>
-
-  <!-- Confidence badge (EX-2) -->
-  <div>
-    <span class="confidence-badge {{$json.display.confidenceBadge}} == 'Insight-Driven Analysis' ? 'confidence-high' : 'confidence-low'">
-      {{$json.display.confidenceBadge}}
-    </span>
+  <!-- Dark navy cover panel -->
+  <div style="background:#0f1e3d;margin:-12mm -15mm 12mm;padding:18mm 15mm 14mm;border-bottom:4px solid #2957FF">
+    <div style="font-size:7pt;letter-spacing:2px;text-transform:uppercase;color:#94a3b8;margin-bottom:8px">
+      CONFIDENTIAL | PREPARED BY LYRISE AI
+    </div>
+    <div style="font-size:28pt;font-weight:bold;color:#fff;line-height:1.05;margin-bottom:4px">
+      {{$json.roi_data.company}}
+    </div>
+    <div style="font-size:13pt;color:#2957FF;font-weight:bold;margin-bottom:14px">
+      AI Profit &amp; Productivity Report
+    </div>
+    <div style="font-size:8pt;color:#94a3b8;font-style:italic;margin-bottom:16px">
+      {{$json.display.confidenceBadge}} | Pending stakeholder validation
+    </div>
+    <div style="display:flex;gap:28px;flex-wrap:wrap">
+      <div>
+        <div style="font-size:6.5pt;text-transform:uppercase;color:#94a3b8;letter-spacing:1px;margin-bottom:3px">PREPARED FOR</div>
+        <div style="font-size:11pt;font-weight:bold;color:#fff">{{$json.display.recipientDisplay}}</div>
+      </div>
+      <div>
+        <div style="font-size:6.5pt;text-transform:uppercase;color:#94a3b8;letter-spacing:1px;margin-bottom:3px">DATE &amp; CURRENCY</div>
+        <div style="font-size:11pt;color:#e2e8f0">{{$json.current_date}} | {{$json.display.currencyCode}}</div>
+      </div>
+    </div>
   </div>
 
   <!-- KPI bar -->
@@ -274,18 +283,14 @@ tr:nth-child(even) td { background: #f9fafb; }
 
   <!-- Company Snapshot -->
   <h2>Company Snapshot</h2>
-  <table style="margin-bottom:8px;border-collapse:collapse">
-    <tr>
-      <td style="width:50%;vertical-align:top;padding-right:10px;border:none;border-bottom:none">
-        <div style="font-size:7pt;text-transform:uppercase;color:#94a3b8;font-weight:bold;margin-bottom:2px">Employees</div>
-        <div style="font-size:9.5pt;color:#1a1a1a">{{$json.display.employeesDisplay}}</div>
-        <div style="font-size:7pt;text-transform:uppercase;color:#94a3b8;font-weight:bold;margin-top:6px;margin-bottom:2px">Revenue (Est.)</div>
-        <div style="font-size:9.5pt;color:#1a1a1a">{{$json.display.revenueDisplay}}</div>
-      </td>
-      <td style="width:50%;vertical-align:top;border:none;border-bottom:none">
-        {{$json.display.companySnapshotHTML}}
-      </td>
-    </tr>
+  <table>
+    <thead>
+      <tr>
+        <th style="width:72%">Company Detail</th>
+        <th style="width:28%">Source</th>
+      </tr>
+    </thead>
+    <tbody>{{$json.display.companySnapshotTableBody}}</tbody>
   </table>
 
   <!-- As-Is Baseline -->
@@ -294,13 +299,14 @@ tr:nth-child(even) td { background: #f9fafb; }
   <table>
     <thead>
       <tr>
-        <th style="width:22%">Workflow</th>
-        <th style="width:13%">Owner / Function</th>
-        <th style="width:10%;text-align:center">Volume/mo</th>
-        <th style="width:11%;text-align:center">Time/Run</th>
-        <th style="width:11%">Rate</th>
-        <th style="width:11%">Cost/Run</th>
-        <th style="width:12%">Monthly Cost</th>
+        <th style="width:20%">Workflow</th>
+        <th style="width:12%">Owner / Function</th>
+        <th style="width:9%;text-align:center">Volume/mo</th>
+        <th style="width:10%;text-align:center">Time/Run</th>
+        <th style="width:10%">Rate</th>
+        <th style="width:10%">Cost/Run</th>
+        <th style="width:11%">Monthly Cost</th>
+        <th style="width:10%">Source</th>
       </tr>
     </thead>
     <tbody>{{$json.display.asisTableBody}}</tbody>
@@ -325,12 +331,12 @@ tr:nth-child(even) td { background: #f9fafb; }
       <tr>
         <th style="width:20%">Workflow</th>
         <th style="width:8%;text-align:center">Vol/mo</th>
-        <th style="width:9%;text-align:center">Before</th>
-        <th style="width:9%;text-align:center">After</th>
-        <th style="width:13%;text-align:center">Time Saved</th>
-        <th style="width:10%;text-align:center">Hrs/mo</th>
-        <th style="width:10%">Rate</th>
-        <th style="width:11%">Annual Value</th>
+        <th style="width:10%;text-align:center">Before AI (hrs)</th>
+        <th style="width:10%;text-align:center">After AI (hrs)</th>
+        <th style="width:10%;text-align:center">Saved (hrs)</th>
+        <th style="width:10%;text-align:center">Hrs Saved/mo</th>
+        <th style="width:10%">Rate $/hr</th>
+        <th style="width:14%">Value Recaptured/mo</th>
       </tr>
     </thead>
     <tbody>{{$json.display.bvaTableBody}}</tbody>
@@ -348,9 +354,9 @@ tr:nth-child(even) td { background: #f9fafb; }
         <th style="width:14%">Lever</th>
         <th style="width:12%">Derived From</th>
         <th style="width:16%">Baseline</th>
-        <th style="width:16%">Assumption</th>
-        <th style="width:24%">Arithmetic (Rule 6C)</th>
-        <th style="width:10%">Impact</th>
+        <th style="width:16%">AI Agent Action</th>
+        <th style="width:24%">Rationale &amp; Arithmetic</th>
+        <th style="width:10%">12-mo Uplift</th>
       </tr>
     </thead>
     <tbody>{{$json.display.profitLeversBody}}</tbody>
@@ -376,35 +382,33 @@ tr:nth-child(even) td { background: #f9fafb; }
   <table>
     <thead>
       <tr>
-        <th style="width:25%">Metric</th>
-        <th style="width:25%">Year 1 (12 months)</th>
-        <th style="width:25%">Year 2 (24 months)</th>
-        <th style="width:25%">Year 3 (36 months)</th>
+        <th style="width:20%">Horizon</th>
+        <th style="width:20%">Hours Returned</th>
+        <th style="width:20%">Operational Dividend</th>
+        <th style="width:20%">Profit Uplift</th>
+        <th style="width:20%">Total Financial Gain</th>
       </tr>
     </thead>
     <tbody>
       <tr>
-        <td>Hours Returned</td>
-        <td>{{$json.display.totalAnnualHours}} hrs</td>
-        <td>{{$json.display.hrs24}} hrs</td>
-        <td>{{$json.display.hrs36}} hrs</td>
-      </tr>
-      <tr>
-        <td>Operational Dividend</td>
+        <td><strong>Year 1</strong></td>
+        <td>{{$json.display.totalAnnualHours}} hrs (~{{$json.display.statFTE}} FTEs)</td>
         <td>{{$json.display.od12}}</td>
-        <td>{{$json.display.od24}}</td>
-        <td>{{$json.display.od36}}</td>
+        <td>{{$json.display.pu12}}</td>
+        <td><strong class="accent">{{$json.display.tf12}}</strong></td>
       </tr>
       <tr>
-        <td>Profit Uplift</td>
-        <td>{{$json.display.pu12}}</td>
+        <td><strong>Year 2</strong></td>
+        <td>{{$json.display.hrs24}} hrs</td>
+        <td>{{$json.display.od24}}</td>
         <td>{{$json.display.pu24}}</td>
-        <td>{{$json.display.pu36}}</td>
-      </tr>
-      <tr class="total-row">
-        <td><strong>Total Financial Gain</strong></td>
-        <td><strong class="accent">{{$json.display.tf12}}</strong></td>
         <td><strong class="accent">{{$json.display.tf24}}</strong></td>
+      </tr>
+      <tr>
+        <td><strong>Year 3</strong></td>
+        <td>{{$json.display.hrs36}} hrs</td>
+        <td>{{$json.display.od36}}</td>
+        <td>{{$json.display.pu36}}</td>
         <td><strong class="accent">{{$json.display.tf36}}</strong></td>
       </tr>
     </tbody>
@@ -437,9 +441,10 @@ tr:nth-child(even) td { background: #f9fafb; }
   <table>
     <thead>
       <tr>
-        <th style="width:30%">Workflow</th>
-        <th style="width:22%">AI Agent</th>
-        <th style="width:48%">Why It Fits This Business</th>
+        <th style="width:18%">Workflow</th>
+        <th style="width:24%">Target Outcome</th>
+        <th style="width:20%">AI Agent / Capability</th>
+        <th style="width:38%">Why It Fits This Business</th>
       </tr>
     </thead>
     <tbody>{{$json.display.deployTableBody}}</tbody>
@@ -456,7 +461,7 @@ tr:nth-child(even) td { background: #f9fafb; }
 
   <!-- Data Provenance -->
   <h2 style="margin-top:10px">Data Provenance</h2>
-  <p class="muted" style="margin-bottom:4px">Every data point used in this report is traceable to a source. Review this table to understand the basis and confidence level for each figure.</p>
+  <p class="muted" style="margin-bottom:4px">Every modeling assumption is traceable to a source. Review this table before the validation session.</p>
   {{$json.display.provenanceTableHTML}}
 
   <div class="footer">
@@ -476,9 +481,9 @@ tr:nth-child(even) td { background: #f9fafb; }
   <table>
     <thead>
       <tr>
-        <th style="width:42%">Risk</th>
-        <th style="width:14%;text-align:center">Likelihood</th>
-        <th style="width:44%">Mitigation</th>
+        <th style="width:20%">Risk</th>
+        <th style="width:42%">Detail</th>
+        <th style="width:38%">Mitigation</th>
       </tr>
     </thead>
     <tbody>{{$json.display.risksTableBody}}</tbody>
@@ -489,32 +494,12 @@ tr:nth-child(even) td { background: #f9fafb; }
   <table>
     <thead>
       <tr>
-        <th style="width:18%">Phase</th>
-        <th style="width:20%">Timeline</th>
-        <th style="width:42%">Activities</th>
-        <th style="width:20%">Milestone</th>
+        <th style="width:15%">Timeline</th>
+        <th style="width:28%">Phase</th>
+        <th style="width:57%">Key Activities</th>
       </tr>
     </thead>
-    <tbody>
-      <tr>
-        <td><strong>Phase 1 — Pilot</strong></td>
-        <td>Weeks 1–8</td>
-        <td>Scoping, data access, agent build for highest-value workflow. Team onboarding.</td>
-        <td>First agent live. Baseline metrics established.</td>
-      </tr>
-      <tr>
-        <td><strong>Phase 2 — Expand</strong></td>
-        <td>Months 3–5</td>
-        <td>Roll out remaining 3 workflows. Integration testing. Adoption monitoring.</td>
-        <td>All {{$json.display.workflowCount}} workflows automated. ROI tracking active.</td>
-      </tr>
-      <tr>
-        <td><strong>Phase 3 — Optimise</strong></td>
-        <td>Month 6+</td>
-        <td>Performance review, edge-case handling, scope expansion to new workflows.</td>
-        <td>Full Operational Dividend realised. Year 2 plan initiated.</td>
-      </tr>
-    </tbody>
+    <tbody>{{$json.display.roadmapTableBody}}</tbody>
   </table>
 
   <div class="footer">

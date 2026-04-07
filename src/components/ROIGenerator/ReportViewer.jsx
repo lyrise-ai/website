@@ -1,6 +1,49 @@
 import React, { useState, useRef, useCallback, useEffect } from 'react'
+import ReactMarkdown from 'react-markdown'
+import remarkGfm from 'remark-gfm'
 import { drainSSE } from '@/src/lib/drainSSE'
 import useScrollOnNewContent from '@/src/hooks/useScrollOnNewContent'
+
+const SUGGEST_RE = /\[SUGGEST:\s*([^\]]+)\]$/
+function parseSuggestions(content) {
+  const m = content.match(SUGGEST_RE)
+  if (!m) return { clean: content, chips: [] }
+  return {
+    clean: content.replace(SUGGEST_RE, '').trimEnd(),
+    chips: m[1].split('|').map(s => s.trim()).filter(Boolean),
+  }
+}
+
+function buildInitialMessage(state) {
+  const isLow = state?.confidenceLevel === 'low'
+  const inferredWfs = state?.researchOutput?.workflows?.filter(w => w.sourceType === 'inferred') ?? []
+  const noRevenue = !state?.revenueAnchor
+  const company = state?.assembled?.roi_data?.company ?? 'your company'
+
+  if (!isLow && !inferredWfs.length && !noRevenue) {
+    return {
+      text: `Report ready for ${company}. Ask me to adjust any numbers, rewrite sections, or research more context.`,
+      chips: ['Update a workflow volume', 'Rewrite the executive summary', 'Change the currency'],
+    }
+  }
+
+  const gaps = []
+  if (noRevenue) gaps.push('revenue figure (needed for accuracy)')
+  inferredWfs.forEach(w => gaps.push(`"${w.name}" — volume and time estimates (currently inferred)`))
+  const gapLines = gaps.map(g => `- ${g}`).join('\n')
+
+  const text = isLow
+    ? `I've produced a **hypothesis-driven estimate** — most figures are benchmarked, not scraped. Here's what would most improve accuracy:\n\n${gapLines}\n\nWant to provide any of these?`
+    : "Report ready. A few figures are estimated — here's the most impactful thing you could confirm:"
+
+  const chips = []
+  if (noRevenue) chips.push("What's your approximate annual revenue?")
+  if (inferredWfs[0]) chips.push(`Confirm volume for "${inferredWfs[0].name}"`)
+  chips.push("Looks good, let's move forward")
+  chips.push('What else can you improve?')
+
+  return { text, chips: chips.slice(0, 4) }
+}
 
 // Human-readable labels for each tool call
 const TOOL_LABELS = {
@@ -27,9 +70,10 @@ export default function ReportViewer({ initialState, email }) {
   const [reportState, setReportState] = useState(initialState)
   const [chatHistory, setChatHistory] = useState([])
   const [chatMessages, setChatMessages] = useState(() => {
-    const company = initialState?.assembled?.roi_data?.company ?? 'your company'
-    return [{ role: 'bot', content: `Report ready for ${company}. Ask me to make any changes — update the numbers, rewrite sections, or add more context.` }]
+    const initial = buildInitialMessage(initialState)
+    return [{ role: 'bot', content: initial.text }]
   })
+  const [suggestions, setSuggestions] = useState(() => buildInitialMessage(initialState).chips)
   const [streamingText, setStreamingText] = useState('')
   const [activeTool, setActiveTool] = useState(null)
   const [isAgentRunning, setIsAgentRunning] = useState(false)
@@ -48,14 +92,15 @@ export default function ReportViewer({ initialState, email }) {
   const renderedHtml = reportState?.renderedHtml ?? initialState?.renderedHtml
   const company = reportState?.assembled?.roi_data?.company ?? ''
 
-  const handleSend = useCallback(async (e) => {
+  const handleSend = useCallback(async (e, overrideMsg) => {
     e?.preventDefault()
-    const msg = input.trim()
+    const msg = (overrideMsg ?? input).trim()
     if (!msg || isAgentRunning) return
 
     const newHistory = [...chatHistory, { role: 'user', content: msg }]
     setChatMessages(prev => [...prev, { role: 'user', content: msg }])
-    setInput('')
+    if (!overrideMsg) setInput('')
+    setSuggestions([])
     setIsAgentRunning(true)
     setStreamingText('')
     setActiveTool(null)
@@ -89,8 +134,10 @@ export default function ReportViewer({ initialState, email }) {
           setActiveTool(null)
         } else if (event.type === 'done') {
           if (agentReply) {
-            setChatMessages(prev => [...prev, { role: 'bot', content: agentReply }])
-            setChatHistory(newHistory.concat([{ role: 'assistant', content: agentReply }]))
+            const { clean, chips } = parseSuggestions(agentReply)
+            setChatMessages(prev => [...prev, { role: 'bot', content: clean }])
+            setChatHistory(newHistory.concat([{ role: 'assistant', content: clean }]))
+            setSuggestions(chips)
           }
           setStreamingText('')
           setIsAgentRunning(false)
@@ -200,23 +247,64 @@ export default function ReportViewer({ initialState, email }) {
                   maxWidth: '90%', padding: '8px 12px', borderRadius: msg.role === 'user' ? '12px 12px 2px 12px' : '12px 12px 12px 2px',
                   background: msg.role === 'user' ? '#2957FF' : msg.role === 'error' ? '#fee2e2' : '#f1f5f9',
                   color: msg.role === 'user' ? '#fff' : msg.role === 'error' ? '#991b1b' : '#1a1a1a',
-                  fontSize: 13, lineHeight: 1.55,
-                  whiteSpace: 'pre-wrap', wordBreak: 'break-word',
+                  fontSize: 13, lineHeight: 1.55, wordBreak: 'break-word',
                 }}>
-                  {msg.content}
+                  {msg.role === 'bot' ? (
+                    <ReactMarkdown
+                      remarkPlugins={[remarkGfm]}
+                      components={{
+                        p: ({ children }) => <p style={{ margin: '0 0 6px', fontSize: 13 }}>{children}</p>,
+                        strong: ({ children }) => <strong style={{ fontWeight: 600 }}>{children}</strong>,
+                        ul: ({ children }) => <ul style={{ paddingLeft: 16, margin: '4px 0' }}>{children}</ul>,
+                        li: ({ children }) => <li style={{ fontSize: 13, marginBottom: 2 }}>{children}</li>,
+                        h3: ({ children }) => <p style={{ fontWeight: 700, fontSize: 13, margin: '6px 0 2px' }}>{children}</p>,
+                        code: ({ children }) => <code style={{ fontFamily: 'monospace', fontSize: 12, background: '#f1f5f9', padding: '1px 4px', borderRadius: 3 }}>{children}</code>,
+                      }}
+                    >
+                      {msg.content}
+                    </ReactMarkdown>
+                  ) : msg.content}
                 </div>
               </div>
             ))}
+
+            {suggestions.length > 0 && !isAgentRunning && (
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 2, paddingLeft: 4 }}>
+                {suggestions.map((s, i) => (
+                  <button
+                    key={i}
+                    type="button"
+                    onClick={() => { setSuggestions([]); handleSend(null, s) }}
+                    style={{
+                      background: '#fff', border: '1px solid #2957FF', borderRadius: 16,
+                      color: '#2957FF', padding: '4px 12px', fontSize: 12, cursor: 'pointer',
+                      fontFamily: 'inherit',
+                    }}
+                  >
+                    {s}
+                  </button>
+                ))}
+              </div>
+            )}
 
             {/* Streaming text (currently typing) */}
             {streamingText && (
               <div style={{ display: 'flex', alignItems: 'flex-start' }}>
                 <div style={{
                   maxWidth: '90%', padding: '8px 12px', borderRadius: '12px 12px 12px 2px',
-                  background: '#f1f5f9', color: '#1a1a1a', fontSize: 13, lineHeight: 1.55,
-                  whiteSpace: 'pre-wrap', wordBreak: 'break-word',
+                  background: '#f1f5f9', color: '#1a1a1a', fontSize: 13, lineHeight: 1.55, wordBreak: 'break-word',
                 }}>
-                  {streamingText}
+                  <ReactMarkdown
+                    remarkPlugins={[remarkGfm]}
+                    components={{
+                      p: ({ children }) => <p style={{ margin: '0 0 6px', fontSize: 13 }}>{children}</p>,
+                      strong: ({ children }) => <strong style={{ fontWeight: 600 }}>{children}</strong>,
+                      ul: ({ children }) => <ul style={{ paddingLeft: 16, margin: '4px 0' }}>{children}</ul>,
+                      li: ({ children }) => <li style={{ fontSize: 13, marginBottom: 2 }}>{children}</li>,
+                    }}
+                  >
+                    {streamingText}
+                  </ReactMarkdown>
                   <span style={{ display: 'inline-block', width: 6, height: 6, background: '#2957FF', borderRadius: '50%', marginLeft: 4, animation: 'pulse 1s infinite' }} />
                 </div>
               </div>
