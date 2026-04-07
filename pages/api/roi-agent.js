@@ -104,7 +104,7 @@ export default async function handler(req, res) {
           const { renderedHtml, ...stateWithoutHtml } = s
           send(res, { type: 'report_update', state: { ...stateWithoutHtml, renderedHtml } })
         },
-        onDone: () => send(res, { type: 'done' }),
+        onDone: () => send(res, { type: 'done', assembled: Boolean(state?.assembled) }),
         onError: (err) => send(res, { type: 'error', message: err.message }),
       },
     })

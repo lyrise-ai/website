@@ -390,10 +390,11 @@ export default function ROIReport() {
           latestState = event.state
           setReportState(event.state)
         } else if (event.type === 'done') {
-          if (latestState?.assembled) {
+          if (event.assembled || latestState?.assembled) {
             setViewState('preview')
           } else {
-            setViewState('success')
+            setErrorMessage('Report generation finished without a complete report. Please try again.')
+            setViewState('error')
           }
         } else if (event.type === 'error') {
           throw new Error(event.message)

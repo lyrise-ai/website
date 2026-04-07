@@ -728,5 +728,10 @@ ${state.normInput.workContext ? 'Context: ' + state.normInput.workContext : ''}`
     }
   }
 
+  if (mode === 'generate' && !state.assembled) {
+    callbacks.onError(new Error('Generation completed but no assembled report was produced.'))
+    return
+  }
+
   callbacks.onDone()
 }
