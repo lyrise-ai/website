@@ -40,8 +40,8 @@ const CASE_STUDIES = [
   {
     client: 'Quantrax Corporation',
     industry: 'Financial Services',
-    headline: '5.2x ROI in 14 months',
-    results: ['~3,300 hrs freed per year', '$67K/year in agent cost savings', '+159% profit per account'],
+    headline: '$390K total gain in Year 1',
+    results: ['~3,300 hrs freed per year (~2 FTEs)', '$70K/year Operational Dividend', '$290K/year Profit Uplift', '$390K Total Financial Gain'],
     quote: 'The LyRise team helped Quantrax create outstanding scoring models in a complex debt-collection industry. I would recommend them if you want to build your AI team or solution easier and faster.',
     author: 'Ranjan Dharmaraja, Founder & CEO',
     tags: ['financial', 'banking', 'debt', 'insurance', 'healthcare', 'auto', 'utilities', 'energy', 'finance'],
@@ -49,52 +49,26 @@ const CASE_STUDIES = [
   {
     client: 'NY Law Firm',
     industry: 'Legal & Professional Services',
-    headline: '10,000 hours saved per year',
-    results: ['$300K/year in recovered billable capacity', '1.7x productivity improvement', '~40% drafting time reduction'],
+    headline: '$450K total gain in Year 1',
+    results: ['~10,000 hrs freed per year (~6 FTEs)', '$300K/year Operational Dividend', '$225K/year Profit Uplift', '$450K Total Financial Gain'],
     quote: 'LyRise helped us reclaim thousands of attorney hours and redirect them to higher-value client work.',
     author: 'Managing Partner, NY Law Firm',
-    tags: ['legal', 'law', 'consulting', 'professional', 'advisory', 'audit', 'tax', 'accounting', 'services'],
-  },
-  {
-    client: 'Zampa Partners',
-    industry: 'Audit, Tax & Advisory',
-    headline: '15x annual return on AI investment',
-    results: ['55%+ no-touch onboarding rate', 'Cycle time cut from 21 → 7 days', '€75,600/year in savings'],
-    quote: 'LyRise transformed our onboarding from a 3-week bottleneck into a streamlined 7-day process.',
-    author: 'Senior Partner, Zampa Partners',
-    tags: ['audit', 'tax', 'advisory', 'compliance', 'government', 'public', 'real estate', 'construction', 'manufacturing', 'industrial'],
-  },
-  {
-    client: 'Startup Fuel',
-    industry: 'Technology & SaaS',
-    headline: 'Full payback in under 8 months',
-    results: ['€1,688+/month in savings', '40% reduction in intro call time', '50% demo preparation time saved'],
-    quote: 'LyRise pinpointed exactly where our sales process was leaking time and built agents that paid for themselves in months.',
-    author: 'Ashley, Founder',
-    tags: ['technology', 'software', 'saas', 'startup', 'retail', 'ecommerce', 'e-commerce', 'education', 'hospitality', 'consumer', 'other', 'tech'],
+    tags: ['legal', 'law', 'consulting', 'professional', 'advisory', 'audit', 'tax', 'accounting', 'services', 'technology', 'software', 'saas', 'startup', 'retail', 'ecommerce', 'e-commerce', 'education', 'hospitality', 'consumer', 'other', 'tech', 'real estate', 'construction', 'manufacturing', 'industrial', 'government', 'public'],
   },
 ]
 
-function selectCaseStudies(industry: string, count: number) {
-  const norm = (v: string) => String(v ?? '').toLowerCase()
-  const indWords = norm(industry).split(/[\s,/&\-+]+/).filter(w => w.length > 2)
-  const scored = CASE_STUDIES.map(cs => {
-    const score = cs.tags.reduce((acc, tag) => {
-      const matched = indWords.some(word => tag === word || tag.includes(word) || word.includes(tag))
-      return matched ? acc + 2 : acc
-    }, 0)
-    return { cs, score }
-  }).sort((a, b) => b.score - a.score)
-  return scored.slice(0, count).map(s => s.cs)
+function selectCaseStudies() {
+  // Always return all case studies (currently 2)
+  return CASE_STUDIES
 }
 
 function buildCaseStudiesHTML(studies: typeof CASE_STUDIES): string {
   const cols = studies.map(cs => {
-    const truncQuote = cs.quote.length > 130 ? cs.quote.slice(0, 127) + '...' : cs.quote
-    return `<td style="width:33%;vertical-align:top;background:#f8fafc;border:1px solid #dde1e7;padding:9px 11px">`
+    const truncQuote = cs.quote.length > 150 ? cs.quote.slice(0, 147) + '...' : cs.quote
+    return `<td style="width:50%;vertical-align:top;background:#f8fafc;border:1px solid #dde1e7;padding:9px 11px">`
       + `<div style="font-size:7pt;text-transform:uppercase;letter-spacing:0.8px;color:#94a3b8;font-weight:bold;margin-bottom:2px">${esc(cs.industry)}</div>`
       + `<div style="font-size:10pt;font-weight:bold;color:#0a1628;margin-bottom:4px">${esc(cs.client)}</div>`
-      + `<div style="font-size:12pt;font-weight:bold;color:#0a1628;margin-bottom:6px;padding-bottom:5px;border-bottom:1px solid #e2e8f0">${esc(cs.headline)}</div>`
+      + `<div style="font-size:12pt;font-weight:bold;color:#003F87;margin-bottom:6px;padding-bottom:5px;border-bottom:1px solid #e2e8f0">${esc(cs.headline)}</div>`
       + cs.results.map(r => `<div style="font-size:8.5pt;color:#1e293b;padding:2px 0">&rsaquo; ${esc(r)}</div>`).join('')
       + `<div style="font-size:8pt;color:#64748b;margin-top:7px;font-style:italic;line-height:1.4;border-top:1px solid #e2e8f0;padding-top:5px">&ldquo;${esc(truncQuote)}&rdquo;</div>`
       + `<div style="font-size:7.5pt;color:#94a3b8;margin-top:3px;font-weight:bold">${esc(cs.author)}</div>`
@@ -372,7 +346,7 @@ export function assembleReport(
   const currentDate = `${MONTHS[now.getMonth()]} ${now.getDate()}, ${now.getFullYear()}`
 
   // Case studies
-  const selectedStudies = selectCaseStudies(roi.industry ?? '', 3)
+  const selectedStudies = selectCaseStudies()
   const caseStudiesHTML = buildCaseStudiesHTML(selectedStudies)
 
   // Scope list
@@ -468,10 +442,13 @@ export function assembleReport(
 
   // ── v3.0 display fields ───────────────────────────────────────────────────
 
-  // Revenue context statement
+  // Revenue context statement — use revenueAnchor if available, else fall back to roi.revenue (millions)
   const revenueAnchor = reportState?.revenueAnchor
-  const revenueContextStatement = (revenueAnchor && revenueAnchor > 0)
-    ? `This represents approximately ${Math.round(tf12 / revenueAnchor * 100)}% of your estimated annual revenue returned through operational efficiency — without adding headcount.`
+  const revenueBase = (revenueAnchor && revenueAnchor > 0)
+    ? revenueAnchor
+    : (roi.revenue && roi.revenue > 0 ? roi.revenue * 1_000_000 : 0)
+  const revenueContextStatement = revenueBase > 0
+    ? `This represents approximately ${Math.round(tf12 / revenueBase * 100)}% of your estimated annual revenue returned through operational efficiency — without adding headcount.`
     : ''
 
   // Confidence badge

@@ -1,8 +1,5 @@
-import React, { useState, useRef, useCallback, useEffect } from 'react'
-import ReactMarkdown from 'react-markdown'
-import remarkGfm from 'remark-gfm'
+import React, { useState, useRef, useCallback } from 'react'
 import { drainSSE } from '@/src/lib/drainSSE'
-import useScrollOnNewContent from '@/src/hooks/useScrollOnNewContent'
 
 const SUGGEST_RE = /\[SUGGEST:\s*([^\]]+)\]$/
 function parseSuggestions(content) {
@@ -69,10 +66,6 @@ const TOOL_LABELS = {
 export default function ReportViewer({ initialState, email }) {
   const [reportState, setReportState] = useState(initialState)
   const [chatHistory, setChatHistory] = useState([])
-  const [chatMessages, setChatMessages] = useState(() => {
-    const initial = buildInitialMessage(initialState)
-    return [{ role: 'bot', content: initial.text }]
-  })
   const [suggestions, setSuggestions] = useState(() => buildInitialMessage(initialState).chips)
   const [streamingText, setStreamingText] = useState('')
   const [activeTool, setActiveTool] = useState(null)
@@ -81,13 +74,6 @@ export default function ReportViewer({ initialState, email }) {
   const [emailStatus, setEmailStatus] = useState('idle') // 'idle' | 'sending' | 'sent' | 'error'
 
   const iframeRef = useRef(null)
-  const chatEndRef = useRef(null)
-  const scrollRef = useScrollOnNewContent(chatMessages)
-
-  // Auto-scroll chat when new messages arrive
-  useEffect(() => {
-    chatEndRef.current?.scrollIntoView({ behavior: 'smooth' })
-  }, [chatMessages, streamingText])
 
   const renderedHtml = reportState?.renderedHtml ?? initialState?.renderedHtml
   const company = reportState?.assembled?.roi_data?.company ?? ''
@@ -98,7 +84,6 @@ export default function ReportViewer({ initialState, email }) {
     if (!msg || isAgentRunning) return
 
     const newHistory = [...chatHistory, { role: 'user', content: msg }]
-    setChatMessages(prev => [...prev, { role: 'user', content: msg }])
     if (!overrideMsg) setInput('')
     setSuggestions([])
     setIsAgentRunning(true)
@@ -135,7 +120,6 @@ export default function ReportViewer({ initialState, email }) {
         } else if (event.type === 'done') {
           if (agentReply) {
             const { clean, chips } = parseSuggestions(agentReply)
-            setChatMessages(prev => [...prev, { role: 'bot', content: clean }])
             setChatHistory(newHistory.concat([{ role: 'assistant', content: clean }]))
             setSuggestions(chips)
           }
@@ -143,14 +127,12 @@ export default function ReportViewer({ initialState, email }) {
           setIsAgentRunning(false)
           setActiveTool(null)
         } else if (event.type === 'error') {
-          setChatMessages(prev => [...prev, { role: 'error', content: event.message }])
           setStreamingText('')
           setIsAgentRunning(false)
           setActiveTool(null)
         }
       })
-    } catch (err) {
-      setChatMessages(prev => [...prev, { role: 'error', content: err.message }])
+    } catch {
       setIsAgentRunning(false)
       setActiveTool(null)
     }
@@ -239,37 +221,11 @@ export default function ReportViewer({ initialState, email }) {
 
         {/* Chat panel (35% width) */}
         <div style={{ flex: '0 0 35%', display: 'flex', flexDirection: 'column', background: '#fff' }}>
-          {/* Messages area */}
-          <div ref={scrollRef} style={{ flex: 1, overflowY: 'auto', padding: '16px', display: 'flex', flexDirection: 'column', gap: 10 }}>
-            {chatMessages.map((msg, i) => (
-              <div key={i} style={{ display: 'flex', flexDirection: 'column', alignItems: msg.role === 'user' ? 'flex-end' : 'flex-start' }}>
-                <div style={{
-                  maxWidth: '90%', padding: '8px 12px', borderRadius: msg.role === 'user' ? '12px 12px 2px 12px' : '12px 12px 12px 2px',
-                  background: msg.role === 'user' ? '#2957FF' : msg.role === 'error' ? '#fee2e2' : '#f1f5f9',
-                  color: msg.role === 'user' ? '#fff' : msg.role === 'error' ? '#991b1b' : '#1a1a1a',
-                  fontSize: 13, lineHeight: 1.55, wordBreak: 'break-word',
-                }}>
-                  {msg.role === 'bot' ? (
-                    <ReactMarkdown
-                      remarkPlugins={[remarkGfm]}
-                      components={{
-                        p: ({ children }) => <p style={{ margin: '0 0 6px', fontSize: 13 }}>{children}</p>,
-                        strong: ({ children }) => <strong style={{ fontWeight: 600 }}>{children}</strong>,
-                        ul: ({ children }) => <ul style={{ paddingLeft: 16, margin: '4px 0' }}>{children}</ul>,
-                        li: ({ children }) => <li style={{ fontSize: 13, marginBottom: 2 }}>{children}</li>,
-                        h3: ({ children }) => <p style={{ fontWeight: 700, fontSize: 13, margin: '6px 0 2px' }}>{children}</p>,
-                        code: ({ children }) => <code style={{ fontFamily: 'monospace', fontSize: 12, background: '#f1f5f9', padding: '1px 4px', borderRadius: 3 }}>{children}</code>,
-                      }}
-                    >
-                      {msg.content}
-                    </ReactMarkdown>
-                  ) : msg.content}
-                </div>
-              </div>
-            ))}
-
+          {/* Status / streaming area */}
+          <div style={{ flex: 1, overflowY: 'auto', padding: '16px', display: 'flex', flexDirection: 'column', gap: 10 }}>
+            {/* Suggestion chips */}
             {suggestions.length > 0 && !isAgentRunning && (
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 2, paddingLeft: 4 }}>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
                 {suggestions.map((s, i) => (
                   <button
                     key={i}
@@ -289,24 +245,12 @@ export default function ReportViewer({ initialState, email }) {
 
             {/* Streaming text (currently typing) */}
             {streamingText && (
-              <div style={{ display: 'flex', alignItems: 'flex-start' }}>
-                <div style={{
-                  maxWidth: '90%', padding: '8px 12px', borderRadius: '12px 12px 12px 2px',
-                  background: '#f1f5f9', color: '#1a1a1a', fontSize: 13, lineHeight: 1.55, wordBreak: 'break-word',
-                }}>
-                  <ReactMarkdown
-                    remarkPlugins={[remarkGfm]}
-                    components={{
-                      p: ({ children }) => <p style={{ margin: '0 0 6px', fontSize: 13 }}>{children}</p>,
-                      strong: ({ children }) => <strong style={{ fontWeight: 600 }}>{children}</strong>,
-                      ul: ({ children }) => <ul style={{ paddingLeft: 16, margin: '4px 0' }}>{children}</ul>,
-                      li: ({ children }) => <li style={{ fontSize: 13, marginBottom: 2 }}>{children}</li>,
-                    }}
-                  >
-                    {streamingText}
-                  </ReactMarkdown>
-                  <span style={{ display: 'inline-block', width: 6, height: 6, background: '#2957FF', borderRadius: '50%', marginLeft: 4, animation: 'pulse 1s infinite' }} />
-                </div>
+              <div style={{
+                padding: '8px 12px', borderRadius: 8,
+                background: '#f1f5f9', color: '#1a1a1a', fontSize: 13, lineHeight: 1.55, wordBreak: 'break-word',
+              }}>
+                {streamingText}
+                <span style={{ display: 'inline-block', width: 6, height: 6, background: '#2957FF', borderRadius: '50%', marginLeft: 4, animation: 'pulse 1s infinite' }} />
               </div>
             )}
 
@@ -318,7 +262,12 @@ export default function ReportViewer({ initialState, email }) {
               </div>
             )}
 
-            <div ref={chatEndRef} />
+            {/* Placeholder when idle */}
+            {!isAgentRunning && !streamingText && !activeTool && suggestions.length === 0 && (
+              <div style={{ color: '#94a3b8', fontSize: 12, fontStyle: 'italic', marginTop: 4 }}>
+                Ask me to adjust any numbers, rewrite sections, or add context.
+              </div>
+            )}
           </div>
 
           {/* Input area */}

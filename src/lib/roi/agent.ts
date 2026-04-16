@@ -30,6 +30,7 @@ import type {
   ChecklistItem,
   CompanySnapshotItem,
   CostOfDelayData,
+  WorkflowAssumption,
 } from '@/src/lib/roi/types'
 
 // ── Internal helpers ──────────────────────────────────────────────────────────
@@ -43,8 +44,8 @@ function reAssemble(state: ReportState, templateHtml: string, callbacks: AgentCa
 
 // ── Tool definitions ──────────────────────────────────────────────────────────
 
-function buildTools(state: ReportState, templateHtml: string, callbacks: AgentCallbacks) {
-  return {
+function buildTools(state: ReportState, templateHtml: string, callbacks: AgentCallbacks, mode: 'generate' | 'chat') {
+  const allTools = {
     // ── Research tools (available in both modes) ────────────────────────────
     web_search: tool({
       description: 'Search the web for company intelligence, industry benchmarks, or financial data.',
@@ -53,7 +54,7 @@ function buildTools(state: ReportState, templateHtml: string, callbacks: AgentCa
         maxResults: z.number().optional().describe('Max results to return (default 5)'),
       }),
       execute: async ({ query, maxResults }: { query: string; maxResults?: number }) => {
-        return webSearch(query, maxResults ?? 5)
+        return webSearch(query, maxResults ?? 3)
       },
     }),
 
@@ -460,7 +461,7 @@ function buildTools(state: ReportState, templateHtml: string, callbacks: AgentCa
 
     // ── Workflow structure tools ─────────────────────────────────────────────
     add_workflow: tool({
-      description: 'Add a new workflow to the report. Triggers a full financial model re-run.',
+      description: 'Add a new workflow to the report. Only call this for workflows NOT already in the current workflow list. Triggers financial recalculation.',
       inputSchema: z.object({
         workflow: z.object({
           name: z.string(),
@@ -477,12 +478,43 @@ function buildTools(state: ReportState, templateHtml: string, callbacks: AgentCa
       }),
       execute: async ({ workflow }: { workflow: ResearchAgentOutput['workflows'][0] }) => {
         if (!state.researchOutput) return { error: 'No research output' }
+
+        // Guard: prevent adding a workflow that already exists
+        const alreadyExists = state.researchOutput.workflows.some(
+          w => w.name.toLowerCase() === workflow.name.toLowerCase()
+        )
+        if (alreadyExists) {
+          return { error: `Workflow "${workflow.name}" already exists. Use update_workflow_assumption to change its parameters.` }
+        }
+
         state.researchOutput = {
           ...state.researchOutput,
           workflows: [...state.researchOutput.workflows, workflow],
         }
-        // Re-run financial model (no LLM — use existing modeler output extended)
+
+        // Add a matching modeler assumption so the calc stays consistent
         if (state.modelerOutput) {
+          const existing = state.modelerOutput.workflowAssumptions
+          const avgRate = existing.length > 0
+            ? existing.reduce((s, a) => s + (a.fullyLoadedHourlyCostOverride ?? state.modelerOutput!.labor.fullyLoadedHourlyCost), 0) / existing.length
+            : state.modelerOutput.labor.fullyLoadedHourlyCost
+          const newAssump: WorkflowAssumption = {
+            workflowName: workflow.name,
+            monthlyVolume: workflow.monthlyVolume ?? 100,
+            minutesPerItemBefore: workflow.minutesPerItemBefore ?? 60,
+            minutesPerItemAfter: workflow.minutesPerItemAfter ?? 12,
+            exceptionRate: 0.05,
+            exceptionMinutes: 15,
+            adoption_low: 0.5,
+            adoption_base: 0.7,
+            adoption_high: 0.9,
+            rationale: 'Added via chat — defaults applied. Use update_workflow_assumption to refine.',
+            fullyLoadedHourlyCostOverride: Math.round(avgRate),
+          }
+          state.modelerOutput = {
+            ...state.modelerOutput,
+            workflowAssumptions: [...state.modelerOutput.workflowAssumptions, newAssump],
+          }
           state.calcOutput = roiCalculator(state.researchOutput, state.modelerOutput)
           reAssemble(state, templateHtml, callbacks)
         }
@@ -511,6 +543,17 @@ function buildTools(state: ReportState, templateHtml: string, callbacks: AgentCa
       },
     }),
   }
+
+  // Generation-only tools are excluded in chat mode to prevent the agent from
+  // calling set_report_copy (full rewrite) instead of targeted update_* tools.
+  if (mode === 'chat') {
+    const { set_research_output, run_financial_model, set_report_copy, ...chatTools } = allTools
+    // eslint-disable-next-line no-void
+    void set_research_output; void run_financial_model; void set_report_copy
+    return chatTools
+  }
+
+  return allTools
 }
 
 // ── Writer context builder (for rewrite_report_copy) ─────────────────────────
@@ -646,10 +689,14 @@ Copy tools (~100ms): update_cta, update_unified_thesis, update_profit_levers,
 Assumption tool (no LLM, instant): update_workflow_assumption
 LLM rewrite (5-10s): rewrite_report_copy
 Research: web_search, fetch_page
-Structure: add_workflow, remove_workflow
+Structure: add_workflow (NEW workflows only), remove_workflow
 
-Rules:
-- For numerical changes, use update_workflow_assumption — it recalculates everything.
+STRICT RULES:
+- set_report_copy and run_financial_model are NOT available in chat mode. Never attempt to call them.
+- NEVER call add_workflow for a workflow already in the WORKFLOWS list above — the tool will reject it.
+- For any change to a single section, use the targeted update_* tool — not rewrite_report_copy.
+- rewrite_report_copy is only for when the user explicitly requests a full rewrite.
+- For numerical/volume changes, use update_workflow_assumption — it recalculates everything instantly.
 - KR-18: never remove "Delay is not neutral — it carries a monthly price."
 - KR-17: resilience_rows always exactly 4 rows.
 - NS-2: next_steps_checklist always exactly 6 items.
@@ -668,7 +715,7 @@ export async function runReportAgent(params: {
 }): Promise<void> {
   const { mode, state, message, chatHistory, callbacks, templateHtml } = params
 
-  const tools = buildTools(state, templateHtml, callbacks)
+  const tools = buildTools(state, templateHtml, callbacks, mode)
 
   let system: string
   let messages: ModelMessage[]
@@ -714,7 +761,7 @@ ${state.normInput.workContext ? 'Context: ' + state.normInput.workContext : ''}`
     system,
     messages,
     tools,
-    stopWhen: stepCountIs(mode === 'generate' ? 20 : 8),
+    stopWhen: stepCountIs(mode === 'generate' ? 16 : 6),
   })
 
   for await (const part of result.fullStream) {

@@ -26,7 +26,7 @@ async function tavilySearch(query: string, maxResults: number): Promise<SearchRe
         api_key: process.env.TAVILY_API_KEY,
         query,
         search_depth: 'basic',
-        max_results: maxResults,
+        max_results: Math.min(maxResults, 3),
         include_answer: true,
         include_raw_content: false,
       }),
@@ -89,7 +89,7 @@ async function jinaSearch(query: string, maxResults: number): Promise<SearchResp
 
 export async function webSearch(
   query: string,
-  maxResults = 5
+  maxResults = 3
 ): Promise<SearchResponse> {
   if (process.env.TAVILY_API_KEY) {
     return tavilySearch(query, maxResults)

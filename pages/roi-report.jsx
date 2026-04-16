@@ -26,18 +26,18 @@ const INDUSTRY_OPTS = [
   'Other',
 ]
 const CURRENCIES = [
-  'USD – US Dollar ($)',
-  'EUR – Euro (€)',
-  'GBP – British Pound (£)',
-  'SAR – Saudi Riyal (ر.س)',
-  'AED – UAE Dirham (د.إ)',
-  'QAR – Qatari Riyal (ر.ق)',
-  'KWD – Kuwaiti Dinar (د.ك)',
-  'BHD – Bahraini Dinar (BD)',
-  'OMR – Omani Rial (ر.ع.)',
-  'EGP – Egyptian Pound (E£)',
-  'NGN – Nigerian Naira (₦)',
-  'ZAR – South African Rand (R)',
+  'USD – US Dollar (USD)',
+  'EUR – Euro (EUR)',
+  'GBP – British Pound (GBP)',
+  'SAR – Saudi Riyal (SAR)',
+  'AED – UAE Dirham (AED)',
+  'QAR – Qatari Riyal (QAR)',
+  'KWD – Kuwaiti Dinar (KWD)',
+  'BHD – Bahraini Dinar (BHD)',
+  'OMR – Omani Rial (OMR)',
+  'EGP – Egyptian Pound (EGP)',
+  'NGN – Nigerian Naira (NGN)',
+  'ZAR – South African Rand (ZAR)',
 ]
 const TOTAL_STEPS = 2
 
