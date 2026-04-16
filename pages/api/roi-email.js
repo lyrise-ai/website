@@ -13,6 +13,8 @@ export const config = {
   maxDuration: 120,
 }
 
+const IS_DEV = process.env.NODE_ENV === 'development'
+
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
     res.status(405).json({ error: 'Method not allowed' })
@@ -26,8 +28,13 @@ export default async function handler(req, res) {
     return
   }
 
+  if (IS_DEV) {
+    res.status(200).json({ ok: true, skipped: true })
+    return
+  }
+
   try {
-    const templateHtml = loadTemplate()
+    const templateHtml = loadTemplate('roi-exec-template.html')
     const renderedHtml = renderTemplate(templateHtml, state.assembled)
 
     const company = state.assembled.roi_data?.company ?? 'Report'

@@ -6,19 +6,22 @@
 //   { type: 'text_delta', delta }           — agent is typing
 //   { type: 'tool_start', tool }            — agent called a tool
 //   { type: 'report_update', state }        — report HTML changed
-//   { type: 'done' }                        — agent finished
+//   { type: 'done', messages? }             — agent finished
 //   { type: 'error', message }
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { normalizeInput } from '@/src/lib/roi/pipeline/normalize'
 import { loadTemplate } from '@/src/lib/roi/pipeline/renderTemplate'
 import { runReportAgent } from '@/src/lib/roi/agent'
+import { buildDevMockReportState } from '@/src/lib/roi/devMockReport'
 import { generatePdf } from '@/src/lib/roi/services/pdf'
 import { sendReportEmail } from '@/src/lib/roi/services/email'
 
 export const config = {
   maxDuration: 300,
 }
+
+const IS_DEV = process.env.NODE_ENV === 'development'
 
 function send(res, event) {
   res.write(`data: ${JSON.stringify(event)}\n\n`)
@@ -51,7 +54,14 @@ export default async function handler(req, res) {
   res.setHeader('Connection', 'keep-alive')
   res.setHeader('X-Accel-Buffering', 'no')
 
-  const { mode, formData, message, chatHistory, state: clientState } = req.body
+  const {
+    mode,
+    formData,
+    message,
+    chatHistory,
+    state: clientState,
+    devOptions,
+  } = req.body
 
   if (!mode || !['generate', 'chat'].includes(mode)) {
     send(res, { type: 'error', message: 'Invalid mode. Must be "generate" or "chat".' })
@@ -60,12 +70,27 @@ export default async function handler(req, res) {
   }
 
   try {
-    const templateHtml = loadTemplate()
+    const execTemplateHtml = loadTemplate('roi-exec-template.html')
+    const fullTemplateHtml = loadTemplate('roi-template.html')
 
     let state
     if (mode === 'generate') {
       const payload = mapFormToPayload(formData ?? req.body)
       const normInput = normalizeInput(payload)
+
+      if (IS_DEV && devOptions?.skipLLM === true) {
+        state = buildDevMockReportState({
+          normInput,
+          execTemplateHtml,
+          fullTemplateHtml,
+        })
+        send(res, { type: 'text_delta', delta: 'Using dev mock report. Skipping research, LLM calls, PDF, and email.' })
+        send(res, { type: 'report_update', state })
+        send(res, { type: 'done', assembled: true, messages: [{ role: 'assistant', content: 'Dev mock report ready.' }] })
+        res.end()
+        return
+      }
+
       state = {
         normInput,
         researchOutput: null,
@@ -74,6 +99,7 @@ export default async function handler(req, res) {
         writerOutput: null,
         assembled: null,
         renderedHtml: null,
+        renderedFullHtml: null,
         confidenceLevel: null,
         revenueAnchor: null,
         revenueAnchorSource: null,
@@ -94,23 +120,22 @@ export default async function handler(req, res) {
       state,
       message,
       chatHistory,
-      templateHtml,
+      templateHtml: execTemplateHtml,
+      fullTemplateHtml,
       callbacks: {
         onTextDelta: (delta) => send(res, { type: 'text_delta', delta }),
         onToolStart: (tool) => send(res, { type: 'tool_start', tool }),
         onReportUpdate: (s) => {
-          // Send the state but strip renderedHtml from the JSON — client gets it separately
-          // to avoid sending the full HTML on every update (it can be large)
-          const { renderedHtml, ...stateWithoutHtml } = s
-          send(res, { type: 'report_update', state: { ...stateWithoutHtml, renderedHtml } })
+          const { renderedHtml, renderedFullHtml, ...rest } = s
+          send(res, { type: 'report_update', state: { ...rest, renderedHtml, renderedFullHtml } })
         },
-        onDone: () => send(res, { type: 'done', assembled: Boolean(state?.assembled) }),
+        onDone: (messages) => send(res, { type: 'done', assembled: Boolean(state?.assembled), messages }),
         onError: (err) => send(res, { type: 'error', message: err.message }),
       },
     })
 
     // Fire-and-forget PDF + email after generation
-    if (mode === 'generate' && state.assembled && state.renderedHtml && state.normInput?.email) {
+    if (!IS_DEV && mode === 'generate' && state.assembled && state.renderedHtml && state.normInput?.email) {
       try {
         const company = state.assembled.roi_data?.company ?? 'Report'
         const slug = company.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')

@@ -72,10 +72,13 @@ export default function ReportViewer({ initialState, email }) {
   const [isAgentRunning, setIsAgentRunning] = useState(false)
   const [input, setInput] = useState('')
   const [emailStatus, setEmailStatus] = useState('idle') // 'idle' | 'sending' | 'sent' | 'error'
+  const [activeTab, setActiveTab] = useState('exec')
 
   const iframeRef = useRef(null)
 
-  const renderedHtml = reportState?.renderedHtml ?? initialState?.renderedHtml
+  const activeHtml = activeTab === 'exec'
+    ? (reportState?.renderedHtml ?? initialState?.renderedHtml)
+    : (reportState?.renderedFullHtml ?? initialState?.renderedFullHtml)
   const company = reportState?.assembled?.roi_data?.company ?? ''
 
   const handleSend = useCallback(async (e, overrideMsg) => {
@@ -118,9 +121,12 @@ export default function ReportViewer({ initialState, email }) {
           setReportState(event.state)
           setActiveTool(null)
         } else if (event.type === 'done') {
+          const { clean, chips } = parseSuggestions(agentReply)
+          const nextMessages = event.messages ?? (agentReply ? [{ role: 'assistant', content: clean }] : [])
+          if (nextMessages.length) {
+            setChatHistory([...newHistory, ...nextMessages])
+          }
           if (agentReply) {
-            const { clean, chips } = parseSuggestions(agentReply)
-            setChatHistory(newHistory.concat([{ role: 'assistant', content: clean }]))
             setSuggestions(chips)
           }
           setStreamingText('')
@@ -179,6 +185,30 @@ export default function ReportViewer({ initialState, email }) {
           {company} — AI ROI Report
         </div>
         <div style={{ display: 'flex', gap: 8 }}>
+          <div style={{ display: 'flex', gap: 2, border: '1px solid #e2e8f0', borderRadius: 6, overflow: 'hidden' }}>
+            <button
+              type="button"
+              onClick={() => setActiveTab('exec')}
+              style={{
+                padding: '6px 12px', fontSize: 13, fontWeight: 500, border: 'none',
+                background: activeTab === 'exec' ? '#2957FF' : '#fff',
+                color: activeTab === 'exec' ? '#fff' : '#374151', cursor: 'pointer',
+              }}
+            >
+              Executive Summary
+            </button>
+            <button
+              type="button"
+              onClick={() => setActiveTab('full')}
+              style={{
+                padding: '6px 12px', fontSize: 13, fontWeight: 500, border: 'none',
+                background: activeTab === 'full' ? '#2957FF' : '#fff',
+                color: activeTab === 'full' ? '#fff' : '#374151', cursor: 'pointer',
+              }}
+            >
+              Full Report
+            </button>
+          </div>
           <button
             type="button"
             onClick={handleDownload}
@@ -213,7 +243,7 @@ export default function ReportViewer({ initialState, email }) {
         <div style={{ flex: '0 0 65%', overflow: 'hidden', borderRight: '1px solid #e2e8f0', background: '#f1f5f9' }}>
           <iframe
             ref={iframeRef}
-            srcDoc={renderedHtml ?? ''}
+            srcDoc={activeHtml ?? ''}
             style={{ width: '100%', height: '100%', border: 'none' }}
             title="ROI Report Preview"
           />

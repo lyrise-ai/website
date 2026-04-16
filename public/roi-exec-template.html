@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+@page { size: A4; margin: 12mm 15mm 10mm; }
+body { font-family: Calibri, 'Segoe UI', sans-serif; font-size: 8.5pt; line-height: 1.35; color: #1A1A1A; }
+.page { width: 100%; page-break-after: always; }
+.page.last { page-break-after: auto; }
+
+/* Header / Footer */
+.header { display: flex; justify-content: space-between; font-size: 7pt; color: #5A5A6E;
+  border-bottom: 1px solid #d0d0d0; padding-bottom: 2mm; margin-bottom: 4mm; }
+.footer { display: flex; justify-content: space-between; font-size: 7pt; color: #5A5A6E;
+  border-top: 1px solid #d0d0d0; padding-top: 2mm; margin-top: 4mm; }
+
+/* Cover page */
+.cover-card { width: 100%; border-collapse: collapse; margin: 4mm 0 0; }
+.cover-cell { background: #0A1628; padding: 14mm 12mm 12mm; }
+.cover-eyebrow { font-size: 7pt; font-weight: bold; color: #4A90D9; letter-spacing: 1.5px;
+  text-transform: uppercase; margin-bottom: 5mm; }
+.cover-rule { border: none; border-top: 1px solid #4A90D9; margin: 3mm 0; }
+.cover-focus { font-size: 22pt; font-weight: bold; color: #fff; line-height: 1.1; margin: 4mm 0 3mm; }
+.cover-subtitle { font-size: 11pt; color: #4A90D9; margin-bottom: 2mm; }
+.cover-italic { font-size: 8pt; font-style: italic; color: #4A90D9; margin-bottom: 8mm; }
+.cover-label { font-size: 7pt; font-weight: bold; color: #4A90D9; letter-spacing: 1px;
+  text-transform: uppercase; margin-bottom: 2mm; }
+.cover-name { font-size: 11pt; font-weight: bold; color: #fff; margin-bottom: 1mm; }
+.cover-date { font-size: 8pt; color: #B0C0D0; }
+
+/* Content page */
+h2 { font-size: 9pt; font-weight: bold; color: #003F87; text-transform: uppercase;
+  border-bottom: 1.5px solid #003F87; margin: 5mm 0 2mm; padding-bottom: 1mm; }
+.bluf { font-size: 8.5pt; margin-bottom: 3mm; line-height: 1.4; }
+
+.kpi-bar { width: 100%; border-collapse: collapse; margin-bottom: 3mm; }
+.kpi-cell { padding: 3mm 4mm; border-top: 3px solid #003F87; border-right: 1px solid #d0d0d0; width: 25%; }
+.kpi-cell.last { border-right: none; }
+.kpi-val { font-size: 18pt; font-weight: bold; color: #003F87; }
+.kpi-lbl { font-size: 7pt; color: #5A5A6E; }
+
+.insight-panel { display: flex; margin: 2mm 0 3mm; background: #F5F5F5; }
+.stripe { width: 4px; background: #003F87; flex-shrink: 0; }
+.panel-content { padding: 2.5mm 3mm; font-size: 8pt; color: #1A1A1A; flex: 1; }
+.panel-label { font-weight: bold; color: #003F87; }
+
+.data-table { width: 100%; border-collapse: collapse; margin-bottom: 3mm; font-size: 8pt; }
+.data-table thead tr { background: #2D2D2D; color: #fff; }
+.data-table th { padding: 2mm 2.5mm; font-weight: bold; text-align: left; font-size: 7.5pt; }
+.data-table td { padding: 1.5mm 2.5mm; border-bottom: 1px solid #d0d0d0; }
+.data-table tr:nth-child(even) td { background: #EBF0F8; }
+.total-row td { background: #2D2D2D !important; color: #fff !important; font-weight: bold; }
+
+.final-footer { font-size: 7pt; color: #5A5A6E; text-align: center;
+  border-top: 1px solid #d0d0d0; padding-top: 2mm; margin-top: 3mm; }
+</style>
+</head>
+<body>
+
+<!-- PAGE 1: COVER -->
+<div class="page">
+  <div class="header">
+    <span>{{$json.roi_data.company}} | AI Profit &amp; Productivity Report</span>
+    <span>LyRise AI | Confidential | {{$json.current_date}}</span>
+  </div>
+  <table class="cover-card"><tr><td class="cover-cell">
+    <div class="cover-eyebrow">CONFIDENTIAL | PREPARED BY LYRISE AI</div>
+    <hr class="cover-rule">
+    <div class="cover-focus">{{$json.display.coverHeadline}}</div>
+    <div class="cover-subtitle">AI Profit &amp; Productivity Report — Executive Summary</div>
+    <div class="cover-italic">{{$json.display.confidenceBadge}} | Pending stakeholder validation</div>
+    <hr class="cover-rule">
+    <div class="cover-label">PREPARED FOR</div>
+    <div class="cover-name">{{$json.display.recipientDisplay}}</div>
+    <hr class="cover-rule">
+    <div class="cover-label">DATE &amp; CURRENCY</div>
+    <div class="cover-date">{{$json.current_date}} | {{$json.display.currencyCode}}</div>
+  </td></tr></table>
+  <div class="footer">
+    <span>Prepared by LyRise AI | Confidential — not for distribution</span>
+    <span>1</span>
+  </div>
+</div>
+
+<!-- PAGE 2: ALL CONTENT -->
+<div class="page last">
+  <div class="header">
+    <span>{{$json.roi_data.company}} | AI Profit &amp; Productivity Report — Executive Summary</span>
+    <span>LyRise AI | Confidential | {{$json.current_date}}</span>
+  </div>
+
+  <p class="bluf">{{$json.display.blufParagraph}}</p>
+
+  <table class="kpi-bar">
+    <tr>
+      <td class="kpi-cell">
+        <div class="kpi-val">{{$json.display.statHours}}</div>
+        <div class="kpi-lbl">Hours Returned / yr</div>
+      </td>
+      <td class="kpi-cell">
+        <div class="kpi-val">{{$json.display.statOD}}</div>
+        <div class="kpi-lbl">Operational Dividend</div>
+      </td>
+      <td class="kpi-cell">
+        <div class="kpi-val">{{$json.display.statPU}}</div>
+        <div class="kpi-lbl">Profit Uplift</div>
+      </td>
+      <td class="kpi-cell last">
+        <div class="kpi-val">{{$json.display.statTF}}</div>
+        <div class="kpi-lbl">Total Financial Gain</div>
+      </td>
+    </tr>
+  </table>
+
+  <div class="insight-panel">
+    <div class="stripe"></div>
+    <div class="panel-content">
+      <span class="panel-label">{{$json.display.confidenceBadge}}</span>
+      based on public intelligence and industry benchmarks.
+      {{$json.display.revenueContextStatement}}
+      All figures require validation with stakeholders.
+    </div>
+  </div>
+
+  <h2>THE PATTERN UNDERNEATH</h2>
+  <p>{{$json.display.unifiedPatternThesis}}</p>
+
+  <h2>BEFORE VS. AFTER AI</h2>
+  <table class="data-table">
+    <thead><tr>
+      <th>WORKFLOW</th>
+      <th>HRS/MO NOW</th>
+      <th>HRS/MO AFTER AI</th>
+      <th>HRS SAVED/MO</th>
+      <th>VALUE/MO</th>
+      <th>AI AGENT DEPLOYED</th>
+    </tr></thead>
+    <tbody>{{$json.display.bvaTableBodyCompact}}</tbody>
+  </table>
+
+  <h2>WHERE THE PROFIT UPLIFT COMES FROM</h2>
+  <div class="insight-panel">
+    <div class="stripe"></div>
+    <div class="panel-content">
+      <span class="panel-label">What is Profit Uplift?</span>
+      Operational Dividend = the value of hours no longer spent on manual work.
+      Profit Uplift = what those freed hours produce when redirected toward higher-value activity.
+      These are sequential effects of the same improvement — not the same hours counted twice.
+      <strong>Total Profit Uplift: {{$json.display.statPU}} / yr</strong>
+    </div>
+  </div>
+  <table class="data-table">
+    <thead><tr>
+      <th style="width:22%">WORKFLOW</th>
+      <th style="width:22%">UPLIFT LEVER</th>
+      <th style="width:56%">HOW IT WORKS — FULL LOGIC</th>
+    </tr></thead>
+    <tbody>{{$json.display.profitUpliftLogicBody}}</tbody>
+  </table>
+
+  <h2>COST OF DELAY</h2>
+  {{$json.display.costOfDelayHTML}}
+
+  <h2>WHAT HAPPENS NEXT</h2>
+  {{$json.display.nextStepsHTML}}
+
+  <div class="final-footer">
+    LyRise AI | elena@lyrise.ai | calendly.com/elena-lyrise/30min |
+    Hypothesis-led estimate — not for distribution without validation
+  </div>
+  <div class="footer">
+    <span>Prepared by LyRise AI | Confidential — not for distribution</span>
+    <span>2</span>
+  </div>
+</div>
+
+</body>
+</html>

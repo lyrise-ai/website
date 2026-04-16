@@ -337,6 +337,10 @@ export interface DisplayObject {
   odVsPuPanelHTML: string              // OD vs PU distinction panel (after Profit Uplift)
   calculationPanelHTML: string         // arithmetic transparency panel (Rule 6C)
   roadmapTableBody: string             // <tr> rows for company-specific roadmap table
+  statPU: string                       // short profit uplift e.g. "€387K"
+  blufParagraph: string                // auto-assembled BLUF intro paragraph
+  bvaTableBodyCompact: string          // 6-col BVA compact table rows for exec template
+  profitUpliftLogicBody: string        // 3-col profit uplift logic table rows for exec template
 }
 
 export interface AssembleReportOutput {
@@ -357,6 +361,7 @@ export interface ReportState {
   writerOutput: ReportWriterOutput | null
   assembled: AssembleReportOutput | null
   renderedHtml: string | null
+  renderedFullHtml: string | null
   // v3.0 intelligence fields (set during research phase)
   confidenceLevel: 'high' | 'low' | null
   revenueAnchor: number | null          // estimated annual revenue in base currency
@@ -368,7 +373,7 @@ export interface AgentCallbacks {
   onTextDelta(delta: string): void
   onToolStart(toolName: string): void
   onReportUpdate(state: ReportState): void
-  onDone(): void
+  onDone(newMessages: import('ai').ModelMessage[]): void
   onError(err: Error): void
 }
 
@@ -383,5 +388,5 @@ export type AgentEvent =
   | { type: 'text_delta'; delta: string }
   | { type: 'tool_start'; tool: string }
   | { type: 'report_update'; state: ReportState }
-  | { type: 'done' }
+  | { type: 'done'; messages?: import('ai').ModelMessage[] }
   | { type: 'error'; message: string }

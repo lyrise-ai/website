@@ -35,16 +35,27 @@ import type {
 
 // ── Internal helpers ──────────────────────────────────────────────────────────
 
-function reAssemble(state: ReportState, templateHtml: string, callbacks: AgentCallbacks) {
+function reAssemble(
+  state: ReportState,
+  execTemplateHtml: string,
+  fullTemplateHtml: string,
+  callbacks: AgentCallbacks
+) {
   if (!state.calcOutput || !state.writerOutput || !state.normInput) return
   state.assembled = assembleReport(state.calcOutput, state.writerOutput, state.normInput, state)
-  state.renderedHtml = renderTemplate(templateHtml, state.assembled)
+  state.renderedHtml = renderTemplate(execTemplateHtml, state.assembled)
+  state.renderedFullHtml = renderTemplate(fullTemplateHtml, state.assembled)
   callbacks.onReportUpdate(state)
 }
 
 // ── Tool definitions ──────────────────────────────────────────────────────────
 
-function buildTools(state: ReportState, templateHtml: string, callbacks: AgentCallbacks, mode: 'generate' | 'chat') {
+function buildTools(
+  state: ReportState,
+  execTemplateHtml: string,
+  fullTemplateHtml: string,
+  callbacks: AgentCallbacks
+) {
   const allTools = {
     // ── Research tools (available in both modes) ────────────────────────────
     web_search: tool({
@@ -269,7 +280,7 @@ function buildTools(state: ReportState, templateHtml: string, callbacks: AgentCa
       }),
       execute: async (copy: ReportWriterOutput) => {
         state.writerOutput = copy
-        reAssemble(state, templateHtml, callbacks)
+        reAssemble(state, execTemplateHtml, fullTemplateHtml, callbacks)
         return { ok: true }
       },
     }),
@@ -281,7 +292,7 @@ function buildTools(state: ReportState, templateHtml: string, callbacks: AgentCa
       execute: async ({ cta_paragraph }: { cta_paragraph: string }) => {
         if (!state.writerOutput) return { error: 'No report copy to update' }
         state.writerOutput = { ...state.writerOutput, cta_paragraph }
-        reAssemble(state, templateHtml, callbacks)
+        reAssemble(state, execTemplateHtml, fullTemplateHtml, callbacks)
         return { ok: true }
       },
     }),
@@ -292,7 +303,7 @@ function buildTools(state: ReportState, templateHtml: string, callbacks: AgentCa
       execute: async ({ unified_pattern_thesis }: { unified_pattern_thesis: string }) => {
         if (!state.writerOutput) return { error: 'No report copy to update' }
         state.writerOutput = { ...state.writerOutput, unified_pattern_thesis }
-        reAssemble(state, templateHtml, callbacks)
+        reAssemble(state, execTemplateHtml, fullTemplateHtml, callbacks)
         return { ok: true }
       },
     }),
@@ -313,7 +324,7 @@ function buildTools(state: ReportState, templateHtml: string, callbacks: AgentCa
       execute: async ({ profit_levers }: { profit_levers: ProfitLever[] }) => {
         if (!state.writerOutput) return { error: 'No report copy to update' }
         state.writerOutput = { ...state.writerOutput, profit_levers }
-        reAssemble(state, templateHtml, callbacks)
+        reAssemble(state, execTemplateHtml, fullTemplateHtml, callbacks)
         return { ok: true }
       },
     }),
@@ -330,7 +341,7 @@ function buildTools(state: ReportState, templateHtml: string, callbacks: AgentCa
       execute: async ({ resilience_rows }: { resilience_rows: ResilienceRow[] }) => {
         if (!state.writerOutput) return { error: 'No report copy to update' }
         state.writerOutput = { ...state.writerOutput, resilience_rows }
-        reAssemble(state, templateHtml, callbacks)
+        reAssemble(state, execTemplateHtml, fullTemplateHtml, callbacks)
         return { ok: true }
       },
     }),
@@ -346,7 +357,7 @@ function buildTools(state: ReportState, templateHtml: string, callbacks: AgentCa
       execute: async ({ cost_of_delay }: { cost_of_delay: CostOfDelayData }) => {
         if (!state.writerOutput) return { error: 'No report copy to update' }
         state.writerOutput = { ...state.writerOutput, cost_of_delay }
-        reAssemble(state, templateHtml, callbacks)
+        reAssemble(state, execTemplateHtml, fullTemplateHtml, callbacks)
         return { ok: true }
       },
     }),
@@ -363,7 +374,7 @@ function buildTools(state: ReportState, templateHtml: string, callbacks: AgentCa
       execute: async ({ risks }: { risks: RiskRow[] }) => {
         if (!state.writerOutput) return { error: 'No report copy to update' }
         state.writerOutput = { ...state.writerOutput, risks }
-        reAssemble(state, templateHtml, callbacks)
+        reAssemble(state, execTemplateHtml, fullTemplateHtml, callbacks)
         return { ok: true }
       },
     }),
@@ -380,7 +391,7 @@ function buildTools(state: ReportState, templateHtml: string, callbacks: AgentCa
       execute: async ({ next_steps_checklist }: { next_steps_checklist: ChecklistItem[] }) => {
         if (!state.writerOutput) return { error: 'No report copy to update' }
         state.writerOutput = { ...state.writerOutput, next_steps_checklist }
-        reAssemble(state, templateHtml, callbacks)
+        reAssemble(state, execTemplateHtml, fullTemplateHtml, callbacks)
         return { ok: true }
       },
     }),
@@ -391,7 +402,7 @@ function buildTools(state: ReportState, templateHtml: string, callbacks: AgentCa
       execute: async ({ pilot_recommendation }: { pilot_recommendation: string }) => {
         if (!state.writerOutput) return { error: 'No report copy to update' }
         state.writerOutput = { ...state.writerOutput, pilot_recommendation }
-        reAssemble(state, templateHtml, callbacks)
+        reAssemble(state, execTemplateHtml, fullTemplateHtml, callbacks)
         return { ok: true }
       },
     }),
@@ -427,7 +438,7 @@ function buildTools(state: ReportState, templateHtml: string, callbacks: AgentCa
           ),
         }
         state.calcOutput = roiCalculator(state.researchOutput, state.modelerOutput)
-        reAssemble(state, templateHtml, callbacks)
+        reAssemble(state, execTemplateHtml, fullTemplateHtml, callbacks)
         const s = state.calcOutput.roi_data.summary
         return {
           ok: true,
@@ -454,7 +465,7 @@ function buildTools(state: ReportState, templateHtml: string, callbacks: AgentCa
           prompt: ctx,
         })
         state.writerOutput = result.object as ReportWriterOutput
-        reAssemble(state, templateHtml, callbacks)
+        reAssemble(state, execTemplateHtml, fullTemplateHtml, callbacks)
         return { ok: true }
       },
     }),
@@ -516,7 +527,7 @@ function buildTools(state: ReportState, templateHtml: string, callbacks: AgentCa
             workflowAssumptions: [...state.modelerOutput.workflowAssumptions, newAssump],
           }
           state.calcOutput = roiCalculator(state.researchOutput, state.modelerOutput)
-          reAssemble(state, templateHtml, callbacks)
+          reAssemble(state, execTemplateHtml, fullTemplateHtml, callbacks)
         }
         return { ok: true, workflow_count: state.researchOutput.workflows.length }
       },
@@ -538,19 +549,10 @@ function buildTools(state: ReportState, templateHtml: string, callbacks: AgentCa
           ),
         }
         state.calcOutput = roiCalculator(state.researchOutput, state.modelerOutput)
-        reAssemble(state, templateHtml, callbacks)
+        reAssemble(state, execTemplateHtml, fullTemplateHtml, callbacks)
         return { ok: true, workflow_count: state.researchOutput.workflows.length }
       },
     }),
-  }
-
-  // Generation-only tools are excluded in chat mode to prevent the agent from
-  // calling set_report_copy (full rewrite) instead of targeted update_* tools.
-  if (mode === 'chat') {
-    const { set_research_output, run_financial_model, set_report_copy, ...chatTools } = allTools
-    // eslint-disable-next-line no-void
-    void set_research_output; void run_financial_model; void set_report_copy
-    return chatTools
   }
 
   return allTools
@@ -692,9 +694,9 @@ Research: web_search, fetch_page
 Structure: add_workflow (NEW workflows only), remove_workflow
 
 STRICT RULES:
-- set_report_copy and run_financial_model are NOT available in chat mode. Never attempt to call them.
 - NEVER call add_workflow for a workflow already in the WORKFLOWS list above — the tool will reject it.
-- For any change to a single section, use the targeted update_* tool — not rewrite_report_copy.
+- set_report_copy: only call if the user explicitly asks to regenerate the full report copy.
+- For a single-section edit, use a targeted update_* tool — never set_report_copy.
 - rewrite_report_copy is only for when the user explicitly requests a full rewrite.
 - For numerical/volume changes, use update_workflow_assumption — it recalculates everything instantly.
 - KR-18: never remove "Delay is not neutral — it carries a monthly price."
@@ -712,10 +714,11 @@ export async function runReportAgent(params: {
   chatHistory?: ModelMessage[]
   callbacks: AgentCallbacks
   templateHtml: string
+  fullTemplateHtml: string
 }): Promise<void> {
-  const { mode, state, message, chatHistory, callbacks, templateHtml } = params
+  const { mode, state, message, chatHistory, callbacks, templateHtml, fullTemplateHtml } = params
 
-  const tools = buildTools(state, templateHtml, callbacks, mode)
+  const tools = buildTools(state, templateHtml, fullTemplateHtml, callbacks)
 
   let system: string
   let messages: ModelMessage[]
@@ -761,7 +764,33 @@ ${state.normInput.workContext ? 'Context: ' + state.normInput.workContext : ''}`
     system,
     messages,
     tools,
-    stopWhen: stepCountIs(mode === 'generate' ? 16 : 6),
+    prepareStep: () => {
+      if (mode !== 'generate') return undefined
+
+      if (!state.researchOutput) {
+        return {
+          toolChoice: 'required' as const,
+          activeTools: ['web_search', 'fetch_page', 'set_research_output'] as const,
+        }
+      }
+
+      if (!state.calcOutput) {
+        return {
+          toolChoice: { type: 'tool', toolName: 'run_financial_model' },
+          activeTools: ['run_financial_model'] as const,
+        }
+      }
+
+      if (!state.writerOutput) {
+        return {
+          toolChoice: { type: 'tool', toolName: 'set_report_copy' },
+          activeTools: ['set_report_copy'] as const,
+        }
+      }
+
+      return undefined
+    },
+    stopWhen: stepCountIs(mode === 'generate' ? 20 : 8),
   })
 
   for await (const part of result.fullStream) {
@@ -775,10 +804,29 @@ ${state.normInput.workContext ? 'Context: ' + state.normInput.workContext : ''}`
     }
   }
 
+  const response = await result.response
+
   if (mode === 'generate' && !state.assembled) {
-    callbacks.onError(new Error('Generation completed but no assembled report was produced.'))
+    const done = [
+      state.researchOutput ? 'research' : null,
+      state.modelerOutput ? 'model' : null,
+      state.calcOutput ? 'calc' : null,
+      state.writerOutput ? 'writer' : null,
+    ].filter(Boolean).join(', ') || 'none'
+    const assistantText = response.messages
+      .filter(m => m.role === 'assistant')
+      .flatMap(m => {
+        if (typeof m.content === 'string') return [m.content]
+        if (!Array.isArray(m.content)) return []
+        return m.content.flatMap(part => part.type === 'text' ? [part.text] : [])
+      })
+      .join('\n')
+      .trim()
+    callbacks.onError(new Error(
+      `Generation completed but no assembled report. Stages done: ${done}${assistantText ? ` | Assistant said: ${assistantText.slice(0, 300)}` : ''}`
+    ))
     return
   }
 
-  callbacks.onDone()
+  callbacks.onDone(response.messages)
 }

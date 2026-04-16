@@ -40,6 +40,19 @@ const CURRENCIES = [
   'ZAR – South African Rand (ZAR)',
 ]
 const TOTAL_STEPS = 2
+const IS_DEV = process.env.NODE_ENV === 'development'
+const DEV_STEP1_PRESET = {
+  companyName: 'LyRise',
+  website: 'lyrise.ai',
+  whatYouDo: 'selling ai solutions for businesses',
+  industry: 'Technology / SaaS',
+}
+const DEV_STEP2_PRESET = {
+  email: 'yousef@lyrise.ai',
+  recipientName: 'Yousef',
+  recipientTitle: 'COO',
+  currency: 'USD – US Dollar (USD)',
+}
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -195,7 +208,7 @@ function Step1({ data, onChange, errors }) {
 
 // ── Step 2 ────────────────────────────────────────────────────────────────────
 
-function Step2({ data, onChange, errors }) {
+function Step2({ data, onChange, errors, isDev }) {
   return (
     <div className="space-y-5">
       <div>
@@ -208,6 +221,11 @@ function Step2({ data, onChange, errors }) {
         <p className="text-sm text-gray-500">
           Your report is generated and emailed — usually ready in 60 seconds.
         </p>
+        {isDev && (
+          <p className="text-xs text-amber-600 mt-2">
+            Dev mode is on: the form is prefilled, email/PDF are skipped, and you can use a fast mock preview.
+          </p>
+        )}
       </div>
       <TextInput
         id="email"
@@ -316,7 +334,7 @@ export default function ROIReport() {
   const [errorMessage, setErrorMessage] = useState('')
 
   // Step 1
-  const [s1, setS1] = useState({
+  const [s1, setS1] = useState(IS_DEV ? DEV_STEP1_PRESET : {
     companyName: '',
     website: '',
     whatYouDo: '',
@@ -324,7 +342,7 @@ export default function ROIReport() {
   })
 
   // Step 2
-  const [s2, setS2] = useState({
+  const [s2, setS2] = useState(IS_DEV ? DEV_STEP2_PRESET : {
     email: '',
     recipientName: '',
     recipientTitle: '',
@@ -343,7 +361,7 @@ export default function ROIReport() {
     setErrors((prev) => ({ ...prev, [key]: '' }))
   }, [])
 
-  const next = useCallback(async () => {
+  const next = useCallback(async ({ skipLLM = false } = {}) => {
     const currentErrors = validateStep(step, s1, s2)
     setErrors(currentErrors)
     if (Object.keys(currentErrors).length) return
@@ -377,7 +395,11 @@ export default function ROIReport() {
       const response = await fetch('/api/roi-agent', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ mode: 'generate', formData: payload }),
+        body: JSON.stringify({
+          mode: 'generate',
+          formData: payload,
+          devOptions: { skipLLM },
+        }),
       })
 
       let latestState = null
@@ -528,7 +550,7 @@ export default function ROIReport() {
                     <Step1 data={s1} onChange={changeS1} errors={errors} />
                   )}
                   {step === 2 && (
-                    <Step2 data={s2} onChange={changeS2} errors={errors} />
+                    <Step2 data={s2} onChange={changeS2} errors={errors} isDev={IS_DEV} />
                   )}
                 </motion.div>
               </AnimatePresence>
@@ -559,13 +581,24 @@ export default function ROIReport() {
                 ))}
               </div>
 
-              <button
-                type="button"
-                onClick={next}
-                className="text-sm font-semibold text-white bg-gray-900 rounded-lg px-5 py-2 hover:bg-gray-700 transition-colors shadow-sm"
-              >
-                {step === TOTAL_STEPS ? 'Generate my report →' : 'Continue →'}
-              </button>
+              <div className="flex items-center gap-2">
+                {IS_DEV && step === TOTAL_STEPS && (
+                  <button
+                    type="button"
+                    onClick={() => next({ skipLLM: true })}
+                    className="text-sm font-semibold text-gray-700 bg-gray-100 rounded-lg px-5 py-2 hover:bg-gray-200 transition-colors"
+                  >
+                    Fast mock preview
+                  </button>
+                )}
+                <button
+                  type="button"
+                  onClick={() => next()}
+                  className="text-sm font-semibold text-white bg-gray-900 rounded-lg px-5 py-2 hover:bg-gray-700 transition-colors shadow-sm"
+                >
+                  {step === TOTAL_STEPS ? 'Generate my report →' : 'Continue →'}
+                </button>
+              </div>
             </div>
           </motion.div>
         </div>

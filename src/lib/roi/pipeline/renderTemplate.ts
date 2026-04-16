@@ -8,8 +8,8 @@ import path from 'path'
 
 import type { AssembleReportOutput } from '@/src/lib/roi/types'
 
-export function loadTemplate(): string {
-  return fs.readFileSync(path.join(process.cwd(), 'public', 'roi-template.html'), 'utf-8')
+export function loadTemplate(filename = 'roi-template.html'): string {
+  return fs.readFileSync(path.join(process.cwd(), 'public', filename), 'utf-8')
 }
 
 export function renderTemplate(templateHtml: string, assembled: AssembleReportOutput): string {

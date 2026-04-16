@@ -338,6 +338,9 @@ export function assembleReport(
   const wfs  = [...roi.workflows].sort((a, b) => b.annualValue - a.annualValue)
   const totalMonthlyHours = wfs.reduce((a, w) => a + w.monthlyHours, 0)
   const totalMonthlyCost  = wfs.reduce((a, w) => a + w.monthlyCost,  0)
+  const totalHrsBefore = wfs.reduce((acc, w) => acc + Math.round(w.volume * w.timeBefore / 60), 0)
+  const totalHrsAfter = totalHrsBefore - Math.round(s.totalAnnualHours / 12)
+  const totalValMo = wfs.reduce((acc, w) => acc + Math.round(w.monthlyHours * w.rate), 0)
 
   // Date — loop-based, no toLocaleDateString (PDF renderer safe)
   const MONTHS = ['January','February','March','April','May','June',
@@ -492,6 +495,52 @@ export function assembleReport(
 
   // Roadmap table (pilot = highest-value workflow)
   const roadmapTableBody = wfs.length > 0 ? buildRoadmapTableBody(wfs[0].name) : ''
+  const profileParts: string[] = []
+  if (roi.employees) profileParts.push(`${roi.employees.toLocaleString()}-person`)
+  if (roi.industry) profileParts.push(roi.industry.toLowerCase())
+  const profileDesc = profileParts.length
+    ? `${roi.company} is a ${profileParts.join(' ')} firm`
+    : roi.company
+  const wfNames = wfs.map(w => w.name.toLowerCase()).join(', ')
+  const blufParagraph = `${profileDesc}. Across its workflows — ${wfNames} — the same structural`
+    + ` drain recurs: qualified professionals spending significant time on high-volume, rules-based`
+    + ` process that does not require their judgment. This report estimates ${cur(tf12)} in Total`
+    + ` Financial Gain available through targeted AI deployment — without adding headcount.`
+  const bvaTableBodyCompact = wfs.map(wf => {
+    const hrsBefore = Math.round(wf.volume * wf.timeBefore / 60)
+    const hrsSaved = Math.round(wf.monthlyHours)
+    const hrsAfter = hrsBefore - hrsSaved
+    const valMo = Math.round(wf.monthlyHours * wf.rate)
+    return `<tr>`
+      + `<td style="font-weight:bold">${esc(wf.name)}</td>`
+      + `<td style="text-align:center">${hrsBefore}</td>`
+      + `<td style="text-align:center">${hrsAfter}</td>`
+      + `<td style="text-align:center;font-weight:bold">${hrsSaved}</td>`
+      + `<td style="text-align:right;color:#003F87;font-weight:bold">${sym}${addCommas(valMo)}</td>`
+      + `<td style="color:#5a5a6e">${esc(wf.agentName ?? '')}</td>`
+      + `</tr>`
+  }).join('')
+    + `<tr class="total-row">`
+    + `<td><strong>TOTALS</strong></td>`
+    + `<td style="text-align:center"><strong>${totalHrsBefore}</strong></td>`
+    + `<td style="text-align:center"><strong>${totalHrsAfter}</strong></td>`
+    + `<td style="text-align:center"><strong>${fmt(s.totalAnnualHours / 12)}</strong></td>`
+    + `<td style="text-align:right"><strong>${sym}${addCommas(totalValMo)}</strong></td>`
+    + `<td style="color:#fff;font-size:8pt">${fmt(s.totalAnnualHours)} hrs/yr · ${(s.totalAnnualHours / 2000).toFixed(1)} FTE equiv.</td>`
+    + `</tr>`
+  const totalPU = (writerOut.profit_levers ?? []).reduce((acc, l) => acc + Number(l.profit || 0), 0)
+  const profitUpliftLogicBody = (writerOut.profit_levers ?? []).map(l =>
+    `<tr>`
+    + `<td style="color:#003F87;font-weight:bold;vertical-align:top;width:22%">${esc(l.derived_from)}<br>`
+    + `<span style="font-weight:bold">${sym}${addCommas(Number(l.profit))}/yr</span></td>`
+    + `<td style="font-style:italic;vertical-align:top;width:22%;font-size:8.5pt">${esc(l.lever_name)}</td>`
+    + `<td style="color:#5a5a6e;vertical-align:top;width:56%;font-size:8pt">${esc(l.rationale_with_arithmetic)}</td>`
+    + `</tr>`
+  ).join('')
+    + `<tr style="background:#1a1a1a">`
+    + `<td colspan="2" style="color:#fff;font-weight:bold;font-size:8.5pt">Total Profit Uplift: ${sym}${addCommas(totalPU)}/yr</td>`
+    + `<td style="color:#aad0ff;font-size:8.5pt">Total Financial Gain: ${sym}${addCommas(tf12)}/yr · All levers require validation in Phase 1.</td>`
+    + `</tr>`
 
   const display: DisplayObject = {
     // Original fields
@@ -503,6 +552,7 @@ export function assembleReport(
     statHours:    fmt(s.totalAnnualHours),
     statHoursSub: fmt(totalMonthlyHours),
     statOD:       short(s.operationalDividend12mo),
+    statPU:       short(s.profitUplift12mo),
     statTF:       short(tf12),
     statFTE:      (s.totalAnnualHours / 2000).toFixed(1),
 
@@ -551,6 +601,9 @@ export function assembleReport(
     odVsPuPanelHTML,
     calculationPanelHTML,
     roadmapTableBody,
+    blufParagraph,
+    bvaTableBodyCompact,
+    profitUpliftLogicBody,
   }
 
   return {
