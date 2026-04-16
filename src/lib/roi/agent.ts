@@ -764,32 +764,6 @@ ${state.normInput.workContext ? 'Context: ' + state.normInput.workContext : ''}`
     system,
     messages,
     tools,
-    prepareStep: () => {
-      if (mode !== 'generate') return undefined
-
-      if (!state.researchOutput) {
-        return {
-          toolChoice: 'required' as const,
-          activeTools: ['web_search', 'fetch_page', 'set_research_output'] as const,
-        }
-      }
-
-      if (!state.calcOutput) {
-        return {
-          toolChoice: { type: 'tool', toolName: 'run_financial_model' },
-          activeTools: ['run_financial_model'] as const,
-        }
-      }
-
-      if (!state.writerOutput) {
-        return {
-          toolChoice: { type: 'tool', toolName: 'set_report_copy' },
-          activeTools: ['set_report_copy'] as const,
-        }
-      }
-
-      return undefined
-    },
     stopWhen: stepCountIs(mode === 'generate' ? 20 : 8),
   })
 

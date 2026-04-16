@@ -66,7 +66,7 @@ const TOOL_LABELS = {
 export default function ReportViewer({ initialState, email }) {
   const [reportState, setReportState] = useState(initialState)
   const [chatHistory, setChatHistory] = useState([])
-  const [suggestions, setSuggestions] = useState(() => buildInitialMessage(initialState).chips)
+  const [initialMessage] = useState(() => buildInitialMessage(initialState).text)
   const [streamingText, setStreamingText] = useState('')
   const [activeTool, setActiveTool] = useState(null)
   const [isAgentRunning, setIsAgentRunning] = useState(false)
@@ -88,7 +88,6 @@ export default function ReportViewer({ initialState, email }) {
 
     const newHistory = [...chatHistory, { role: 'user', content: msg }]
     if (!overrideMsg) setInput('')
-    setSuggestions([])
     setIsAgentRunning(true)
     setStreamingText('')
     setActiveTool(null)
@@ -121,13 +120,10 @@ export default function ReportViewer({ initialState, email }) {
           setReportState(event.state)
           setActiveTool(null)
         } else if (event.type === 'done') {
-          const { clean, chips } = parseSuggestions(agentReply)
+          const { clean } = parseSuggestions(agentReply)
           const nextMessages = event.messages ?? (agentReply ? [{ role: 'assistant', content: clean }] : [])
           if (nextMessages.length) {
             setChatHistory([...newHistory, ...nextMessages])
-          }
-          if (agentReply) {
-            setSuggestions(chips)
           }
           setStreamingText('')
           setIsAgentRunning(false)
@@ -253,23 +249,10 @@ export default function ReportViewer({ initialState, email }) {
         <div style={{ flex: '0 0 35%', display: 'flex', flexDirection: 'column', background: '#fff' }}>
           {/* Status / streaming area */}
           <div style={{ flex: 1, overflowY: 'auto', padding: '16px', display: 'flex', flexDirection: 'column', gap: 10 }}>
-            {/* Suggestion chips */}
-            {suggestions.length > 0 && !isAgentRunning && (
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
-                {suggestions.map((s, i) => (
-                  <button
-                    key={i}
-                    type="button"
-                    onClick={() => { setSuggestions([]); handleSend(null, s) }}
-                    style={{
-                      background: '#fff', border: '1px solid #2957FF', borderRadius: 16,
-                      color: '#2957FF', padding: '4px 12px', fontSize: 12, cursor: 'pointer',
-                      fontFamily: 'inherit',
-                    }}
-                  >
-                    {s}
-                  </button>
-                ))}
+            {/* Initial message */}
+            {!isAgentRunning && !streamingText && !activeTool && chatHistory.length === 0 && (
+              <div style={{ color: '#5a5a6e', fontSize: 13, lineHeight: 1.6 }}>
+                {initialMessage}
               </div>
             )}
 
@@ -289,13 +272,6 @@ export default function ReportViewer({ initialState, email }) {
               <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                 <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#2957FF', animation: 'pulse 1s infinite' }} />
                 <span style={{ fontSize: 12, color: '#5a5a6e', fontStyle: 'italic' }}>{activeTool}</span>
-              </div>
-            )}
-
-            {/* Placeholder when idle */}
-            {!isAgentRunning && !streamingText && !activeTool && suggestions.length === 0 && (
-              <div style={{ color: '#94a3b8', fontSize: 12, fontStyle: 'italic', marginTop: 4 }}>
-                Ask me to adjust any numbers, rewrite sections, or add context.
               </div>
             )}
           </div>
