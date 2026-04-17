@@ -79,7 +79,16 @@ Return valid JSON only.
 export const ROI_MODELER_SCHEMA = {
   type: 'object',
   additionalProperties: false,
-  required: ['currency', 'costs', 'labor', 'realizationFactor', 'profitMultiplier', 'workflowAssumptions', 'rollout', 'notes'],
+  required: [
+    'currency',
+    'costs',
+    'labor',
+    'realizationFactor',
+    'profitMultiplier',
+    'workflowAssumptions',
+    'rollout',
+    'notes',
+  ],
   properties: {
     currency: {
       type: 'object',
@@ -118,9 +127,21 @@ export const ROI_MODELER_SCHEMA = {
       items: {
         type: 'object',
         additionalProperties: false,
-        required: ['workflowName', 'monthlyVolume', 'minutesPerItemBefore', 'minutesPerItemAfter',
-          'exceptionRate', 'exceptionMinutes', 'adoption_low', 'adoption_base', 'adoption_high',
-          'rationale', 'fullyLoadedHourlyCostOverride', 'rateSource', 'seniorityLevel'],
+        required: [
+          'workflowName',
+          'monthlyVolume',
+          'minutesPerItemBefore',
+          'minutesPerItemAfter',
+          'exceptionRate',
+          'exceptionMinutes',
+          'adoption_low',
+          'adoption_base',
+          'adoption_high',
+          'rationale',
+          'fullyLoadedHourlyCostOverride',
+          'rateSource',
+          'seniorityLevel',
+        ],
         properties: {
           workflowName: { type: 'string' },
           monthlyVolume: { type: 'number', minimum: 0 },

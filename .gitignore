@@ -19,4 +19,4 @@ workflows
 
 # Next.js
 /.next
-.vscode
+.vscodelogs/

@@ -17,7 +17,10 @@ export interface SearchResponse {
   results: SearchResult[]
 }
 
-async function tavilySearch(query: string, maxResults: number): Promise<SearchResponse> {
+async function tavilySearch(
+  query: string,
+  maxResults: number,
+): Promise<SearchResponse> {
   try {
     const res = await fetch('https://api.tavily.com/search', {
       method: 'POST',
@@ -40,18 +43,23 @@ async function tavilySearch(query: string, maxResults: number): Promise<SearchRe
     const data = await res.json()
     return {
       answer: data.answer ?? null,
-      results: (data.results ?? []).slice(0, maxResults).map((r: SearchResult) => ({
-        title: r.title,
-        url: r.url,
-        content: r.content?.slice(0, 500) ?? '',
-      })),
+      results: (data.results ?? [])
+        .slice(0, maxResults)
+        .map((r: SearchResult) => ({
+          title: r.title,
+          url: r.url,
+          content: r.content?.slice(0, 500) ?? '',
+        })),
     }
   } catch {
     return { answer: null, results: [] }
   }
 }
 
-async function jinaSearch(query: string, maxResults: number): Promise<SearchResponse> {
+async function jinaSearch(
+  query: string,
+  maxResults: number,
+): Promise<SearchResponse> {
   try {
     const res = await fetch(`https://s.jina.ai/${encodeURIComponent(query)}`, {
       headers: { Accept: 'application/json' },
@@ -63,12 +71,16 @@ async function jinaSearch(query: string, maxResults: number): Promise<SearchResp
     }
 
     const data = await res.json()
-    const items: Array<{ title?: string; url?: string; description?: string; content?: string }> =
-      data.data ?? []
+    const items: Array<{
+      title?: string
+      url?: string
+      description?: string
+      content?: string
+    }> = data.data ?? []
 
     return {
       answer: null,
-      results: items.slice(0, maxResults).map(r => ({
+      results: items.slice(0, maxResults).map((r) => ({
         title: r.title ?? '',
         url: r.url ?? '',
         content: (r.description ?? r.content ?? '').slice(0, 500),
@@ -78,18 +90,21 @@ async function jinaSearch(query: string, maxResults: number): Promise<SearchResp
     // Return a graceful no-results so the agent can still run on questionnaire data alone
     return {
       answer: null,
-      results: [{
-        title: 'Search unavailable',
-        url: '',
-        content: 'Web search is currently unavailable. Use questionnaire data and industry benchmarks.',
-      }],
+      results: [
+        {
+          title: 'Search unavailable',
+          url: '',
+          content:
+            'Web search is currently unavailable. Use questionnaire data and industry benchmarks.',
+        },
+      ],
     }
   }
 }
 
 export async function webSearch(
   query: string,
-  maxResults = 3
+  maxResults = 3,
 ): Promise<SearchResponse> {
   if (process.env.TAVILY_API_KEY) {
     return tavilySearch(query, maxResults)

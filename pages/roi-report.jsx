@@ -194,7 +194,10 @@ function Step1({ data, onChange, errors }) {
       />
       <div className="space-y-2">
         <label className="text-[12.5px] font-semibold text-gray-800">
-          Industry <span className="font-normal text-gray-400">— helps us benchmark faster</span>
+          Industry{' '}
+          <span className="font-normal text-gray-400">
+            — helps us benchmark faster
+          </span>
         </label>
         <PillGroup
           options={INDUSTRY_OPTS}
@@ -223,7 +226,8 @@ function Step2({ data, onChange, errors, isDev }) {
         </p>
         {isDev && (
           <p className="text-xs text-amber-600 mt-2">
-            Dev mode is on: the form is prefilled, email/PDF are skipped, and you can use a fast mock preview.
+            Dev mode is on: the form is prefilled, email/PDF are skipped, and
+            you can use a fast mock preview.
           </p>
         )}
       </div>
@@ -285,7 +289,8 @@ function GeneratingView({ generationLog }) {
         Building your ROI report…
       </h2>
       <p className="text-sm text-gray-500 mb-6">
-        Our AI is researching your company and modelling your automation potential. This takes about 45–90 seconds.
+        Our AI is researching your company and modelling your automation
+        potential. This takes about 45–90 seconds.
       </p>
       <div className="font-mono text-xs text-gray-600 bg-gray-50 rounded-lg p-4 h-32 overflow-y-auto text-left whitespace-pre-wrap border border-gray-100">
         {generationLog || 'Starting…'}
@@ -334,20 +339,28 @@ export default function ROIReport() {
   const [errorMessage, setErrorMessage] = useState('')
 
   // Step 1
-  const [s1, setS1] = useState(IS_DEV ? DEV_STEP1_PRESET : {
-    companyName: '',
-    website: '',
-    whatYouDo: '',
-    industry: '',
-  })
+  const [s1, setS1] = useState(
+    IS_DEV
+      ? DEV_STEP1_PRESET
+      : {
+          companyName: '',
+          website: '',
+          whatYouDo: '',
+          industry: '',
+        },
+  )
 
   // Step 2
-  const [s2, setS2] = useState(IS_DEV ? DEV_STEP2_PRESET : {
-    email: '',
-    recipientName: '',
-    recipientTitle: '',
-    currency: '',
-  })
+  const [s2, setS2] = useState(
+    IS_DEV
+      ? DEV_STEP2_PRESET
+      : {
+          email: '',
+          recipientName: '',
+          recipientTitle: '',
+          currency: '',
+        },
+  )
 
   const [errors, setErrors] = useState({})
 
@@ -361,72 +374,83 @@ export default function ROIReport() {
     setErrors((prev) => ({ ...prev, [key]: '' }))
   }, [])
 
-  const next = useCallback(async ({ skipLLM = false } = {}) => {
-    const currentErrors = validateStep(step, s1, s2)
-    setErrors(currentErrors)
-    if (Object.keys(currentErrors).length) return
+  const next = useCallback(
+    async ({ skipLLM = false } = {}) => {
+      const currentErrors = validateStep(step, s1, s2)
+      setErrors(currentErrors)
+      if (Object.keys(currentErrors).length) return
 
-    if (step < TOTAL_STEPS) {
-      setStep((prev) => prev + 1)
-      return
-    }
+      if (step < TOTAL_STEPS) {
+        setStep((prev) => prev + 1)
+        return
+      }
 
-    setViewState('generating')
-    setGenerationLog('')
-    setReportState(null)
+      setViewState('generating')
+      setGenerationLog('')
+      setReportState(null)
 
-    const payload = {
-      'Company Name': s1.companyName.trim(),
-      'Company Website URL': s1.website.trim(),
-      'What does your company do?': s1.whatYouDo.trim(),
-      Industry: s1.industry || '',
-      'Number of Employees': '',
-      'Estimated Annual Revenue': '',
-      'Operating Currency': s2.currency ? s2.currency.split(' – ')[0] : '',
-      Email: s2.email.trim(),
-      'Recipient Name': s2.recipientName.trim(),
-      'Recipient Title': s2.recipientTitle.trim(),
-      Country: '',
-      'Key Priorities': [],
-      processes: [],
-    }
+      const payload = {
+        'Company Name': s1.companyName.trim(),
+        'Company Website URL': s1.website.trim(),
+        'What does your company do?': s1.whatYouDo.trim(),
+        Industry: s1.industry || '',
+        'Number of Employees': '',
+        'Estimated Annual Revenue': '',
+        'Operating Currency': s2.currency ? s2.currency.split(' – ')[0] : '',
+        Email: s2.email.trim(),
+        'Recipient Name': s2.recipientName.trim(),
+        'Recipient Title': s2.recipientTitle.trim(),
+        Country: '',
+        'Key Priorities': [],
+        processes: [],
+      }
 
-    try {
-      const response = await fetch('/api/roi-agent', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          mode: 'generate',
-          formData: payload,
-          devOptions: { skipLLM },
-        }),
-      })
+      try {
+        const response = await fetch('/api/roi-agent', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            mode: 'generate',
+            formData: payload,
+            devOptions: { skipLLM },
+          }),
+        })
 
-      let latestState = null
-      await drainSSE(response.body.getReader(), new TextDecoder(), (event) => {
-        if (event.type === 'text_delta') {
-          setGenerationLog(prev => (prev + event.delta).slice(-2000))
-        } else if (event.type === 'tool_start') {
-          setGenerationLog(prev => prev + `\n[${event.tool}]`)
-        } else if (event.type === 'report_update') {
-          latestState = event.state
-          setReportState(event.state)
-        } else if (event.type === 'done') {
-          if (event.assembled || latestState?.assembled) {
-            setViewState('preview')
-          } else {
-            setErrorMessage('Report generation finished without a complete report. Please try again.')
-            setViewState('error')
-          }
-        } else if (event.type === 'error') {
-          throw new Error(event.message)
-        }
-      })
-    } catch (err) {
-      setErrorMessage(err.message || 'Something went wrong. Please try again.')
-      setViewState('error')
-    }
-  }, [step, s1, s2])
+        let latestState = null
+        await drainSSE(
+          response.body.getReader(),
+          new TextDecoder(),
+          (event) => {
+            if (event.type === 'text_delta') {
+              setGenerationLog((prev) => (prev + event.delta).slice(-2000))
+            } else if (event.type === 'tool_start') {
+              setGenerationLog((prev) => prev + `\n[${event.tool}]`)
+            } else if (event.type === 'report_update') {
+              latestState = event.state
+              setReportState(event.state)
+            } else if (event.type === 'done') {
+              if (event.assembled || latestState?.assembled) {
+                setViewState('preview')
+              } else {
+                setErrorMessage(
+                  'Report generation finished without a complete report. Please try again.',
+                )
+                setViewState('error')
+              }
+            } else if (event.type === 'error') {
+              throw new Error(event.message)
+            }
+          },
+        )
+      } catch (err) {
+        setErrorMessage(
+          err.message || 'Something went wrong. Please try again.',
+        )
+        setViewState('error')
+      }
+    },
+    [step, s1, s2],
+  )
 
   const back = useCallback(() => {
     setStep((prev) => Math.max(prev - 1, 1))
@@ -550,7 +574,12 @@ export default function ROIReport() {
                     <Step1 data={s1} onChange={changeS1} errors={errors} />
                   )}
                   {step === 2 && (
-                    <Step2 data={s2} onChange={changeS2} errors={errors} isDev={IS_DEV} />
+                    <Step2
+                      data={s2}
+                      onChange={changeS2}
+                      errors={errors}
+                      isDev={IS_DEV}
+                    />
                   )}
                 </motion.div>
               </AnimatePresence>

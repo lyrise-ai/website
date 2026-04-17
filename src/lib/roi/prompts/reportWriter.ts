@@ -101,8 +101,15 @@ export const REPORT_WRITER_SCHEMA = {
   type: 'object',
   additionalProperties: false,
   required: [
-    'unified_pattern_thesis', 'company_snapshot', 'cta_paragraph', 'profit_levers',
-    'cost_of_delay', 'resilience_rows', 'pilot_recommendation', 'risks', 'next_steps_checklist',
+    'unified_pattern_thesis',
+    'company_snapshot',
+    'cta_paragraph',
+    'profit_levers',
+    'cost_of_delay',
+    'resilience_rows',
+    'pilot_recommendation',
+    'risks',
+    'next_steps_checklist',
   ],
   properties: {
     unified_pattern_thesis: { type: 'string' },
@@ -116,7 +123,10 @@ export const REPORT_WRITER_SCHEMA = {
         required: ['text', 'sourceType'],
         properties: {
           text: { type: 'string' },
-          sourceType: { type: 'string', enum: ['scraped', 'benchmarked', 'assumed'] },
+          sourceType: {
+            type: 'string',
+            enum: ['scraped', 'benchmarked', 'assumed'],
+          },
         },
       },
     },
@@ -128,7 +138,15 @@ export const REPORT_WRITER_SCHEMA = {
       items: {
         type: 'object',
         additionalProperties: false,
-        required: ['lever_name', 'derived_from', 'baseline_data', 'assumption', 'rationale', 'rationale_with_arithmetic', 'profit'],
+        required: [
+          'lever_name',
+          'derived_from',
+          'baseline_data',
+          'assumption',
+          'rationale',
+          'rationale_with_arithmetic',
+          'profit',
+        ],
         properties: {
           lever_name: { type: 'string' },
           derived_from: { type: 'string' },
@@ -174,7 +192,11 @@ export const REPORT_WRITER_SCHEMA = {
         required: ['risk', 'detail', 'mitigation'],
         properties: {
           risk: { type: 'string' },
-          detail: { type: 'string', description: '2-3 sentences explaining why this risk matters for this specific company' },
+          detail: {
+            type: 'string',
+            description:
+              '2-3 sentences explaining why this risk matters for this specific company',
+          },
           mitigation: { type: 'string' },
         },
       },

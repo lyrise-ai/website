@@ -7,27 +7,39 @@ function parseSuggestions(content) {
   if (!m) return { clean: content, chips: [] }
   return {
     clean: content.replace(SUGGEST_RE, '').trimEnd(),
-    chips: m[1].split('|').map(s => s.trim()).filter(Boolean),
+    chips: m[1]
+      .split('|')
+      .map((s) => s.trim())
+      .filter(Boolean),
   }
 }
 
 function buildInitialMessage(state) {
   const isLow = state?.confidenceLevel === 'low'
-  const inferredWfs = state?.researchOutput?.workflows?.filter(w => w.sourceType === 'inferred') ?? []
+  const inferredWfs =
+    state?.researchOutput?.workflows?.filter(
+      (w) => w.sourceType === 'inferred',
+    ) ?? []
   const noRevenue = !state?.revenueAnchor
   const company = state?.assembled?.roi_data?.company ?? 'your company'
 
   if (!isLow && !inferredWfs.length && !noRevenue) {
     return {
       text: `Report ready for ${company}. Ask me to adjust any numbers, rewrite sections, or research more context.`,
-      chips: ['Update a workflow volume', 'Rewrite the executive summary', 'Change the currency'],
+      chips: [
+        'Update a workflow volume',
+        'Rewrite the executive summary',
+        'Change the currency',
+      ],
     }
   }
 
   const gaps = []
   if (noRevenue) gaps.push('revenue figure (needed for accuracy)')
-  inferredWfs.forEach(w => gaps.push(`"${w.name}" — volume and time estimates (currently inferred)`))
-  const gapLines = gaps.map(g => `- ${g}`).join('\n')
+  inferredWfs.forEach((w) =>
+    gaps.push(`"${w.name}" — volume and time estimates (currently inferred)`),
+  )
+  const gapLines = gaps.map((g) => `- ${g}`).join('\n')
 
   const text = isLow
     ? `I've produced a **hypothesis-driven estimate** — most figures are benchmarked, not scraped. Here's what would most improve accuracy:\n\n${gapLines}\n\nWant to provide any of these?`
@@ -66,7 +78,9 @@ const TOOL_LABELS = {
 export default function ReportViewer({ initialState, email }) {
   const [reportState, setReportState] = useState(initialState)
   const [chatHistory, setChatHistory] = useState([])
-  const [initialMessage] = useState(() => buildInitialMessage(initialState).text)
+  const [initialMessage] = useState(
+    () => buildInitialMessage(initialState).text,
+  )
   const [streamingText, setStreamingText] = useState('')
   const [activeTool, setActiveTool] = useState(null)
   const [isAgentRunning, setIsAgentRunning] = useState(false)
@@ -76,69 +90,75 @@ export default function ReportViewer({ initialState, email }) {
 
   const iframeRef = useRef(null)
 
-  const activeHtml = activeTab === 'exec'
-    ? (reportState?.renderedHtml ?? initialState?.renderedHtml)
-    : (reportState?.renderedFullHtml ?? initialState?.renderedFullHtml)
+  const activeHtml =
+    activeTab === 'exec'
+      ? reportState?.renderedHtml ?? initialState?.renderedHtml
+      : reportState?.renderedFullHtml ?? initialState?.renderedFullHtml
   const company = reportState?.assembled?.roi_data?.company ?? ''
 
-  const handleSend = useCallback(async (e, overrideMsg) => {
-    e?.preventDefault()
-    const msg = (overrideMsg ?? input).trim()
-    if (!msg || isAgentRunning) return
+  const handleSend = useCallback(
+    async (e, overrideMsg) => {
+      e?.preventDefault()
+      const msg = (overrideMsg ?? input).trim()
+      if (!msg || isAgentRunning) return
 
-    const newHistory = [...chatHistory, { role: 'user', content: msg }]
-    if (!overrideMsg) setInput('')
-    setIsAgentRunning(true)
-    setStreamingText('')
-    setActiveTool(null)
-
-    try {
-      const res = await fetch('/api/roi-agent', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          mode: 'chat',
-          message: msg,
-          chatHistory: newHistory,
-          state: reportState,
-        }),
-      })
-
-      if (!res.ok) throw new Error(`HTTP ${res.status}`)
-
-      let agentReply = ''
-      const reader = res.body.getReader()
-      const decoder = new TextDecoder()
-
-      await drainSSE(reader, decoder, (event) => {
-        if (event.type === 'text_delta') {
-          agentReply += event.delta
-          setStreamingText(agentReply)
-        } else if (event.type === 'tool_start') {
-          setActiveTool(TOOL_LABELS[event.tool] ?? event.tool)
-        } else if (event.type === 'report_update') {
-          setReportState(event.state)
-          setActiveTool(null)
-        } else if (event.type === 'done') {
-          const { clean } = parseSuggestions(agentReply)
-          const nextMessages = event.messages ?? (agentReply ? [{ role: 'assistant', content: clean }] : [])
-          if (nextMessages.length) {
-            setChatHistory([...newHistory, ...nextMessages])
-          }
-          setStreamingText('')
-          setIsAgentRunning(false)
-          setActiveTool(null)
-        } else if (event.type === 'error') {
-          setStreamingText('')
-          setIsAgentRunning(false)
-          setActiveTool(null)
-        }
-      })
-    } catch {
-      setIsAgentRunning(false)
+      const newHistory = [...chatHistory, { role: 'user', content: msg }]
+      if (!overrideMsg) setInput('')
+      setIsAgentRunning(true)
+      setStreamingText('')
       setActiveTool(null)
-    }
-  }, [input, isAgentRunning, chatHistory, reportState])
+
+      try {
+        const res = await fetch('/api/roi-agent', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            mode: 'chat',
+            message: msg,
+            chatHistory: newHistory,
+            state: reportState,
+          }),
+        })
+
+        if (!res.ok) throw new Error(`HTTP ${res.status}`)
+
+        let agentReply = ''
+        const reader = res.body.getReader()
+        const decoder = new TextDecoder()
+
+        await drainSSE(reader, decoder, (event) => {
+          if (event.type === 'text_delta') {
+            agentReply += event.delta
+            setStreamingText(agentReply)
+          } else if (event.type === 'tool_start') {
+            setActiveTool(TOOL_LABELS[event.tool] ?? event.tool)
+          } else if (event.type === 'report_update') {
+            setReportState(event.state)
+            setActiveTool(null)
+          } else if (event.type === 'done') {
+            const { clean } = parseSuggestions(agentReply)
+            const nextMessages =
+              event.messages ??
+              (agentReply ? [{ role: 'assistant', content: clean }] : [])
+            if (nextMessages.length) {
+              setChatHistory([...newHistory, ...nextMessages])
+            }
+            setStreamingText('')
+            setIsAgentRunning(false)
+            setActiveTool(null)
+          } else if (event.type === 'error') {
+            setStreamingText('')
+            setIsAgentRunning(false)
+            setActiveTool(null)
+          }
+        })
+      } catch {
+        setIsAgentRunning(false)
+        setActiveTool(null)
+      }
+    },
+    [input, isAgentRunning, chatHistory, reportState],
+  )
 
   const handleDownload = useCallback(() => {
     iframeRef.current?.contentWindow?.print()
@@ -162,33 +182,63 @@ export default function ReportViewer({ initialState, email }) {
     }
   }, [emailStatus, reportState])
 
-  const handleKeyDown = useCallback((e) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault()
-      handleSend()
-    }
-  }, [handleSend])
+  const handleKeyDown = useCallback(
+    (e) => {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault()
+        handleSend()
+      }
+    },
+    [handleSend],
+  )
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100vh', fontFamily: 'system-ui, sans-serif' }}>
+    <div
+      style={{
+        display: 'flex',
+        flexDirection: 'column',
+        height: '100vh',
+        fontFamily: 'system-ui, sans-serif',
+      }}
+    >
       {/* Toolbar */}
-      <div style={{
-        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-        padding: '10px 16px', borderBottom: '1px solid #e2e8f0', background: '#fff',
-        boxShadow: '0 1px 3px rgba(0,0,0,0.06)', zIndex: 10, flexShrink: 0,
-      }}>
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          padding: '10px 16px',
+          borderBottom: '1px solid #e2e8f0',
+          background: '#fff',
+          boxShadow: '0 1px 3px rgba(0,0,0,0.06)',
+          zIndex: 10,
+          flexShrink: 0,
+        }}
+      >
         <div style={{ fontWeight: 600, fontSize: 14, color: '#1a1a1a' }}>
           {company} — AI ROI Report
         </div>
         <div style={{ display: 'flex', gap: 8 }}>
-          <div style={{ display: 'flex', gap: 2, border: '1px solid #e2e8f0', borderRadius: 6, overflow: 'hidden' }}>
+          <div
+            style={{
+              display: 'flex',
+              gap: 2,
+              border: '1px solid #e2e8f0',
+              borderRadius: 6,
+              overflow: 'hidden',
+            }}
+          >
             <button
               type="button"
               onClick={() => setActiveTab('exec')}
               style={{
-                padding: '6px 12px', fontSize: 13, fontWeight: 500, border: 'none',
+                padding: '6px 12px',
+                fontSize: 13,
+                fontWeight: 500,
+                border: 'none',
                 background: activeTab === 'exec' ? '#2957FF' : '#fff',
-                color: activeTab === 'exec' ? '#fff' : '#374151', cursor: 'pointer',
+                color: activeTab === 'exec' ? '#fff' : '#374151',
+                cursor: 'pointer',
               }}
             >
               Executive Summary
@@ -197,9 +247,13 @@ export default function ReportViewer({ initialState, email }) {
               type="button"
               onClick={() => setActiveTab('full')}
               style={{
-                padding: '6px 12px', fontSize: 13, fontWeight: 500, border: 'none',
+                padding: '6px 12px',
+                fontSize: 13,
+                fontWeight: 500,
+                border: 'none',
                 background: activeTab === 'full' ? '#2957FF' : '#fff',
-                color: activeTab === 'full' ? '#fff' : '#374151', cursor: 'pointer',
+                color: activeTab === 'full' ? '#fff' : '#374151',
+                cursor: 'pointer',
               }}
             >
               Full Report
@@ -209,9 +263,14 @@ export default function ReportViewer({ initialState, email }) {
             type="button"
             onClick={handleDownload}
             style={{
-              padding: '6px 14px', fontSize: 13, fontWeight: 500,
-              border: '1px solid #e2e8f0', borderRadius: 6, background: '#fff',
-              color: '#374151', cursor: 'pointer',
+              padding: '6px 14px',
+              fontSize: 13,
+              fontWeight: 500,
+              border: '1px solid #e2e8f0',
+              borderRadius: 6,
+              background: '#fff',
+              color: '#374151',
+              cursor: 'pointer',
             }}
           >
             Download PDF
@@ -221,14 +280,34 @@ export default function ReportViewer({ initialState, email }) {
             onClick={handleResendEmail}
             disabled={emailStatus === 'sending'}
             style={{
-              padding: '6px 14px', fontSize: 13, fontWeight: 500,
-              border: '1px solid #2957FF', borderRadius: 6,
-              background: emailStatus === 'sent' ? '#dcfce7' : emailStatus === 'error' ? '#fee2e2' : '#2957FF',
-              color: emailStatus === 'sent' ? '#166534' : emailStatus === 'error' ? '#991b1b' : '#fff',
-              cursor: emailStatus === 'sending' ? 'not-allowed' : 'pointer', opacity: emailStatus === 'sending' ? 0.7 : 1,
+              padding: '6px 14px',
+              fontSize: 13,
+              fontWeight: 500,
+              border: '1px solid #2957FF',
+              borderRadius: 6,
+              background:
+                emailStatus === 'sent'
+                  ? '#dcfce7'
+                  : emailStatus === 'error'
+                  ? '#fee2e2'
+                  : '#2957FF',
+              color:
+                emailStatus === 'sent'
+                  ? '#166534'
+                  : emailStatus === 'error'
+                  ? '#991b1b'
+                  : '#fff',
+              cursor: emailStatus === 'sending' ? 'not-allowed' : 'pointer',
+              opacity: emailStatus === 'sending' ? 0.7 : 1,
             }}
           >
-            {emailStatus === 'sending' ? 'Sending…' : emailStatus === 'sent' ? 'Email Sent!' : emailStatus === 'error' ? 'Send Failed' : 'Re-send Email'}
+            {emailStatus === 'sending'
+              ? 'Sending…'
+              : emailStatus === 'sent'
+              ? 'Email Sent!'
+              : emailStatus === 'error'
+              ? 'Send Failed'
+              : 'Re-send Email'}
           </button>
         </div>
       </div>
@@ -236,7 +315,14 @@ export default function ReportViewer({ initialState, email }) {
       {/* Main content */}
       <div style={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
         {/* Report iframe (65% width) */}
-        <div style={{ flex: '0 0 65%', overflow: 'hidden', borderRight: '1px solid #e2e8f0', background: '#f1f5f9' }}>
+        <div
+          style={{
+            flex: '0 0 65%',
+            overflow: 'hidden',
+            borderRight: '1px solid #e2e8f0',
+            background: '#f1f5f9',
+          }}
+        >
           <iframe
             ref={iframeRef}
             srcDoc={activeHtml ?? ''}
@@ -246,38 +332,141 @@ export default function ReportViewer({ initialState, email }) {
         </div>
 
         {/* Chat panel (35% width) */}
-        <div style={{ flex: '0 0 35%', display: 'flex', flexDirection: 'column', background: '#fff' }}>
+        <div
+          style={{
+            flex: '0 0 35%',
+            display: 'flex',
+            flexDirection: 'column',
+            background: '#fff',
+          }}
+        >
           {/* Status / streaming area */}
-          <div style={{ flex: 1, overflowY: 'auto', padding: '16px', display: 'flex', flexDirection: 'column', gap: 10 }}>
+          <div
+            style={{
+              flex: 1,
+              overflowY: 'auto',
+              padding: '16px',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: 10,
+            }}
+          >
             {/* Initial message */}
-            {!isAgentRunning && !streamingText && !activeTool && chatHistory.length === 0 && (
-              <div style={{ color: '#5a5a6e', fontSize: 13, lineHeight: 1.6 }}>
-                {initialMessage}
-              </div>
-            )}
+            {!isAgentRunning &&
+              !streamingText &&
+              !activeTool &&
+              chatHistory.length === 0 && (
+                <div
+                  style={{ color: '#5a5a6e', fontSize: 13, lineHeight: 1.6 }}
+                >
+                  {initialMessage}
+                </div>
+              )}
+
+            {/* Chat history */}
+            {chatHistory.map((msg, i) => {
+              if (msg.role === 'tool') return null
+              const text =
+                typeof msg.content === 'string'
+                  ? msg.content
+                  : Array.isArray(msg.content)
+                  ? msg.content
+                      .filter((p) => p.type === 'text')
+                      .map((p) => p.text)
+                      .join('')
+                      .trim()
+                  : ''
+              if (!text) return null
+              const isUser = msg.role === 'user'
+              return (
+                <div
+                  key={i}
+                  style={{
+                    display: 'flex',
+                    justifyContent: isUser ? 'flex-end' : 'flex-start',
+                  }}
+                >
+                  <div
+                    style={{
+                      maxWidth: '85%',
+                      padding: '7px 11px',
+                      borderRadius: isUser
+                        ? '12px 12px 3px 12px'
+                        : '12px 12px 12px 3px',
+                      background: isUser ? '#2957FF' : '#f1f5f9',
+                      color: isUser ? '#fff' : '#1a1a1a',
+                      fontSize: 13,
+                      lineHeight: 1.5,
+                      wordBreak: 'break-word',
+                    }}
+                  >
+                    {text}
+                  </div>
+                </div>
+              )
+            })}
 
             {/* Streaming text (currently typing) */}
             {streamingText && (
-              <div style={{
-                padding: '8px 12px', borderRadius: 8,
-                background: '#f1f5f9', color: '#1a1a1a', fontSize: 13, lineHeight: 1.55, wordBreak: 'break-word',
-              }}>
+              <div
+                style={{
+                  padding: '8px 12px',
+                  borderRadius: 8,
+                  background: '#f1f5f9',
+                  color: '#1a1a1a',
+                  fontSize: 13,
+                  lineHeight: 1.55,
+                  wordBreak: 'break-word',
+                }}
+              >
                 {streamingText}
-                <span style={{ display: 'inline-block', width: 6, height: 6, background: '#2957FF', borderRadius: '50%', marginLeft: 4, animation: 'pulse 1s infinite' }} />
+                <span
+                  style={{
+                    display: 'inline-block',
+                    width: 6,
+                    height: 6,
+                    background: '#2957FF',
+                    borderRadius: '50%',
+                    marginLeft: 4,
+                    animation: 'pulse 1s infinite',
+                  }}
+                />
               </div>
             )}
 
             {/* Tool indicator */}
             {activeTool && (
               <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#2957FF', animation: 'pulse 1s infinite' }} />
-                <span style={{ fontSize: 12, color: '#5a5a6e', fontStyle: 'italic' }}>{activeTool}</span>
+                <div
+                  style={{
+                    width: 6,
+                    height: 6,
+                    borderRadius: '50%',
+                    background: '#2957FF',
+                    animation: 'pulse 1s infinite',
+                  }}
+                />
+                <span
+                  style={{
+                    fontSize: 12,
+                    color: '#5a5a6e',
+                    fontStyle: 'italic',
+                  }}
+                >
+                  {activeTool}
+                </span>
               </div>
             )}
           </div>
 
           {/* Input area */}
-          <div style={{ padding: '12px 16px', borderTop: '1px solid #e2e8f0', background: '#fff' }}>
+          <div
+            style={{
+              padding: '12px 16px',
+              borderTop: '1px solid #e2e8f0',
+              background: '#fff',
+            }}
+          >
             <form onSubmit={handleSend} style={{ display: 'flex', gap: 8 }}>
               <textarea
                 value={input}
@@ -287,9 +476,16 @@ export default function ReportViewer({ initialState, email }) {
                 disabled={isAgentRunning}
                 rows={2}
                 style={{
-                  flex: 1, padding: '8px 12px', border: '1px solid #e2e8f0', borderRadius: 8,
-                  fontSize: 13, lineHeight: 1.5, resize: 'none', outline: 'none',
-                  fontFamily: 'inherit', color: '#1a1a1a',
+                  flex: 1,
+                  padding: '8px 12px',
+                  border: '1px solid #e2e8f0',
+                  borderRadius: 8,
+                  fontSize: 13,
+                  lineHeight: 1.5,
+                  resize: 'none',
+                  outline: 'none',
+                  fontFamily: 'inherit',
+                  color: '#1a1a1a',
                   background: isAgentRunning ? '#f9fafb' : '#fff',
                 }}
               />
@@ -297,10 +493,16 @@ export default function ReportViewer({ initialState, email }) {
                 type="submit"
                 disabled={isAgentRunning || !input.trim()}
                 style={{
-                  padding: '8px 16px', borderRadius: 8, border: 'none',
-                  background: isAgentRunning || !input.trim() ? '#e2e8f0' : '#2957FF',
+                  padding: '8px 16px',
+                  borderRadius: 8,
+                  border: 'none',
+                  background:
+                    isAgentRunning || !input.trim() ? '#e2e8f0' : '#2957FF',
                   color: isAgentRunning || !input.trim() ? '#94a3b8' : '#fff',
-                  fontWeight: 600, fontSize: 13, cursor: isAgentRunning || !input.trim() ? 'not-allowed' : 'pointer',
+                  fontWeight: 600,
+                  fontSize: 13,
+                  cursor:
+                    isAgentRunning || !input.trim() ? 'not-allowed' : 'pointer',
                   alignSelf: 'flex-end',
                 }}
               >
@@ -308,7 +510,8 @@ export default function ReportViewer({ initialState, email }) {
               </button>
             </form>
             <p style={{ fontSize: 11, color: '#94a3b8', margin: '4px 0 0 0' }}>
-              Ask to update numbers, rewrite sections, or research additional context.
+              Ask to update numbers, rewrite sections, or research additional
+              context.
             </p>
           </div>
         </div>

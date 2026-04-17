@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 // ─────────────────────────────────────────────────────────────────────────────
 // POST /api/roi-agent — Unified ROI agent endpoint (generation + chat editing)
 //
@@ -31,15 +32,15 @@ function send(res, event) {
 function mapFormToPayload(body) {
   return {
     ...body,
-    'Company Name':         body.companyName    ?? body['Company Name']    ?? '',
-    'Company Website URL':  body.website        ?? body['Company Website URL'] ?? '',
-    Email:                  body.email          ?? body.Email              ?? '',
-    Industry:               body.industry       ?? body.Industry           ?? '',
-    'Company LinkedIn URL': body.linkedin       ?? body['Company LinkedIn URL'] ?? '',
-    'Recipient Name':       body.recipientName  ?? body['Recipient Name']  ?? '',
-    'Recipient Title':      body.recipientTitle ?? body['Recipient Title'] ?? '',
-    'Operating Currency':   body.currency       ?? body['Operating Currency'] ?? 'USD',
-    processes:              body.processes      ?? [],
+    'Company Name': body.companyName ?? body['Company Name'] ?? '',
+    'Company Website URL': body.website ?? body['Company Website URL'] ?? '',
+    Email: body.email ?? body.Email ?? '',
+    Industry: body.industry ?? body.Industry ?? '',
+    'Company LinkedIn URL': body.linkedin ?? body['Company LinkedIn URL'] ?? '',
+    'Recipient Name': body.recipientName ?? body['Recipient Name'] ?? '',
+    'Recipient Title': body.recipientTitle ?? body['Recipient Title'] ?? '',
+    'Operating Currency': body.currency ?? body['Operating Currency'] ?? 'USD',
+    processes: body.processes ?? [],
   }
 }
 
@@ -64,7 +65,10 @@ export default async function handler(req, res) {
   } = req.body
 
   if (!mode || !['generate', 'chat'].includes(mode)) {
-    send(res, { type: 'error', message: 'Invalid mode. Must be "generate" or "chat".' })
+    send(res, {
+      type: 'error',
+      message: 'Invalid mode. Must be "generate" or "chat".',
+    })
     res.end()
     return
   }
@@ -84,9 +88,17 @@ export default async function handler(req, res) {
           execTemplateHtml,
           fullTemplateHtml,
         })
-        send(res, { type: 'text_delta', delta: 'Using dev mock report. Skipping research, LLM calls, PDF, and email.' })
+        send(res, {
+          type: 'text_delta',
+          delta:
+            'Using dev mock report. Skipping research, LLM calls, PDF, and email.',
+        })
         send(res, { type: 'report_update', state })
-        send(res, { type: 'done', assembled: true, messages: [{ role: 'assistant', content: 'Dev mock report ready.' }] })
+        send(res, {
+          type: 'done',
+          assembled: true,
+          messages: [{ role: 'assistant', content: 'Dev mock report ready.' }],
+        })
         res.end()
         return
       }
@@ -109,7 +121,10 @@ export default async function handler(req, res) {
       // Chat mode — client sends full current state
       state = clientState
       if (!state) {
-        send(res, { type: 'error', message: 'Chat mode requires state in request body.' })
+        send(res, {
+          type: 'error',
+          message: 'Chat mode requires state in request body.',
+        })
         res.end()
         return
       }
@@ -127,21 +142,43 @@ export default async function handler(req, res) {
         onToolStart: (tool) => send(res, { type: 'tool_start', tool }),
         onReportUpdate: (s) => {
           const { renderedHtml, renderedFullHtml, ...rest } = s
-          send(res, { type: 'report_update', state: { ...rest, renderedHtml, renderedFullHtml } })
+          send(res, {
+            type: 'report_update',
+            state: { ...rest, renderedHtml, renderedFullHtml },
+          })
         },
-        onDone: (messages) => send(res, { type: 'done', assembled: Boolean(state?.assembled), messages }),
+        onDone: (messages) =>
+          send(res, {
+            type: 'done',
+            assembled: Boolean(state?.assembled),
+            messages,
+          }),
         onError: (err) => send(res, { type: 'error', message: err.message }),
       },
     })
 
     // Fire-and-forget PDF + email after generation
-    if (!IS_DEV && mode === 'generate' && state.assembled && state.renderedHtml && state.normInput?.email) {
+    if (
+      !IS_DEV &&
+      mode === 'generate' &&
+      state.assembled &&
+      state.renderedHtml &&
+      state.normInput?.email
+    ) {
       try {
         const company = state.assembled.roi_data?.company ?? 'Report'
-        const slug = company.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')
+        const slug = company
+          .toLowerCase()
+          .replace(/[^a-z0-9]+/g, '-')
+          .replace(/^-|-$/g, '')
         const filename = `LyRise_ROI_${slug}.pdf`
         const pdf = await generatePdf(state.renderedHtml, filename)
-        await sendReportEmail(state.normInput.email, company, pdf.base64, pdf.filename)
+        await sendReportEmail(
+          state.normInput.email,
+          company,
+          pdf.base64,
+          pdf.filename,
+        )
         send(res, { type: 'email_sent' })
       } catch (bgErr) {
         console.error('[roi-agent] PDF/email failed:', bgErr)

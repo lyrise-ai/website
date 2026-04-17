@@ -33,10 +33,16 @@ function buildResearchOutput(normInput: NormalizedInput): ResearchAgentOutput {
       company,
       industry,
       country: normInput.country || 'United Arab Emirates',
-      primaryFocus: normInput.businessDescription || 'Selling AI solutions for businesses',
-      keyPriorities: normInput.keyPriorities.length > 0
-        ? normInput.keyPriorities
-        : ['Scale delivery without adding headcount', 'Shorten sales cycles', 'Reduce manual ops work'],
+      primaryFocus:
+        normInput.businessDescription || 'Selling AI solutions for businesses',
+      keyPriorities:
+        normInput.keyPriorities.length > 0
+          ? normInput.keyPriorities
+          : [
+              'Scale delivery without adding headcount',
+              'Shorten sales cycles',
+              'Reduce manual ops work',
+            ],
       employees: 35,
       revenueEstimateM: 6,
     },
@@ -48,8 +54,10 @@ function buildResearchOutput(normInput: NormalizedInput): ResearchAgentOutput {
         source: 'research_derived',
       },
       {
-        title: 'Proposal creation and follow-up are slower than they need to be',
-        description: 'Sales momentum is likely being lost between discovery calls, proposal drafting, and next-step coordination.',
+        title:
+          'Proposal creation and follow-up are slower than they need to be',
+        description:
+          'Sales momentum is likely being lost between discovery calls, proposal drafting, and next-step coordination.',
         confidence: 'medium',
         source: 'inferred',
       },
@@ -59,62 +67,80 @@ function buildResearchOutput(normInput: NormalizedInput): ResearchAgentOutput {
         name: 'Inbound lead qualification',
         function: 'Revenue Operations',
         owner: 'COO',
-        whyItMatters: 'Quicker qualification increases response speed and prevents strong inbound interest from going cold.',
+        whyItMatters:
+          'Quicker qualification increases response speed and prevents strong inbound interest from going cold.',
         agentName: 'Lead Qualification Agent',
-        expectedOutcome: 'Qualified inbound opportunities routed with context in minutes instead of hours.',
+        expectedOutcome:
+          'Qualified inbound opportunities routed with context in minutes instead of hours.',
         sourceType: 'research_derived',
         monthlyVolume: 180,
         minutesPerItemBefore: 35,
         minutesPerItemAfter: 8,
-        volumeRationale: 'Assumes a healthy inbound mix for a growing AI services firm with active outbound and referrals.',
+        volumeRationale:
+          'Assumes a healthy inbound mix for a growing AI services firm with active outbound and referrals.',
       },
       {
         name: 'Proposal drafting and tailoring',
         function: 'Sales',
         owner: 'COO',
-        whyItMatters: 'Proposal turnaround speed directly affects close rates and the team’s ability to run more active deals in parallel.',
+        whyItMatters:
+          'Proposal turnaround speed directly affects close rates and the team’s ability to run more active deals in parallel.',
         agentName: 'Proposal Drafting Agent',
-        expectedOutcome: 'High-quality first drafts generated from discovery notes and reusable proof points.',
+        expectedOutcome:
+          'High-quality first drafts generated from discovery notes and reusable proof points.',
         sourceType: 'inferred',
         monthlyVolume: 24,
         minutesPerItemBefore: 180,
         minutesPerItemAfter: 45,
-        volumeRationale: 'Assumes a mid-market deal flow where custom proposals still require leadership review.',
+        volumeRationale:
+          'Assumes a mid-market deal flow where custom proposals still require leadership review.',
       },
       {
         name: 'Discovery recap and follow-up emails',
         function: 'Client Success',
         owner: 'COO',
-        whyItMatters: 'Fast follow-up keeps deals moving and reduces leakage between meetings and next actions.',
+        whyItMatters:
+          'Fast follow-up keeps deals moving and reduces leakage between meetings and next actions.',
         agentName: 'Follow-Up Agent',
-        expectedOutcome: 'Recaps, action lists, and next-step emails produced automatically after calls.',
+        expectedOutcome:
+          'Recaps, action lists, and next-step emails produced automatically after calls.',
         sourceType: 'inferred',
         monthlyVolume: 70,
         minutesPerItemBefore: 50,
         minutesPerItemAfter: 10,
-        volumeRationale: 'Assumes multiple discovery and check-in calls per week across pipeline and active prospects.',
+        volumeRationale:
+          'Assumes multiple discovery and check-in calls per week across pipeline and active prospects.',
       },
       {
         name: 'CRM updates and meeting prep',
         function: 'Operations',
         owner: 'Revenue Ops Lead',
-        whyItMatters: 'Manual CRM hygiene is expensive, error-prone, and frequently delayed until after customer-facing work.',
+        whyItMatters:
+          'Manual CRM hygiene is expensive, error-prone, and frequently delayed until after customer-facing work.',
         agentName: 'CRM Ops Agent',
-        expectedOutcome: 'Deal records, notes, and meeting briefs updated automatically before and after calls.',
+        expectedOutcome:
+          'Deal records, notes, and meeting briefs updated automatically before and after calls.',
         sourceType: 'research_derived',
         monthlyVolume: 220,
         minutesPerItemBefore: 18,
         minutesPerItemAfter: 4,
-        volumeRationale: 'Assumes a high count of touchpoints across leads, opportunities, and delivery stakeholders.',
+        volumeRationale:
+          'Assumes a high count of touchpoints across leads, opportunities, and delivery stakeholders.',
       },
     ],
-    researchSummary: 'Development fixture used to speed up local ROI report testing.',
+    researchSummary:
+      'Development fixture used to speed up local ROI report testing.',
   }
 }
 
-function buildModelerOutput(normInput: NormalizedInput, researchOutput: ResearchAgentOutput): RoiModelerOutput {
+function buildModelerOutput(
+  normInput: NormalizedInput,
+  researchOutput: ResearchAgentOutput,
+): RoiModelerOutput {
   const currency = getCurrency(normInput.selectedCurrency || 'USD')
-  const workWeeksPerYear = ['USD', 'EUR', 'GBP'].includes(currency.code) ? 50 : 48
+  const workWeeksPerYear = ['USD', 'EUR', 'GBP'].includes(currency.code)
+    ? 50
+    : 48
 
   return {
     currency,
@@ -172,7 +198,10 @@ function buildModelerOutput(normInput: NormalizedInput, researchOutput: Research
   }
 }
 
-function buildWriterOutput(normInput: NormalizedInput, state: ReportState): ReportWriterOutput {
+function buildWriterOutput(
+  normInput: NormalizedInput,
+  state: ReportState,
+): ReportWriterOutput {
   const calc = state.calcOutput!
   const roi = calc.roi_data
   const summary = roi.summary
@@ -189,9 +218,20 @@ function buildWriterOutput(normInput: NormalizedInput, state: ReportState): Repo
   return {
     unified_pattern_thesis: `${company} is selling complex AI services into live business problems, which creates a repeatable coordination burden across lead handling, proposal assembly, and follow-up. That pattern — high-value commercial work slowed by manual orchestration — is where AI delivers its fastest return.`,
     company_snapshot: [
-      { text: `${company} sells AI solutions for businesses.`, sourceType: 'scraped' },
-      { text: `Testing fixture assumes a ${roi.employees ?? 35}-person commercial and delivery team.`, sourceType: 'assumed' },
-      { text: `The business likely balances inbound demand capture with custom scoping and proposal work.`, sourceType: 'benchmarked' },
+      {
+        text: `${company} sells AI solutions for businesses.`,
+        sourceType: 'scraped',
+      },
+      {
+        text: `Testing fixture assumes a ${
+          roi.employees ?? 35
+        }-person commercial and delivery team.`,
+        sourceType: 'assumed',
+      },
+      {
+        text: `The business likely balances inbound demand capture with custom scoping and proposal work.`,
+        sourceType: 'benchmarked',
+      },
     ],
     cta_paragraph: `If your team is handling fast-moving inbound demand, manually drafting custom proposals, and still spending ${calc.figures.totalMonthlyHours} Hours Returned per month on repetitive coordination work, a 30-minute discovery call with LyRise (elena@lyrise.ai) would be worthwhile. This report models ${calc.figures.operationalDividend12mo} in Operational Dividend using only targeted workflow automation.`,
     profit_levers: [
@@ -199,26 +239,44 @@ function buildWriterOutput(normInput: NormalizedInput, state: ReportState): Repo
         lever_name: 'More proposals shipped without founder bottlenecks',
         derived_from: wf2.name,
         baseline_data: `${wf2.name} currently returns ${wf2.monthlyHours} hrs/mo according to the calculator output.`,
-        assumption: 'Redirect 35% of those recovered commercial hours into additional proposal capacity and pipeline progression.',
-        rationale: 'Proposal throughput improves because leadership can review and send more qualified opportunities each month.',
-        rationale_with_arithmetic: `${wf2.monthlyHours} hrs/mo × ${wf2.rate}/hr × 0.35 = ${Math.round((wf2.monthlyHours * wf2.rate * 0.35))}/mo → ${lever1}/yr`,
+        assumption:
+          'Redirect 35% of those recovered commercial hours into additional proposal capacity and pipeline progression.',
+        rationale:
+          'Proposal throughput improves because leadership can review and send more qualified opportunities each month.',
+        rationale_with_arithmetic: `${wf2.monthlyHours} hrs/mo × ${
+          wf2.rate
+        }/hr × 0.35 = ${Math.round(
+          wf2.monthlyHours * wf2.rate * 0.35,
+        )}/mo → ${lever1}/yr`,
         profit: String(lever1),
       },
       {
         lever_name: 'Faster follow-up lifts conversion efficiency',
         derived_from: `${wf1.name}, ${wf3.name}`,
         baseline_data: `${wf1.name} and ${wf3.name} together remove delay from qualification and post-call follow-up.`,
-        assumption: 'Convert 25% of recovered customer-facing hours into faster response and reduced drop-off across active deals.',
-        rationale: 'Deals advance more consistently because prospects get qualification decisions and next steps while intent is still high.',
-        rationale_with_arithmetic: `${wf1.monthlyHours + wf3.monthlyHours} hrs/mo × ${Math.round((wf1.rate + wf3.rate) / 2)}/hr × 0.25 = ${Math.round(((wf1.monthlyHours + wf3.monthlyHours) * Math.round((wf1.rate + wf3.rate) / 2) * 0.25))}/mo → ${lever2}/yr`,
+        assumption:
+          'Convert 25% of recovered customer-facing hours into faster response and reduced drop-off across active deals.',
+        rationale:
+          'Deals advance more consistently because prospects get qualification decisions and next steps while intent is still high.',
+        rationale_with_arithmetic: `${
+          wf1.monthlyHours + wf3.monthlyHours
+        } hrs/mo × ${Math.round(
+          (wf1.rate + wf3.rate) / 2,
+        )}/hr × 0.25 = ${Math.round(
+          (wf1.monthlyHours + wf3.monthlyHours) *
+            Math.round((wf1.rate + wf3.rate) / 2) *
+            0.25,
+        )}/mo → ${lever2}/yr`,
         profit: String(lever2),
       },
       {
         lever_name: 'Leadership capacity shifts into higher-value selling',
         derived_from: `${wf1.name}, ${wf2.name}, ${wf4.name}`,
         baseline_data: `${company} can redeploy operational and sales coordination time into client conversations, partnerships, and delivery oversight.`,
-        assumption: 'Apply the residual recovered capacity to strategic selling, stakeholder management, and expansion work.',
-        rationale: 'Profit rises because senior time moves from admin orchestration into revenue-bearing and client-retention activity.',
+        assumption:
+          'Apply the residual recovered capacity to strategic selling, stakeholder management, and expansion work.',
+        rationale:
+          'Profit rises because senior time moves from admin orchestration into revenue-bearing and client-retention activity.',
         rationale_with_arithmetic: `${summary.profitUplift12mo} total PU - ${lever1} - ${lever2} = ${lever3}/yr`,
         profit: String(lever3),
       },
@@ -230,46 +288,64 @@ function buildWriterOutput(normInput: NormalizedInput, state: ReportState): Repo
     resilience_rows: [
       {
         dimension: 'Cost per unit',
-        act_now: 'More opportunities are processed with the same commercial team, lowering effort per qualified deal.',
-        defer: 'Manual handling keeps proposal and qualification cost tied directly to headcount growth.',
+        act_now:
+          'More opportunities are processed with the same commercial team, lowering effort per qualified deal.',
+        defer:
+          'Manual handling keeps proposal and qualification cost tied directly to headcount growth.',
       },
       {
         dimension: 'Delivery speed',
-        act_now: 'Qualification, recap, and proposal cycles move in hours instead of waiting for founder bandwidth.',
-        defer: 'High-intent prospects sit in queues between meetings, summaries, and tailored follow-up.',
+        act_now:
+          'Qualification, recap, and proposal cycles move in hours instead of waiting for founder bandwidth.',
+        defer:
+          'High-intent prospects sit in queues between meetings, summaries, and tailored follow-up.',
       },
       {
         dimension: 'Error rate',
-        act_now: 'CRM updates and meeting briefs become more consistent because the workflow is systematized.',
-        defer: 'Commercial context continues to be lost in handoffs, notes, and incomplete record keeping.',
+        act_now:
+          'CRM updates and meeting briefs become more consistent because the workflow is systematized.',
+        defer:
+          'Commercial context continues to be lost in handoffs, notes, and incomplete record keeping.',
       },
       {
         dimension: 'Strategic capacity',
         act_now: `${recipientTitle} time is redirected into pricing, partnerships, and closing work.`,
-        defer: 'Leadership stays trapped in repetitive revenue operations and coordination loops.',
+        defer:
+          'Leadership stays trapped in repetitive revenue operations and coordination loops.',
       },
     ],
-    pilot_recommendation: `Given ${company}'s ${roi.employees ?? 35} employees and ${wf2.volume}/month equivalent proposal workload, the fastest path to measurable ROI is automating ${wf2.name} in Phase 1, targeting faster turnaround on tailored commercial offers and cleaner handoff into follow-up.`,
+    pilot_recommendation: `Given ${company}'s ${
+      roi.employees ?? 35
+    } employees and ${
+      wf2.volume
+    }/month equivalent proposal workload, the fastest path to measurable ROI is automating ${
+      wf2.name
+    } in Phase 1, targeting faster turnaround on tailored commercial offers and cleaner handoff into follow-up.`,
     risks: [
       {
         risk: 'Messy source data',
         detail: `${company} likely stores qualification notes, call context, and commercial assets across multiple tools. If those inputs are inconsistent, the agent output will still need manual review early on.`,
-        mitigation: 'Start with one system of record, define mandatory fields, and add human approval before external sending.',
+        mitigation:
+          'Start with one system of record, define mandatory fields, and add human approval before external sending.',
       },
       {
         risk: 'Over-automation of nuanced sales work',
-        detail: 'Some proposal and scoping decisions still require senior judgment, especially for bespoke AI engagements. Pushing too much automation too early could flatten quality.',
-        mitigation: 'Keep pricing, final scope, and edge-case approvals with the COO until confidence is proven.',
+        detail:
+          'Some proposal and scoping decisions still require senior judgment, especially for bespoke AI engagements. Pushing too much automation too early could flatten quality.',
+        mitigation:
+          'Keep pricing, final scope, and edge-case approvals with the COO until confidence is proven.',
       },
       {
         risk: 'Workflow adoption stalls',
         detail: `${recipient} and the broader team will only realize value if AI-generated drafts actually replace manual work. Partial adoption would slow the payback profile materially.`,
-        mitigation: 'Choose one high-volume workflow first, instrument usage weekly, and tie rollout to explicit process ownership.',
+        mitigation:
+          'Choose one high-volume workflow first, instrument usage weekly, and tie rollout to explicit process ownership.',
       },
     ],
     next_steps_checklist: [
       {
-        action: 'Share this report with a key internal stakeholder for commercial process validation.',
+        action:
+          'Share this report with a key internal stakeholder for commercial process validation.',
         owner: recipient,
         due: 'Within 2 business days',
       },
@@ -284,17 +360,20 @@ function buildWriterOutput(normInput: NormalizedInput, state: ReportState): Repo
         due: 'Week 1',
       },
       {
-        action: 'Agree a human-review policy for outbound drafts, proposals, and CRM write-backs.',
+        action:
+          'Agree a human-review policy for outbound drafts, proposals, and CRM write-backs.',
         owner: 'Commercial Lead',
         due: 'Week 1',
       },
       {
-        action: 'Select a Phase 1 pilot workflow and define success metrics for hours returned and turnaround time.',
+        action:
+          'Select a Phase 1 pilot workflow and define success metrics for hours returned and turnaround time.',
         owner: recipient,
         due: 'Week 2',
       },
       {
-        action: 'Book a LyRise validation session to pressure-test assumptions and scope implementation.',
+        action:
+          'Book a LyRise validation session to pressure-test assumptions and scope implementation.',
         owner: recipient,
         due: 'Week 2',
       },
@@ -321,13 +400,20 @@ export function buildDevMockReportState(params: {
     renderedHtml: null,
     renderedFullHtml: null,
     confidenceLevel: 'high',
-    revenueAnchor: (researchOutput.company_profile.revenueEstimateM ?? 0) * 1_000_000,
+    revenueAnchor:
+      (researchOutput.company_profile.revenueEstimateM ?? 0) * 1_000_000,
     revenueAnchorSource: 'Dev fixture benchmark',
-    coreThesis: 'High-value revenue work is slowed by repetitive orchestration that can be automated safely.',
+    coreThesis:
+      'High-value revenue work is slowed by repetitive orchestration that can be automated safely.',
   }
 
   state.writerOutput = buildWriterOutput(normInput, state)
-  state.assembled = assembleReport(state.calcOutput!, state.writerOutput, normInput, state)
+  state.assembled = assembleReport(
+    state.calcOutput!,
+    state.writerOutput,
+    normInput,
+    state,
+  )
   state.renderedHtml = renderTemplate(execTemplateHtml, state.assembled)
   state.renderedFullHtml = renderTemplate(fullTemplateHtml, state.assembled)
 

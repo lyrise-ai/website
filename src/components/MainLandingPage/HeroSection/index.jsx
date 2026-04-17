@@ -129,7 +129,8 @@ function HeroSection() {
               Hidden in Your Legal & Finance Operations
             </h2>
             <h3 className="font-outfit text-[20px] text-[#2C2C2C] text-center md:max-w-[45vw] lg:max-w-[35vw]">
-              We map your processes in 14 days and deploy AI only when ROI ≥ $30K/month.
+              We map your processes in 14 days and deploy AI only when ROI ≥
+              $30K/month.
             </h3>
           </div>
 

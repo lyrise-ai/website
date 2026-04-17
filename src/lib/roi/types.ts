@@ -24,11 +24,11 @@ export interface QuestionnairePayload {
   'Number of Employees': string
   'Estimated Annual Revenue': string
   'Operating Currency': string
-  'Email': string
+  Email: string
   'Recipient Name'?: string
   'Recipient Title'?: string
-  'Industry': string
-  'Country': string
+  Industry: string
+  Country: string
   'Key Priorities': string[]
   processes: ProcessInput[]
   // Legacy flat fields (backward compat)
@@ -122,9 +122,9 @@ export interface WorkflowAssumption {
   adoption_high: number
   rationale: string
   // v3.0 Rule 6A — per-workflow seniority-differentiated rate
-  fullyLoadedHourlyCostOverride?: number  // overrides labor.fullyLoadedHourlyCost for this workflow
-  rateSource?: string                      // e.g. "Gulf Talent mid-market rate, 2024"
-  seniorityLevel?: string                  // e.g. "Junior analyst", "Senior consultant"
+  fullyLoadedHourlyCostOverride?: number // overrides labor.fullyLoadedHourlyCost for this workflow
+  rateSource?: string // e.g. "Gulf Talent mid-market rate, 2024"
+  seniorityLevel?: string // e.g. "Junior analyst", "Senior consultant"
 }
 
 export interface RoiModelerOutput {
@@ -236,54 +236,54 @@ export interface CompanySnapshotItem {
 
 // Cost of delay block (KR-18)
 export interface CostOfDelayData {
-  monthly_cost: number   // totalFinancialGain12mo / 12 — exact model number
-  narrative: string      // MUST end with: "Delay is not neutral — it carries a monthly price."
+  monthly_cost: number // totalFinancialGain12mo / 12 — exact model number
+  narrative: string // MUST end with: "Delay is not neutral — it carries a monthly price."
 }
 
 // Resilience positioning row (KR-17) — 4 rows × 2 columns
 export interface ResilienceRow {
-  dimension: string      // e.g. "Cost per unit", "Delivery speed"
-  act_now: string        // concrete automated-state outcome
-  defer: string          // concrete manual-state risk
+  dimension: string // e.g. "Cost per unit", "Delivery speed"
+  act_now: string // concrete automated-state outcome
+  defer: string // concrete manual-state risk
 }
 
 // Risk row for Risks & Mitigations section
 export interface RiskRow {
   risk: string
-  detail: string       // 2-3 sentences explaining why this risk matters for this specific company
+  detail: string // 2-3 sentences explaining why this risk matters for this specific company
   mitigation: string
 }
 
 // Next steps checklist item (NS-2) — assignable to named individuals
 export interface ChecklistItem {
   action: string
-  owner: string   // named individual or role
-  due: string     // e.g. "Within 5 business days"
+  owner: string // named individual or role
+  due: string // e.g. "Within 5 business days"
 }
 
 export interface ProfitLever {
   lever_name: string
   baseline_data: string
   assumption: string
-  rationale: string                  // plain business sentence (kept for compat)
-  rationale_with_arithmetic: string  // Rule 6C: full arithmetic chain
-  derived_from: string               // workflow name(s) this lever originates from
-  profit: string                     // raw integer as string, no symbols
+  rationale: string // plain business sentence (kept for compat)
+  rationale_with_arithmetic: string // Rule 6C: full arithmetic chain
+  derived_from: string // workflow name(s) this lever originates from
+  profit: string // raw integer as string, no symbols
 }
 
 export interface ReportWriterOutput {
   // Original fields
-  cta_paragraph: string              // NS-1: criteria-based, not marketing language
+  cta_paragraph: string // NS-1: criteria-based, not marketing language
   profit_levers: ProfitLever[]
 
   // v3.0 additions
-  unified_pattern_thesis: string          // KR-16: 2-3 sentences naming single operating pattern
+  unified_pattern_thesis: string // KR-16: 2-3 sentences naming single operating pattern
   company_snapshot: CompanySnapshotItem[] // 3-5 bullets with source tags
-  cost_of_delay: CostOfDelayData          // KR-18
-  resilience_rows: ResilienceRow[]        // KR-17: exactly 4 rows
-  pilot_recommendation: string            // WD-1: references specific company characteristics
-  risks: RiskRow[]                        // 3+ rows
-  next_steps_checklist: ChecklistItem[]   // NS-2: exactly 6 items with named owners
+  cost_of_delay: CostOfDelayData // KR-18
+  resilience_rows: ResilienceRow[] // KR-17: exactly 4 rows
+  pilot_recommendation: string // WD-1: references specific company characteristics
+  risks: RiskRow[] // 3+ rows
+  next_steps_checklist: ChecklistItem[] // NS-2: exactly 6 items with named owners
 }
 
 // ── Assemble Report output (display object) ──────────────────────────────────
@@ -325,22 +325,22 @@ export interface DisplayObject {
   cta: string
 
   // v3.0 additions
-  revenueContextStatement: string       // "This represents X% of your estimated annual revenue…"
-  companySnapshotTableBody: string      // <tr> rows for Company Snapshot table (Detail | Source)
-  confidenceBadge: string              // "Insight-Driven Analysis" | "Hypothesis-Driven Projection"
-  unifiedPatternThesis: string          // verbatim from writerOutput.unified_pattern_thesis
-  costOfDelayHTML: string              // KR-18 formatted insight panel
-  resilienceTableHTML: string          // KR-17 2-column comparison table
-  pilotRecommendation: string          // verbatim from writerOutput.pilot_recommendation
-  risksTableBody: string               // <tr> rows for Risks & Mitigations table
-  nextStepsHTML: string                // NS-1 criteria intro + NS-2 6-item checklist
-  odVsPuPanelHTML: string              // OD vs PU distinction panel (after Profit Uplift)
-  calculationPanelHTML: string         // arithmetic transparency panel (Rule 6C)
-  roadmapTableBody: string             // <tr> rows for company-specific roadmap table
-  statPU: string                       // short profit uplift e.g. "€387K"
-  blufParagraph: string                // auto-assembled BLUF intro paragraph
-  bvaTableBodyCompact: string          // 6-col BVA compact table rows for exec template
-  profitUpliftLogicBody: string        // 3-col profit uplift logic table rows for exec template
+  revenueContextStatement: string // "This represents X% of your estimated annual revenue…"
+  companySnapshotTableBody: string // <tr> rows for Company Snapshot table (Detail | Source)
+  confidenceBadge: string // "Insight-Driven Analysis" | "Hypothesis-Driven Projection"
+  unifiedPatternThesis: string // verbatim from writerOutput.unified_pattern_thesis
+  costOfDelayHTML: string // KR-18 formatted insight panel
+  resilienceTableHTML: string // KR-17 2-column comparison table
+  pilotRecommendation: string // verbatim from writerOutput.pilot_recommendation
+  risksTableBody: string // <tr> rows for Risks & Mitigations table
+  nextStepsHTML: string // NS-1 criteria intro + NS-2 6-item checklist
+  odVsPuPanelHTML: string // OD vs PU distinction panel (after Profit Uplift)
+  calculationPanelHTML: string // arithmetic transparency panel (Rule 6C)
+  roadmapTableBody: string // <tr> rows for company-specific roadmap table
+  statPU: string // short profit uplift e.g. "€387K"
+  blufParagraph: string // auto-assembled BLUF intro paragraph
+  bvaTableBodyCompact: string // 6-col BVA compact table rows for exec template
+  profitUpliftLogicBody: string // 3-col profit uplift logic table rows for exec template
 }
 
 export interface AssembleReportOutput {
@@ -364,9 +364,9 @@ export interface ReportState {
   renderedFullHtml: string | null
   // v3.0 intelligence fields (set during research phase)
   confidenceLevel: 'high' | 'low' | null
-  revenueAnchor: number | null          // estimated annual revenue in base currency
-  revenueAnchorSource: string | null    // e.g. "scraped from Clodura" / "headcount × industry avg"
-  coreThesis: string | null             // "[bottleneck] + [automation opportunity]"
+  revenueAnchor: number | null // estimated annual revenue in base currency
+  revenueAnchorSource: string | null // e.g. "scraped from Clodura" / "headcount × industry avg"
+  coreThesis: string | null // "[bottleneck] + [automation opportunity]"
 }
 
 export interface AgentCallbacks {

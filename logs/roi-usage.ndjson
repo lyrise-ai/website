@@ -1,0 +1,1 @@
+{"ts":"2026-04-17T17:42:41.613Z","company":"LyRise","mode":"generate","durationMs":25539,"calls":[{"call":"main_agent","model":"gpt-4o","inputTokens":2371,"outputTokens":229,"totalTokens":2600,"costUsd":0.008217499999999999}],"totals":{"inputTokens":2371,"outputTokens":229,"totalTokens":2600,"costUsd":0.008217499999999999}}

@@ -12,7 +12,7 @@ export interface PdfResult {
 
 export async function generatePdf(
   html: string,
-  filename = 'ROI_Report.pdf'
+  filename = 'ROI_Report.pdf',
 ): Promise<PdfResult> {
   const puppeteer = await import('puppeteer-core')
 
@@ -28,16 +28,16 @@ export async function generatePdf(
     // Local development — use the system Chrome / Chromium
     const localPaths = [
       '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome', // macOS
-      '/usr/bin/google-chrome',                                         // Linux
-      '/usr/bin/chromium-browser',                                      // Linux alt
-      'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe',    // Windows
+      '/usr/bin/google-chrome', // Linux
+      '/usr/bin/chromium-browser', // Linux alt
+      'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe', // Windows
     ]
     const fs = await import('fs')
-    const found = localPaths.find(p => fs.existsSync(p))
+    const found = localPaths.find((p) => fs.existsSync(p))
     if (!found) {
       throw new Error(
         'PDF generation: no Chrome/Chromium found locally. ' +
-        'Install Google Chrome or set VERCEL=1 to use the bundled binary.'
+          'Install Google Chrome or set VERCEL=1 to use the bundled binary.',
       )
     }
     executablePath = found
