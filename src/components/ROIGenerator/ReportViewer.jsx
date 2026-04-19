@@ -1,4 +1,4 @@
-import React, { useState, useRef, useCallback } from 'react'
+import React, { useState, useRef, useCallback, useEffect } from 'react'
 import { drainSSE } from '@/src/lib/drainSSE'
 
 const SUGGEST_RE = /\[SUGGEST:\s*([^\]]+)\]$/
@@ -23,35 +23,32 @@ function buildInitialMessage(state) {
   const noRevenue = !state?.revenueAnchor
   const company = state?.assembled?.roi_data?.company ?? 'your company'
 
-  if (!isLow && !inferredWfs.length && !noRevenue) {
-    return {
-      text: `Report ready for ${company}. Ask me to adjust any numbers, rewrite sections, or research more context.`,
-      chips: [
-        'Update a workflow volume',
-        'Rewrite the executive summary',
-        'Change the currency',
-      ],
-    }
+  const parts = []
+
+  if (isLow) {
+    parts.push(
+      `Report ready for ${company}. Most figures are benchmarked estimates — not scraped from live data.`,
+    )
+  } else {
+    parts.push(`Report ready for ${company}.`)
   }
 
   const gaps = []
-  if (noRevenue) gaps.push('revenue figure (needed for accuracy)')
-  inferredWfs.forEach((w) =>
-    gaps.push(`"${w.name}" — volume and time estimates (currently inferred)`),
+  if (noRevenue) gaps.push('annual revenue (improves profit uplift accuracy)')
+  inferredWfs
+    .slice(0, 2)
+    .forEach((w) =>
+      gaps.push(`volume for "${w.name}" (currently estimated from benchmarks)`),
+    )
+  if (gaps.length) {
+    parts.push(`To sharpen the numbers, you could share: ${gaps.join('; ')}.`)
+  }
+
+  parts.push(
+    'Ask me to adjust any figures, rewrite sections, change the currency, or add more context.',
   )
-  const gapLines = gaps.map((g) => `- ${g}`).join('\n')
 
-  const text = isLow
-    ? `I've produced a **hypothesis-driven estimate** — most figures are benchmarked, not scraped. Here's what would most improve accuracy:\n\n${gapLines}\n\nWant to provide any of these?`
-    : "Report ready. A few figures are estimated — here's the most impactful thing you could confirm:"
-
-  const chips = []
-  if (noRevenue) chips.push("What's your approximate annual revenue?")
-  if (inferredWfs[0]) chips.push(`Confirm volume for "${inferredWfs[0].name}"`)
-  chips.push("Looks good, let's move forward")
-  chips.push('What else can you improve?')
-
-  return { text, chips: chips.slice(0, 4) }
+  return parts.join(' ')
 }
 
 // Human-readable labels for each tool call
@@ -61,34 +58,45 @@ const TOOL_LABELS = {
   set_research_output: 'Processing research findings…',
   run_financial_model: 'Running financial model…',
   set_report_copy: 'Writing report copy…',
-  update_cta: 'Updating CTA…',
-  update_unified_thesis: 'Updating executive summary…',
-  update_profit_levers: 'Updating profit levers…',
-  update_resilience_rows: 'Updating resilience section…',
-  update_cost_of_delay: 'Updating cost of delay…',
-  update_risks: 'Updating risks…',
-  update_next_steps: 'Updating next steps…',
-  update_pilot_recommendation: 'Updating pilot recommendation…',
-  update_workflow_assumption: 'Recalculating figures…',
-  rewrite_report_copy: 'Rewriting report copy…',
+  update_copy: 'Updating report copy…',
+  update_workflow: 'Recalculating figures…',
+  update_globals: 'Updating financial model…',
+  scale_rates: 'Scaling figures…',
+  set_currency: 'Updating currency…',
   add_workflow: 'Adding workflow…',
   remove_workflow: 'Removing workflow…',
+}
+
+// Render **bold** markdown from agent responses
+function renderText(text) {
+  return text
+    .split(/(\*\*[^*]+\*\*)/)
+    .map((part, i) =>
+      part.startsWith('**') && part.endsWith('**') ? (
+        <strong key={i}>{part.slice(2, -2)}</strong>
+      ) : (
+        part
+      ),
+    )
 }
 
 export default function ReportViewer({ initialState, email }) {
   const [reportState, setReportState] = useState(initialState)
   const [chatHistory, setChatHistory] = useState([])
-  const [initialMessage] = useState(
-    () => buildInitialMessage(initialState).text,
-  )
+  const [initialMessage] = useState(() => buildInitialMessage(initialState))
   const [streamingText, setStreamingText] = useState('')
   const [activeTool, setActiveTool] = useState(null)
   const [isAgentRunning, setIsAgentRunning] = useState(false)
   const [input, setInput] = useState('')
-  const [emailStatus, setEmailStatus] = useState('idle') // 'idle' | 'sending' | 'sent' | 'error'
+  const [emailStatus, setEmailStatus] = useState('idle')
   const [activeTab, setActiveTab] = useState('exec')
 
   const iframeRef = useRef(null)
+  const messagesEndRef = useRef(null)
+
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
+  }, [chatHistory, streamingText, activeTool])
 
   const activeHtml =
     activeTab === 'exec'
@@ -103,6 +111,7 @@ export default function ReportViewer({ initialState, email }) {
       if (!msg || isAgentRunning) return
 
       const newHistory = [...chatHistory, { role: 'user', content: msg }]
+      setChatHistory(newHistory)
       if (!overrideMsg) setInput('')
       setIsAgentRunning(true)
       setStreamingText('')
@@ -191,6 +200,51 @@ export default function ReportViewer({ initialState, email }) {
     },
     [handleSend],
   )
+
+  const styles = {
+    bubble: {
+      user: {
+        maxWidth: '82%',
+        padding: '8px 12px',
+        fontSize: 13,
+        lineHeight: 1.5,
+        wordBreak: 'break-word',
+        borderRadius: '14px 14px 3px 14px',
+        background: '#2957FF',
+        color: '#fff',
+      },
+      assistant: {
+        maxWidth: '92%',
+        padding: '8px 12px',
+        fontSize: 13,
+        lineHeight: 1.55,
+        wordBreak: 'break-word',
+        borderRadius: '14px 14px 14px 3px',
+        background: '#f1f5f9',
+        color: '#1a1a1a',
+      },
+    },
+    dot: {
+      display: 'inline-block',
+      width: 6,
+      height: 6,
+      borderRadius: '50%',
+      background: '#2957FF',
+      marginRight: 5,
+      verticalAlign: 'middle',
+      animation: 'pulse 1s infinite',
+    },
+    cursor: {
+      display: 'inline-block',
+      width: 6,
+      height: 6,
+      borderRadius: '50%',
+      background: '#2957FF',
+      marginLeft: 4,
+      verticalAlign: 'middle',
+      animation: 'pulse 1s infinite',
+    },
+  }
 
   return (
     <div
@@ -331,7 +385,7 @@ export default function ReportViewer({ initialState, email }) {
           />
         </div>
 
-        {/* Chat panel (35% width) */}
+        {/* Chat panel */}
         <div
           style={{
             flex: '0 0 35%',
@@ -340,30 +394,23 @@ export default function ReportViewer({ initialState, email }) {
             background: '#fff',
           }}
         >
-          {/* Status / streaming area */}
+          {/* Messages */}
           <div
             style={{
               flex: 1,
               overflowY: 'auto',
-              padding: '16px',
+              padding: '16px 14px',
               display: 'flex',
               flexDirection: 'column',
-              gap: 10,
+              gap: 8,
             }}
           >
-            {/* Initial message */}
-            {!isAgentRunning &&
-              !streamingText &&
-              !activeTool &&
-              chatHistory.length === 0 && (
-                <div
-                  style={{ color: '#5a5a6e', fontSize: 13, lineHeight: 1.6 }}
-                >
-                  {initialMessage}
-                </div>
-              )}
+            {/* Initial assistant message — always shown as first bubble */}
+            <div style={{ display: 'flex', justifyContent: 'flex-start' }}>
+              <div style={styles.bubble.assistant}>{initialMessage}</div>
+            </div>
 
-            {/* Chat history */}
+            {/* Conversation history */}
             {chatHistory.map((msg, i) => {
               if (msg.role === 'tool') return null
               const text =
@@ -387,87 +434,55 @@ export default function ReportViewer({ initialState, email }) {
                   }}
                 >
                   <div
-                    style={{
-                      maxWidth: '85%',
-                      padding: '7px 11px',
-                      borderRadius: isUser
-                        ? '12px 12px 3px 12px'
-                        : '12px 12px 12px 3px',
-                      background: isUser ? '#2957FF' : '#f1f5f9',
-                      color: isUser ? '#fff' : '#1a1a1a',
-                      fontSize: 13,
-                      lineHeight: 1.5,
-                      wordBreak: 'break-word',
-                    }}
+                    style={
+                      isUser ? styles.bubble.user : styles.bubble.assistant
+                    }
                   >
-                    {text}
+                    {isUser ? text : renderText(text)}
                   </div>
                 </div>
               )
             })}
 
-            {/* Streaming text (currently typing) */}
-            {streamingText && (
-              <div
-                style={{
-                  padding: '8px 12px',
-                  borderRadius: 8,
-                  background: '#f1f5f9',
-                  color: '#1a1a1a',
-                  fontSize: 13,
-                  lineHeight: 1.55,
-                  wordBreak: 'break-word',
-                }}
-              >
-                {streamingText}
-                <span
-                  style={{
-                    display: 'inline-block',
-                    width: 6,
-                    height: 6,
-                    background: '#2957FF',
-                    borderRadius: '50%',
-                    marginLeft: 4,
-                    animation: 'pulse 1s infinite',
-                  }}
-                />
+            {/* Agent working — tool label + streaming text in one assistant bubble */}
+            {(activeTool || streamingText) && (
+              <div style={{ display: 'flex', justifyContent: 'flex-start' }}>
+                <div style={styles.bubble.assistant}>
+                  {activeTool && !streamingText && (
+                    <span
+                      style={{
+                        color: '#8a8aaa',
+                        fontStyle: 'italic',
+                        fontSize: 12,
+                      }}
+                    >
+                      <span style={styles.dot} /> {activeTool}
+                    </span>
+                  )}
+                  {streamingText && (
+                    <>
+                      {renderText(streamingText)}
+                      <span style={styles.cursor} />
+                    </>
+                  )}
+                </div>
               </div>
             )}
 
-            {/* Tool indicator */}
-            {activeTool && (
-              <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                <div
-                  style={{
-                    width: 6,
-                    height: 6,
-                    borderRadius: '50%',
-                    background: '#2957FF',
-                    animation: 'pulse 1s infinite',
-                  }}
-                />
-                <span
-                  style={{
-                    fontSize: 12,
-                    color: '#5a5a6e',
-                    fontStyle: 'italic',
-                  }}
-                >
-                  {activeTool}
-                </span>
-              </div>
-            )}
+            <div ref={messagesEndRef} />
           </div>
 
-          {/* Input area */}
+          {/* Input */}
           <div
             style={{
-              padding: '12px 16px',
+              padding: '10px 14px 12px',
               borderTop: '1px solid #e2e8f0',
-              background: '#fff',
             }}
           >
-            <form onSubmit={handleSend} style={{ display: 'flex', gap: 8 }}>
+            <form
+              onSubmit={handleSend}
+              style={{ display: 'flex', gap: 8, alignItems: 'flex-end' }}
+            >
               <textarea
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
@@ -477,7 +492,7 @@ export default function ReportViewer({ initialState, email }) {
                 rows={2}
                 style={{
                   flex: 1,
-                  padding: '8px 12px',
+                  padding: '8px 11px',
                   border: '1px solid #e2e8f0',
                   borderRadius: 8,
                   fontSize: 13,
@@ -487,6 +502,13 @@ export default function ReportViewer({ initialState, email }) {
                   fontFamily: 'inherit',
                   color: '#1a1a1a',
                   background: isAgentRunning ? '#f9fafb' : '#fff',
+                  transition: 'border-color 0.15s',
+                }}
+                onFocus={(e) => {
+                  e.target.style.borderColor = '#2957FF'
+                }}
+                onBlur={(e) => {
+                  e.target.style.borderColor = '#e2e8f0'
                 }}
               />
               <button
@@ -503,16 +525,12 @@ export default function ReportViewer({ initialState, email }) {
                   fontSize: 13,
                   cursor:
                     isAgentRunning || !input.trim() ? 'not-allowed' : 'pointer',
-                  alignSelf: 'flex-end',
+                  flexShrink: 0,
                 }}
               >
                 Send
               </button>
             </form>
-            <p style={{ fontSize: 11, color: '#94a3b8', margin: '4px 0 0 0' }}>
-              Ask to update numbers, rewrite sections, or research additional
-              context.
-            </p>
           </div>
         </div>
       </div>

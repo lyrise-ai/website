@@ -3,7 +3,9 @@
 // ─────────────────────────────────────────────────────────────────────────────
 // Unified ROI Report Agent
 // Single streamText agent handles both generation and chat-based editing.
-// Tools mutate ReportState in-place; onReportUpdate fires on every change to assembled.
+// Tools mutate ReportState in-place; onReportUpdate fires on every assembled change.
+// Single sources of truth: state.company, state.globals, state.workflows, state.copy
+// Everything else (calcOutput, assembled, renderedHtml) is derived on demand.
 // ─────────────────────────────────────────────────────────────────────────────
 
 import {
@@ -27,25 +29,40 @@ import {
   ROI_MODELER_SYSTEM_PROMPT,
   ROI_MODELER_SCHEMA,
 } from '@/src/lib/roi/prompts/roiModeler'
-import {
-  REPORT_WRITER_SYSTEM_PROMPT,
-  REPORT_WRITER_SCHEMA,
-} from '@/src/lib/roi/prompts/reportWriter'
 
 import type {
   ReportState,
   AgentCallbacks,
-  ResearchAgentOutput,
-  RoiModelerOutput,
-  ReportWriterOutput,
+  WorkflowInput,
+  GlobalInputs,
+  ReportCopy,
   ProfitLever,
   ResilienceRow,
   RiskRow,
   ChecklistItem,
-  CompanySnapshotItem,
   CostOfDelayData,
-  WorkflowAssumption,
 } from '@/src/lib/roi/types'
+
+// ── Modeler LLM output type (local — not exported) ────────────────────────────
+
+interface ModelerResult {
+  currency: { code: string; symbol: string; name: string }
+  costs: { implementationCost: number; monthlyToolingCost: number }
+  labor: { fullyLoadedHourlyCost: number; workWeeksPerYear: number }
+  realizationFactor: number
+  profitMultiplier: number
+  workflowAssumptions: Array<{
+    workflowName: string
+    monthlyVolume: number
+    minutesPerItemBefore: number
+    minutesPerItemAfter: number
+    exceptionRate: number
+    exceptionMinutes: number
+    adoption_base: number
+    rationale: string
+    fullyLoadedHourlyCostOverride: number
+  }>
+}
 
 // ── Internal helpers ──────────────────────────────────────────────────────────
 
@@ -55,13 +72,14 @@ function reAssemble(
   fullTemplateHtml: string,
   callbacks: AgentCallbacks,
 ) {
-  if (!state.calcOutput || !state.writerOutput || !state.normInput) return
-  state.assembled = assembleReport(
-    state.calcOutput,
-    state.writerOutput,
-    state.normInput,
-    state,
+  if (!state.workflows || !state.globals || !state.company) return
+  state.calcOutput = roiCalculator(
+    state.workflows,
+    state.globals,
+    state.company,
   )
+  if (!state.copy || !state.normInput) return
+  state.assembled = assembleReport(state)
   state.renderedHtml = renderTemplate(execTemplateHtml, state.assembled)
   state.renderedFullHtml = renderTemplate(fullTemplateHtml, state.assembled)
   callbacks.onReportUpdate(state)
@@ -77,7 +95,7 @@ function buildTools(
   tracker?: UsageTracker,
 ) {
   return {
-    // ── Research tools (available in both modes) ────────────────────────────
+    // ── Research tools ──────────────────────────────────────────────────────
     web_search: tool({
       description:
         'Search the web for company intelligence, industry benchmarks, or financial data.',
@@ -113,7 +131,7 @@ function buildTools(
     // ── Generation tools (sequenced during initial generation) ──────────────
     set_research_output: tool({
       description:
-        'Lock in the research findings: company profile, pain points, workflows, and intelligence metadata. Call this after completing all research.',
+        'Lock in the research findings: company profile, pain points, and workflows. Call this after completing all research.',
       inputSchema: z.object({
         company_profile: z.object({
           company: z.string(),
@@ -132,48 +150,85 @@ function buildTools(
             source: z.enum(['user_stated', 'inferred', 'research_derived']),
           }),
         ),
-        workflows: z.array(
-          z.object({
-            name: z.string(),
-            function: z.string(),
-            owner: z.string(),
-            whyItMatters: z.string(),
-            agentName: z.string(),
-            expectedOutcome: z.string(),
-            sourceType: z.enum(['user_stated', 'inferred', 'research_derived']),
-            monthlyVolume: z.number().optional(),
-            minutesPerItemBefore: z.number().optional(),
-            minutesPerItemAfter: z.number().optional(),
-            volumeRationale: z.string().optional(),
-          }),
-        ),
+        workflows: z
+          .array(
+            z.object({
+              name: z.string(),
+              function: z.string(),
+              owner: z.string(),
+              whyItMatters: z.string(),
+              agentName: z.string(),
+              expectedOutcome: z.string(),
+              sourceType: z.enum([
+                'user_stated',
+                'inferred',
+                'research_derived',
+              ]),
+              monthlyVolume: z
+                .number()
+                .optional()
+                .describe('Monthly volume — must provide a positive number'),
+              minutesPerItemBefore: z
+                .number()
+                .optional()
+                .describe(
+                  'Minutes per task before AI — must provide a positive number',
+                ),
+              minutesPerItemAfter: z
+                .number()
+                .optional()
+                .describe(
+                  'Minutes per task after AI — must provide a positive number',
+                ),
+              volumeRationale: z.string().optional(),
+            }),
+          )
+          .min(3)
+          .describe(
+            'Minimum 3 workflows required. Infer from industry benchmarks if not found online.',
+          ),
         researchSummary: z.string().optional(),
         confidenceLevel: z.enum(['high', 'low']),
-        revenueAnchor: z.number().nullable(),
-        revenueAnchorSource: z.string().nullable(),
         coreThesis: z.string(),
       }),
-      execute: async (
-        input: ResearchAgentOutput & {
-          confidenceLevel: 'high' | 'low'
-          revenueAnchor: number | null
-          revenueAnchorSource: string | null
-          coreThesis: string
-        },
-      ) => {
-        const {
-          confidenceLevel,
-          revenueAnchor,
-          revenueAnchorSource,
-          coreThesis,
-          ...researchOut
-        } = input
-        state.researchOutput = researchOut
-        state.confidenceLevel = confidenceLevel
-        state.revenueAnchor = revenueAnchor
-        state.revenueAnchorSource = revenueAnchorSource
-        state.coreThesis = coreThesis
-        return { ok: true, workflows: researchOut.workflows.map((w) => w.name) }
+      execute: async (input) => {
+        const cp = input.company_profile
+        state.company = {
+          company: cp.company,
+          industry: cp.industry,
+          country: cp.country ?? null,
+          primaryFocus: cp.primaryFocus ?? null,
+          keyPriorities: cp.keyPriorities,
+          employees: cp.employees ?? null,
+          revenueEstimateM: cp.revenueEstimateM ?? null,
+        }
+        state.workflows = input.workflows.map((w) => ({
+          name: w.name,
+          agentName: w.agentName,
+          function: w.function,
+          owner: w.owner,
+          whyItMatters: w.whyItMatters,
+          expectedOutcome: w.expectedOutcome,
+          sourceType: w.sourceType,
+          monthlyVolume:
+            w.monthlyVolume && w.monthlyVolume > 0 ? w.monthlyVolume : 100,
+          minutesPerItemBefore:
+            w.minutesPerItemBefore && w.minutesPerItemBefore > 0
+              ? w.minutesPerItemBefore
+              : 60,
+          minutesPerItemAfter:
+            w.minutesPerItemAfter && w.minutesPerItemAfter > 0
+              ? w.minutesPerItemAfter
+              : 12,
+          adoptionRate: 0.7,
+          exceptionRate: 0.08,
+          exceptionMinutes: 12,
+          rateOverride: null,
+          rationale: w.volumeRationale ?? '',
+        }))
+        state.confidenceLevel = input.confidenceLevel
+        state.coreThesis = input.coreThesis
+        return { ok: true, workflows: state.workflows.map((w) => w.name) }
       },
     }),
 
@@ -182,38 +237,33 @@ function buildTools(
         'Run the financial model: calls the ROI modeler LLM, then the pure-TS calculator. Includes sanity checks (Rules 6B, 6D, 6E). Call after set_research_output.',
       inputSchema: z.object({}),
       execute: async () => {
-        if (!state.researchOutput || !state.normInput) {
+        if (!state.workflows || !state.company || !state.normInput) {
           return {
             error: 'run_financial_model called before set_research_output',
           }
         }
 
-        const input = state.normInput
-        const research = state.researchOutput
-
-        // Build the modeler prompt context
         const modelerUserContent = JSON.stringify({
-          company_profile: research.company_profile,
-          workflows: research.workflows.map((w) => ({
+          company_profile: state.company,
+          workflows: state.workflows.map((w) => ({
             name: w.name,
             function: w.function,
             monthlyVolume: w.monthlyVolume,
             minutesPerItemBefore: w.minutesPerItemBefore,
             minutesPerItemAfter: w.minutesPerItemAfter,
-            volumeRationale: w.volumeRationale,
+            volumeRationale: w.rationale,
           })),
-          processes: input.processes,
-          selectedCurrency: input.selectedCurrency,
-          country: input.country,
-          teamSize: input.teamSize,
-          revenueRange: input.revenueRange,
+          processes: state.normInput.processes,
+          selectedCurrency: state.normInput.selectedCurrency,
+          country: state.normInput.country,
+          teamSize: state.normInput.teamSize,
+          revenueRange: state.normInput.revenueRange,
         })
 
-        let modelerOut: RoiModelerOutput | null = null
-        let calcOut = null
+        let globals: GlobalInputs | null = null
+        let updatedWorkflows: WorkflowInput[] | null = null
         let lastError = ''
 
-        // Retry loop for sanity checks (Rules 6B, 6D, 6E) — max 2 retries
         for (let attempt = 0; attempt < 3; attempt++) {
           const retryHint =
             attempt > 0
@@ -226,28 +276,72 @@ function buildTools(
             system: ROI_MODELER_SYSTEM_PROMPT + retryHint,
             prompt: modelerUserContent,
           })
+          const callLabel = attempt > 0 ? `modeler_retry${attempt}` : 'modeler'
           tracker?.record({
-            call: `modeler${attempt > 0 ? `_retry${attempt}` : ''}`,
+            call: callLabel,
             model: 'gpt-4o-mini',
             ...result.usage,
           })
 
-          modelerOut = result.object as RoiModelerOutput
-          calcOut = roiCalculator(research, modelerOut)
+          const modelerOut = result.object as ModelerResult
 
-          const s = calcOut.roi_data.summary
+          globals = {
+            laborRate: modelerOut.labor.fullyLoadedHourlyCost,
+            implementationCost: modelerOut.costs.implementationCost,
+            monthlyToolingCost: modelerOut.costs.monthlyToolingCost,
+            profitMultiplier: modelerOut.profitMultiplier,
+            realizationFactor: modelerOut.realizationFactor,
+            workWeeksPerYear: modelerOut.labor.workWeeksPerYear,
+            currency: modelerOut.currency,
+          }
+
+          // Merge per-workflow assumptions from modeler into state.workflows
+          updatedWorkflows = state.workflows!.map((wf) => {
+            const assump = modelerOut.workflowAssumptions.find(
+              (a) => a.workflowName.toLowerCase() === wf.name.toLowerCase(),
+            )
+            if (!assump) return wf
+            return {
+              ...wf,
+              monthlyVolume:
+                assump.monthlyVolume > 0
+                  ? assump.monthlyVolume
+                  : wf.monthlyVolume,
+              minutesPerItemBefore:
+                assump.minutesPerItemBefore > 0
+                  ? assump.minutesPerItemBefore
+                  : wf.minutesPerItemBefore,
+              minutesPerItemAfter:
+                assump.minutesPerItemAfter > 0
+                  ? assump.minutesPerItemAfter
+                  : wf.minutesPerItemAfter,
+              adoptionRate: assump.adoption_base,
+              exceptionRate: assump.exceptionRate,
+              exceptionMinutes: assump.exceptionMinutes,
+              rateOverride: assump.fullyLoadedHourlyCostOverride,
+              rationale: assump.rationale,
+            }
+          })
+
+          const calcOut = roiCalculator(
+            updatedWorkflows,
+            globals,
+            state.company!,
+          )
+          const s = calcOut.summary
           const od = s.operationalDividend12mo
           const pu = s.profitUplift12mo
           const tf = s.totalFinancialGain12mo
-          const revenueAnchor = state.revenueAnchor
+          const revenueM = state.company!.revenueEstimateM
 
-          // Check Rule 6B: 5–20% revenue band
-          if (revenueAnchor && revenueAnchor > 0) {
-            const ratio = tf / revenueAnchor
+          // Rule 6B: 5–20% revenue band
+          if (revenueM && revenueM > 0) {
+            const revenueU = revenueM * 1e6
+            const ratio = tf / revenueU
             if (ratio < 0.05) {
               lastError = `Rule 6B: TFG (${tf}) is only ${(ratio * 100).toFixed(
                 1,
-              )}% of revenue (${revenueAnchor}). Need ≥5%. Increase workflow volumes.`
+              )}% of revenue (${revenueU}). Need ≥5%. Increase workflow volumes.`
               continue
             }
             if (ratio > 0.2) {
@@ -258,45 +352,44 @@ function buildTools(
             }
           }
 
-          // Check Rule 6E: OD/PU ratio 0.8–3×
+          // Rule 6E: OD/PU ratio 0.8–3×
           if (od > 0) {
             const puRatio = pu / od
             if (puRatio > 3.0) {
               lastError = `Rule 6E: Profit uplift (${pu}) is ${puRatio.toFixed(
                 1,
-              )}× the OD (${od}). Cap at 3×. Reduce profit lever assumptions.`
+              )}× the OD (${od}). Cap at 3×.`
               continue
             }
             if (puRatio < 0.8) {
               lastError = `Rule 6E: Profit uplift (${pu}) is only ${puRatio.toFixed(
                 1,
-              )}× the OD (${od}). Need ≥0.8×. Add revenue/throughput levers.`
+              )}× the OD (${od}). Need ≥0.8×.`
               continue
             }
           }
 
-          // All checks passed
           lastError = ''
+          state.workflows = updatedWorkflows
+          state.globals = globals
+          state.calcOutput = calcOut
           break
         }
 
-        if (!modelerOut || !calcOut) {
+        if (!globals || !updatedWorkflows) {
           return { error: 'Financial model failed after retries: ' + lastError }
         }
 
-        state.modelerOutput = modelerOut
-        state.calcOutput = calcOut
-
-        const s = calcOut.roi_data.summary
+        const s = state.calcOutput!.summary
         return {
           ok: true,
-          currency: modelerOut.currency,
-          total_monthly_hours: calcOut.roi_data.totalMonthlyHours,
+          currency: globals.currency,
+          total_monthly_hours: state.calcOutput!.totalMonthlyHours,
           od12: s.operationalDividend12mo,
           pu12: s.profitUplift12mo,
           tf12: s.totalFinancialGain12mo,
           payback_months: s.paybackMonths,
-          figures: calcOut.figures,
+          figures: state.calcOutput!.figures,
           sanity_note: lastError || 'All checks passed',
         }
       },
@@ -304,7 +397,7 @@ function buildTools(
 
     set_report_copy: tool({
       description:
-        'Write and lock in all report copy (9 v3.0 fields). Call after run_financial_model. This triggers the first report_update event.',
+        'Write and lock in all report copy (9 fields). Call after run_financial_model. This triggers the first report_update event.',
       inputSchema: z.object({
         unified_pattern_thesis: z
           .string()
@@ -328,15 +421,24 @@ function buildTools(
               baseline_data: z.string(),
               assumption: z.string(),
               rationale: z.string(),
-              rationale_with_arithmetic: z.string(),
-              profit: z.string(),
+              rationale_with_arithmetic: z
+                .string()
+                .describe(
+                  'Full arithmetic chain, e.g. "120 hrs/mo × 12 × $45/hr × 0.35 = $22,680/yr". Total Profit Uplift is computed by the calculator from profitMultiplier — do not invent a separate per-lever total.',
+                ),
             }),
           )
           .min(3)
-          .max(3),
+          .max(3)
+          .describe(
+            'Exactly 3 levers. Each rationale_with_arithmetic must show the arithmetic that substantiates the lever.',
+          ),
         cost_of_delay: z.object({
-          monthly_cost: z.number(),
-          narrative: z.string(),
+          narrative: z
+            .string()
+            .describe(
+              'Company-specific reason for urgency. Do NOT embed a dollar figure — the monthly cost is computed by the calculator and shown separately. Must end with: "Delay is not neutral — it carries a monthly price."',
+            ),
         }),
         resilience_rows: z
           .array(
@@ -354,9 +456,7 @@ function buildTools(
               risk: z.string(),
               detail: z
                 .string()
-                .describe(
-                  '2-3 sentences specific to this company explaining why this risk is relevant',
-                ),
+                .describe('2-3 sentences specific to this company'),
               mitigation: z.string(),
             }),
           )
@@ -371,46 +471,34 @@ function buildTools(
           )
           .length(6),
       }),
-      execute: async (copy: ReportWriterOutput) => {
-        state.writerOutput = copy
+      execute: async (copy: ReportCopy) => {
+        state.copy = copy
         reAssemble(state, execTemplateHtml, fullTemplateHtml, callbacks)
         return { ok: true }
       },
     }),
 
-    // ── Copy editing tools (fast, pure TS, ~100ms) ──────────────────────────
-    update_cta: tool({
+    // ── Copy editing tool ────────────────────────────────────────────────────
+    update_copy: tool({
       description:
-        'Update the CTA paragraph (NS-1: criteria-based, not marketing language).',
-      inputSchema: z.object({ cta_paragraph: z.string() }),
-      execute: async ({ cta_paragraph }: { cta_paragraph: string }) => {
-        if (!state.writerOutput) return { error: 'No report copy to update' }
-        state.writerOutput = { ...state.writerOutput, cta_paragraph }
-        reAssemble(state, execTemplateHtml, fullTemplateHtml, callbacks)
-        return { ok: true }
-      },
-    }),
-
-    update_unified_thesis: tool({
-      description:
-        'Update the unified pattern thesis (KR-16: 2-3 sentences naming single operating pattern).',
-      inputSchema: z.object({ unified_pattern_thesis: z.string() }),
-      execute: async ({
-        unified_pattern_thesis,
-      }: {
-        unified_pattern_thesis: string
-      }) => {
-        if (!state.writerOutput) return { error: 'No report copy to update' }
-        state.writerOutput = { ...state.writerOutput, unified_pattern_thesis }
-        reAssemble(state, execTemplateHtml, fullTemplateHtml, callbacks)
-        return { ok: true }
-      },
-    }),
-
-    update_profit_levers: tool({
-      description:
-        'Update all profit levers. Each must include derived_from and rationale_with_arithmetic (Rule 6C).',
+        'Update one or more report copy sections in a single call. All fields are optional — include only what you want to change.',
       inputSchema: z.object({
+        thesis: z
+          .string()
+          .optional()
+          .describe(
+            'KR-16: 2-3 sentences identifying the single operating pattern',
+          ),
+        cta: z
+          .string()
+          .optional()
+          .describe('NS-1: criteria-based CTA, not marketing language'),
+        pilot: z
+          .string()
+          .optional()
+          .describe(
+            'WD-1: pilot recommendation referencing specific company characteristics',
+          ),
         profit_levers: z
           .array(
             z.object({
@@ -419,25 +507,17 @@ function buildTools(
               baseline_data: z.string(),
               assumption: z.string(),
               rationale: z.string(),
-              rationale_with_arithmetic: z.string(),
-              profit: z.string(),
+              rationale_with_arithmetic: z
+                .string()
+                .describe(
+                  'Full arithmetic chain showing how the lever works. Total Profit Uplift is computed by the calculator — do not add a per-lever profit total.',
+                ),
             }),
           )
           .min(3)
-          .max(3),
-      }),
-      execute: async ({ profit_levers }: { profit_levers: ProfitLever[] }) => {
-        if (!state.writerOutput) return { error: 'No report copy to update' }
-        state.writerOutput = { ...state.writerOutput, profit_levers }
-        reAssemble(state, execTemplateHtml, fullTemplateHtml, callbacks)
-        return { ok: true }
-      },
-    }),
-
-    update_resilience_rows: tool({
-      description:
-        'Update the resilience positioning table (KR-17: exactly 4 rows).',
-      inputSchema: z.object({
+          .max(3)
+          .optional()
+          .describe('Exactly 3 levers with full arithmetic rationale.'),
         resilience_rows: z
           .array(
             z.object({
@@ -446,71 +526,31 @@ function buildTools(
               defer: z.string(),
             }),
           )
-          .length(4),
-      }),
-      execute: async ({
-        resilience_rows,
-      }: {
-        resilience_rows: ResilienceRow[]
-      }) => {
-        if (!state.writerOutput) return { error: 'No report copy to update' }
-        state.writerOutput = { ...state.writerOutput, resilience_rows }
-        reAssemble(state, execTemplateHtml, fullTemplateHtml, callbacks)
-        return { ok: true }
-      },
-    }),
-
-    update_cost_of_delay: tool({
-      description:
-        'Update the cost of delay section (KR-18: narrative MUST end with "Delay is not neutral — it carries a monthly price.").',
-      inputSchema: z.object({
-        cost_of_delay: z.object({
-          monthly_cost: z.number(),
-          narrative: z.string(),
-        }),
-      }),
-      execute: async ({
-        cost_of_delay,
-      }: {
-        cost_of_delay: CostOfDelayData
-      }) => {
-        if (!state.writerOutput) return { error: 'No report copy to update' }
-        state.writerOutput = { ...state.writerOutput, cost_of_delay }
-        reAssemble(state, execTemplateHtml, fullTemplateHtml, callbacks)
-        return { ok: true }
-      },
-    }),
-
-    update_risks: tool({
-      description: 'Update the risks and mitigations table (minimum 3 rows).',
-      inputSchema: z.object({
+          .length(4)
+          .optional()
+          .describe('KR-17: exactly 4 rows'),
+        cost_of_delay: z
+          .object({
+            narrative: z
+              .string()
+              .describe(
+                'KR-18: company-specific urgency prose. Do NOT embed a dollar figure. Must end with "Delay is not neutral — it carries a monthly price."',
+              ),
+          })
+          .optional(),
         risks: z
           .array(
             z.object({
               risk: z.string(),
               detail: z
                 .string()
-                .describe(
-                  '2-3 sentences specific to this company explaining why this risk is relevant',
-                ),
+                .describe('2-3 sentences specific to this company'),
               mitigation: z.string(),
             }),
           )
-          .min(3),
-      }),
-      execute: async ({ risks }: { risks: RiskRow[] }) => {
-        if (!state.writerOutput) return { error: 'No report copy to update' }
-        state.writerOutput = { ...state.writerOutput, risks }
-        reAssemble(state, execTemplateHtml, fullTemplateHtml, callbacks)
-        return { ok: true }
-      },
-    }),
-
-    update_next_steps: tool({
-      description:
-        'Update the next steps checklist (NS-2: exactly 6 items, each with a named owner).',
-      inputSchema: z.object({
-        next_steps_checklist: z
+          .min(3)
+          .optional(),
+        next_steps: z
           .array(
             z.object({
               action: z.string(),
@@ -518,49 +558,72 @@ function buildTools(
               due: z.string(),
             }),
           )
-          .length(6),
+          .length(6)
+          .optional()
+          .describe('NS-2: exactly 6 items with named owner'),
       }),
-      execute: async ({
-        next_steps_checklist,
-      }: {
-        next_steps_checklist: ChecklistItem[]
+      execute: async (patches: {
+        thesis?: string
+        cta?: string
+        pilot?: string
+        profit_levers?: ProfitLever[]
+        resilience_rows?: ResilienceRow[]
+        cost_of_delay?: CostOfDelayData
+        risks?: RiskRow[]
+        next_steps?: ChecklistItem[]
       }) => {
-        if (!state.writerOutput) return { error: 'No report copy to update' }
-        state.writerOutput = { ...state.writerOutput, next_steps_checklist }
+        if (!state.copy) return { error: 'No report copy to update' }
+        state.copy = {
+          ...state.copy,
+          ...(patches.thesis !== undefined && {
+            unified_pattern_thesis: patches.thesis,
+          }),
+          ...(patches.cta !== undefined && { cta_paragraph: patches.cta }),
+          ...(patches.pilot !== undefined && {
+            pilot_recommendation: patches.pilot,
+          }),
+          ...(patches.profit_levers !== undefined && {
+            profit_levers: patches.profit_levers,
+          }),
+          ...(patches.resilience_rows !== undefined && {
+            resilience_rows: patches.resilience_rows,
+          }),
+          ...(patches.cost_of_delay !== undefined && {
+            cost_of_delay: patches.cost_of_delay,
+          }),
+          ...(patches.risks !== undefined && { risks: patches.risks }),
+          ...(patches.next_steps !== undefined && {
+            next_steps_checklist: patches.next_steps,
+          }),
+        }
         reAssemble(state, execTemplateHtml, fullTemplateHtml, callbacks)
-        return { ok: true }
+        const updated = Object.keys(patches).filter(
+          (k) => patches[k as keyof typeof patches] !== undefined,
+        )
+        return { ok: true, updated_sections: updated }
       },
     }),
 
-    update_pilot_recommendation: tool({
+    // ── Workflow assumption tool (instant recalc) ────────────────────────────
+    update_workflow: tool({
       description:
-        'Update the pilot recommendation (WD-1: must reference specific company characteristics, not generic).',
-      inputSchema: z.object({ pilot_recommendation: z.string() }),
-      execute: async ({
-        pilot_recommendation,
-      }: {
-        pilot_recommendation: string
-      }) => {
-        if (!state.writerOutput) return { error: 'No report copy to update' }
-        state.writerOutput = { ...state.writerOutput, pilot_recommendation }
-        reAssemble(state, execTemplateHtml, fullTemplateHtml, callbacks)
-        return { ok: true }
-      },
-    }),
-
-    // ── Assumption editing tool (no LLM, instant recalc) ────────────────────
-    update_workflow_assumption: tool({
-      description:
-        'Change a workflow assumption (volume, time, rate). Instantly recalculates all financial figures — no LLM required.',
+        'Update numeric parameters for a specific workflow. Instantly recalculates all financial figures.',
       inputSchema: z.object({
         workflowName: z.string().describe('Must match a workflow name exactly'),
         patches: z.object({
           monthlyVolume: z.number().optional(),
           minutesPerItemBefore: z.number().optional(),
           minutesPerItemAfter: z.number().optional(),
-          fullyLoadedHourlyCostOverride: z.number().optional(),
-          adoption_base: z.number().min(0).max(1).optional(),
-          rationale: z.string().optional(),
+          rateOverride: z
+            .number()
+            .optional()
+            .describe('Override fully loaded hourly cost for this workflow'),
+          adoptionRate: z
+            .number()
+            .min(0)
+            .max(1)
+            .optional()
+            .describe('Base adoption rate 0–1'),
         }),
       }),
       execute: async ({
@@ -568,73 +631,61 @@ function buildTools(
         patches,
       }: {
         workflowName: string
-        patches: Record<string, unknown>
-      }) => {
-        if (!state.modelerOutput || !state.researchOutput) {
-          return { error: 'No modeler output to patch' }
+        patches: {
+          monthlyVolume?: number
+          minutesPerItemBefore?: number
+          minutesPerItemAfter?: number
+          rateOverride?: number
+          adoptionRate?: number
         }
-        const idx = state.modelerOutput.workflowAssumptions.findIndex(
-          (a) => a.workflowName.toLowerCase() === workflowName.toLowerCase(),
+      }) => {
+        if (!state.workflows) return { error: 'No workflows to patch' }
+        const idx = state.workflows.findIndex(
+          (w) => w.name.toLowerCase() === workflowName.toLowerCase(),
         )
         if (idx === -1) {
           return {
-            error: `Workflow "${workflowName}" not found. Available: ${state.modelerOutput.workflowAssumptions
-              .map((a) => a.workflowName)
+            error: `Workflow "${workflowName}" not found. Available: ${state.workflows
+              .map((w) => w.name)
               .join(', ')}`,
           }
         }
-        state.modelerOutput = {
-          ...state.modelerOutput,
-          workflowAssumptions: state.modelerOutput.workflowAssumptions.map(
-            (a, i) => (i === idx ? { ...a, ...patches } : a),
-          ),
-        }
-        state.calcOutput = roiCalculator(
-          state.researchOutput,
-          state.modelerOutput,
+        state.workflows = state.workflows.map((w, i) =>
+          i !== idx
+            ? w
+            : {
+                ...w,
+                ...(patches.monthlyVolume !== undefined && {
+                  monthlyVolume: patches.monthlyVolume,
+                }),
+                ...(patches.minutesPerItemBefore !== undefined && {
+                  minutesPerItemBefore: patches.minutesPerItemBefore,
+                }),
+                ...(patches.minutesPerItemAfter !== undefined && {
+                  minutesPerItemAfter: patches.minutesPerItemAfter,
+                }),
+                ...(patches.rateOverride !== undefined && {
+                  rateOverride: patches.rateOverride,
+                }),
+                ...(patches.adoptionRate !== undefined && {
+                  adoptionRate: patches.adoptionRate,
+                }),
+              },
         )
         reAssemble(state, execTemplateHtml, fullTemplateHtml, callbacks)
-        const s = state.calcOutput.roi_data.summary
+        const s = state.calcOutput?.summary
         return {
           ok: true,
-          new_od12: s.operationalDividend12mo,
-          new_tf12: s.totalFinancialGain12mo,
-          new_monthly_hours: state.calcOutput.roi_data.totalMonthlyHours,
+          new_od12: s?.operationalDividend12mo,
+          new_tf12: s?.totalFinancialGain12mo,
         }
-      },
-    }),
-
-    // ── LLM-driven full rewrite ──────────────────────────────────────────────
-    rewrite_report_copy: tool({
-      description:
-        'Regenerate all 9 copy fields via LLM (5-10s). Use when the user wants a comprehensive rewrite or new research context.',
-      inputSchema: z.object({
-        instruction: z.string().describe('What to change or improve'),
-      }),
-      execute: async ({ instruction }: { instruction: string }) => {
-        if (!state.calcOutput) return { error: 'No calc output available' }
-        const ctx = buildWriterContext(state, instruction)
-        const result = await generateObject({
-          model: researchModel,
-          schema: jsonSchema(REPORT_WRITER_SCHEMA as object),
-          system: REPORT_WRITER_SYSTEM_PROMPT,
-          prompt: ctx,
-        })
-        tracker?.record({
-          call: 'rewrite_report_copy',
-          model: 'gpt-4o',
-          ...result.usage,
-        })
-        state.writerOutput = result.object as ReportWriterOutput
-        reAssemble(state, execTemplateHtml, fullTemplateHtml, callbacks)
-        return { ok: true }
       },
     }),
 
     // ── Workflow structure tools ─────────────────────────────────────────────
     add_workflow: tool({
       description:
-        'Add a new workflow to the report. Only call this for workflows NOT already in the current workflow list. Triggers financial recalculation.',
+        'Add a new workflow to the report. Only call this for workflows NOT already in the current workflow list.',
       inputSchema: z.object({
         workflow: z.object({
           name: z.string(),
@@ -652,69 +703,59 @@ function buildTools(
       execute: async ({
         workflow,
       }: {
-        workflow: ResearchAgentOutput['workflows'][0]
+        workflow: Omit<
+          WorkflowInput,
+          | 'adoptionRate'
+          | 'exceptionRate'
+          | 'exceptionMinutes'
+          | 'rateOverride'
+          | 'rationale'
+        > & {
+          monthlyVolume?: number
+          minutesPerItemBefore?: number
+          minutesPerItemAfter?: number
+        }
       }) => {
-        if (!state.researchOutput) return { error: 'No research output' }
+        if (!state.workflows) return { error: 'No workflows to add to' }
 
-        // Guard: prevent adding a workflow that already exists
-        const alreadyExists = state.researchOutput.workflows.some(
+        const alreadyExists = state.workflows.some(
           (w) => w.name.toLowerCase() === workflow.name.toLowerCase(),
         )
         if (alreadyExists) {
           return {
-            error: `Workflow "${workflow.name}" already exists. Use update_workflow_assumption to change its parameters.`,
+            error: `Workflow "${workflow.name}" already exists. Use update_workflow to change its parameters.`,
           }
         }
 
-        state.researchOutput = {
-          ...state.researchOutput,
-          workflows: [...state.researchOutput.workflows, workflow],
-        }
+        const avgRate =
+          state.globals && state.workflows.length > 0
+            ? state.workflows.reduce(
+                (s, w) => s + (w.rateOverride ?? state.globals!.laborRate),
+                0,
+              ) / state.workflows.length
+            : state.globals?.laborRate ?? 45
 
-        // Add a matching modeler assumption so the calc stays consistent
-        if (state.modelerOutput) {
-          const existing = state.modelerOutput.workflowAssumptions
-          const avgRate =
-            existing.length > 0
-              ? existing.reduce(
-                  (s, a) =>
-                    s +
-                    (a.fullyLoadedHourlyCostOverride ??
-                      state.modelerOutput!.labor.fullyLoadedHourlyCost),
-                  0,
-                ) / existing.length
-              : state.modelerOutput.labor.fullyLoadedHourlyCost
-          const newAssump: WorkflowAssumption = {
-            workflowName: workflow.name,
-            monthlyVolume: workflow.monthlyVolume ?? 100,
-            minutesPerItemBefore: workflow.minutesPerItemBefore ?? 60,
-            minutesPerItemAfter: workflow.minutesPerItemAfter ?? 12,
-            exceptionRate: 0.05,
-            exceptionMinutes: 15,
-            adoption_low: 0.5,
-            adoption_base: 0.7,
-            adoption_high: 0.9,
-            rationale:
-              'Added via chat — defaults applied. Use update_workflow_assumption to refine.',
-            fullyLoadedHourlyCostOverride: Math.round(avgRate),
-          }
-          state.modelerOutput = {
-            ...state.modelerOutput,
-            workflowAssumptions: [
-              ...state.modelerOutput.workflowAssumptions,
-              newAssump,
-            ],
-          }
-          state.calcOutput = roiCalculator(
-            state.researchOutput,
-            state.modelerOutput,
-          )
-          reAssemble(state, execTemplateHtml, fullTemplateHtml, callbacks)
+        const newWorkflow: WorkflowInput = {
+          name: workflow.name,
+          agentName: workflow.agentName ?? '',
+          function: workflow.function ?? '',
+          owner: workflow.owner ?? '',
+          whyItMatters: workflow.whyItMatters ?? '',
+          expectedOutcome: workflow.expectedOutcome ?? '',
+          sourceType: workflow.sourceType ?? 'inferred',
+          monthlyVolume: workflow.monthlyVolume ?? 100,
+          minutesPerItemBefore: workflow.minutesPerItemBefore ?? 60,
+          minutesPerItemAfter: workflow.minutesPerItemAfter ?? 12,
+          adoptionRate: 0.7,
+          exceptionRate: 0.08,
+          exceptionMinutes: 12,
+          rateOverride: Math.round(avgRate),
+          rationale:
+            'Added via chat — defaults applied. Use update_workflow to refine.',
         }
-        return {
-          ok: true,
-          workflow_count: state.researchOutput.workflows.length,
-        }
+        state.workflows = [...state.workflows, newWorkflow]
+        reAssemble(state, execTemplateHtml, fullTemplateHtml, callbacks)
+        return { ok: true, workflow_count: state.workflows.length }
       },
     }),
 
@@ -723,79 +764,206 @@ function buildTools(
         'Remove a workflow from the report. Recalculates figures without an LLM call.',
       inputSchema: z.object({ workflowName: z.string() }),
       execute: async ({ workflowName }: { workflowName: string }) => {
-        if (!state.researchOutput || !state.modelerOutput)
-          return { error: 'No research/modeler output' }
-        state.researchOutput = {
-          ...state.researchOutput,
-          workflows: state.researchOutput.workflows.filter(
-            (w) => w.name !== workflowName,
-          ),
-        }
-        state.modelerOutput = {
-          ...state.modelerOutput,
-          workflowAssumptions: state.modelerOutput.workflowAssumptions.filter(
-            (a) => a.workflowName !== workflowName,
-          ),
-        }
-        state.calcOutput = roiCalculator(
-          state.researchOutput,
-          state.modelerOutput,
-        )
+        if (!state.workflows) return { error: 'No workflows' }
+        state.workflows = state.workflows.filter((w) => w.name !== workflowName)
         reAssemble(state, execTemplateHtml, fullTemplateHtml, callbacks)
+        return { ok: true, workflow_count: state.workflows.length }
+      },
+    }),
+
+    // ── Currency & global financial tools ───────────────────────────────────
+    scale_rates: tool({
+      description:
+        'Multiply ALL monetary raw inputs (hourly rates and costs) by a given factor. Use for currency conversion (e.g. scale_rates(3.67) for USD→AED). Only touches monetary fields; hours and volumes are unchanged.',
+      inputSchema: z.object({
+        multiplier: z
+          .number()
+          .positive()
+          .describe('Factor to apply, e.g. 3.67 to convert USD to AED'),
+      }),
+      execute: async ({ multiplier }: { multiplier: number }) => {
+        if (!state.globals) return { error: 'No globals to scale' }
+        state.globals = {
+          ...state.globals,
+          laborRate: Math.round(state.globals.laborRate * multiplier),
+          implementationCost: Math.round(
+            state.globals.implementationCost * multiplier,
+          ),
+          monthlyToolingCost: Math.round(
+            state.globals.monthlyToolingCost * multiplier,
+          ),
+        }
+        if (state.workflows) {
+          state.workflows = state.workflows.map((w) => ({
+            ...w,
+            rateOverride:
+              w.rateOverride != null
+                ? Math.round(w.rateOverride * multiplier)
+                : null,
+          }))
+        }
+        // Scale revenue so the roiCalculator revenue guardrail stays proportional
+        if (
+          state.company?.revenueEstimateM != null &&
+          state.company.revenueEstimateM > 0
+        ) {
+          state.company = {
+            ...state.company,
+            revenueEstimateM: state.company.revenueEstimateM * multiplier,
+          }
+        }
+        reAssemble(state, execTemplateHtml, fullTemplateHtml, callbacks)
+        return { ok: true, multiplier }
+      },
+    }),
+
+    set_currency: tool({
+      description:
+        'Change the currency symbol and code displayed on all figures. DISPLAY CHANGE ONLY — values are not converted. Pair with scale_rates(multiplier) when actual value conversion is needed.',
+      inputSchema: z.object({
+        currencyCode: z
+          .string()
+          .describe(
+            'ISO 4217 code: USD, EUR, GBP, AED, SAR, QAR, KWD, BHD, OMR, EGP, NGN, ZAR, JPY, CAD, AUD, CHF, INR',
+          ),
+      }),
+      execute: async ({ currencyCode }: { currencyCode: string }) => {
+        const CURRENCIES: Record<
+          string,
+          { code: string; symbol: string; name: string }
+        > = {
+          USD: { code: 'USD', symbol: '$', name: 'US Dollar' },
+          EUR: { code: 'EUR', symbol: '€', name: 'Euro' },
+          GBP: { code: 'GBP', symbol: '£', name: 'British Pound' },
+          SAR: { code: 'SAR', symbol: 'SAR ', name: 'Saudi Riyal' },
+          AED: { code: 'AED', symbol: 'AED ', name: 'UAE Dirham' },
+          QAR: { code: 'QAR', symbol: 'QAR ', name: 'Qatari Riyal' },
+          KWD: { code: 'KWD', symbol: 'KWD ', name: 'Kuwaiti Dinar' },
+          BHD: { code: 'BHD', symbol: 'BHD ', name: 'Bahraini Dinar' },
+          OMR: { code: 'OMR', symbol: 'OMR ', name: 'Omani Rial' },
+          EGP: { code: 'EGP', symbol: 'EGP ', name: 'Egyptian Pound' },
+          NGN: { code: 'NGN', symbol: '₦', name: 'Nigerian Naira' },
+          ZAR: { code: 'ZAR', symbol: 'R', name: 'South African Rand' },
+          JPY: { code: 'JPY', symbol: '¥', name: 'Japanese Yen' },
+          CAD: { code: 'CAD', symbol: 'CA$', name: 'Canadian Dollar' },
+          AUD: { code: 'AUD', symbol: 'A$', name: 'Australian Dollar' },
+          CHF: { code: 'CHF', symbol: 'CHF ', name: 'Swiss Franc' },
+          INR: { code: 'INR', symbol: '₹', name: 'Indian Rupee' },
+        }
+        const code = currencyCode.toUpperCase().trim()
+        const currency = CURRENCIES[code] ?? {
+          code,
+          symbol: code + ' ',
+          name: code,
+        }
+        if (state.globals) state.globals = { ...state.globals, currency }
+        if (state.normInput)
+          state.normInput = { ...state.normInput, selectedCurrency: code }
+        reAssemble(state, execTemplateHtml, fullTemplateHtml, callbacks)
+        return { ok: true, currency }
+      },
+    }),
+
+    update_globals: tool({
+      description:
+        'Update global financial model parameters shared across all workflows. Instantly recalculates everything.',
+      inputSchema: z.object({
+        laborRate: z
+          .number()
+          .optional()
+          .describe('Global fully loaded hourly cost'),
+        implCost: z
+          .number()
+          .optional()
+          .describe('One-time implementation cost'),
+        toolingCostMonthly: z
+          .number()
+          .optional()
+          .describe('Monthly tooling/licensing cost'),
+        profitMultiplier: z
+          .number()
+          .optional()
+          .describe('Multiplier applied to freed hours for profit uplift'),
+        realizationFactor: z
+          .number()
+          .optional()
+          .describe('Fraction of theoretical hours actually recovered (0–1)'),
+      }),
+      execute: async (patches: {
+        laborRate?: number
+        implCost?: number
+        toolingCostMonthly?: number
+        profitMultiplier?: number
+        realizationFactor?: number
+      }) => {
+        if (!state.globals) return { error: 'No globals to update' }
+        state.globals = {
+          ...state.globals,
+          ...(patches.laborRate !== undefined && {
+            laborRate: patches.laborRate,
+          }),
+          ...(patches.implCost !== undefined && {
+            implementationCost: patches.implCost,
+          }),
+          ...(patches.toolingCostMonthly !== undefined && {
+            monthlyToolingCost: patches.toolingCostMonthly,
+          }),
+          ...(patches.profitMultiplier !== undefined && {
+            profitMultiplier: patches.profitMultiplier,
+          }),
+          ...(patches.realizationFactor !== undefined && {
+            realizationFactor: patches.realizationFactor,
+          }),
+        }
+        reAssemble(state, execTemplateHtml, fullTemplateHtml, callbacks)
+        const s = state.calcOutput?.summary
         return {
           ok: true,
-          workflow_count: state.researchOutput.workflows.length,
+          new_od12: s?.operationalDividend12mo,
+          new_tf12: s?.totalFinancialGain12mo,
         }
       },
     }),
   }
 }
 
-// ── Writer context builder (for rewrite_report_copy) ─────────────────────────
-
-function buildWriterContext(state: ReportState, instruction: string): string {
-  const calc = state.calcOutput!
-  const s = calc.roi_data.summary
-  const sym = calc.roi_data.currency.symbol
-
-  return `INSTRUCTION: ${instruction}
-
-FIGURES (use verbatim):
-  totalMonthlyHours: ${calc.figures.totalMonthlyHours}
-  totalAnnualHours: ${calc.figures.totalAnnualHours}
-  operationalDividend12mo: ${calc.figures.operationalDividend12mo}
-  profitUplift12mo: ${calc.figures.profitUplift12mo} (raw: ${
-    s.profitUplift12mo
-  })
-  totalFinancialGain12mo: ${calc.figures.totalFinancialGain12mo}
-  workflowLines: ${calc.figures.workflowLines.join(' | ')}
-
-COMPANY: ${calc.roi_data.company} | ${calc.roi_data.industry} | ${
-    calc.roi_data.country ?? ''
-  } | ${calc.roi_data.employees ?? 'unknown'} employees
-RECIPIENT: ${state.normInput?.recipientName ?? ''} ${
-    state.normInput?.recipientTitle ? ', ' + state.normInput.recipientTitle : ''
-  }
-CORE THESIS: ${state.coreThesis ?? ''}
-CONFIDENCE: ${state.confidenceLevel ?? 'low'}
-
-WORKFLOWS:
-${calc.roi_data.workflows
-  .map(
-    (w) =>
-      `  [${w.name}] ${w.volume}/mo × ${w.timeBefore}→${w.timeAfter} min @ ${sym}${w.rate}/hr → ${sym}${w.annualValue}/yr`,
-  )
-  .join('\n')}
-
-CURRENT COPY (for reference):
-  unified_pattern_thesis: ${state.writerOutput?.unified_pattern_thesis ?? ''}
-  cta_paragraph: ${state.writerOutput?.cta_paragraph ?? ''}
-`
-}
-
 // ── System prompts ────────────────────────────────────────────────────────────
 
-function buildGenerationSystemPrompt(companyName: string): string {
+function buildGenerationSystemPrompt(
+  companyName: string,
+  estimatesOnly = false,
+): string {
+  if (estimatesOnly) {
+    return `You are the LyRise ROI Report Agent. Generate an estimate-based report for ${companyName}.
+
+WEB RESEARCH IS DISABLED for this request. Do NOT call web_search or fetch_page.
+Use ONLY the questionnaire inputs and standard industry benchmarks.
+
+YOUR FIRST ACTION: call set_research_output immediately with:
+- All workflows inferred from company description + industry (sourceType: 'inferred')
+- confidenceLevel: 'low'
+- A clear coreThesis based on the company description
+
+Then: run_financial_model() → set_report_copy(…)
+
+Do not write any text before calling set_research_output. Act immediately.
+
+MANDATORY for set_report_copy:
+• unified_pattern_thesis (KR-16): 2-3 sentences naming SINGLE operating pattern
+• profit_levers: exactly 3 levers. For each lever:
+  - Write rationale_with_arithmetic as monthly arithmetic only, e.g. "120 hrs/mo freed × $45/hr × 0.35 redirected = $1,890/mo"
+  - Use the hourly rate from run_financial_model figures, NOT the FTE count
+  - Total Profit Uplift is computed by the calculator — do NOT include a per-lever annual total
+• derived_from: workflow name(s) each lever originates from
+• cost_of_delay (KR-18): narrative only — company-specific urgency prose, no dollar figures, MUST end with "Delay is not neutral — it carries a monthly price."
+• resilience_rows (KR-17): exactly 4 rows; dimensions: Cost per unit, Delivery speed, Error rate, Strategic capacity
+• pilot_recommendation (WD-1): MUST reference specific company characteristics
+• cta_paragraph (NS-1): criteria-based — "If [conditions] describe your situation, a 30-min call with elena@lyrise.ai would be worthwhile."
+• next_steps_checklist (NS-2): exactly 6 items, each with named owner + due date
+
+TERMINOLOGY: "Operational Dividend" · "Total Financial Gain" · "Hours Returned"`
+  }
+
   return `You are the LyRise ROI Report Agent. Your job is to produce a high-quality, credible AI ROI report for ${companyName}.
 
 COGNITIVE WORKFLOW (silent internal reasoning — never show phase names to user):
@@ -823,9 +991,12 @@ After phases 1–6, call tools in order:
 
 MANDATORY for set_report_copy:
 • unified_pattern_thesis (KR-16): 2-3 sentences naming SINGLE operating pattern, no workflow lists
-• rationale_with_arithmetic (Rule 6C): full arithmetic chain in every profit lever
+• profit_levers: exactly 3 levers. For each lever:
+  - Write rationale_with_arithmetic as monthly arithmetic only, e.g. "120 hrs/mo freed × $45/hr × 0.35 redirected = $1,890/mo"
+  - Use the hourly rate from run_financial_model figures, NOT the FTE count
+  - Total Profit Uplift is computed by the calculator — do NOT include a per-lever annual total
 • derived_from: workflow name(s) each lever originates from
-• cost_of_delay (KR-18): monthly_cost = TFG12/12; narrative MUST end with "Delay is not neutral — it carries a monthly price."
+• cost_of_delay (KR-18): narrative only — company-specific urgency prose, no dollar figures, MUST end with "Delay is not neutral — it carries a monthly price."
 • resilience_rows (KR-17): exactly 4 rows; dimensions: Cost per unit, Delivery speed, Error rate, Strategic capacity
 • pilot_recommendation (WD-1): MUST reference specific company characteristics (employees, volume)
 • cta_paragraph (NS-1): criteria-based — "If [conditions] describe your situation, a 30-min call with elena@lyrise.ai would be worthwhile."
@@ -834,115 +1005,171 @@ MANDATORY for set_report_copy:
 TERMINOLOGY (mandatory):
 • "Operational Dividend" — never "cost savings"
 • "Total Financial Gain" — never "ROI"
-• "Hours Returned" — never "time saved"`
+• "Hours Returned" — never "time saved"
+
+ABSOLUTE PIPELINE REQUIREMENT:
+You MUST call set_research_output → run_financial_model → set_report_copy in sequence, without exception.
+If all web searches fail or return no useful data: STOP researching and call set_research_output IMMEDIATELY using the questionnaire inputs and industry benchmarks, with confidenceLevel: 'low' and sourceType: 'inferred' for all workflows.
+NEVER end generation with only text. NEVER explain why you couldn't research. If stuck: call set_research_output NOW.
+
+WORKFLOWS REQUIREMENT (critical):
+• set_research_output.workflows MUST contain 3–4 workflows
+• Every workflow MUST have monthlyVolume > 0 (use industry benchmarks if unknown — e.g. 200/mo for a 50-person firm)
+• Every workflow MUST have minutesPerItemBefore > 0 and minutesPerItemAfter > 0
+• Infer realistic volumes from team size and industry — do NOT submit 0 or omit these fields`
 }
 
 function buildChatSystemPrompt(state: ReportState): string {
   const calc = state.calcOutput!
-  const writer = state.writerOutput!
-  const roi = calc.roi_data
-  const s = roi.summary
-  const sym = roi.currency.symbol
+  const copy = state.copy!
+  const company = state.company!
+  const globals = state.globals!
+  const sym = globals.currency.symbol
+  const s = calc.summary
 
-  const wfLines = roi.workflows
+  // Merge WorkflowInput (raw) with WorkflowCalc (derived) by name
+  const merged = calc.workflows.map((wc) => {
+    const inp =
+      state.workflows!.find((w) => w.name === wc.name) ?? state.workflows![0]
+    return { ...inp, ...wc }
+  })
+
+  const workflowSection = merged
+    .map((w) => {
+      const hrsBefore = Math.round(
+        (w.monthlyVolume * w.minutesPerItemBefore) / 60,
+      )
+      const hrsAfter = Math.round(hrsBefore - w.monthlyHours)
+      return `[${w.name}]
+  Displayed: ${hrsBefore}→${hrsAfter} hrs/mo | ${
+        w.monthlyHours
+      } saved | ${sym}${w.monthlyValue}/mo
+  Raw inputs (update_workflow): volume=${w.monthlyVolume}/mo | before=${
+        w.minutesPerItemBefore
+      }min | after=${w.minutesPerItemAfter}min | rate=${sym}${
+        w.rateOverride ?? globals.laborRate
+      }/hr | adoption=${w.adoptionRate}`
+    })
+    .join('\n\n')
+
+  const leverLines = (copy.profit_levers ?? [])
     .map(
-      (w) =>
-        `  [${w.name}] dept: ${w.function} | owner: ${w.owner}
-    Volume: ${w.volume}/mo | Time: ${w.timeBefore}→${w.timeAfter} min (${w.savingsPct}% saved)
-    Rate: ${sym}${w.rate}/hr | Monthly: ${w.monthlyHours} hrs | Annual: ${sym}${w.annualValue}
-    Source: ${w.source}`,
+      (l, i) =>
+        `  [${i + 1}] lever_name="${l.lever_name}" | derived_from="${
+          l.derived_from
+        }"\n       rationale_with_arithmetic="${
+          l.rationale_with_arithmetic ?? l.rationale
+        }"`,
     )
     .join('\n')
 
-  const waLines =
-    state.modelerOutput?.workflowAssumptions
-      .map(
-        (wa) =>
-          `  [${wa.workflowName}] vol=${wa.monthlyVolume}/mo before=${
-            wa.minutesPerItemBefore
-          }min after=${wa.minutesPerItemAfter}min rate=${sym}${
-            wa.fullyLoadedHourlyCostOverride ??
-            state.modelerOutput?.labor.fullyLoadedHourlyCost
-          }/hr (${wa.seniorityLevel ?? 'blended'}, ${
-            wa.rateSource ?? ''
-          }) adoption=${wa.adoption_base}`,
-      )
-      .join('\n') ?? ''
+  const resilienceLines = (copy.resilience_rows ?? [])
+    .map(
+      (r) => `  • ${r.dimension}: act_now="${r.act_now}" | defer="${r.defer}"`,
+    )
+    .join('\n')
 
-  const leverLines =
-    writer.profit_levers
-      ?.map(
-        (l) =>
-          `  [${l.lever_name}] from:${l.derived_from} | ${sym}${l.profit} | ${
-            l.rationale_with_arithmetic ?? l.rationale
-          }`,
-      )
-      .join('\n') ?? ''
+  const riskLines = (copy.risks ?? [])
+    .map((r, i) => `  [${i + 1}] "${r.risk}"`)
+    .join('\n')
 
-  return `You are the LyRise ROI Report Editor for ${roi.company}.
+  const nextStepLines = (copy.next_steps_checklist ?? [])
+    .map(
+      (ns, i) =>
+        `  [${i + 1}] "${ns.action}" | owner:${ns.owner} | due:${ns.due}`,
+    )
+    .join('\n')
+
+  return `You are the LyRise ROI Report Editor for ${company.company}.
+
+HOW THIS WORKS: every displayed figure has a raw input behind it. You see both below.
+Edit the raw input with a tool → the pipeline recalculates and re-renders everything automatically.
+Never compute derived values yourself. Never do arithmetic on report numbers.
 
 ═══ COMPANY ════════════════════════════════════════════
-Name: ${roi.company} | Industry: ${roi.industry} | Country: ${
-    roi.country ?? 'unknown'
-  }
-Employees: ${roi.employees ?? 'unknown'} | Revenue: ${
-    roi.revenue ? sym + roi.revenue + 'M' : 'unknown'
-  }
-Confidence: ${state.confidenceLevel ?? 'low'} | Core thesis: ${
-    state.coreThesis ?? ''
+${company.company} | ${company.industry} | ${company.country ?? 'unknown'} | ${
+    company.employees ?? '?'
+  } employees
+Revenue: ${
+    company.revenueEstimateM ? sym + company.revenueEstimateM + 'M' : 'unknown'
+  } | Confidence: ${state.confidenceLevel ?? 'low'}
+Thesis: ${state.coreThesis ?? ''}
+
+═══ WORKFLOWS ══════════════════════════════════════════
+${workflowSection}
+
+TOTALS (displayed): ${calc.figures.totalAnnualHours} hrs/yr | OD ${sym}${
+    s.operationalDividend12mo
+  } | PU ${sym}${s.profitUplift12mo} | TFG ${sym}${s.totalFinancialGain12mo}
+
+═══ GLOBAL INPUTS ═══════════════════════════════════════
+Edit with update_globals. Applied to all workflows unless a workflow has its own rate override above.
+  laborRate=${sym}${globals.laborRate}/hr | implCost=${sym}${
+    globals.implementationCost
+  } | toolingCostMonthly=${sym}${globals.monthlyToolingCost}/mo
+  profitMultiplier=${globals.profitMultiplier} | realizationFactor=${
+    globals.realizationFactor
   }
 
-═══ WORKFLOWS (${roi.workflows.length}) ══════════════════════════════════
-${wfLines}
+═══ COPY SECTIONS ═══════════════════════════════════════
+Edit with update_copy(patches). Field names shown after →.
 
-═══ FINANCIAL SUMMARY ══════════════════════════════════
-Annual hours returned: ${calc.figures.totalAnnualHours} hrs (${
-    calc.figures.statFTE
-  } FTE equiv.)
-12-mo: OD ${sym}${s.operationalDividend12mo} | PU ${sym}${
-    s.profitUplift12mo
-  } | TFG ${sym}${s.totalFinancialGain12mo}
-24-mo: OD ${sym}${s.operationalDividend24mo} | TFG ${sym}${
-    s.totalFinancialGain24mo
-  }
-36-mo: OD ${sym}${s.operationalDividend36mo} | TFG ${sym}${
-    s.totalFinancialGain36mo
-  }
-Impl: ${sym}${s.implCost} | Tooling: ${sym}${s.monthlyTooling}/mo | Payback: ${
-    s.paybackMonths ?? '?'
-  } mo
+THE PATTERN UNDERNEATH → thesis
+"${copy.unified_pattern_thesis ?? ''}"
 
-═══ MODELING ASSUMPTIONS ════════════════════════════════
-${waLines}
-Realization: ${state.modelerOutput?.realizationFactor} | Profit multiplier: ${
-    state.modelerOutput?.profitMultiplier
-  }
+WHAT HAPPENS NEXT (CTA) → cta
+"${copy.cta_paragraph ?? ''}"
 
-═══ CURRENT COPY ════════════════════════════════════════
-Thesis: ${writer.unified_pattern_thesis ?? ''}
-CTA: ${writer.cta_paragraph ?? ''}
-Pilot rec: ${writer.pilot_recommendation ?? ''}
-Levers:
+PILOT RECOMMENDATION → pilot
+"${copy.pilot_recommendation ?? ''}"
+
+WHERE PROFIT UPLIFT COMES FROM → profit_levers (exactly 3)
 ${leverLines}
 
-═══ YOUR CAPABILITIES ═══════════════════════════════════
-Copy tools (~100ms): update_cta, update_unified_thesis, update_profit_levers,
-  update_resilience_rows, update_cost_of_delay, update_risks, update_next_steps, update_pilot_recommendation
-Assumption tool (no LLM, instant): update_workflow_assumption
-LLM rewrite (5-10s): rewrite_report_copy
-Research: web_search, fetch_page
-Structure: add_workflow (NEW workflows only), remove_workflow
+COST OF DELAY → cost_of_delay
+  monthly_cost is computed by the calculator (tf12/12 = ${sym}${Math.round(
+    s.totalFinancialGain12mo / 12,
+  ).toLocaleString()}) — do not set this
+  narrative="${copy.cost_of_delay?.narrative ?? ''}"
+
+RESILIENCE TABLE → resilience_rows (exactly 4)
+${resilienceLines}
+
+RISKS → risks (min 3)
+${riskLines}
+
+NEXT STEPS → next_steps (exactly 6)
+${nextStepLines}
+
+═══ YOUR TOOLS ══════════════════════════════════════════
+NUMBERS   update_workflow(name, patches)   — set volume, timeBefore, timeAfter, rateOverride, adoptionRate
+          update_globals(patches)          — set laborRate, implCost, toolingCostMonthly, profitMultiplier, realizationFactor
+          scale_rates(multiplier)          — multiply ALL monetary inputs by a factor; use for currency conversion, no arithmetic needed
+CURRENCY  set_currency(code)              — change display symbol/code only; pair with scale_rates when converting values
+COPY      update_copy(patches)            — update any combination of copy sections in one call
+STRUCTURE add_workflow | remove_workflow
+RESEARCH  web_search | fetch_page
+
+COMPOSITION EXAMPLES:
+  "Convert to AED at 3.67"          → set_currency("AED")  then  scale_rates(3.67)
+  "Proposal rate is ${sym}80/hr"   → update_workflow("Proposal drafting and tailoring", { rateOverride: 80 })
+  "Inbound volume is 200/mo"        → update_workflow("Inbound lead qualification", { monthlyVolume: 200 })
+  "Rewrite the thesis"              → update_copy({ thesis: "..." })
+  "Fix profit lever arithmetic"     → update_copy({ profit_levers: [...] })
+  "Rate change + update lever math" → update_workflow(...) then update_copy({ profit_levers: [...] })
 
 STRICT RULES:
-- NEVER call add_workflow for a workflow already in the WORKFLOWS list above — the tool will reject it.
+- NEVER describe a change without calling the tool that makes it.
+- NEVER do arithmetic on report values — use scale_rates for relative scaling.
+- set_currency only changes the symbol; always also call scale_rates if values need converting.
+- NEVER call add_workflow for a workflow already listed above — the tool will reject it.
 - set_report_copy: only call if the user explicitly asks to regenerate the full report copy.
 - For a single-section edit, use a targeted update_* tool — never set_report_copy.
-- rewrite_report_copy is only for when the user explicitly requests a full rewrite.
-- For numerical/volume changes, use update_workflow_assumption — it recalculates everything instantly.
-- KR-18: never remove "Delay is not neutral — it carries a monthly price."
+- KR-18: cost_of_delay narrative MUST end with "Delay is not neutral — it carries a monthly price."
 - KR-17: resilience_rows always exactly 4 rows.
-- NS-2: next_steps_checklist always exactly 6 items.
-- Narrate what you're changing before calling the tool.`
+- NS-2: next_steps always exactly 6 items.
+- Narrate what you're doing before calling tools.
+- If you cannot satisfy a request with the available tools, say so explicitly.`
 }
 
 // ── Main entry point ──────────────────────────────────────────────────────────
@@ -955,6 +1182,7 @@ export async function runReportAgent(params: {
   callbacks: AgentCallbacks
   templateHtml: string
   fullTemplateHtml: string
+  estimatesOnly?: boolean
 }): Promise<void> {
   const {
     mode,
@@ -964,6 +1192,7 @@ export async function runReportAgent(params: {
     callbacks,
     templateHtml,
     fullTemplateHtml,
+    estimatesOnly = false,
   } = params
 
   const company = state.normInput?.companyName ?? 'unknown'
@@ -991,7 +1220,7 @@ export async function runReportAgent(params: {
         }`
       : ''
 
-    system = buildGenerationSystemPrompt(companyName)
+    system = buildGenerationSystemPrompt(companyName, estimatesOnly)
     messages = [
       {
         role: 'user',
@@ -1011,8 +1240,8 @@ ${
       },
     ]
   } else {
-    // Chat mode — state must have calcOutput + writerOutput
-    if (!state.calcOutput || !state.writerOutput) {
+    // Chat mode — state must have calcOutput + copy
+    if (!state.calcOutput || !state.copy) {
       callbacks.onError(
         new Error('Chat mode requires a fully generated report state'),
       )
@@ -1062,10 +1291,10 @@ ${
   if (mode === 'generate' && !state.assembled) {
     const done =
       [
-        state.researchOutput ? 'research' : null,
-        state.modelerOutput ? 'model' : null,
+        state.company ? 'research' : null,
+        state.globals ? 'model' : null,
         state.calcOutput ? 'calc' : null,
-        state.writerOutput ? 'writer' : null,
+        state.copy ? 'writer' : null,
       ]
         .filter(Boolean)
         .join(', ') || 'none'

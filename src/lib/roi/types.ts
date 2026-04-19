@@ -61,7 +61,15 @@ export interface NormalizedInput {
   workContext: string
 }
 
-// ── Research Agent output ────────────────────────────────────────────────────
+// ── Currency ─────────────────────────────────────────────────────────────────
+
+export interface Currency {
+  code: string
+  symbol: string
+  name: string
+}
+
+// ── Single source of truth: company profile ──────────────────────────────────
 
 export interface CompanyProfile {
   company: string
@@ -70,99 +78,52 @@ export interface CompanyProfile {
   primaryFocus: string | null
   keyPriorities: string[]
   employees: number | null
-  revenueEstimateM: number | null
+  revenueEstimateM: number | null // estimated annual revenue in millions
 }
 
-export interface PainPoint {
-  title: string
-  description: string
-  confidence: 'high' | 'medium' | 'low'
-  source: 'user_stated' | 'inferred' | 'research_derived'
-}
+// ── Single source of truth: per-workflow inputs ──────────────────────────────
+// Identity fields come from research; numeric fields are set by the modeler
+// and are directly editable via update_workflow in chat mode.
 
-export interface WorkflowPlan {
+export interface WorkflowInput {
+  // Identity (from research phase)
   name: string
+  agentName: string
   function: string
   owner: string
   whyItMatters: string
-  agentName: string
   expectedOutcome: string
   sourceType: 'user_stated' | 'inferred' | 'research_derived'
-  // Research-derived volume estimates
-  monthlyVolume?: number
-  minutesPerItemBefore?: number
-  minutesPerItemAfter?: number
-  volumeRationale?: string
-}
 
-export interface ResearchAgentOutput {
-  company_profile: CompanyProfile
-  pain_points: PainPoint[]
-  workflows: WorkflowPlan[]
-  researchSummary?: string
-}
-
-// ── ROI Modeler output ───────────────────────────────────────────────────────
-
-export interface Currency {
-  code: string
-  symbol: string
-  name: string
-}
-
-export interface WorkflowAssumption {
-  workflowName: string
+  // Numeric inputs (set by modeler, editable in chat)
   monthlyVolume: number
   minutesPerItemBefore: number
   minutesPerItemAfter: number
-  exceptionRate: number
+  adoptionRate: number // 0–1
+  exceptionRate: number // 0–1
   exceptionMinutes: number
-  adoption_low: number
-  adoption_base: number
-  adoption_high: number
+  rateOverride: number | null // per-workflow hourly rate; null = use GlobalInputs.laborRate
   rationale: string
-  // v3.0 Rule 6A — per-workflow seniority-differentiated rate
-  fullyLoadedHourlyCostOverride?: number // overrides labor.fullyLoadedHourlyCost for this workflow
-  rateSource?: string // e.g. "Gulf Talent mid-market rate, 2024"
-  seniorityLevel?: string // e.g. "Junior analyst", "Senior consultant"
 }
 
-export interface RoiModelerOutput {
-  currency: Currency
-  costs: {
-    implementationCost: number
-    monthlyToolingCost: number
-  }
-  labor: {
-    fullyLoadedHourlyCost: number
-    workWeeksPerYear: number
-  }
-  realizationFactor: number
+// ── Single source of truth: global financial inputs ──────────────────────────
+
+export interface GlobalInputs {
+  laborRate: number // fully-loaded hourly cost (global fallback)
+  implementationCost: number
+  monthlyToolingCost: number
   profitMultiplier: number
-  workflowAssumptions: WorkflowAssumption[]
-  rollout: {
-    timeToDeployWeeks: number
-    rampUpWeeks: number
-  }
-  notes: {
-    assumptions: string[]
-  }
+  realizationFactor: number
+  workWeeksPerYear: number
+  currency: Currency
 }
 
-// ── ROI Calculator output ────────────────────────────────────────────────────
+// ── ROI Calculator output — derived values only ──────────────────────────────
 
-export interface WorkflowResult {
-  name: string
-  function: string
-  owner: string
-  agentName: string
-  whyItMatters: string
-  expectedOutcome: string
-  source: 'user_stated' | 'inferred' | 'research_derived'
-  volume: number
-  timeBefore: number
-  timeAfter: number
-  timeSaved: number
+export interface WorkflowCalc {
+  name: string // mirrors WorkflowInput.name for lookup
+  effectiveRate: number // rateOverride if set, else GlobalInputs.laborRate
+  timeSaved: number // minutesPerItemBefore - minutesPerItemAfter (minutes)
   savingsPct: number
   costPerRun: number
   monthlyCost: number
@@ -170,8 +131,6 @@ export interface WorkflowResult {
   monthlyValue: number
   annualHours: number
   annualValue: number
-  rate: number
-  rationale: string
 }
 
 export interface RoiSummary {
@@ -190,24 +149,6 @@ export interface RoiSummary {
   paybackMonths: number | null
 }
 
-export interface RoiData {
-  company: string
-  industry: string
-  country: string | null
-  primaryFocus: string | null
-  keyPriorities: string[]
-  employees: number | null
-  revenue: number | null
-  currency: Currency
-  workflows: WorkflowResult[]
-  totalMonthlyHours: number
-  totalAnnualHours: number
-  profitMultiplier: number
-  realizationFactor: number
-  workWeeksPerYear: number
-  summary: RoiSummary
-}
-
 export interface Figures {
   totalMonthlyHours: string
   totalAnnualHours: string
@@ -220,76 +161,68 @@ export interface Figures {
 }
 
 export interface RoiCalculatorOutput {
-  roi_data: RoiData
+  workflows: WorkflowCalc[]
+  totalMonthlyHours: number
+  totalAnnualHours: number
+  summary: RoiSummary
   figures: Figures
-  analystData: ResearchAgentOutput
-  modelerNotes: string[]
 }
 
-// ── v3.0 Report Writer types ─────────────────────────────────────────────────
+// ── Report copy (formerly ReportWriterOutput) ─────────────────────────────────
 
-// Company snapshot item with source provenance
 export interface CompanySnapshotItem {
   text: string
   sourceType: 'scraped' | 'benchmarked' | 'assumed'
 }
 
-// Cost of delay block (KR-18)
 export interface CostOfDelayData {
-  monthly_cost: number // totalFinancialGain12mo / 12 — exact model number
-  narrative: string // MUST end with: "Delay is not neutral — it carries a monthly price."
+  monthly_cost?: number // computed by calculator; LLM no longer outputs this
+  narrative: string
 }
 
-// Resilience positioning row (KR-17) — 4 rows × 2 columns
 export interface ResilienceRow {
-  dimension: string // e.g. "Cost per unit", "Delivery speed"
-  act_now: string // concrete automated-state outcome
-  defer: string // concrete manual-state risk
+  dimension: string
+  act_now: string
+  defer: string
 }
 
-// Risk row for Risks & Mitigations section
 export interface RiskRow {
   risk: string
-  detail: string // 2-3 sentences explaining why this risk matters for this specific company
+  detail: string
   mitigation: string
 }
 
-// Next steps checklist item (NS-2) — assignable to named individuals
 export interface ChecklistItem {
   action: string
-  owner: string // named individual or role
-  due: string // e.g. "Within 5 business days"
+  owner: string
+  due: string
 }
 
 export interface ProfitLever {
   lever_name: string
   baseline_data: string
   assumption: string
-  rationale: string // plain business sentence (kept for compat)
-  rationale_with_arithmetic: string // Rule 6C: full arithmetic chain
-  derived_from: string // workflow name(s) this lever originates from
-  profit: string // raw integer as string, no symbols
+  rationale: string
+  rationale_with_arithmetic: string
+  derived_from: string
+  profit?: string // legacy — not rendered; total comes from calculator
 }
 
-export interface ReportWriterOutput {
-  // Original fields
-  cta_paragraph: string // NS-1: criteria-based, not marketing language
+export interface ReportCopy {
+  cta_paragraph: string
   profit_levers: ProfitLever[]
-
-  // v3.0 additions
-  unified_pattern_thesis: string // KR-16: 2-3 sentences naming single operating pattern
-  company_snapshot: CompanySnapshotItem[] // 3-5 bullets with source tags
-  cost_of_delay: CostOfDelayData // KR-18
-  resilience_rows: ResilienceRow[] // KR-17: exactly 4 rows
-  pilot_recommendation: string // WD-1: references specific company characteristics
-  risks: RiskRow[] // 3+ rows
-  next_steps_checklist: ChecklistItem[] // NS-2: exactly 6 items with named owners
+  unified_pattern_thesis: string
+  company_snapshot: CompanySnapshotItem[]
+  cost_of_delay: CostOfDelayData
+  resilience_rows: ResilienceRow[]
+  pilot_recommendation: string
+  risks: RiskRow[]
+  next_steps_checklist: ChecklistItem[]
 }
 
 // ── Assemble Report output (display object) ──────────────────────────────────
 
 export interface DisplayObject {
-  // Original fields
   currencyCode: string
   currencySymbol: string
   workflowCount: string
@@ -299,6 +232,7 @@ export interface DisplayObject {
   statOD: string
   statTF: string
   statFTE: string
+  statPU: string
   totalAnnualHours: string
   totalMonthlyHours: string
   od12: string
@@ -323,50 +257,64 @@ export interface DisplayObject {
   deployTableBody: string
   provenanceTableHTML: string
   cta: string
+  revenueContextStatement: string
+  companySnapshotTableBody: string
+  confidenceBadge: string
+  unifiedPatternThesis: string
+  costOfDelayHTML: string
+  resilienceTableHTML: string
+  pilotRecommendation: string
+  risksTableBody: string
+  nextStepsHTML: string
+  odVsPuPanelHTML: string
+  calculationPanelHTML: string
+  roadmapTableBody: string
+  blufParagraph: string
+  bvaTableBodyCompact: string
+  profitUpliftLogicBody: string
+}
 
-  // v3.0 additions
-  revenueContextStatement: string // "This represents X% of your estimated annual revenue…"
-  companySnapshotTableBody: string // <tr> rows for Company Snapshot table (Detail | Source)
-  confidenceBadge: string // "Insight-Driven Analysis" | "Hypothesis-Driven Projection"
-  unifiedPatternThesis: string // verbatim from writerOutput.unified_pattern_thesis
-  costOfDelayHTML: string // KR-18 formatted insight panel
-  resilienceTableHTML: string // KR-17 2-column comparison table
-  pilotRecommendation: string // verbatim from writerOutput.pilot_recommendation
-  risksTableBody: string // <tr> rows for Risks & Mitigations table
-  nextStepsHTML: string // NS-1 criteria intro + NS-2 6-item checklist
-  odVsPuPanelHTML: string // OD vs PU distinction panel (after Profit Uplift)
-  calculationPanelHTML: string // arithmetic transparency panel (Rule 6C)
-  roadmapTableBody: string // <tr> rows for company-specific roadmap table
-  statPU: string // short profit uplift e.g. "€387K"
-  blufParagraph: string // auto-assembled BLUF intro paragraph
-  bvaTableBodyCompact: string // 6-col BVA compact table rows for exec template
-  profitUpliftLogicBody: string // 3-col profit uplift logic table rows for exec template
+// roi_data is a thin display-info object for template placeholders
+export interface RoiDisplayData {
+  company: string
+  industry: string | null
+  country: string | null
+  employees: number | null
+  revenue: number | null // millions
+  currency: Currency
+  summary: RoiSummary
+  totalMonthlyHours: number
+  totalAnnualHours: number
 }
 
 export interface AssembleReportOutput {
-  roi_data: RoiData
-  copy: ReportWriterOutput
+  roi_data: RoiDisplayData
+  copy: ReportCopy
   display: DisplayObject
   current_date: string
   recipient_email: string
 }
 
-// ── Unified Agent types ──────────────────────────────────────────────────────
+// ── Unified Agent state ───────────────────────────────────────────────────────
 
 export interface ReportState {
-  normInput: NormalizedInput
-  researchOutput: ResearchAgentOutput | null
-  modelerOutput: RoiModelerOutput | null
+  normInput: NormalizedInput | null
+
+  // Single sources of truth — everything editable by tools
+  company: CompanyProfile | null
+  globals: GlobalInputs | null
+  workflows: WorkflowInput[] | null
+  copy: ReportCopy | null
+
+  // Derived — recomputed by reAssemble() on every mutation
   calcOutput: RoiCalculatorOutput | null
-  writerOutput: ReportWriterOutput | null
   assembled: AssembleReportOutput | null
   renderedHtml: string | null
   renderedFullHtml: string | null
-  // v3.0 intelligence fields (set during research phase)
+
+  // Metadata
   confidenceLevel: 'high' | 'low' | null
-  revenueAnchor: number | null // estimated annual revenue in base currency
-  revenueAnchorSource: string | null // e.g. "scraped from Clodura" / "headcount × industry avg"
-  coreThesis: string | null // "[bottleneck] + [automation opportunity]"
+  coreThesis: string | null
 }
 
 export interface AgentCallbacks {
@@ -378,11 +326,6 @@ export interface AgentCallbacks {
 }
 
 // ── SSE event types ──────────────────────────────────────────────────────────
-
-export type PipelineEvent =
-  | { type: 'progress'; step: string; message: string }
-  | { type: 'complete'; reportHtml: string; company: string; email: string }
-  | { type: 'error'; message: string }
 
 export type AgentEvent =
   | { type: 'text_delta'; delta: string }

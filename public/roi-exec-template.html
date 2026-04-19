@@ -1,180 +1,361 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-<meta charset="UTF-8">
-<style>
-* { box-sizing: border-box; margin: 0; padding: 0; }
-@page { size: A4; margin: 12mm 15mm 10mm; }
-body { font-family: Calibri, 'Segoe UI', sans-serif; font-size: 8.5pt; line-height: 1.35; color: #1A1A1A; }
-.page { width: 100%; max-width: 794px; margin: 0 auto; padding: 10mm 15mm; page-break-after: always; }
-.page.last { page-break-after: auto; }
-@media screen { body { background: #f1f5f9; } .page { background: #fff; margin: 12px auto; box-shadow: 0 1px 4px rgba(0,0,0,0.1); } }
+  <head>
+    <meta charset="UTF-8" />
+    <style>
+      /* ── Reset ── */
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      @page {
+        size: A4;
+        margin: 12mm 15mm 10mm;
+      }
+      body {
+        font-family: Calibri, 'Segoe UI', sans-serif;
+        font-size: 8.5pt;
+        line-height: 1.35;
+        color: #1a1a1a;
+      }
 
-/* Header / Footer */
-.header { display: flex; justify-content: space-between; font-size: 7pt; color: #5A5A6E;
-  border-bottom: 1px solid #d0d0d0; padding-bottom: 2mm; margin-bottom: 4mm; }
-.footer { display: flex; justify-content: space-between; font-size: 7pt; color: #5A5A6E;
-  border-top: 1px solid #d0d0d0; padding-top: 2mm; margin-top: 4mm; }
+      /* ── Page layout ── */
+      .page {
+        width: 100%;
+        max-width: 794px;
+        margin: 0 auto;
+        padding: 10mm 15mm;
+        page-break-after: always;
+      }
+      .page.last {
+        page-break-after: auto;
+      }
+      @media screen {
+        body {
+          background: #f1f5f9;
+        }
+        .page {
+          background: #fff;
+          margin: 12px auto;
+          box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+        }
+      }
 
-/* Cover page */
-.cover-card { width: 100%; border-collapse: collapse; margin: 4mm 0 0; margin-bottom: 4mm;}
-.cover-cell { background: #0A1628; padding: 14mm 12mm 12mm; }
-.cover-eyebrow { font-size: 7pt; font-weight: bold; color: #4A90D9; letter-spacing: 1.5px;
-  text-transform: uppercase; margin-bottom: 5mm; }
-.cover-rule { border: none; border-top: 1px solid #4A90D9; margin: 3mm 0; }
-.cover-focus { font-size: 22pt; font-weight: bold; color: #fff; line-height: 1.1; margin: 4mm 0 3mm; }
-.cover-subtitle { font-size: 11pt; color: #4A90D9; margin-bottom: 2mm; }
-.cover-italic { font-size: 8pt; font-style: italic; color: #4A90D9; margin-bottom: 8mm; }
-.cover-label { font-size: 7pt; font-weight: bold; color: #4A90D9; letter-spacing: 1px;
-  text-transform: uppercase; margin-bottom: 2mm; }
-.cover-name { font-size: 11pt; font-weight: bold; color: #fff; margin-bottom: 1mm; }
-.cover-date { font-size: 8pt; color: #B0C0D0; }
+      /* ── Header / Footer ── */
+      .page-header {
+        display: flex;
+        justify-content: space-between;
+        font-size: 7pt;
+        color: #5a5a6e;
+        border-bottom: 1px solid #d0d0d0;
+        padding-bottom: 2mm;
+        margin-bottom: 4mm;
+      }
+      .page-footer {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: 7pt;
+        color: #5a5a6e;
+        border-top: 1px solid #d0d0d0;
+        padding-top: 2mm;
+        margin-top: 4mm;
+      }
 
-/* Content page */
-h2 { font-size: 9pt; font-weight: bold; color: #003F87; text-transform: uppercase;
-  border-bottom: 1.5px solid #003F87; margin: 5mm 0 2mm; padding-bottom: 1mm; }
-.bluf { font-size: 8.5pt; margin-bottom: 3mm; line-height: 1.4; }
+      /* ── Cover ── */
+      .cover-panel {
+        background: #0a1628;
+        padding: 12mm 12mm 10mm;
+        margin-bottom: 5mm;
+      }
+      .cover-eyebrow {
+        font-size: 7pt;
+        font-weight: bold;
+        color: #4a90d9;
+        letter-spacing: 1.5px;
+        text-transform: uppercase;
+        margin-bottom: 4mm;
+      }
+      .cover-rule {
+        border: none;
+        border-top: 1px solid #2a4a6a;
+        margin: 3mm 0;
+      }
+      .cover-headline {
+        font-size: 20pt;
+        font-weight: bold;
+        color: #fff;
+        line-height: 1.15;
+        margin: 3mm 0;
+      }
+      .cover-meta {
+        display: flex;
+        gap: 12mm;
+        margin-top: 1mm;
+        flex-wrap: wrap;
+      }
+      .cover-meta-item {
+      }
+      .cover-meta-label {
+        font-size: 7pt;
+        font-weight: bold;
+        color: #4a90d9;
+        letter-spacing: 1px;
+        text-transform: uppercase;
+        margin-bottom: 1mm;
+      }
+      .cover-meta-value {
+        font-size: 10pt;
+        font-weight: bold;
+        color: #fff;
+      }
+      .cover-meta-value.muted {
+        color: #b0c0d0;
+        font-weight: normal;
+        font-size: 9pt;
+      }
 
-.kpi-bar { width: 100%; border-collapse: collapse; margin-bottom: 3mm; }
-.kpi-cell { padding: 3mm 4mm; border-top: 3px solid #003F87; border-right: 1px solid #d0d0d0; width: 25%; }
-.kpi-cell.last { border-right: none; }
-.kpi-val { font-size: 18pt; font-weight: bold; color: #003F87; }
-.kpi-lbl { font-size: 7pt; color: #5A5A6E; }
+      /* ── KPI bar ── */
+      .kpi-bar {
+        width: 100%;
+        border-collapse: collapse;
+        margin-bottom: 3mm;
+      }
+      .kpi-cell {
+        padding: 3mm 4mm;
+        border-top: 3px solid #003f87;
+        border-right: 1px solid #d0d0d0;
+        width: 25%;
+        vertical-align: top;
+      }
+      .kpi-cell.last {
+        border-right: none;
+      }
+      .kpi-val {
+        font-size: 15pt;
+        font-weight: bold;
+        color: #003f87;
+        line-height: 1.1;
+      }
+      .kpi-lbl {
+        font-size: 7pt;
+        color: #5a5a6e;
+        margin-top: 1mm;
+      }
 
-.insight-panel { display: flex; margin: 2mm 0 3mm; background: #F5F5F5; }
-.stripe { width: 4px; background: #003F87; flex-shrink: 0; }
-.panel-content { padding: 2.5mm 3mm; font-size: 8pt; color: #1A1A1A; flex: 1; }
-.panel-label { font-weight: bold; color: #003F87; }
+      /* ── Panels ── */
+      .insight-panel {
+        display: flex;
+        margin: 2mm 0 3mm;
+        background: #f5f5f5;
+      }
+      .stripe {
+        width: 4px;
+        background: #003f87;
+        flex-shrink: 0;
+      }
+      .panel-content {
+        padding: 2.5mm 3mm;
+        font-size: 8pt;
+        color: #1a1a1a;
+        flex: 1;
+      }
+      .panel-label {
+        font-weight: bold;
+        color: #003f87;
+      }
 
-.data-table { width: 100%; border-collapse: collapse; margin-bottom: 3mm; font-size: 8pt; }
-.data-table thead tr { background: #2D2D2D; color: #fff; }
-.data-table th { padding: 2mm 2.5mm; font-weight: bold; text-align: left; font-size: 7.5pt; }
-.data-table td { padding: 1.5mm 2.5mm; border-bottom: 1px solid #d0d0d0; }
-.data-table tr:nth-child(even) td { background: #EBF0F8; }
-.total-row td { background: #2D2D2D !important; color: #fff !important; font-weight: bold; }
+      /* ── Section headings ── */
+      h2 {
+        font-size: 8.5pt;
+        font-weight: bold;
+        color: #003f87;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        border-bottom: 1.5px solid #003f87;
+        padding-bottom: 1mm;
+        margin: 5mm 0 2mm;
+      }
+      p {
+        margin-bottom: 2mm;
+      }
 
-.final-footer { font-size: 7pt; color: #5A5A6E; text-align: center;
-  border-top: 1px solid #d0d0d0; padding-top: 2mm; margin-top: 3mm; }
-</style>
-</head>
-<body>
+      /* ── Data tables ── */
+      .data-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-bottom: 3mm;
+        font-size: 8pt;
+      }
+      .data-table thead tr {
+        background: #0a1628;
+        color: #fff;
+      }
+      .data-table th {
+        padding: 2mm 2.5mm;
+        font-weight: bold;
+        text-align: left;
+        font-size: 7.5pt;
+      }
+      .data-table td {
+        padding: 1.5mm 2.5mm;
+        border-bottom: 1px solid #d0d0d0;
+        vertical-align: top;
+      }
+      .data-table tr:nth-child(even) td {
+        background: #ebf0f8;
+      }
+      .total-row td {
+        background: #2d2d2d !important;
+        color: #fff !important;
+        font-weight: bold;
+      }
+    </style>
+  </head>
+  <body>
+    <!-- ═══════════════════════════════════════════ PAGE 1 — COVER ═══════════════════════════════════════════ -->
+    <div class="page">
+      <div class="page-header">
+        <span
+          >{{$json.roi_data.company}} | AI Profit &amp; Productivity
+          Report</span
+        >
+        <span>LyRise AI | Confidential | {{$json.current_date}}</span>
+      </div>
 
-<!-- PAGE 1: COVER -->
-<div class="page">
-  <div class="header">
-    <span>{{$json.roi_data.company}} | AI Profit &amp; Productivity Report</span>
-    <span>LyRise AI | Confidential | {{$json.current_date}}</span>
-  </div>
-  <table class="cover-card"><tr><td class="cover-cell">
-    <div class="cover-eyebrow">CONFIDENTIAL | PREPARED BY LYRISE AI</div>
-    <hr class="cover-rule">
-    <div class="cover-focus">{{$json.display.coverHeadline}}</div>
-    <div class="cover-subtitle">AI Profit &amp; Productivity Report — Executive Summary</div>
-    <div class="cover-italic">{{$json.display.confidenceBadge}} | Pending stakeholder validation</div>
-    <hr class="cover-rule">
-    <div class="cover-label">PREPARED FOR</div>
-    <div class="cover-name">{{$json.display.recipientDisplay}}</div>
-    <hr class="cover-rule">
-    <div class="cover-label">DATE &amp; CURRENCY</div>
-    <div class="cover-date">{{$json.current_date}} | {{$json.display.currencyCode}}</div>
-  </td></tr></table>
+      <div class="cover-panel">
+        <div class="cover-eyebrow">Confidential — Prepared by LyRise AI</div>
+        <hr class="cover-rule" />
+        <div class="cover-headline">{{$json.display.coverHeadline}}</div>
+        <hr class="cover-rule" />
+        <div class="cover-meta">
+          <div class="cover-meta-item">
+            <div class="cover-meta-label">Prepared For</div>
+            <div class="cover-meta-value">
+              {{$json.display.recipientDisplay}}
+            </div>
+          </div>
+          <div class="cover-meta-item">
+            <div class="cover-meta-label">Date &amp; Currency</div>
+            <div class="cover-meta-value muted">
+              {{$json.current_date}} | {{$json.display.currencyCode}}
+            </div>
+          </div>
+          <div class="cover-meta-item">
+            <div class="cover-meta-label">Confidence</div>
+            <div class="cover-meta-value muted">
+              {{$json.display.confidenceBadge}}
+            </div>
+          </div>
+        </div>
+      </div>
 
-  <p class="bluf">{{$json.display.blufParagraph}}</p>
-  <table class="kpi-bar">
-    <tr>
-      <td class="kpi-cell">
-        <div class="kpi-val">{{$json.display.statHours}}</div>
-        <div class="kpi-lbl">Hours Returned / yr</div>
-      </td>
-      <td class="kpi-cell">
-        <div class="kpi-val">{{$json.display.statOD}}</div>
-        <div class="kpi-lbl">Operational Dividend</div>
-      </td>
-      <td class="kpi-cell">
-        <div class="kpi-val">{{$json.display.statPU}}</div>
-        <div class="kpi-lbl">Profit Uplift</div>
-      </td>
-      <td class="kpi-cell last">
-        <div class="kpi-val">{{$json.display.statTF}}</div>
-        <div class="kpi-lbl">Total Financial Gain</div>
-      </td>
-    </tr>
-  </table>
+      <table class="kpi-bar">
+        <tr>
+          <td class="kpi-cell">
+            <div class="kpi-val">{{$json.display.statHours}}</div>
+            <div class="kpi-lbl">Hours Returned / yr</div>
+          </td>
+          <td class="kpi-cell">
+            <div class="kpi-val">{{$json.display.statOD}}</div>
+            <div class="kpi-lbl">Operational Dividend</div>
+          </td>
+          <td class="kpi-cell">
+            <div class="kpi-val">{{$json.display.statPU}}</div>
+            <div class="kpi-lbl">Profit Uplift</div>
+          </td>
+          <td class="kpi-cell last">
+            <div class="kpi-val">{{$json.display.statTF}}</div>
+            <div class="kpi-lbl">Total Financial Gain</div>
+          </td>
+        </tr>
+      </table>
 
-  <div class="insight-panel">
-    <div class="stripe"></div>
-    <div class="panel-content">
-      <span class="panel-label">{{$json.display.confidenceBadge}}</span>
-      based on public intelligence and industry benchmarks.
-      {{$json.display.revenueContextStatement}}
-      All figures require validation with stakeholders.
+      <div class="insight-panel">
+        <div class="stripe"></div>
+        <div class="panel-content">
+          <span class="panel-label">{{$json.display.confidenceBadge}}</span> —
+          based on public intelligence and industry benchmarks.
+          {{$json.display.revenueContextStatement}} All figures require
+          stakeholder validation before decisions are made.
+        </div>
+      </div>
+
+      <div class="page-footer">
+        <span>Prepared by LyRise AI | Confidential — not for distribution</span>
+        <span>1</span>
+      </div>
     </div>
-  </div>
 
-  <div class="footer">
-    <span>Prepared by LyRise AI | Confidential — not for distribution</span>
-    <span>1</span>
-  </div>
-</div>
+    <!-- ═══════════════════════════════════════════ PAGE 2 — ANALYSIS ═══════════════════════════════════════════ -->
+    <div class="page last">
+      <div class="page-header">
+        <span>{{$json.roi_data.company}} | Executive Summary</span>
+        <span>LyRise AI | Confidential | {{$json.current_date}}</span>
+      </div>
 
-<!-- PAGE 2: ALL CONTENT -->
-<div class="page last">
-  <div class="header">
-    <span>{{$json.roi_data.company}} | AI Profit &amp; Productivity Report — Executive Summary</span>
-    <span>LyRise AI | Confidential | {{$json.current_date}}</span>
-  </div>
+      <p>{{$json.display.blufParagraph}}</p>
 
-  <h2>THE PATTERN UNDERNEATH</h2>
-  <p>{{$json.display.unifiedPatternThesis}}</p>
+      <h2>The Pattern Underneath</h2>
+      <p>{{$json.display.unifiedPatternThesis}}</p>
 
-  <h2>BEFORE VS. AFTER AI</h2>
-  <table class="data-table">
-    <thead><tr>
-      <th>WORKFLOW</th>
-      <th>HRS/MO NOW</th>
-      <th>HRS/MO AFTER AI</th>
-      <th>HRS SAVED/MO</th>
-      <th>VALUE/MO</th>
-      <th>AI AGENT DEPLOYED</th>
-    </tr></thead>
-    <tbody>{{$json.display.bvaTableBodyCompact}}</tbody>
-  </table>
+      <h2>Before vs. After AI</h2>
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Workflow</th>
+            <th>Hrs/mo Now</th>
+            <th>Hrs/mo After AI</th>
+            <th>Hrs Saved/mo</th>
+            <th>Value/mo</th>
+            <th>AI Agent Deployed</th>
+          </tr>
+        </thead>
+        <tbody>
+          {{$json.display.bvaTableBodyCompact}}
+        </tbody>
+      </table>
 
-  <h2>WHERE THE PROFIT UPLIFT COMES FROM</h2>
-  <div class="insight-panel">
-    <div class="stripe"></div>
-    <div class="panel-content">
-      <span class="panel-label">What is Profit Uplift?</span>
-      Operational Dividend = the value of hours no longer spent on manual work.
-      Profit Uplift = what those freed hours produce when redirected toward higher-value activity.
-      These are sequential effects of the same improvement — not the same hours counted twice.
-      <strong>Total Profit Uplift: {{$json.display.statPU}} / yr</strong>
+      <h2>Where the Profit Uplift Comes From</h2>
+      <div class="insight-panel">
+        <div class="stripe"></div>
+        <div class="panel-content">
+          <span class="panel-label">What is Profit Uplift?</span>
+          Operational Dividend = the value of hours freed from manual work.
+          Profit Uplift = what those freed hours produce when redirected to
+          higher-value activity. These are sequential effects of the same
+          improvement — not the same hours counted twice. Total Profit Uplift:
+          <strong>{{$json.display.statPU}} / yr</strong>
+        </div>
+      </div>
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th style="width: 22%">Workflow</th>
+            <th style="width: 22%">Uplift Lever</th>
+            <th style="width: 56%">How It Works — Full Logic</th>
+          </tr>
+        </thead>
+        <tbody>
+          {{$json.display.profitUpliftLogicBody}}
+        </tbody>
+      </table>
+
+      <h2>Cost of Delay</h2>
+      {{$json.display.costOfDelayHTML}}
+
+      <h2>What Happens Next</h2>
+      {{$json.display.nextStepsHTML}}
+
+      <div class="page-footer">
+        <span
+          >LyRise AI | elena@lyrise.ai | calendly.com/elena-lyrise/30min |
+          Hypothesis-led estimate — not for distribution without
+          validation</span
+        >
+        <span>2</span>
+      </div>
     </div>
-  </div>
-  <table class="data-table">
-    <thead><tr>
-      <th style="width:22%">WORKFLOW</th>
-      <th style="width:22%">UPLIFT LEVER</th>
-      <th style="width:56%">HOW IT WORKS — FULL LOGIC</th>
-    </tr></thead>
-    <tbody>{{$json.display.profitUpliftLogicBody}}</tbody>
-  </table>
-
-  <h2>COST OF DELAY</h2>
-  {{$json.display.costOfDelayHTML}}
-
-  <h2>WHAT HAPPENS NEXT</h2>
-  {{$json.display.nextStepsHTML}}
-
-  <div class="final-footer">
-    LyRise AI | elena@lyrise.ai | calendly.com/elena-lyrise/30min |
-    Hypothesis-led estimate — not for distribution without validation
-  </div>
-  <div class="footer">
-    <span>Prepared by LyRise AI | Confidential — not for distribution</span>
-    <span>2</span>
-  </div>
-</div>
-
-</body>
+  </body>
 </html>

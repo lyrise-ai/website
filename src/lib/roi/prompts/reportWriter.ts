@@ -42,7 +42,7 @@ a 30-minute discovery call with LyRise (elena@lyrise.ai) would be worthwhile."
 Reference figures.totalMonthlyHours and figures.operationalDividend12mo verbatim.
 
 4. profit_levers (exactly 3, Rule 6C)
-The 3 profits MUST sum to EXACTLY profitUplift12mo (raw integer provided separately).
+The TOTAL Profit Uplift is computed by the calculator — do NOT output a per-lever profit amount.
 Each lever:
   lever_name: short label
   derived_from: the specific workflow name(s) this lever is based on (REQUIRED)
@@ -50,20 +50,19 @@ Each lever:
   assumption: 1 concrete sentence — use percentages and hours
   rationale: 1 plain CFO-style sentence: "[Outcome] because [direct operational reason]."
     NEVER mention seasons, holidays, named events, or external market conditions.
-  rationale_with_arithmetic (Rule 6C): full arithmetic chain, e.g.:
-    "240 hrs/mo freed × $45/hr × 0.30 margin = $3,240/mo → $38,880/yr"
-    Use exact figures from the calculator. No rounding until the final number.
-  profit: positive integer as string, no symbols (e.g. "86401")
+  rationale_with_arithmetic (Rule 6C): monthly arithmetic chain only, e.g.:
+    "240 hrs/mo freed × $45/hr × 0.30 margin = $3,240/mo"
+    Use exact figures from the calculator. Do NOT include a per-lever annual total.
 
-Lever caps:
-  Lever 1 — Revenue Throughput: CAP at min(derived, profitUplift12mo × 0.45)
-  Lever 2 — Error Reduction: CAP at min(derived, profitUplift12mo × 0.30)
-  Lever 3 — Strategic Capacity: lever3 = profitUplift12mo - lever1 - lever2 (always positive)
+Lever focus split (qualitative — do not compute dollar amounts per lever):
+  Lever 1 — Revenue Throughput: freed capacity redirected to revenue-generating activity
+  Lever 2 — Error Reduction / Quality: reduction in rework, corrections, and escalations
+  Lever 3 — Strategic Capacity: senior time freed for higher-value decisions
 
 5. cost_of_delay (KR-18)
-  monthly_cost: MUST equal totalFinancialGain12mo / 12 as raw integer (no rounding)
   narrative: 1-2 sentences specific to this company and its workflows.
     MUST end with EXACTLY this sentence: "Delay is not neutral — it carries a monthly price."
+  (The monthly_cost figure is computed by the calculator — you do not need to output it.)
 
 6. resilience_rows (KR-17 — exactly 4 rows)
 Dimensions MUST be in this order:
@@ -145,7 +144,6 @@ export const REPORT_WRITER_SCHEMA = {
           'assumption',
           'rationale',
           'rationale_with_arithmetic',
-          'profit',
         ],
         properties: {
           lever_name: { type: 'string' },
@@ -154,16 +152,14 @@ export const REPORT_WRITER_SCHEMA = {
           assumption: { type: 'string' },
           rationale: { type: 'string' },
           rationale_with_arithmetic: { type: 'string' },
-          profit: { type: 'string' },
         },
       },
     },
     cost_of_delay: {
       type: 'object',
       additionalProperties: false,
-      required: ['monthly_cost', 'narrative'],
+      required: ['narrative'],
       properties: {
-        monthly_cost: { type: 'number' },
         narrative: { type: 'string' },
       },
     },

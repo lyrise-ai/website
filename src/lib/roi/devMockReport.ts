@@ -6,9 +6,10 @@ import type {
   Currency,
   NormalizedInput,
   ReportState,
-  ResearchAgentOutput,
-  ReportWriterOutput,
-  RoiModelerOutput,
+  WorkflowInput,
+  GlobalInputs,
+  CompanyProfile,
+  ReportCopy,
 } from '@/src/lib/roi/types'
 
 const CURRENCY_MAP: Record<string, Currency> = {
@@ -24,207 +25,153 @@ function getCurrency(code: string): Currency {
   return CURRENCY_MAP[code] ?? CURRENCY_MAP.USD
 }
 
-function buildResearchOutput(normInput: NormalizedInput): ResearchAgentOutput {
-  const company = normInput.companyName || 'LyRise'
-  const industry = normInput.industry || 'Technology / SaaS'
-
+function buildCompany(normInput: NormalizedInput): CompanyProfile {
   return {
-    company_profile: {
-      company,
-      industry,
-      country: normInput.country || 'United Arab Emirates',
-      primaryFocus:
-        normInput.businessDescription || 'Selling AI solutions for businesses',
-      keyPriorities:
-        normInput.keyPriorities.length > 0
-          ? normInput.keyPriorities
-          : [
-              'Scale delivery without adding headcount',
-              'Shorten sales cycles',
-              'Reduce manual ops work',
-            ],
-      employees: 35,
-      revenueEstimateM: 6,
-    },
-    pain_points: [
-      {
-        title: 'Founders and operators are trapped in repeatable GTM work',
-        description: `${company} appears to be handling a meaningful amount of lead qualification, scoping, and follow-up work manually.`,
-        confidence: 'high',
-        source: 'research_derived',
-      },
-      {
-        title:
-          'Proposal creation and follow-up are slower than they need to be',
-        description:
-          'Sales momentum is likely being lost between discovery calls, proposal drafting, and next-step coordination.',
-        confidence: 'medium',
-        source: 'inferred',
-      },
-    ],
-    workflows: [
-      {
-        name: 'Inbound lead qualification',
-        function: 'Revenue Operations',
-        owner: 'COO',
-        whyItMatters:
-          'Quicker qualification increases response speed and prevents strong inbound interest from going cold.',
-        agentName: 'Lead Qualification Agent',
-        expectedOutcome:
-          'Qualified inbound opportunities routed with context in minutes instead of hours.',
-        sourceType: 'research_derived',
-        monthlyVolume: 180,
-        minutesPerItemBefore: 35,
-        minutesPerItemAfter: 8,
-        volumeRationale:
-          'Assumes a healthy inbound mix for a growing AI services firm with active outbound and referrals.',
-      },
-      {
-        name: 'Proposal drafting and tailoring',
-        function: 'Sales',
-        owner: 'COO',
-        whyItMatters:
-          'Proposal turnaround speed directly affects close rates and the team’s ability to run more active deals in parallel.',
-        agentName: 'Proposal Drafting Agent',
-        expectedOutcome:
-          'High-quality first drafts generated from discovery notes and reusable proof points.',
-        sourceType: 'inferred',
-        monthlyVolume: 24,
-        minutesPerItemBefore: 180,
-        minutesPerItemAfter: 45,
-        volumeRationale:
-          'Assumes a mid-market deal flow where custom proposals still require leadership review.',
-      },
-      {
-        name: 'Discovery recap and follow-up emails',
-        function: 'Client Success',
-        owner: 'COO',
-        whyItMatters:
-          'Fast follow-up keeps deals moving and reduces leakage between meetings and next actions.',
-        agentName: 'Follow-Up Agent',
-        expectedOutcome:
-          'Recaps, action lists, and next-step emails produced automatically after calls.',
-        sourceType: 'inferred',
-        monthlyVolume: 70,
-        minutesPerItemBefore: 50,
-        minutesPerItemAfter: 10,
-        volumeRationale:
-          'Assumes multiple discovery and check-in calls per week across pipeline and active prospects.',
-      },
-      {
-        name: 'CRM updates and meeting prep',
-        function: 'Operations',
-        owner: 'Revenue Ops Lead',
-        whyItMatters:
-          'Manual CRM hygiene is expensive, error-prone, and frequently delayed until after customer-facing work.',
-        agentName: 'CRM Ops Agent',
-        expectedOutcome:
-          'Deal records, notes, and meeting briefs updated automatically before and after calls.',
-        sourceType: 'research_derived',
-        monthlyVolume: 220,
-        minutesPerItemBefore: 18,
-        minutesPerItemAfter: 4,
-        volumeRationale:
-          'Assumes a high count of touchpoints across leads, opportunities, and delivery stakeholders.',
-      },
-    ],
-    researchSummary:
-      'Development fixture used to speed up local ROI report testing.',
+    company: normInput.companyName || 'LyRise',
+    industry: normInput.industry || 'Technology / SaaS',
+    country: normInput.country || 'United Arab Emirates',
+    primaryFocus:
+      normInput.businessDescription || 'Selling AI solutions for businesses',
+    keyPriorities:
+      normInput.keyPriorities.length > 0
+        ? normInput.keyPriorities
+        : [
+            'Scale delivery without adding headcount',
+            'Shorten sales cycles',
+            'Reduce manual ops work',
+          ],
+    employees: 35,
+    revenueEstimateM: 6,
   }
 }
 
-function buildModelerOutput(
-  normInput: NormalizedInput,
-  researchOutput: ResearchAgentOutput,
-): RoiModelerOutput {
+function buildWorkflows(company: CompanyProfile): WorkflowInput[] {
+  return [
+    {
+      name: 'Inbound lead qualification',
+      agentName: 'Lead Qualification Agent',
+      function: 'Revenue Operations',
+      owner: 'COO',
+      whyItMatters:
+        'Quicker qualification increases response speed and prevents strong inbound interest from going cold.',
+      expectedOutcome:
+        'Qualified inbound opportunities routed with context in minutes instead of hours.',
+      sourceType: 'research_derived',
+      monthlyVolume: 180,
+      minutesPerItemBefore: 35,
+      minutesPerItemAfter: 8,
+      adoptionRate: 0.72,
+      exceptionRate: 0.08,
+      exceptionMinutes: 12,
+      rateOverride: 42,
+      rationale: `Assumes a healthy inbound mix for a growing AI services firm. Source: LinkedIn Salary Insights blended RevOps benchmark.`,
+    },
+    {
+      name: 'Proposal drafting and tailoring',
+      agentName: 'Proposal Drafting Agent',
+      function: 'Sales',
+      owner: 'COO',
+      whyItMatters:
+        "Proposal turnaround speed directly affects close rates and the team's ability to run more active deals in parallel.",
+      expectedOutcome:
+        'High-quality first drafts generated from discovery notes and reusable proof points.',
+      sourceType: 'inferred',
+      monthlyVolume: 24,
+      minutesPerItemBefore: 180,
+      minutesPerItemAfter: 45,
+      adoptionRate: 0.72,
+      exceptionRate: 0.08,
+      exceptionMinutes: 20,
+      rateOverride: 68,
+      rationale: `Assumes a mid-market deal flow where custom proposals still require leadership review. Source: Robert Half US solutions consultant benchmark.`,
+    },
+    {
+      name: 'Discovery recap and follow-up emails',
+      agentName: 'Follow-Up Agent',
+      function: 'Client Success',
+      owner: 'COO',
+      whyItMatters:
+        'Fast follow-up keeps deals moving and reduces leakage between meetings and next actions.',
+      expectedOutcome:
+        'Recaps, action lists, and next-step emails produced automatically after calls.',
+      sourceType: 'inferred',
+      monthlyVolume: 70,
+      minutesPerItemBefore: 50,
+      minutesPerItemAfter: 10,
+      adoptionRate: 0.72,
+      exceptionRate: 0.08,
+      exceptionMinutes: 12,
+      rateOverride: 48,
+      rationale: `Assumes multiple discovery and check-in calls per week across pipeline and active prospects. Source: LinkedIn Salary Insights mid-market AE benchmark.`,
+    },
+    {
+      name: 'CRM updates and meeting prep',
+      agentName: 'CRM Ops Agent',
+      function: 'Operations',
+      owner: 'Revenue Ops Lead',
+      whyItMatters:
+        'Manual CRM hygiene is expensive, error-prone, and frequently delayed until after customer-facing work.',
+      expectedOutcome:
+        'Deal records, notes, and meeting briefs updated automatically before and after calls.',
+      sourceType: 'research_derived',
+      monthlyVolume: 220,
+      minutesPerItemBefore: 18,
+      minutesPerItemAfter: 4,
+      adoptionRate: 0.72,
+      exceptionRate: 0.08,
+      exceptionMinutes: 12,
+      rateOverride: 34,
+      rationale: `Assumes a high count of touchpoints across leads, opportunities, and delivery stakeholders. Source: Glassdoor operations coordinator benchmark.`,
+    },
+  ]
+}
+
+function buildGlobals(normInput: NormalizedInput): GlobalInputs {
   const currency = getCurrency(normInput.selectedCurrency || 'USD')
   const workWeeksPerYear = ['USD', 'EUR', 'GBP'].includes(currency.code)
     ? 50
     : 48
-
   return {
-    currency,
-    costs: {
-      implementationCost: 28000,
-      monthlyToolingCost: 950,
-    },
-    labor: {
-      fullyLoadedHourlyCost: 52,
-      workWeeksPerYear,
-    },
-    realizationFactor: 0.8,
+    laborRate: 52,
+    implementationCost: 28000,
+    monthlyToolingCost: 950,
     profitMultiplier: 2.4,
-    workflowAssumptions: researchOutput.workflows.map((workflow, index) => {
-      const rateOverrides = [42, 68, 48, 34]
-      const seniorityLevels = [
-        'Revenue operations specialist',
-        'Senior solutions consultant',
-        'Account executive',
-        'Revenue operations coordinator',
-      ]
-      const rateSources = [
-        'LinkedIn Salary Insights blended RevOps benchmark',
-        'Robert Half US solutions consultant benchmark',
-        'LinkedIn Salary Insights mid-market AE benchmark',
-        'Glassdoor operations coordinator benchmark',
-      ]
-
-      return {
-        workflowName: workflow.name,
-        monthlyVolume: workflow.monthlyVolume ?? 100,
-        minutesPerItemBefore: workflow.minutesPerItemBefore ?? 60,
-        minutesPerItemAfter: workflow.minutesPerItemAfter ?? 15,
-        exceptionRate: 0.08,
-        exceptionMinutes: index === 1 ? 20 : 12,
-        adoption_low: 0.5,
-        adoption_base: 0.72,
-        adoption_high: 0.88,
-        rationale: `${researchOutput.company_profile.company} can realistically automate this workflow quickly because the steps are high-volume, repetitive, and already documented in common tools.`,
-        fullyLoadedHourlyCostOverride: rateOverrides[index] ?? 45,
-        rateSource: rateSources[index] ?? 'LinkedIn Salary Insights benchmark',
-        seniorityLevel: seniorityLevels[index] ?? 'Operations specialist',
-      }
-    }),
-    rollout: {
-      timeToDeployWeeks: 4,
-      rampUpWeeks: 2,
-    },
-    notes: {
-      assumptions: [
-        'Development fast-mode fixture using benchmarked workflow assumptions.',
-        'Volumes and rates are calibrated for fast local preview, not external delivery.',
-      ],
-    },
+    realizationFactor: 0.8,
+    workWeeksPerYear,
+    currency,
   }
 }
 
-function buildWriterOutput(
-  normInput: NormalizedInput,
-  state: ReportState,
-): ReportWriterOutput {
+function buildCopy(state: ReportState): ReportCopy {
   const calc = state.calcOutput!
-  const roi = calc.roi_data
-  const summary = roi.summary
-  const workflows = roi.workflows
-  const recipient = normInput.recipientName || 'Yousef'
-  const recipientTitle = normInput.recipientTitle || 'COO'
-  const company = roi.company
+  const summary = calc.summary
+  const workflows = calc.workflows
+  const company = state.company!
+  const globals = state.globals!
+  const sym = globals.currency.symbol
+  const recipient = state.normInput?.recipientName || 'Yousef'
+  const recipientTitle = state.normInput?.recipientTitle || 'COO'
 
   const [wf1, wf2, wf3, wf4] = workflows
   const lever1 = Math.round(summary.profitUplift12mo * 0.45)
   const lever2 = Math.round(summary.profitUplift12mo * 0.3)
-  const lever3 = summary.profitUplift12mo - lever1 - lever2
+
+  // Get raw inputs from state.workflows for display
+  const inp = state.workflows ?? []
+  const inp2 = inp.find((w) => w.name === wf2?.name)
+  const inp1 = inp.find((w) => w.name === wf1?.name)
+  const inp3 = inp.find((w) => w.name === wf3?.name)
 
   return {
-    unified_pattern_thesis: `${company} is selling complex AI services into live business problems, which creates a repeatable coordination burden across lead handling, proposal assembly, and follow-up. That pattern — high-value commercial work slowed by manual orchestration — is where AI delivers its fastest return.`,
+    unified_pattern_thesis: `${company.company} is selling complex AI services into live business problems, which creates a repeatable coordination burden across lead handling, proposal assembly, and follow-up. That pattern — high-value commercial work slowed by manual orchestration — is where AI delivers its fastest return.`,
     company_snapshot: [
       {
-        text: `${company} sells AI solutions for businesses.`,
+        text: `${company.company} sells AI solutions for businesses.`,
         sourceType: 'scraped',
       },
       {
         text: `Testing fixture assumes a ${
-          roi.employees ?? 35
+          company.employees ?? 35
         }-person commercial and delivery team.`,
         sourceType: 'assumed',
       },
@@ -237,53 +184,60 @@ function buildWriterOutput(
     profit_levers: [
       {
         lever_name: 'More proposals shipped without founder bottlenecks',
-        derived_from: wf2.name,
-        baseline_data: `${wf2.name} currently returns ${wf2.monthlyHours} hrs/mo according to the calculator output.`,
+        derived_from: wf2?.name ?? '',
+        baseline_data: `${wf2?.name} currently returns ${wf2?.monthlyHours} hrs/mo according to the calculator output.`,
         assumption:
           'Redirect 35% of those recovered commercial hours into additional proposal capacity and pipeline progression.',
         rationale:
           'Proposal throughput improves because leadership can review and send more qualified opportunities each month.',
-        rationale_with_arithmetic: `${wf2.monthlyHours} hrs/mo × ${
-          wf2.rate
-        }/hr × 0.35 = ${Math.round(
-          wf2.monthlyHours * wf2.rate * 0.35,
-        )}/mo → ${lever1}/yr`,
-        profit: String(lever1),
+        rationale_with_arithmetic: `${wf2?.monthlyHours} hrs/mo × ${sym}${
+          inp2?.rateOverride ?? globals.laborRate
+        }/hr × 0.35 = ${sym}${Math.round(
+          (wf2?.monthlyHours ?? 0) *
+            (inp2?.rateOverride ?? globals.laborRate) *
+            0.35,
+        )}/mo → ${sym}${lever1}/yr`,
       },
       {
         lever_name: 'Faster follow-up lifts conversion efficiency',
-        derived_from: `${wf1.name}, ${wf3.name}`,
-        baseline_data: `${wf1.name} and ${wf3.name} together remove delay from qualification and post-call follow-up.`,
+        derived_from: `${wf1?.name ?? ''}, ${wf3?.name ?? ''}`,
+        baseline_data: `${wf1?.name} and ${wf3?.name} together remove delay from qualification and post-call follow-up.`,
         assumption:
           'Convert 25% of recovered customer-facing hours into faster response and reduced drop-off across active deals.',
         rationale:
           'Deals advance more consistently because prospects get qualification decisions and next steps while intent is still high.',
         rationale_with_arithmetic: `${
-          wf1.monthlyHours + wf3.monthlyHours
-        } hrs/mo × ${Math.round(
-          (wf1.rate + wf3.rate) / 2,
-        )}/hr × 0.25 = ${Math.round(
-          (wf1.monthlyHours + wf3.monthlyHours) *
-            Math.round((wf1.rate + wf3.rate) / 2) *
+          (wf1?.monthlyHours ?? 0) + (wf3?.monthlyHours ?? 0)
+        } hrs/mo × ${sym}${Math.round(
+          ((inp1?.rateOverride ?? globals.laborRate) +
+            (inp3?.rateOverride ?? globals.laborRate)) /
+            2,
+        )}/hr × 0.25 = ${sym}${Math.round(
+          ((wf1?.monthlyHours ?? 0) + (wf3?.monthlyHours ?? 0)) *
+            Math.round(
+              ((inp1?.rateOverride ?? globals.laborRate) +
+                (inp3?.rateOverride ?? globals.laborRate)) /
+                2,
+            ) *
             0.25,
-        )}/mo → ${lever2}/yr`,
-        profit: String(lever2),
+        )}/mo → ${sym}${lever2}/yr`,
       },
       {
         lever_name: 'Leadership capacity shifts into higher-value selling',
-        derived_from: `${wf1.name}, ${wf2.name}, ${wf4.name}`,
-        baseline_data: `${company} can redeploy operational and sales coordination time into client conversations, partnerships, and delivery oversight.`,
+        derived_from: `${wf1?.name ?? ''}, ${wf2?.name ?? ''}, ${
+          wf4?.name ?? ''
+        }`,
+        baseline_data: `${company.company} can redeploy operational and sales coordination time into client conversations, partnerships, and delivery oversight.`,
         assumption:
           'Apply the residual recovered capacity to strategic selling, stakeholder management, and expansion work.',
         rationale:
           'Profit rises because senior time moves from admin orchestration into revenue-bearing and client-retention activity.',
-        rationale_with_arithmetic: `${summary.profitUplift12mo} total PU - ${lever1} - ${lever2} = ${lever3}/yr`,
-        profit: String(lever3),
+        rationale_with_arithmetic: `See total profit uplift — residual after levers 1 and 2`,
       },
     ],
     cost_of_delay: {
-      monthly_cost: summary.totalFinancialGain12mo / 12,
-      narrative: `Each month without automation leaves ${company} paying for manual lead handling, proposal assembly, and CRM coordination that do not require senior judgment. Delay is not neutral — it carries a monthly price.`,
+      monthly_cost: Math.round(summary.totalFinancialGain12mo / 12),
+      narrative: `Each month without automation leaves ${company.company} paying for manual lead handling, proposal assembly, and CRM coordination that do not require senior judgment. Delay is not neutral — it carries a monthly price.`,
     },
     resilience_rows: [
       {
@@ -314,17 +268,17 @@ function buildWriterOutput(
           'Leadership stays trapped in repetitive revenue operations and coordination loops.',
       },
     ],
-    pilot_recommendation: `Given ${company}'s ${
-      roi.employees ?? 35
+    pilot_recommendation: `Given ${company.company}'s ${
+      company.employees ?? 35
     } employees and ${
-      wf2.volume
+      inp2?.monthlyVolume ?? 24
     }/month equivalent proposal workload, the fastest path to measurable ROI is automating ${
-      wf2.name
+      wf2?.name ?? 'Proposal drafting'
     } in Phase 1, targeting faster turnaround on tailored commercial offers and cleaner handoff into follow-up.`,
     risks: [
       {
         risk: 'Messy source data',
-        detail: `${company} likely stores qualification notes, call context, and commercial assets across multiple tools. If those inputs are inconsistent, the agent output will still need manual review early on.`,
+        detail: `${company.company} likely stores qualification notes, call context, and commercial assets across multiple tools. If those inputs are inconsistent, the agent output will still need manual review early on.`,
         mitigation:
           'Start with one system of record, define mandatory fields, and add human approval before external sending.',
       },
@@ -350,12 +304,16 @@ function buildWriterOutput(
         due: 'Within 2 business days',
       },
       {
-        action: `Confirm current monthly volume and handling time for ${wf2.name}.`,
+        action: `Confirm current monthly volume and handling time for ${
+          wf2?.name ?? 'proposal drafting'
+        }.`,
         owner: recipientTitle,
         due: 'Within 5 business days',
       },
       {
-        action: `Export 20 recent examples from ${wf1.name} and ${wf3.name} for workflow design.`,
+        action: `Export 20 recent examples from ${
+          wf1?.name ?? 'lead qualification'
+        } and ${wf3?.name ?? 'follow-up'} for workflow design.`,
         owner: 'Revenue Ops Lead',
         due: 'Week 1',
       },
@@ -387,33 +345,28 @@ export function buildDevMockReportState(params: {
   fullTemplateHtml: string
 }): ReportState {
   const { normInput, execTemplateHtml, fullTemplateHtml } = params
-  const researchOutput = buildResearchOutput(normInput)
-  const modelerOutput = buildModelerOutput(normInput, researchOutput)
+
+  const company = buildCompany(normInput)
+  const globals = buildGlobals(normInput)
+  const workflows = buildWorkflows(company)
 
   const state: ReportState = {
     normInput,
-    researchOutput,
-    modelerOutput,
-    calcOutput: roiCalculator(researchOutput, modelerOutput),
-    writerOutput: null,
+    company,
+    globals,
+    workflows,
+    copy: null,
+    calcOutput: roiCalculator(workflows, globals, company),
     assembled: null,
     renderedHtml: null,
     renderedFullHtml: null,
     confidenceLevel: 'high',
-    revenueAnchor:
-      (researchOutput.company_profile.revenueEstimateM ?? 0) * 1_000_000,
-    revenueAnchorSource: 'Dev fixture benchmark',
     coreThesis:
       'High-value revenue work is slowed by repetitive orchestration that can be automated safely.',
   }
 
-  state.writerOutput = buildWriterOutput(normInput, state)
-  state.assembled = assembleReport(
-    state.calcOutput!,
-    state.writerOutput,
-    normInput,
-    state,
-  )
+  state.copy = buildCopy(state)
+  state.assembled = assembleReport(state)
   state.renderedHtml = renderTemplate(execTemplateHtml, state.assembled)
   state.renderedFullHtml = renderTemplate(fullTemplateHtml, state.assembled)
 

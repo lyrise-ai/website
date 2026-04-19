@@ -275,6 +275,76 @@ function Step2({ data, onChange, errors, isDev }) {
 
 // ── Generating & Success views ────────────────────────────────────────────────
 
+function ErrorView({ message, onRetry, onUseEstimates }) {
+  const isResearchFailure =
+    message?.includes('Stages done: none') ||
+    message?.includes('no assembled report') ||
+    message?.includes("couldn't research") ||
+    message?.includes('retrieve specific web pages')
+  return (
+    <div className="text-center py-10 px-8">
+      <div
+        className="w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-5 border"
+        style={{ background: '#fff7ed', borderColor: '#fed7aa' }}
+      >
+        <span style={{ fontSize: 22 }}>⚠</span>
+      </div>
+      <h2 className="text-xl font-bold text-gray-900 mb-2">
+        {isResearchFailure
+          ? "Couldn't gather company data online"
+          : 'Generation incomplete'}
+      </h2>
+      {isResearchFailure ? (
+        <>
+          <p className="text-sm text-gray-500 mb-6 max-w-sm mx-auto leading-relaxed">
+            The agent had trouble finding public data for this company. You can
+            retry with web search, or generate a report instantly using your
+            questionnaire inputs and industry benchmarks.
+          </p>
+          <div className="flex flex-col gap-3 max-w-xs mx-auto">
+            <button
+              type="button"
+              onClick={onUseEstimates}
+              className="w-full px-5 py-2.5 bg-gray-900 text-white text-sm font-semibold rounded-lg hover:bg-gray-700 transition-colors"
+            >
+              Use industry benchmarks (instant) →
+            </button>
+            <button
+              type="button"
+              onClick={onRetry}
+              className="w-full px-5 py-2.5 text-gray-700 text-sm font-medium rounded-lg border border-gray-200 hover:border-gray-400 transition-colors"
+            >
+              Retry with web search
+            </button>
+          </div>
+        </>
+      ) : (
+        <>
+          <p className="text-sm text-gray-500 mb-6 max-w-sm mx-auto">
+            {message || 'Something went wrong. Please try again.'}
+          </p>
+          <div className="flex flex-col gap-3 max-w-xs mx-auto">
+            <button
+              type="button"
+              onClick={onRetry}
+              className="w-full px-5 py-2.5 bg-gray-900 text-white text-sm font-semibold rounded-lg hover:bg-gray-700 transition-colors"
+            >
+              Try again
+            </button>
+            <button
+              type="button"
+              onClick={onUseEstimates}
+              className="w-full px-5 py-2.5 text-gray-700 text-sm font-medium rounded-lg border border-gray-200 hover:border-gray-400 transition-colors"
+            >
+              Use industry benchmarks instead
+            </button>
+          </div>
+        </>
+      )}
+    </div>
+  )
+}
+
 function GeneratingView({ generationLog }) {
   return (
     <div className="text-center py-12 px-8">
@@ -338,30 +408,16 @@ export default function ROIReport() {
   const [reportState, setReportState] = useState(null)
   const [errorMessage, setErrorMessage] = useState('')
 
-  // Step 1
   const [s1, setS1] = useState(
     IS_DEV
       ? DEV_STEP1_PRESET
-      : {
-          companyName: '',
-          website: '',
-          whatYouDo: '',
-          industry: '',
-        },
+      : { companyName: '', website: '', whatYouDo: '', industry: '' },
   )
-
-  // Step 2
   const [s2, setS2] = useState(
     IS_DEV
       ? DEV_STEP2_PRESET
-      : {
-          email: '',
-          recipientName: '',
-          recipientTitle: '',
-          currency: '',
-        },
+      : { email: '', recipientName: '', recipientTitle: '', currency: '' },
   )
-
   const [errors, setErrors] = useState({})
 
   const changeS1 = useCallback((key, val) => {
@@ -374,20 +430,12 @@ export default function ROIReport() {
     setErrors((prev) => ({ ...prev, [key]: '' }))
   }, [])
 
-  const next = useCallback(
-    async ({ skipLLM = false } = {}) => {
-      const currentErrors = validateStep(step, s1, s2)
-      setErrors(currentErrors)
-      if (Object.keys(currentErrors).length) return
-
-      if (step < TOTAL_STEPS) {
-        setStep((prev) => prev + 1)
-        return
-      }
-
+  const runGeneration = useCallback(
+    async ({ skipLLM = false, estimatesOnly = false } = {}) => {
       setViewState('generating')
       setGenerationLog('')
       setReportState(null)
+      setErrorMessage('')
 
       const payload = {
         'Company Name': s1.companyName.trim(),
@@ -412,7 +460,7 @@ export default function ROIReport() {
           body: JSON.stringify({
             mode: 'generate',
             formData: payload,
-            devOptions: { skipLLM },
+            devOptions: { skipLLM, estimatesOnly },
           }),
         })
 
@@ -424,7 +472,7 @@ export default function ROIReport() {
             if (event.type === 'text_delta') {
               setGenerationLog((prev) => (prev + event.delta).slice(-2000))
             } else if (event.type === 'tool_start') {
-              setGenerationLog((prev) => prev + `\n[${event.tool}]`)
+              setGenerationLog((prev) => `${prev}\n[${event.tool}]`)
             } else if (event.type === 'report_update') {
               latestState = event.state
               setReportState(event.state)
@@ -433,7 +481,7 @@ export default function ROIReport() {
                 setViewState('preview')
               } else {
                 setErrorMessage(
-                  'Report generation finished without a complete report. Please try again.',
+                  'Report generation finished without a complete report.',
                 )
                 setViewState('error')
               }
@@ -449,7 +497,21 @@ export default function ROIReport() {
         setViewState('error')
       }
     },
-    [step, s1, s2],
+    [s1, s2],
+  )
+
+  const next = useCallback(
+    async ({ skipLLM = false } = {}) => {
+      const currentErrors = validateStep(step, s1, s2)
+      setErrors(currentErrors)
+      if (Object.keys(currentErrors).length) return
+      if (step < TOTAL_STEPS) {
+        setStep((prev) => prev + 1)
+        return
+      }
+      await runGeneration({ skipLLM })
+    },
+    [step, s1, s2, runGeneration],
   )
 
   const back = useCallback(() => {
@@ -497,21 +559,12 @@ export default function ROIReport() {
       <div className="rebranding-landing-page -mt-[12px]">
         <MainHeader />
         <div className="min-h-screen flex items-center justify-center p-4">
-          <div className="w-full max-w-xl bg-white rounded-2xl shadow-xl border border-gray-100 p-10 text-center">
-            <h2 className="text-xl font-bold text-gray-900 mb-2">
-              Something went wrong
-            </h2>
-            <p className="text-sm text-gray-500 mb-6">{errorMessage}</p>
-            <button
-              type="button"
-              onClick={() => {
-                setViewState('form')
-                setStep(1)
-              }}
-              className="px-5 py-2.5 bg-gray-900 text-white text-sm font-semibold rounded-lg hover:bg-gray-700 transition-colors"
-            >
-              Try again
-            </button>
+          <div className="w-full max-w-xl bg-white rounded-2xl shadow-xl border border-gray-100">
+            <ErrorView
+              message={errorMessage}
+              onRetry={() => runGeneration()}
+              onUseEstimates={() => runGeneration({ estimatesOnly: true })}
+            />
           </div>
         </div>
       </div>

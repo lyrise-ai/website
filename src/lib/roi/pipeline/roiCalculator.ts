@@ -1,62 +1,17 @@
 // ─────────────────────────────────────────────────────────────────────────────
-// roiCalculator — port of the ROI Calculator n8n Code node
-// Pure TypeScript, fully deterministic — no LLM calls
+// roiCalculator — pure TypeScript, no LLM calls
+// Single source: WorkflowInput[] + GlobalInputs + CompanyProfile
 // ─────────────────────────────────────────────────────────────────────────────
 
 import type {
-  ResearchAgentOutput,
-  RoiModelerOutput,
+  WorkflowInput,
+  GlobalInputs,
+  CompanyProfile,
+  WorkflowCalc,
   RoiCalculatorOutput,
-  WorkflowResult,
-  WorkflowAssumption,
 } from '@/src/lib/roi/types'
 
 const MAX_MIN = 480
-
-function findAssump(
-  wfName: string,
-  workflows: ResearchAgentOutput['workflows'],
-  wfAssumps: WorkflowAssumption[],
-): WorkflowAssumption | null {
-  const lower = (wfName ?? '').toLowerCase()
-  return (
-    // 1. Exact name match
-    wfAssumps.find((a) => (a.workflowName ?? '').toLowerCase() === lower) ??
-    // 2. Substring match on first 8 chars
-    wfAssumps.find((a) =>
-      lower.includes((a.workflowName ?? '').toLowerCase().slice(0, 8)),
-    ) ??
-    // 3. Same positional index as the workflow in the research output
-    wfAssumps[workflows.findIndex((w) => w.name === wfName)] ??
-    // 4. Ultimate fallback: first available assumption (prevents crash on name mismatches)
-    wfAssumps[0] ??
-    null
-  )
-}
-
-function calcScenario(
-  wa: WorkflowAssumption,
-  adoptionRate: number,
-  realizationFactor: number,
-  workingMonthFactor: number,
-  hourlyCost: number,
-) {
-  const netSaved = Math.max(
-    0,
-    wa.minutesPerItemBefore -
-      wa.minutesPerItemAfter -
-      wa.exceptionRate * wa.exceptionMinutes,
-  )
-  const hrs =
-    ((wa.monthlyVolume * adoptionRate * netSaved) / 60) *
-    realizationFactor *
-    workingMonthFactor
-  return {
-    monthlyHours: hrs,
-    annualHours: hrs * 12,
-    annualValue: hrs * 12 * hourlyCost,
-  }
-}
 
 function addCommas(n: number): string {
   const str = String(Math.round(n || 0))
@@ -68,100 +23,78 @@ function addCommas(n: number): string {
   return out
 }
 
+function calcScenario(
+  wf: WorkflowInput,
+  globals: GlobalInputs,
+): { monthlyHours: number; annualHours: number; annualValue: number } {
+  const minutesBefore = Math.min(wf.minutesPerItemBefore, MAX_MIN)
+  const minutesAfter = Math.min(wf.minutesPerItemAfter, minutesBefore)
+  const netSaved = Math.max(
+    0,
+    minutesBefore - minutesAfter - wf.exceptionRate * wf.exceptionMinutes,
+  )
+  const rate =
+    wf.rateOverride != null && wf.rateOverride > 0
+      ? wf.rateOverride
+      : globals.laborRate
+  const workingMonthFactor = globals.workWeeksPerYear / 52
+  const hrs =
+    ((wf.monthlyVolume * wf.adoptionRate * netSaved) / 60) *
+    globals.realizationFactor *
+    workingMonthFactor
+  return {
+    monthlyHours: hrs,
+    annualHours: hrs * 12,
+    annualValue: hrs * 12 * rate,
+  }
+}
+
 export function roiCalculator(
-  analystOut: ResearchAgentOutput,
-  modelerOut: RoiModelerOutput,
+  workflows: WorkflowInput[],
+  globals: GlobalInputs,
+  company: CompanyProfile,
 ): RoiCalculatorOutput {
-  const profile = analystOut.company_profile
-  const workflows = analystOut.workflows
-  const wfAssumps = modelerOut.workflowAssumptions
+  const sym = globals.currency.symbol
+  const workingMonthFactor = globals.workWeeksPerYear / 52
 
-  const currency = modelerOut.currency
-  const hourlyCost = modelerOut.labor.fullyLoadedHourlyCost
-  const workWeeksPerYear = modelerOut.labor.workWeeksPerYear || 48
-  const realizationFactor = modelerOut.realizationFactor
-  const profitMultiplier = modelerOut.profitMultiplier
-  const implCost = modelerOut.costs.implementationCost
-  const monthlyTooling = modelerOut.costs.monthlyToolingCost
-  const workingMonthFactor = workWeeksPerYear / 52
-
-  const workflowResults: WorkflowResult[] = workflows.map((wf) => {
-    const wa = {
-      ...findAssump(wf.name, workflows, wfAssumps),
-    } as WorkflowAssumption
-    if (!wa.workflowName) {
-      // No modeler assumptions at all — should not happen but guard anyway
-      throw new Error(
-        `ROI Calculator: modeler returned no assumptions (workflow: "${wf.name}")`,
-      )
-    }
-    // Stamp the correct workflow name so downstream rendering uses the right label
-    wa.workflowName = wf.name
-
-    wa.minutesPerItemBefore = Math.min(wa.minutesPerItemBefore, MAX_MIN)
-    wa.minutesPerItemAfter = Math.min(
-      wa.minutesPerItemAfter,
-      wa.minutesPerItemBefore,
-    )
-
-    // Rule 6A — use per-workflow rate override if the modeler provided one
+  const workflowCalcs: WorkflowCalc[] = workflows.map((wf) => {
+    const minutesBefore = Math.min(wf.minutesPerItemBefore, MAX_MIN)
+    const minutesAfter = Math.min(wf.minutesPerItemAfter, minutesBefore)
     const effectiveRate =
-      wa.fullyLoadedHourlyCostOverride != null &&
-      wa.fullyLoadedHourlyCostOverride > 0
-        ? wa.fullyLoadedHourlyCostOverride
-        : hourlyCost
-
-    const timeSaved = wa.minutesPerItemBefore - wa.minutesPerItemAfter
+      wf.rateOverride != null && wf.rateOverride > 0
+        ? wf.rateOverride
+        : globals.laborRate
+    const timeSaved = minutesBefore - minutesAfter
     const savingsPct =
-      wa.minutesPerItemBefore > 0
-        ? Math.round((timeSaved / wa.minutesPerItemBefore) * 100)
-        : 0
-    const costPerRun = (wa.minutesPerItemBefore / 60) * effectiveRate
-    const monthlyCost = Math.round(wa.monthlyVolume * costPerRun)
-    const base = calcScenario(
-      wa,
-      wa.adoption_base,
-      realizationFactor,
-      workingMonthFactor,
-      effectiveRate,
-    )
-
+      minutesBefore > 0 ? Math.round((timeSaved / minutesBefore) * 100) : 0
+    const costPerRun = Math.round((minutesBefore / 60) * effectiveRate)
+    const monthlyCost = Math.round(wf.monthlyVolume * costPerRun)
+    const { monthlyHours, annualHours, annualValue } = calcScenario(wf, globals)
     return {
       name: wf.name,
-      function: wf.function || 'Operations',
-      owner: wf.owner || '—',
-      agentName: wf.agentName || '',
-      whyItMatters: wf.whyItMatters || '',
-      expectedOutcome: wf.expectedOutcome || '',
-      source: wf.sourceType || 'inferred',
-      volume: Math.round(wa.monthlyVolume),
-      timeBefore: wa.minutesPerItemBefore,
-      timeAfter: wa.minutesPerItemAfter,
-      timeSaved: Math.round(timeSaved),
+      effectiveRate,
+      timeSaved,
       savingsPct,
-      costPerRun: Math.round(costPerRun),
+      costPerRun,
       monthlyCost,
-      monthlyHours: Math.round(base.monthlyHours),
-      monthlyValue: Math.round(base.monthlyHours * effectiveRate),
-      annualHours: Math.round(base.annualHours),
-      annualValue: Math.round(base.annualValue),
-      rate: effectiveRate,
-      rationale: wa.rationale || '',
+      monthlyHours: Math.round(monthlyHours),
+      monthlyValue: Math.round(monthlyHours * effectiveRate),
+      annualHours: Math.round(annualHours),
+      annualValue: Math.round(annualValue),
     }
   })
 
-  // Revenue guardrail — enforce 5–20% of annual revenue band
-  const revenueM = profile.revenueEstimateM
+  // Revenue guardrail — keep TFG within 5–20% of estimated revenue
+  const revenueM = company.revenueEstimateM
   if (revenueM != null && revenueM > 0) {
-    const rawOD = workflowResults.reduce((s, w) => s + w.annualValue, 0)
-    // profitMultiplier is not yet applied here — use it to estimate TFG
-    const rawTF = rawOD * profitMultiplier
+    const rawOD = workflowCalcs.reduce((s, w) => s + w.annualValue, 0)
+    const rawTF = rawOD * globals.profitMultiplier
     const revenueU = revenueM * 1e6
     const ceiling = revenueU * 0.2
     const floor = revenueU * 0.05
 
     const applyScale = (scale: number) => {
-      workflowResults.forEach((w) => {
+      workflowCalcs.forEach((w) => {
         w.annualValue = Math.round(w.annualValue * scale)
         w.monthlyValue = Math.round(w.monthlyValue * scale)
         w.annualHours = Math.round(w.annualHours * scale)
@@ -170,36 +103,27 @@ export function roiCalculator(
     }
 
     if (rawOD > 0) {
-      // Ceiling: TFG > 20% → scale down OD so TFG lands at ceiling
       if (rawTF > ceiling) {
-        const targetOD = ceiling / profitMultiplier
+        const targetOD = ceiling / globals.profitMultiplier
         const rounded = Math.round(targetOD / 1000) * 1000
         applyScale((rounded > 0 ? rounded : targetOD) / rawOD)
-      }
-      // Floor: TFG < 5% → scale up OD so TFG lands at floor
-      else if (rawTF < floor) {
-        const targetOD = floor / profitMultiplier
+      } else if (rawTF < floor) {
+        const targetOD = floor / globals.profitMultiplier
         const rounded = Math.round(targetOD / 1000) * 1000
         applyScale((rounded > 0 ? rounded : targetOD) / rawOD)
       }
     }
   }
 
-  const totalMonthlyHours = workflowResults.reduce(
+  const totalMonthlyHours = workflowCalcs.reduce(
     (s, w) => s + w.monthlyHours,
     0,
   )
-  const totalAnnualHours = workflowResults.reduce(
-    (s, w) => s + w.annualHours,
-    0,
-  )
-  const totalAnnualValue = workflowResults.reduce(
-    (s, w) => s + w.annualValue,
-    0,
-  )
+  const totalAnnualHours = workflowCalcs.reduce((s, w) => s + w.annualHours, 0)
+  const totalAnnualValue = workflowCalcs.reduce((s, w) => s + w.annualValue, 0)
 
   const od12 = Math.round(totalAnnualValue)
-  const pu12 = Math.round(totalAnnualValue * (profitMultiplier - 1))
+  const pu12 = Math.round(totalAnnualValue * (globals.profitMultiplier - 1))
   const tf12 = od12 + pu12
   const od24 = Math.round(od12 * 2.15)
   const pu24 = Math.round(pu12 * 2.15)
@@ -208,16 +132,14 @@ export function roiCalculator(
   const pu36 = Math.round(pu12 * 3.4)
   const tf36 = od36 + pu36
 
-  // Enforce 6–10 month payback
   const monthlyValue = totalAnnualValue / 12
   const adjImplCost = Math.max(
     Math.round(monthlyValue * 6),
-    Math.min(Math.round(monthlyValue * 10), implCost),
+    Math.min(Math.round(monthlyValue * 10), globals.implementationCost),
   )
   const adjPayback =
     totalAnnualValue > 0 ? Math.ceil(adjImplCost / monthlyValue) : null
 
-  const sym = currency.symbol
   const fmtCur = (n: number) => sym + addCommas(n)
   const fmtShort = (n: number) => {
     const v = Math.round(n)
@@ -226,37 +148,29 @@ export function roiCalculator(
     return fmtCur(v)
   }
 
+  // Build calculation-friendly figures (sorted desc by value)
+  const sortedCalcs = [...workflowCalcs].sort(
+    (a, b) => b.annualValue - a.annualValue,
+  )
+
   return {
-    roi_data: {
-      company: profile.company,
-      industry: profile.industry,
-      country: profile.country,
-      primaryFocus: profile.primaryFocus,
-      keyPriorities: profile.keyPriorities ?? [],
-      employees: profile.employees,
-      revenue: profile.revenueEstimateM,
-      currency,
-      workflows: workflowResults,
-      totalMonthlyHours: Math.round(totalMonthlyHours),
+    workflows: workflowCalcs,
+    totalMonthlyHours: Math.round(totalMonthlyHours),
+    totalAnnualHours: Math.round(totalAnnualHours),
+    summary: {
       totalAnnualHours: Math.round(totalAnnualHours),
-      profitMultiplier,
-      realizationFactor,
-      workWeeksPerYear,
-      summary: {
-        totalAnnualHours,
-        operationalDividend12mo: od12,
-        profitUplift12mo: pu12,
-        totalFinancialGain12mo: tf12,
-        operationalDividend24mo: od24,
-        profitUplift24mo: pu24,
-        totalFinancialGain24mo: tf24,
-        operationalDividend36mo: od36,
-        profitUplift36mo: pu36,
-        totalFinancialGain36mo: tf36,
-        implCost: adjImplCost,
-        monthlyTooling,
-        paybackMonths: adjPayback,
-      },
+      operationalDividend12mo: od12,
+      profitUplift12mo: pu12,
+      totalFinancialGain12mo: tf12,
+      operationalDividend24mo: od24,
+      profitUplift24mo: pu24,
+      totalFinancialGain24mo: tf24,
+      operationalDividend36mo: od36,
+      profitUplift36mo: pu36,
+      totalFinancialGain36mo: tf36,
+      implCost: adjImplCost,
+      monthlyTooling: globals.monthlyToolingCost,
+      paybackMonths: adjPayback,
     },
     figures: {
       totalMonthlyHours: addCommas(Math.round(totalMonthlyHours)),
@@ -266,14 +180,12 @@ export function roiCalculator(
       profitUplift12mo: fmtCur(pu12),
       totalFinancialGain12mo: fmtCur(tf12),
       totalFinancialGainShort: fmtShort(tf12),
-      workflowLines: workflowResults.map(
+      workflowLines: sortedCalcs.map(
         (w) =>
           `${w.name}: ${addCommas(w.monthlyHours)} hrs/mo freed, ${fmtCur(
             w.annualValue,
           )}/yr`,
       ),
     },
-    analystData: analystOut,
-    modelerNotes: modelerOut.notes?.assumptions ?? [],
   }
 }

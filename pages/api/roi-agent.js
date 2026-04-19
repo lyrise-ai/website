@@ -105,16 +105,15 @@ export default async function handler(req, res) {
 
       state = {
         normInput,
-        researchOutput: null,
-        modelerOutput: null,
+        company: null,
+        globals: null,
+        workflows: null,
+        copy: null,
         calcOutput: null,
-        writerOutput: null,
         assembled: null,
         renderedHtml: null,
         renderedFullHtml: null,
         confidenceLevel: null,
-        revenueAnchor: null,
-        revenueAnchorSource: null,
         coreThesis: null,
       }
     } else {
@@ -137,6 +136,7 @@ export default async function handler(req, res) {
       chatHistory,
       templateHtml: execTemplateHtml,
       fullTemplateHtml,
+      estimatesOnly: Boolean(devOptions?.estimatesOnly),
       callbacks: {
         onTextDelta: (delta) => send(res, { type: 'text_delta', delta }),
         onToolStart: (tool) => send(res, { type: 'tool_start', tool }),

@@ -1,9 +1,10 @@
 // ─────────────────────────────────────────────────────────────────────────────
 // webSearch — searches the web for company intelligence
 //
-// Primary:  Tavily API (TAVILY_API_KEY env var) — best quality
-// Fallback: Jina AI Search (s.jina.ai) — free, no API key required
-//           Same provider already used by fetchPage (r.jina.ai)
+// Priority (use whichever API key is set):
+//   1. Tavily    (TAVILY_API_KEY)    — best quality, 1 000 free/month
+//   2. Brave     (BRAVE_API_KEY)     — excellent quality, 2 000 free/month
+//   3. Jina      (no key needed)     — free, last resort
 // ─────────────────────────────────────────────────────────────────────────────
 
 export interface SearchResult {
@@ -17,6 +18,8 @@ export interface SearchResponse {
   results: SearchResult[]
 }
 
+// ── Tavily ────────────────────────────────────────────────────────────────────
+
 async function tavilySearch(
   query: string,
   maxResults: number,
@@ -29,32 +32,69 @@ async function tavilySearch(
         api_key: process.env.TAVILY_API_KEY,
         query,
         search_depth: 'basic',
-        max_results: Math.min(maxResults, 3),
+        max_results: Math.min(maxResults, 5),
         include_answer: true,
         include_raw_content: false,
       }),
       signal: AbortSignal.timeout(15_000),
     })
-
-    if (!res.ok) {
-      return { answer: null, results: [] }
-    }
-
+    if (!res.ok) return { answer: null, results: [] }
     const data = await res.json()
     return {
       answer: data.answer ?? null,
       results: (data.results ?? [])
         .slice(0, maxResults)
-        .map((r: SearchResult) => ({
-          title: r.title,
-          url: r.url,
-          content: r.content?.slice(0, 500) ?? '',
+        .map((r: { title?: string; url?: string; content?: string }) => ({
+          title: r.title ?? '',
+          url: r.url ?? '',
+          content: (r.content ?? '').slice(0, 600),
         })),
     }
   } catch {
     return { answer: null, results: [] }
   }
 }
+
+// ── Brave Search ──────────────────────────────────────────────────────────────
+
+async function braveSearch(
+  query: string,
+  maxResults: number,
+): Promise<SearchResponse> {
+  try {
+    const url = `https://api.search.brave.com/res/v1/web/search?q=${encodeURIComponent(
+      query,
+    )}&count=${Math.min(maxResults, 5)}`
+    const res = await fetch(url, {
+      headers: {
+        Accept: 'application/json',
+        'Accept-Encoding': 'gzip',
+        'X-Subscription-Token': process.env.BRAVE_API_KEY!,
+      },
+      signal: AbortSignal.timeout(15_000),
+    })
+    if (!res.ok) return { answer: null, results: [] }
+    const data = await res.json()
+    const items: Array<{
+      title?: string
+      url?: string
+      description?: string
+      extra_snippets?: string[]
+    }> = data.web?.results ?? []
+    return {
+      answer: (data.infobox?.description as string | undefined) ?? null,
+      results: items.slice(0, maxResults).map((r) => ({
+        title: r.title ?? '',
+        url: r.url ?? '',
+        content: (r.description ?? r.extra_snippets?.[0] ?? '').slice(0, 600),
+      })),
+    }
+  } catch {
+    return { answer: null, results: [] }
+  }
+}
+
+// ── Jina Search (free, no key) ────────────────────────────────────────────────
 
 async function jinaSearch(
   query: string,
@@ -63,13 +103,9 @@ async function jinaSearch(
   try {
     const res = await fetch(`https://s.jina.ai/${encodeURIComponent(query)}`, {
       headers: { Accept: 'application/json' },
-      signal: AbortSignal.timeout(15_000),
+      signal: AbortSignal.timeout(20_000),
     })
-
-    if (!res.ok) {
-      return { answer: null, results: [] }
-    }
-
+    if (!res.ok) return { answer: null, results: [] }
     const data = await res.json()
     const items: Array<{
       title?: string
@@ -77,13 +113,12 @@ async function jinaSearch(
       description?: string
       content?: string
     }> = data.data ?? []
-
     return {
       answer: null,
       results: items.slice(0, maxResults).map((r) => ({
         title: r.title ?? '',
         url: r.url ?? '',
-        content: (r.description ?? r.content ?? '').slice(0, 500),
+        content: (r.description ?? r.content ?? '').slice(0, 600),
       })),
     }
   } catch {
@@ -95,19 +130,20 @@ async function jinaSearch(
           title: 'Search unavailable',
           url: '',
           content:
-            'Web search is currently unavailable. Use questionnaire data and industry benchmarks.',
+            'Web search is currently unavailable. Proceed with questionnaire data and industry benchmarks.',
         },
       ],
     }
   }
 }
 
+// ── Main export ───────────────────────────────────────────────────────────────
+
 export async function webSearch(
   query: string,
   maxResults = 3,
 ): Promise<SearchResponse> {
-  if (process.env.TAVILY_API_KEY) {
-    return tavilySearch(query, maxResults)
-  }
+  if (process.env.TAVILY_API_KEY) return tavilySearch(query, maxResults)
+  if (process.env.BRAVE_API_KEY) return braveSearch(query, maxResults)
   return jinaSearch(query, maxResults)
 }
