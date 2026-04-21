@@ -18,14 +18,7 @@ import {
 } from 'ai'
 import { z } from 'zod'
 
-import {
-  researchModel,
-  fastModel,
-  RESEARCH_MODEL_NAME,
-  FAST_MODEL_NAME,
-  RESEARCH_REASONING_EFFORT,
-  FAST_REASONING_EFFORT,
-} from '@/src/lib/roi/llm'
+import { researchModel, fastModel } from '@/src/lib/roi/llm'
 import { UsageTracker } from '@/src/lib/roi/services/usageTracker'
 import { webSearch } from '@/src/lib/roi/tools/webSearch'
 import { fetchPage } from '@/src/lib/roi/tools/fetchPage'
@@ -282,16 +275,11 @@ function buildTools(
             schema: jsonSchema(ROI_MODELER_SCHEMA as object),
             system: ROI_MODELER_SYSTEM_PROMPT + retryHint,
             prompt: modelerUserContent,
-            providerOptions: {
-              openai: {
-                reasoningEffort: FAST_REASONING_EFFORT,
-              },
-            },
           })
           const callLabel = attempt > 0 ? `modeler_retry${attempt}` : 'modeler'
           tracker?.record({
             call: callLabel,
-            model: FAST_MODEL_NAME,
+            model: 'gpt-4o-mini',
             ...result.usage,
           })
 
@@ -1272,11 +1260,6 @@ ${
     messages,
     tools,
     stopWhen: stepCountIs(mode === 'generate' ? 20 : 8),
-    providerOptions: {
-      openai: {
-        reasoningEffort: RESEARCH_REASONING_EFFORT,
-      },
-    },
   })
 
   for await (const part of result.fullStream) {
@@ -1299,7 +1282,7 @@ ${
   // Track main agent loop usage and flush summary
   try {
     const usage = await result.usage
-    tracker.record({ call: 'main_agent', model: RESEARCH_MODEL_NAME, ...usage })
+    tracker.record({ call: 'main_agent', model: 'gpt-4o', ...usage })
   } catch {
     /* usage not available — skip */
   }

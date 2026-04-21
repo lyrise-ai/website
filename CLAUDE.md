@@ -46,13 +46,13 @@ This is a **Next.js 13 marketing + SaaS platform** for LyRise (AI-powered tech t
 The most complex part of the codebase. When a user submits the ROI form, `pages/api/roi-report.js` runs a multi-stage AI pipeline that streams progress via **Server-Sent Events (SSE)**:
 
 1. **research** — `agents/researchAgent.ts` does tool-calling (Tavily search + Puppeteer fetch); `pipeline/researchAgent.ts` is the orchestrator
-2. **modeler** — `pipeline/roiModeler.ts` — structured JSON output via `fastModel` (gpt-5-mini)
+2. **modeler** — `pipeline/roiModeler.ts` — structured JSON output via `fastModel` (gpt-4o-mini)
 3. **calculator** — `pipeline/roiCalculator.ts` — pure TypeScript, no LLM
-4. **writer** — `pipeline/reportWriter.ts` — prose generation via `researchModel` (gpt-5.1)
+4. **writer** — `pipeline/reportWriter.ts` — prose generation via `researchModel` (gpt-4o)
 5. **assemble** — `pipeline/assembleReport.ts` — pure TypeScript, builds all `{{$json.display.*}}` template vars
 6. **render** — `services/pdf.ts` + `services/email.ts` — Puppeteer PDF (`@sparticuz/chromium`) + Resend email
 
-The pipeline uses `@ai-sdk/openai` (Vercel AI SDK `ai@6.x`) with structured outputs (Zod schemas in `src/lib/roi/prompts/`). Model config lives in `src/lib/roi/llm.ts` — `researchModel` (gpt-5.1) for research/writing, `fastModel` (gpt-5-mini) for structured JSON. The file has instructions for switching to Claude. The client-side SSE consumer is in `src/components/ROIGenerator/ExecutionSimulation.jsx`.
+The pipeline uses `@ai-sdk/openai` (Vercel AI SDK `ai@6.x`) with structured outputs (Zod schemas in `src/lib/roi/prompts/`). Model config lives in `src/lib/roi/llm.ts` — `researchModel` (gpt-4o) for research/writing, `fastModel` (gpt-4o-mini) for structured JSON. The file has instructions for switching to Claude. The client-side SSE consumer is in `src/components/ROIGenerator/ExecutionSimulation.jsx`.
 
 **Data flow**: The API route's `mapFormToPayload()` maps camelCase form fields → title-case keys expected by `normalizeInput()`. The HTML report template uses n8n-style `{{$json.display.key}}` placeholders replaced by `renderTemplate()`.
 
