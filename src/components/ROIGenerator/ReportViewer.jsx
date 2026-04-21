@@ -91,6 +91,7 @@ export default function ReportViewer({ initialState, email }) {
   const [emailStatus, setEmailStatus] = useState('idle')
   const [activeTab, setActiveTab] = useState('exec')
   const [badgesDismissed, setBadgesDismissed] = useState(true)
+  const [downloadStatus, setDownloadStatus] = useState('idle')
 
   const iframeRef = useRef(null)
   const messagesEndRef = useRef(null)
@@ -192,9 +193,38 @@ export default function ReportViewer({ initialState, email }) {
     [input, isAgentRunning, chatHistory, reportState],
   )
 
-  const handleDownload = useCallback(() => {
-    iframeRef.current?.contentWindow?.print()
-  }, [])
+  const handleDownload = useCallback(async () => {
+    if (downloadStatus === 'downloading') return
+    setDownloadStatus('downloading')
+    try {
+      const res = await fetch('/api/roi-pdf', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ state: reportState, reportType: activeTab }),
+      })
+      if (!res.ok) throw new Error(`HTTP ${res.status}`)
+
+      const cd = res.headers.get('content-disposition') || ''
+      const match = cd.match(/filename="([^"]+)"/)
+      const filename = match?.[1] || 'ROI_Report.pdf'
+
+      const blob = await res.blob()
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = filename
+      document.body.appendChild(a)
+      a.click()
+      document.body.removeChild(a)
+      URL.revokeObjectURL(url)
+
+      setDownloadStatus('idle')
+    } catch (err) {
+      console.error('[ReportViewer] PDF download failed:', err)
+      setDownloadStatus('error')
+      setTimeout(() => setDownloadStatus('idle'), 3000)
+    }
+  }, [downloadStatus, reportState, activeTab])
 
   const handleResendEmail = useCallback(async () => {
     if (emailStatus === 'sending') return
@@ -437,6 +467,7 @@ export default function ReportViewer({ initialState, email }) {
           <button
             type="button"
             onClick={handleDownload}
+            disabled={downloadStatus === 'downloading'}
             style={{
               padding: '6px 14px',
               fontSize: 13,
@@ -445,10 +476,15 @@ export default function ReportViewer({ initialState, email }) {
               borderRadius: 6,
               background: '#fff',
               color: '#374151',
-              cursor: 'pointer',
+              cursor: downloadStatus === 'downloading' ? 'wait' : 'pointer',
+              opacity: downloadStatus === 'downloading' ? 0.6 : 1,
             }}
           >
-            Download PDF
+            {downloadStatus === 'downloading'
+              ? 'Generating PDF…'
+              : downloadStatus === 'error'
+              ? 'Download failed — retry'
+              : 'Download PDF'}
           </button>
           <button
             type="button"
