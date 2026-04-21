@@ -780,6 +780,12 @@ export function assembleReport(state: ReportState): AssembleReportOutput {
     `<td style="color:#fff;font-size:8pt">${fmt(
       s.totalAnnualHours,
     )} hrs/yr · ${(s.totalAnnualHours / 2000).toFixed(1)} FTE equiv.</td>` +
+    `</tr>` +
+    `<tr class="total-row">` +
+    `<td colspan="4" style="color:#fff;font-weight:bold;font-size:8.5pt">Total Operational Dividend (per year)</td>` +
+    `<td colspan="2" style="color:#aad0ff;font-weight:bold;font-size:9.5pt">${sym}${addCommas(
+      s.operationalDividend12mo,
+    )} / yr · value of hours recaptured</td>` +
     `</tr>`
 
   // Profit uplift logic table (exec template)
