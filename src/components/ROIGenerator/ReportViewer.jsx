@@ -90,6 +90,7 @@ export default function ReportViewer({ initialState, email }) {
   const [input, setInput] = useState('')
   const [emailStatus, setEmailStatus] = useState('idle')
   const [activeTab, setActiveTab] = useState('exec')
+  const [badgesDismissed, setBadgesDismissed] = useState(true)
 
   const iframeRef = useRef(null)
   const messagesEndRef = useRef(null)
@@ -97,6 +98,28 @@ export default function ReportViewer({ initialState, email }) {
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [chatHistory, streamingText, activeTool])
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    const dismissed =
+      window.localStorage.getItem('roi.tabBadges.dismissed') === '1'
+    setBadgesDismissed(dismissed)
+  }, [])
+
+  const dismissBadges = useCallback(() => {
+    setBadgesDismissed(true)
+    if (typeof window !== 'undefined') {
+      window.localStorage.setItem('roi.tabBadges.dismissed', '1')
+    }
+  }, [])
+
+  const handleTabSelect = useCallback(
+    (tab) => {
+      setActiveTab(tab)
+      dismissBadges()
+    },
+    [dismissBadges],
+  )
 
   const activeHtml =
     activeTab === 'exec'
@@ -244,6 +267,53 @@ export default function ReportViewer({ initialState, email }) {
       verticalAlign: 'middle',
       animation: 'pulse 1s infinite',
     },
+    tabBadge: {
+      position: 'relative',
+      width: 240,
+      padding: '10px 28px 10px 12px',
+      background: '#0a2540',
+      color: '#fff',
+      borderRadius: 8,
+      boxShadow: '0 6px 18px rgba(10, 37, 64, 0.25)',
+      fontSize: 12,
+      lineHeight: 1.45,
+    },
+    tabBadgeArrow: {
+      position: 'absolute',
+      top: -5,
+      left: 36,
+      width: 10,
+      height: 10,
+      background: '#0a2540',
+      transform: 'rotate(45deg)',
+    },
+    tabBadgeTitle: {
+      fontSize: 11,
+      fontWeight: 700,
+      textTransform: 'uppercase',
+      letterSpacing: 0.6,
+      color: '#7fb3ff',
+      marginBottom: 4,
+    },
+    tabBadgeBody: {
+      fontSize: 12,
+      color: '#e6efff',
+    },
+    tabBadgeClose: {
+      position: 'absolute',
+      top: 4,
+      right: 6,
+      width: 20,
+      height: 20,
+      lineHeight: '18px',
+      textAlign: 'center',
+      border: 'none',
+      background: 'transparent',
+      color: '#9bb6d6',
+      fontSize: 16,
+      cursor: 'pointer',
+      padding: 0,
+    },
   }
 
   return (
@@ -273,45 +343,96 @@ export default function ReportViewer({ initialState, email }) {
           {company} — AI ROI Report
         </div>
         <div style={{ display: 'flex', gap: 8 }}>
-          <div
-            style={{
-              display: 'flex',
-              gap: 2,
-              border: '1px solid #e2e8f0',
-              borderRadius: 6,
-              overflow: 'hidden',
-            }}
-          >
-            <button
-              type="button"
-              onClick={() => setActiveTab('exec')}
+          <div style={{ position: 'relative' }}>
+            <div
               style={{
-                padding: '6px 12px',
-                fontSize: 13,
-                fontWeight: 500,
-                border: 'none',
-                background: activeTab === 'exec' ? '#2957FF' : '#fff',
-                color: activeTab === 'exec' ? '#fff' : '#374151',
-                cursor: 'pointer',
+                display: 'flex',
+                gap: 2,
+                border: '1px solid #e2e8f0',
+                borderRadius: 6,
+                overflow: 'hidden',
               }}
             >
-              Executive Summary
-            </button>
-            <button
-              type="button"
-              onClick={() => setActiveTab('full')}
-              style={{
-                padding: '6px 12px',
-                fontSize: 13,
-                fontWeight: 500,
-                border: 'none',
-                background: activeTab === 'full' ? '#2957FF' : '#fff',
-                color: activeTab === 'full' ? '#fff' : '#374151',
-                cursor: 'pointer',
-              }}
-            >
-              Full Report
-            </button>
+              <button
+                type="button"
+                onClick={() => handleTabSelect('exec')}
+                style={{
+                  padding: '6px 12px',
+                  fontSize: 13,
+                  fontWeight: 500,
+                  border: 'none',
+                  background: activeTab === 'exec' ? '#2957FF' : '#fff',
+                  color: activeTab === 'exec' ? '#fff' : '#374151',
+                  cursor: 'pointer',
+                }}
+              >
+                Executive Summary
+              </button>
+              <button
+                type="button"
+                onClick={() => handleTabSelect('full')}
+                style={{
+                  padding: '6px 12px',
+                  fontSize: 13,
+                  fontWeight: 500,
+                  border: 'none',
+                  background: activeTab === 'full' ? '#2957FF' : '#fff',
+                  color: activeTab === 'full' ? '#fff' : '#374151',
+                  cursor: 'pointer',
+                }}
+              >
+                Full Report
+              </button>
+            </div>
+
+            {!badgesDismissed && (
+              <div
+                style={{
+                  position: 'absolute',
+                  top: 'calc(100% + 10px)',
+                  left: 0,
+                  display: 'flex',
+                  gap: 8,
+                  zIndex: 30,
+                  whiteSpace: 'normal',
+                }}
+              >
+                <div style={styles.tabBadge}>
+                  <div style={styles.tabBadgeArrow} />
+                  <div style={styles.tabBadgeTitle}>You have 2 reports</div>
+                  <div style={styles.tabBadgeBody}>
+                    <strong>Executive Summary:</strong> Quick 2-page snapshot —
+                    share with execs and decision-makers.
+                  </div>
+                  <button
+                    type="button"
+                    onClick={dismissBadges}
+                    aria-label="Dismiss"
+                    style={styles.tabBadgeClose}
+                  >
+                    ×
+                  </button>
+                </div>
+                <div style={styles.tabBadge}>
+                  <div
+                    style={{ ...styles.tabBadgeArrow, left: 'auto', right: 36 }}
+                  />
+                  <div style={styles.tabBadgeTitle}>And the deep dive</div>
+                  <div style={styles.tabBadgeBody}>
+                    <strong>Full Report:</strong> Detailed multi-page analysis
+                    with workflows, projections, and case studies.
+                  </div>
+                  <button
+                    type="button"
+                    onClick={dismissBadges}
+                    aria-label="Dismiss"
+                    style={styles.tabBadgeClose}
+                  >
+                    ×
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
           <button
             type="button"
