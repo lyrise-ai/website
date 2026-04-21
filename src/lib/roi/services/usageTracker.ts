@@ -4,8 +4,8 @@
 //
 // Usage:
 //   const tracker = new UsageTracker({ company: 'Acme', mode: 'generate' })
-//   tracker.record({ call: 'modeler', model: 'gpt-4o-mini', ...result.usage })
-//   tracker.record({ call: 'main_agent', model: 'gpt-4o', ...await result.usage })
+//   tracker.record({ call: 'modeler', model: 'gpt-5-mini', ...result.usage })
+//   tracker.record({ call: 'main_agent', model: 'gpt-5.1', ...await result.usage })
 //   tracker.flush()   // logs to console + appends to logs/roi-usage.ndjson
 // ─────────────────────────────────────────────────────────────────────────────
 
@@ -14,6 +14,11 @@ import path from 'path'
 
 // ── Pricing (per 1M tokens, USD) ────────────────────────────────────────────
 const MODEL_PRICING: Record<string, { input: number; output: number }> = {
+  'gpt-5.2': { input: 1.75, output: 14.0 },
+  'gpt-5.1': { input: 1.25, output: 10.0 },
+  'gpt-5': { input: 1.25, output: 10.0 },
+  'gpt-5-mini': { input: 0.25, output: 2.0 },
+  'gpt-5-nano': { input: 0.05, output: 0.4 },
   'gpt-4o': { input: 2.5, output: 10.0 },
   'gpt-4o-mini': { input: 0.15, output: 0.6 },
   'gpt-4o-2024-11-20': { input: 2.5, output: 10.0 },
