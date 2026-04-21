@@ -8,21 +8,35 @@
         margin: 0;
         padding: 0;
       }
+      @page {
+        size: A4;
+        margin: 12mm 15mm 10mm;
+      }
       body {
-        font-family: 'Helvetica Neue', Arial, Helvetica, sans-serif;
+        font-family: Calibri, 'Segoe UI', sans-serif;
         font-size: 10.5pt;
         color: #1a1a1a;
-        line-height: 1.5;
-        background: #fff;
+        line-height: 1.4;
       }
       .page {
-        width: 210mm;
-        padding: 12mm 15mm 10mm;
+        width: 100%;
+        max-width: 794px;
+        padding: 10mm 15mm;
         margin: 0 auto;
         page-break-after: always;
       }
       .page.last {
         page-break-after: auto;
+      }
+      @media screen {
+        body {
+          background: #f1f5f9;
+        }
+        .page {
+          background: #fff;
+          margin: 12px auto;
+          box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+        }
       }
       .top-bar {
         height: 4px;
@@ -32,11 +46,12 @@
       h2 {
         font-size: 12.5pt;
         font-weight: bold;
-        color: #1a1a1a;
-        border-bottom: 2px solid #0a2540;
-        padding-bottom: 4px;
-        margin-bottom: 6px;
-        margin-top: 10px;
+        color: #0a2540;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        border-bottom: 1.5px solid #0a2540;
+        padding-bottom: 1mm;
+        margin: 5mm 0 2mm;
       }
       h2:first-child {
         margin-top: 0;
@@ -91,8 +106,8 @@
         background: #f9fafb;
       }
       .total-row td {
-        border-top: 2px solid #0a2540;
-        background: #eef2ff !important;
+        background: #2d2d2d !important;
+        color: #fff !important;
         font-weight: bold;
       }
       .note {
@@ -120,22 +135,26 @@
         font-weight: bold;
       }
 
-      /* Insight panel (LyRise-adapted McKinsey pattern) */
+      /* Insight panel (matches Executive Summary) */
       .insight-panel {
         display: flex;
-        border: 1px solid #e2e8f0;
-        margin-bottom: 8px;
-        border-radius: 2px;
+        margin: 2mm 0 3mm;
+        background: #f5f5f5;
       }
       .insight-stripe {
         width: 4px;
         background: #0a2540;
         flex-shrink: 0;
-        border-radius: 2px 0 0 2px;
       }
       .insight-content {
-        padding: 8px 12px;
+        padding: 2.5mm 3mm;
+        font-size: 9.5pt;
+        color: #1a1a1a;
         flex: 1;
+      }
+      .panel-label {
+        font-weight: bold;
+        color: #0a2540;
       }
 
       /* Source badges */
@@ -251,7 +270,7 @@
       /* Cover panel (dark navy bleed) */
       .cover-panel {
         background: #0a2540;
-        margin: -12mm -15mm 12mm;
+        margin: -10mm -15mm 12mm;
         padding: 18mm 15mm 14mm;
         border-bottom: 4px solid #2957ff;
       }
