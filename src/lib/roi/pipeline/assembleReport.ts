@@ -74,10 +74,10 @@ function buildCaseStudiesHTML(): string {
       `<div style="font-size:7pt;text-transform:uppercase;letter-spacing:0.8px;color:#94a3b8;font-weight:bold;margin-bottom:2px">${esc(
         cs.industry,
       )}</div>` +
-      `<div style="font-size:10pt;font-weight:bold;color:#0a1628;margin-bottom:4px">${esc(
+      `<div style="font-size:10pt;font-weight:bold;color:#0a2540;margin-bottom:4px">${esc(
         cs.client,
       )}</div>` +
-      `<div style="font-size:12pt;font-weight:bold;color:#003F87;margin-bottom:6px;padding-bottom:5px;border-bottom:1px solid #e2e8f0">${esc(
+      `<div style="font-size:12pt;font-weight:bold;color:#0a2540;margin-bottom:6px;padding-bottom:5px;border-bottom:1px solid #e2e8f0">${esc(
         cs.headline,
       )}</div>` +
       cs.results
@@ -151,7 +151,7 @@ function buildCostOfDelayHTML(
     `<div class="insight-panel">` +
     `<div class="stripe"></div>` +
     `<div class="panel-content">` +
-    `<div style="font-size:18pt;font-weight:bold;color:#0a1628;line-height:1">${sym}${addCommas(
+    `<div style="font-size:18pt;font-weight:bold;color:#0a2540;line-height:1">${sym}${addCommas(
       Math.round(monthlyCostRaw),
     )}<span style="font-size:9pt;font-weight:normal;color:#64748b"> / month</span></div>` +
     `<p style="font-size:8.5pt;color:#2d2d2d;margin-top:6px;line-height:1.5">${esc(
@@ -220,7 +220,7 @@ function buildOdVsPuPanelHTML(sym: string, od: number, pu: number): string {
     `<div style="font-size:7pt;text-transform:uppercase;letter-spacing:0.8px;color:#2957FF;font-weight:bold;margin-bottom:6px">Understanding These Numbers</div>` +
     `<div style="display:flex;gap:20px">` +
     `<div style="flex:1"><div style="font-size:7pt;text-transform:uppercase;color:#94a3b8;font-weight:bold">Operational Dividend</div>` +
-    `<div style="font-size:13pt;font-weight:bold;color:#0a1628">${sym}${addCommas(
+    `<div style="font-size:13pt;font-weight:bold;color:#0a2540">${sym}${addCommas(
       od,
     )}</div>` +
     `<div style="font-size:8pt;color:#64748b;margin-top:2px">Direct labor value recaptured from freed hours — measurable on day one of full adoption</div></div>` +
@@ -759,7 +759,7 @@ export function assembleReport(state: ReportState): AssembleReportOutput {
           `<td style="text-align:center">${hrsBefore}</td>` +
           `<td style="text-align:center">${hrsAfter}</td>` +
           `<td style="text-align:center;font-weight:bold">${hrsSaved}</td>` +
-          `<td style="text-align:right;color:#003F87;font-weight:bold">${sym}${addCommas(
+          `<td style="text-align:right;color:#0a2540;font-weight:bold">${sym}${addCommas(
             valMo,
           )}</td>` +
           `<td style="color:#5a5a6e">${esc(wf.agentName ?? '')}</td>` +
@@ -788,7 +788,7 @@ export function assembleReport(state: ReportState): AssembleReportOutput {
       .map(
         (l) =>
           `<tr>` +
-          `<td style="color:#003F87;font-weight:bold;vertical-align:top;width:22%">${esc(
+          `<td style="color:#0a2540;font-weight:bold;vertical-align:top;width:22%">${esc(
             l.derived_from,
           )}</td>` +
           `<td style="font-style:italic;vertical-align:top;width:22%;font-size:8.5pt">${esc(
