@@ -56,6 +56,11 @@ export async function generatePdf(
     // Load the HTML directly — base64 encode to avoid any URL length limits
     await page.setContent(html, { waitUntil: 'networkidle0' })
 
+    // Ensure web fonts (Inter via Google Fonts) are fully loaded before
+    // rendering, so the PDF matches the browser preview byte-for-byte
+    // instead of falling back to a generic sans-serif mid-render.
+    await page.evaluate(() => document.fonts.ready)
+
     const pdfBuffer = await page.pdf({
       format: 'A4',
       printBackground: true,
