@@ -116,32 +116,45 @@
         font-size: 9pt;
       }
 
-      /* ── KPI bar ── */
-      .kpi-bar {
+      /* ── KPI stat cards (matches Full Report cover) ── */
+      .stat-table {
         width: 100%;
-        border-collapse: collapse;
         margin-bottom: 3mm;
+        border-collapse: separate;
+        border-spacing: 5px;
       }
-      .kpi-cell {
-        padding: 3mm 4mm;
-        border-top: 3px solid #003f87;
-        border-right: 1px solid #d0d0d0;
+      .stat-table td {
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
+        padding: 9px 11px;
         width: 25%;
         vertical-align: top;
       }
-      .kpi-cell.last {
-        border-right: none;
-      }
-      .kpi-val {
-        font-size: 15pt;
-        font-weight: bold;
-        color: #003f87;
-        line-height: 1.1;
-      }
-      .kpi-lbl {
+      .stat-label {
         font-size: 7pt;
+        text-transform: uppercase;
+        letter-spacing: 0.8px;
+        color: #94a3b8;
+        font-weight: bold;
+        margin-bottom: 3px;
+        display: block;
+      }
+      .stat-value {
+        font-size: 17pt;
+        font-weight: bold;
+        color: #1a1a1a;
+        line-height: 1.1;
+        display: block;
+      }
+      .stat-sub {
+        font-size: 7.5pt;
         color: #5a5a6e;
-        margin-top: 1mm;
+        margin-top: 2px;
+        display: block;
+      }
+      .accent {
+        color: #2957ff;
+        font-weight: bold;
       }
 
       /* ── Panels ── */
@@ -251,23 +264,30 @@
         </div>
       </div>
 
-      <table class="kpi-bar">
+      <table class="stat-table">
         <tr>
-          <td class="kpi-cell">
-            <div class="kpi-val">{{$json.display.statHours}}</div>
-            <div class="kpi-lbl">Hours Returned / Year</div>
+          <td>
+            <span class="stat-label">Hours Returned / Year</span>
+            <span class="stat-value">{{$json.display.statHours}}</span>
+            <span class="stat-sub"
+              >{{$json.display.statHoursSub}} hrs/month ·
+              {{$json.display.statFTE}} FTE equiv.</span
+            >
           </td>
-          <td class="kpi-cell">
-            <div class="kpi-val">{{$json.display.statOD}}</div>
-            <div class="kpi-lbl">Operational Dividend (per year)</div>
+          <td>
+            <span class="stat-label">Operational Dividend (per year)</span>
+            <span class="stat-value">{{$json.display.statOD}}</span>
+            <span class="stat-sub">Labor value recaptured</span>
           </td>
-          <td class="kpi-cell">
-            <div class="kpi-val">{{$json.display.statPU}}</div>
-            <div class="kpi-lbl">Profit Uplift (per year)</div>
+          <td>
+            <span class="stat-label">Profit Uplift (per year)</span>
+            <span class="stat-value">{{$json.display.statPU}}</span>
+            <span class="stat-sub">Redirected capacity gains</span>
           </td>
-          <td class="kpi-cell last">
-            <div class="kpi-val">{{$json.display.statTF}}</div>
-            <div class="kpi-lbl">Total Financial Gain (per year)</div>
+          <td>
+            <span class="stat-label">Total Financial Gain (per year)</span>
+            <span class="stat-value accent">{{$json.display.statTF}}</span>
+            <span class="stat-sub">OD + Profit Uplift</span>
           </td>
         </tr>
       </table>
@@ -281,6 +301,10 @@
           stakeholder validation before decisions are made.
         </div>
       </div>
+
+      <!-- Case studies (same format as Full Report) -->
+      <h2>Results We've Delivered for Similar Companies</h2>
+      {{$json.display.caseStudiesHTML}}
 
       <div class="page-footer">
         <span>Prepared by LyRise AI | Confidential — not for distribution</span>
