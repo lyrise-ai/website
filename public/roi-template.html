@@ -434,17 +434,17 @@
             >
           </td>
           <td>
-            <span class="stat-label">Operational Dividend (12 mo)</span>
+            <span class="stat-label">Operational Dividend (per year)</span>
             <span class="stat-value">{{$json.display.statOD}}</span>
             <span class="stat-sub">Labor value recaptured</span>
           </td>
           <td>
-            <span class="stat-label">Profit Uplift (12 mo)</span>
+            <span class="stat-label">Profit Uplift (per year)</span>
             <span class="stat-value">{{$json.display.statPU}}</span>
             <span class="stat-sub">Redirected capacity gains</span>
           </td>
           <td>
-            <span class="stat-label">Total Financial Gain (12 mo)</span>
+            <span class="stat-label">Total Financial Gain (per year)</span>
             <span class="stat-value accent">{{$json.display.statTF}}</span>
             <span class="stat-sub">OD + Profit Uplift</span>
           </td>
@@ -565,7 +565,7 @@
                 margin-bottom: 4px;
               "
             >
-              12-Month Financial Impact
+              Annual Financial Impact (per year)
             </div>
             <ul class="outcomes">
               <li>
@@ -744,20 +744,20 @@
       <div class="top-bar"></div>
 
       <!-- Total Financial Case -->
-      <h2>Total Financial Case — 3-Year Projection</h2>
+      <h2>Total Financial Case — 3-Year Projection (cumulative totals)</h2>
       <table>
         <thead>
           <tr>
             <th style="width: 20%">Horizon</th>
-            <th style="width: 20%">Hours Returned</th>
-            <th style="width: 20%">Operational Dividend</th>
-            <th style="width: 20%">Profit Uplift</th>
-            <th style="width: 20%">Total Financial Gain</th>
+            <th style="width: 20%">Hours Returned (cumulative)</th>
+            <th style="width: 20%">Operational Dividend (cumulative)</th>
+            <th style="width: 20%">Profit Uplift (cumulative)</th>
+            <th style="width: 20%">Total Financial Gain (cumulative)</th>
           </tr>
         </thead>
         <tbody>
           <tr>
-            <td><strong>Year 1</strong></td>
+            <td><strong>Year 1 total</strong></td>
             <td>
               {{$json.display.totalAnnualHours}} hrs (~{{$json.display.statFTE}}
               FTEs)
@@ -767,14 +767,14 @@
             <td><strong class="accent">{{$json.display.tf12}}</strong></td>
           </tr>
           <tr>
-            <td><strong>Year 2</strong></td>
+            <td><strong>Through Year 2 total</strong></td>
             <td>{{$json.display.hrs24}} hrs</td>
             <td>{{$json.display.od24}}</td>
             <td>{{$json.display.pu24}}</td>
             <td><strong class="accent">{{$json.display.tf24}}</strong></td>
           </tr>
           <tr>
-            <td><strong>Year 3</strong></td>
+            <td><strong>Through Year 3 total</strong></td>
             <td>{{$json.display.hrs36}} hrs</td>
             <td>{{$json.display.od36}}</td>
             <td>{{$json.display.pu36}}</td>
@@ -783,9 +783,9 @@
         </tbody>
       </table>
       <p class="note">
-        Projections assume consistent adoption and compounding improvement. Year
-        2–3 figures apply a growth factor of 2.15× and 3.40× respectively to
-        reflect ramp-up and process maturity.
+        Cumulative totals — each row shows the running total from launch through
+        the end of that year. Year 2–3 figures apply a growth factor of 2.15×
+        and 3.40× respectively to reflect ramp-up and process maturity.
       </p>
 
       <!-- Cost of Delay (KR-18) -->

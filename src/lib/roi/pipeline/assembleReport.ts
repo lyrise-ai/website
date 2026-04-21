@@ -570,7 +570,7 @@ export function assembleReport(state: ReportState): AssembleReportOutput {
           `</tr>`,
       )
       .join('') +
-    `<tr class="total-row"><td colspan="4"><strong>12-month incremental profit</strong></td><td class="accent"><strong>${sym}${fmt(
+    `<tr class="total-row"><td colspan="4"><strong>Annual incremental profit (per year)</strong></td><td class="accent"><strong>${sym}${fmt(
       s.profitUplift12mo,
     )}</strong></td></tr>`
 
@@ -738,9 +738,9 @@ export function assembleReport(state: ReportState): AssembleReportOutput {
     currencyCode: globals.currency.code,
     currencySymbol: sym,
     workflowCount: String(merged.length),
-    coverHeadline: `${fmt(s.totalAnnualHours)} hrs/yr & ${short(
+    coverHeadline: `${fmt(s.totalAnnualHours)} hrs/year & ${short(
       tf12,
-    )} total financial gain — 12-month conservative estimate`,
+    )} total financial gain per year (conservative estimate)`,
     statHours: fmt(s.totalAnnualHours),
     statHoursSub: fmt(totalMonthlyHours),
     statOD: short(s.operationalDividend12mo),
