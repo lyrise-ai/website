@@ -255,6 +255,7 @@ export interface DisplayObject {
   bvaTableBody: string
   profitLeversBody: string
   deployTableBody: string
+  workflowMasterTableBody: string
   provenanceTableHTML: string
   cta: string
   revenueContextStatement: string

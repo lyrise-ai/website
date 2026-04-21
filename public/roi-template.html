@@ -642,27 +642,31 @@
         </tbody>
       </table>
 
-      <!-- As-Is Baseline -->
-      <h2>As-Is Baseline — Current State</h2>
+      <!-- Proposed AI Workflows — Master Table (consolidates baseline,
+           before/after, and deploy data into a single view) -->
+      <h2>Proposed AI Workflows</h2>
       <p class="muted" style="margin-bottom: 4px">
-        Monthly run-cost of the {{$json.display.workflowCount}} identified
-        workflows before automation.
+        The {{$json.display.workflowCount}} workflows we'd automate — current
+        baseline cost, post-AI hours, value recaptured per month, and the
+        agent we would deploy. Target outcomes and rationale appear under each
+        workflow's row.
       </p>
       <table>
         <thead>
           <tr>
-            <th style="width: 20%">Workflow</th>
-            <th style="width: 12%">Owner / Function</th>
-            <th style="width: 9%; text-align: center">Volume/mo</th>
-            <th style="width: 10%; text-align: center">Time/Run</th>
-            <th style="width: 10%">Rate</th>
-            <th style="width: 10%">Cost/Run</th>
-            <th style="width: 11%">Monthly Cost</th>
-            <th style="width: 10%">Source</th>
+            <th style="width: 22%">Workflow</th>
+            <th style="width: 7%; text-align: center">Vol/mo</th>
+            <th style="width: 8%; text-align: center">Before AI (hrs)</th>
+            <th style="width: 8%; text-align: center">After AI (hrs)</th>
+            <th style="width: 8%; text-align: center">Hrs Saved/mo</th>
+            <th style="width: 9%">Rate</th>
+            <th style="width: 10%">Monthly Cost</th>
+            <th style="width: 13%">Value Recaptured/mo</th>
+            <th style="width: 15%">AI Agent</th>
           </tr>
         </thead>
         <tbody>
-          {{$json.display.asisTableBody}}
+          {{$json.display.workflowMasterTableBody}}
         </tbody>
       </table>
 
@@ -676,30 +680,10 @@
     </div>
 
     <!-- ══════════════════════════════════════════════════════════════════════ -->
-    <!-- PAGE 4 — Before/After AI + Profit Uplift                              -->
+    <!-- PAGE 4 — Profit Uplift Analysis                                        -->
     <!-- ══════════════════════════════════════════════════════════════════════ -->
     <div class="page">
       <div class="top-bar"></div>
-
-      <!-- Before/After AI -->
-      <h2>Before vs. After AI Automation</h2>
-      <table>
-        <thead>
-          <tr>
-            <th style="width: 20%">Workflow</th>
-            <th style="width: 8%; text-align: center">Vol/mo</th>
-            <th style="width: 10%; text-align: center">Before AI (hrs)</th>
-            <th style="width: 10%; text-align: center">After AI (hrs)</th>
-            <th style="width: 10%; text-align: center">Saved (hrs)</th>
-            <th style="width: 10%; text-align: center">Hrs Saved/mo</th>
-            <th style="width: 10%">Rate {{$json.display.currencySymbol}}/hr</th>
-            <th style="width: 14%">Value Recaptured/mo</th>
-          </tr>
-        </thead>
-        <tbody>
-          {{$json.display.bvaTableBody}}
-        </tbody>
-      </table>
 
       <!-- Calculation transparency panel (Rule 6C) -->
       {{$json.display.calculationPanelHTML}}
@@ -810,43 +794,21 @@
     </div>
 
     <!-- ══════════════════════════════════════════════════════════════════════ -->
-    <!-- PAGE 6 — What We'd Deploy + Data Provenance                           -->
+    <!-- PAGE 6 — Recommended Starting Point + Data Provenance                  -->
     <!-- ══════════════════════════════════════════════════════════════════════ -->
     <div class="page">
       <div class="top-bar"></div>
 
-      <!-- What We'd Deploy (WD-1) -->
-      <h2>What We'd Deploy</h2>
-      <table>
-        <thead>
-          <tr>
-            <th style="width: 18%">Workflow</th>
-            <th style="width: 24%">Target Outcome</th>
-            <th style="width: 20%">AI Agent / Capability</th>
-            <th style="width: 38%">Why It Fits This Business</th>
-          </tr>
-        </thead>
-        <tbody>
-          {{$json.display.deployTableBody}}
-        </tbody>
-      </table>
-
-      <!-- Pilot recommendation (WD-1) -->
+      <!-- Pilot recommendation (workflow agent details now live in the
+           consolidated Proposed AI Workflows table on page 3) -->
+      <h2>Recommended Starting Point</h2>
+      <p class="muted" style="margin-bottom: 6px">
+        Of the workflows on page 3, the one we'd recommend leading with — and
+        why it makes the strongest pilot.
+      </p>
       <div class="insight-panel" style="margin-top: 6px">
         <div class="insight-stripe"></div>
         <div class="insight-content">
-          <div
-            style="
-              font-size: 7pt;
-              text-transform: uppercase;
-              letter-spacing: 0.8px;
-              color: #2957ff;
-              font-weight: bold;
-              margin-bottom: 4px;
-            "
-          >
-            Recommended Starting Point
-          </div>
           <p style="font-size: 9pt; margin: 0; color: #2d2d2d">
             {{$json.display.pilotRecommendation}}
           </p>

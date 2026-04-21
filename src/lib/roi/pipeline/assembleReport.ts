@@ -586,6 +586,81 @@ export function assembleReport(state: ReportState): AssembleReportOutput {
     )
     .join('')
 
+  // Master workflow table — consolidates As-Is + Before/After + Deploy
+  // (each workflow appears once with all relevant columns).
+  const workflowMasterTableBody =
+    merged
+      .map((wf) => {
+        const beforeHrs = (wf.minutesPerItemBefore / 60).toFixed(2)
+        const afterHrs = (wf.minutesPerItemAfter / 60).toFixed(2)
+        const monthlyValue = Math.round(wf.monthlyHours * wf.effectiveRate)
+        const srcClass =
+          wf.sourceType === 'user_stated'
+            ? 'badge-scraped'
+            : wf.sourceType === 'research_derived'
+            ? 'badge-scraped'
+            : 'badge-benchmarked'
+        const srcLabel =
+          wf.sourceType === 'user_stated'
+            ? 'User-stated'
+            : wf.sourceType === 'research_derived'
+            ? 'Scraped'
+            : 'Benchmarked'
+        const detailParts: string[] = []
+        if (wf.expectedOutcome) {
+          detailParts.push(
+            `<strong>Target outcome:</strong> ${esc(wf.expectedOutcome)}`,
+          )
+        }
+        if (wf.whyItMatters) {
+          detailParts.push(
+            `<strong>Why it fits:</strong> ${esc(wf.whyItMatters)}`,
+          )
+        }
+        const detailRow = detailParts.length
+          ? `<tr><td colspan="9" style="background:#f8fafc;font-size:8.5pt;color:#475569;padding:4px 8px;border-bottom:1px solid #e2e8f0">${detailParts.join(
+              ' &nbsp;·&nbsp; ',
+            )}</td></tr>`
+          : ''
+        return (
+          `<tr>` +
+          `<td>` +
+          `<strong>${esc(wf.name)}</strong> ` +
+          `<span class="${srcClass}">${srcLabel}</span>` +
+          (wf.owner
+            ? `<div style="font-size:7.5pt;color:#5a5a6e;margin-top:2px">${esc(
+                wf.owner,
+              )}</div>`
+            : '') +
+          `</td>` +
+          `<td style="text-align:center">${fmt(wf.monthlyVolume)}</td>` +
+          `<td style="text-align:center">${beforeHrs}</td>` +
+          `<td style="text-align:center">${afterHrs}</td>` +
+          `<td style="text-align:center">${fmt(wf.monthlyHours)}</td>` +
+          `<td>${sym}${fmt(wf.effectiveRate)}/hr</td>` +
+          `<td>${sym}${fmt(wf.monthlyCost)}</td>` +
+          `<td class="accent"><strong>${sym}${fmt(
+            monthlyValue,
+          )}</strong></td>` +
+          `<td class="accent"><strong>${esc(wf.agentName ?? '—')}</strong></td>` +
+          `</tr>` +
+          detailRow
+        )
+      })
+      .join('') +
+    `<tr class="total-row">` +
+    `<td colspan="4"><strong>Totals — across ${merged.length} workflow${
+      merged.length === 1 ? '' : 's'
+    }</strong></td>` +
+    `<td style="text-align:center"><strong>${fmt(
+      totalMonthlyHours,
+    )} hrs</strong></td>` +
+    `<td></td>` +
+    `<td><strong>${sym}${fmt(totalMonthlyCost)}</strong></td>` +
+    `<td class="accent"><strong>${sym}${fmt(totalValMo)}/mo</strong></td>` +
+    `<td></td>` +
+    `</tr>`
+
   const provenanceTableHTML =
     `<table><thead><tr>` +
     `<th style="width:22%">Input</th><th style="width:36%">Detail</th><th style="width:28%">Source</th><th style="width:14%">Status</th>` +
@@ -777,6 +852,7 @@ export function assembleReport(state: ReportState): AssembleReportOutput {
     bvaTableBody,
     profitLeversBody,
     deployTableBody,
+    workflowMasterTableBody,
     provenanceTableHTML,
     cta:
       copy.cta_paragraph ||
