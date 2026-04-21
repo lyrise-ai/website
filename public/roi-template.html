@@ -30,9 +30,12 @@
       .page {
         width: 100%;
         max-width: 794px;
+        min-height: 297mm;
         padding: 10mm 15mm;
         margin: 0 auto;
         page-break-after: always;
+        display: flex;
+        flex-direction: column;
       }
       .page.last {
         page-break-after: auto;
@@ -129,7 +132,7 @@
         font-style: italic;
       }
       .footer {
-        margin-top: 8px;
+        margin-top: auto;
         padding-top: 6px;
         border-top: 1px solid #e2e8f0;
         font-size: 7.5pt;
