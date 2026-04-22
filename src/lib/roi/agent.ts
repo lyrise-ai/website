@@ -71,6 +71,7 @@ function reAssemble(
   execTemplateHtml: string,
   fullTemplateHtml: string,
   callbacks: AgentCallbacks,
+  changedSections?: string[],
 ) {
   if (!state.workflows || !state.globals || !state.company) return
   state.calcOutput = roiCalculator(
@@ -82,7 +83,7 @@ function reAssemble(
   state.assembled = assembleReport(state)
   state.renderedHtml = renderTemplate(execTemplateHtml, state.assembled)
   state.renderedFullHtml = renderTemplate(fullTemplateHtml, state.assembled)
-  callbacks.onReportUpdate(state)
+  callbacks.onReportUpdate(state, changedSections)
 }
 
 // ── Tool definitions ──────────────────────────────────────────────────────────
@@ -285,6 +286,14 @@ function buildTools(
 
           const modelerOut = result.object as ModelerResult
 
+          // Currencies whose official symbols are non-Latin script — always use the ISO code instead
+          const SCRIPT_SYMBOL_CODES = new Set(['SAR', 'AED', 'QAR', 'KWD', 'BHD', 'OMR', 'EGP', 'JOD', 'IQD', 'LBP', 'IRR', 'YER'])
+          const rawCurrencySym = modelerOut.currency.symbol
+          // eslint-disable-next-line no-control-regex
+          const hasNonAscii = /[^\x00-\x7F]/.test(rawCurrencySym)
+          const cleanSym = SCRIPT_SYMBOL_CODES.has(modelerOut.currency.code) || hasNonAscii
+            ? modelerOut.currency.code
+            : rawCurrencySym
           globals = {
             laborRate: modelerOut.labor.fullyLoadedHourlyCost,
             implementationCost: modelerOut.costs.implementationCost,
@@ -292,7 +301,12 @@ function buildTools(
             profitMultiplier: modelerOut.profitMultiplier,
             realizationFactor: modelerOut.realizationFactor,
             workWeeksPerYear: modelerOut.labor.workWeeksPerYear,
-            currency: modelerOut.currency,
+            currency: {
+              ...modelerOut.currency,
+              symbol: cleanSym.length > 1 && !cleanSym.endsWith(' ')
+                ? cleanSym + ' '
+                : cleanSym,
+            },
           }
 
           // Merge per-workflow assumptions from modeler into state.workflows
@@ -473,7 +487,9 @@ function buildTools(
       }),
       execute: async (copy: ReportCopy) => {
         state.copy = copy
-        reAssemble(state, execTemplateHtml, fullTemplateHtml, callbacks)
+        reAssemble(state, execTemplateHtml, fullTemplateHtml, callbacks, [
+          'thesis', 'workflows', 'profit_levers', 'cost_of_delay', 'cta',
+        ])
         return { ok: true }
       },
     }),
@@ -596,11 +612,22 @@ function buildTools(
             next_steps_checklist: patches.next_steps,
           }),
         }
-        reAssemble(state, execTemplateHtml, fullTemplateHtml, callbacks)
-        const updated = Object.keys(patches).filter(
-          (k) => patches[k as keyof typeof patches] !== undefined,
-        )
-        return { ok: true, updated_sections: updated }
+        const COPY_TO_SECTION: Record<string, string> = {
+          thesis: 'thesis',
+          cta: 'cta',
+          pilot: 'pilot',
+          profit_levers: 'profit_levers',
+          resilience_rows: 'resilience_rows',
+          cost_of_delay: 'cost_of_delay',
+          risks: 'risks',
+          next_steps: 'cta',
+        }
+        const changedSections = Object.keys(patches)
+          .filter((k) => patches[k as keyof typeof patches] !== undefined)
+          .map((k) => COPY_TO_SECTION[k])
+          .filter(Boolean)
+        reAssemble(state, execTemplateHtml, fullTemplateHtml, callbacks, changedSections)
+        return { ok: true, updated_sections: changedSections }
       },
     }),
 
@@ -672,7 +699,7 @@ function buildTools(
                 }),
               },
         )
-        reAssemble(state, execTemplateHtml, fullTemplateHtml, callbacks)
+        reAssemble(state, execTemplateHtml, fullTemplateHtml, callbacks, ['workflows', 'financials'])
         const s = state.calcOutput?.summary
         return {
           ok: true,
@@ -754,7 +781,7 @@ function buildTools(
             'Added via chat — defaults applied. Use update_workflow to refine.',
         }
         state.workflows = [...state.workflows, newWorkflow]
-        reAssemble(state, execTemplateHtml, fullTemplateHtml, callbacks)
+        reAssemble(state, execTemplateHtml, fullTemplateHtml, callbacks, ['workflows', 'financials'])
         return { ok: true, workflow_count: state.workflows.length }
       },
     }),
@@ -766,7 +793,7 @@ function buildTools(
       execute: async ({ workflowName }: { workflowName: string }) => {
         if (!state.workflows) return { error: 'No workflows' }
         state.workflows = state.workflows.filter((w) => w.name !== workflowName)
-        reAssemble(state, execTemplateHtml, fullTemplateHtml, callbacks)
+        reAssemble(state, execTemplateHtml, fullTemplateHtml, callbacks, ['workflows', 'financials'])
         return { ok: true, workflow_count: state.workflows.length }
       },
     }),
@@ -812,7 +839,7 @@ function buildTools(
             revenueEstimateM: state.company.revenueEstimateM * multiplier,
           }
         }
-        reAssemble(state, execTemplateHtml, fullTemplateHtml, callbacks)
+        reAssemble(state, execTemplateHtml, fullTemplateHtml, callbacks, ['financials'])
         return { ok: true, multiplier }
       },
     }),
@@ -859,7 +886,7 @@ function buildTools(
         if (state.globals) state.globals = { ...state.globals, currency }
         if (state.normInput)
           state.normInput = { ...state.normInput, selectedCurrency: code }
-        reAssemble(state, execTemplateHtml, fullTemplateHtml, callbacks)
+        reAssemble(state, execTemplateHtml, fullTemplateHtml, callbacks, ['financials'])
         return { ok: true, currency }
       },
     }),
@@ -915,7 +942,7 @@ function buildTools(
             realizationFactor: patches.realizationFactor,
           }),
         }
-        reAssemble(state, execTemplateHtml, fullTemplateHtml, callbacks)
+        reAssemble(state, execTemplateHtml, fullTemplateHtml, callbacks, ['financials'])
         const s = state.calcOutput?.summary
         return {
           ok: true,
@@ -1024,7 +1051,11 @@ function buildChatSystemPrompt(state: ReportState): string {
   const copy = state.copy!
   const company = state.company!
   const globals = state.globals!
-  const sym = globals.currency.symbol
+  // Fall back to ISO code if symbol contains non-ASCII characters (e.g. Arabic script)
+  // eslint-disable-next-line no-control-regex
+  const sym = /[^\x00-\x7F]/.test(globals.currency.symbol)
+    ? globals.currency.code + ' '
+    : globals.currency.symbol
   const s = calc.summary
 
   // Merge WorkflowInput (raw) with WorkflowCalc (derived) by name

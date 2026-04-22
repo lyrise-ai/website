@@ -429,7 +429,14 @@ export function assembleReport(state: ReportState): AssembleReportOutput {
     throw new Error('assembleReport: missing required state fields')
   }
 
-  const sym = globals.currency.symbol
+  // Currencies whose official symbols are non-Latin script — always use the ISO code instead
+  const SCRIPT_SYMBOL_CODES = new Set(['SAR', 'AED', 'QAR', 'KWD', 'BHD', 'OMR', 'EGP', 'JOD', 'IQD', 'LBP', 'IRR', 'YER'])
+  // eslint-disable-next-line no-control-regex
+  const hasNonAscii = /[^\x00-\x7F]/.test(globals.currency.symbol)
+  const rawSym = SCRIPT_SYMBOL_CODES.has(globals.currency.code) || hasNonAscii
+    ? globals.currency.code
+    : globals.currency.symbol
+  const sym = rawSym.length > 1 && !rawSym.endsWith(' ') ? rawSym + ' ' : rawSym
   const s = calcOutput.summary
 
   const fmt = (n: number | null | undefined) =>
