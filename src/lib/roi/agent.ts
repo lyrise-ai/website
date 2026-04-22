@@ -286,6 +286,10 @@ function buildTools(
 
           const modelerOut = result.object as ModelerResult
 
+          const rawCurrencySym = modelerOut.currency.symbol
+          const cleanSym = /[^\x00-\x7F]/.test(rawCurrencySym)
+            ? modelerOut.currency.code
+            : rawCurrencySym
           globals = {
             laborRate: modelerOut.labor.fullyLoadedHourlyCost,
             implementationCost: modelerOut.costs.implementationCost,
@@ -293,7 +297,12 @@ function buildTools(
             profitMultiplier: modelerOut.profitMultiplier,
             realizationFactor: modelerOut.realizationFactor,
             workWeeksPerYear: modelerOut.labor.workWeeksPerYear,
-            currency: modelerOut.currency,
+            currency: {
+              ...modelerOut.currency,
+              symbol: cleanSym.length > 1 && !cleanSym.endsWith(' ')
+                ? cleanSym + ' '
+                : cleanSym,
+            },
           }
 
           // Merge per-workflow assumptions from modeler into state.workflows
@@ -1038,7 +1047,10 @@ function buildChatSystemPrompt(state: ReportState): string {
   const copy = state.copy!
   const company = state.company!
   const globals = state.globals!
-  const sym = globals.currency.symbol
+  // Fall back to ISO code if symbol contains non-ASCII characters (e.g. Arabic script)
+  const sym = /[^\x00-\x7F]/.test(globals.currency.symbol)
+    ? globals.currency.code + ' '
+    : globals.currency.symbol
   const s = calc.summary
 
   // Merge WorkflowInput (raw) with WorkflowCalc (derived) by name
