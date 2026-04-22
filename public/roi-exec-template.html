@@ -211,6 +211,14 @@
         color: #fff !important;
         font-weight: bold;
       }
+
+      /* ── Chat section highlight ── */
+      [data-section].section-highlighted {
+        outline: 2px solid #2957ff;
+        outline-offset: 3px;
+        border-radius: 2px;
+        background-color: rgba(41, 87, 255, 0.06);
+      }
     </style>
   </head>
   <body>
@@ -251,7 +259,7 @@
         </div>
       </div>
 
-      <table class="kpi-bar">
+      <table class="kpi-bar" data-section="financials">
         <tr>
           <td class="kpi-cell">
             <div class="kpi-val">{{$json.display.statHours}}</div>
@@ -297,56 +305,66 @@
 
       <p>{{$json.display.blufParagraph}}</p>
 
-      <h2>The Pattern Underneath</h2>
-      <p>{{$json.display.unifiedPatternThesis}}</p>
-
-      <h2>Before vs. After AI</h2>
-      <table class="data-table">
-        <thead>
-          <tr>
-            <th>Workflow</th>
-            <th>Hrs/mo Now</th>
-            <th>Hrs/mo After AI</th>
-            <th>Hrs Saved/mo</th>
-            <th>Value/mo</th>
-            <th>AI Agent Deployed</th>
-          </tr>
-        </thead>
-        <tbody>
-          {{$json.display.bvaTableBodyCompact}}
-        </tbody>
-      </table>
-
-      <h2>Where the Profit Uplift Comes From</h2>
-      <div class="insight-panel">
-        <div class="stripe"></div>
-        <div class="panel-content">
-          <span class="panel-label">What is Profit Uplift?</span>
-          Operational Dividend = the value of hours freed from manual work.
-          Profit Uplift = what those freed hours produce when redirected to
-          higher-value activity. These are sequential effects of the same
-          improvement — not the same hours counted twice. Total Profit Uplift:
-          <strong>{{$json.display.statPU}} / yr</strong>
-        </div>
+      <div data-section="thesis">
+        <h2>The Pattern Underneath</h2>
+        <p>{{$json.display.unifiedPatternThesis}}</p>
       </div>
-      <table class="data-table">
-        <thead>
-          <tr>
-            <th style="width: 22%">Workflow</th>
-            <th style="width: 22%">Uplift Lever</th>
-            <th style="width: 56%">How It Works — Full Logic</th>
-          </tr>
-        </thead>
-        <tbody>
-          {{$json.display.profitUpliftLogicBody}}
-        </tbody>
-      </table>
 
-      <h2>Cost of Delay</h2>
-      {{$json.display.costOfDelayHTML}}
+      <div data-section="workflows">
+        <h2>Before vs. After AI</h2>
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Workflow</th>
+              <th>Hrs/mo Now</th>
+              <th>Hrs/mo After AI</th>
+              <th>Hrs Saved/mo</th>
+              <th>Value/mo</th>
+              <th>AI Agent Deployed</th>
+            </tr>
+          </thead>
+          <tbody>
+            {{$json.display.bvaTableBodyCompact}}
+          </tbody>
+        </table>
+      </div>
 
-      <h2>What Happens Next</h2>
-      {{$json.display.nextStepsHTML}}
+      <div data-section="profit_levers">
+        <h2>Where the Profit Uplift Comes From</h2>
+        <div class="insight-panel">
+          <div class="stripe"></div>
+          <div class="panel-content">
+            <span class="panel-label">What is Profit Uplift?</span>
+            Operational Dividend = the value of hours freed from manual work.
+            Profit Uplift = what those freed hours produce when redirected to
+            higher-value activity. These are sequential effects of the same
+            improvement — not the same hours counted twice. Total Profit Uplift:
+            <strong>{{$json.display.statPU}} / yr</strong>
+          </div>
+        </div>
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th style="width: 22%">Workflow</th>
+              <th style="width: 22%">Uplift Lever</th>
+              <th style="width: 56%">How It Works — Full Logic</th>
+            </tr>
+          </thead>
+          <tbody>
+            {{$json.display.profitUpliftLogicBody}}
+          </tbody>
+        </table>
+      </div>
+
+      <div data-section="cost_of_delay">
+        <h2>Cost of Delay</h2>
+        {{$json.display.costOfDelayHTML}}
+      </div>
+
+      <div data-section="cta">
+        <h2>What Happens Next</h2>
+        {{$json.display.nextStepsHTML}}
+      </div>
 
       <div class="page-footer">
         <span

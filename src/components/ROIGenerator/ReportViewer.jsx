@@ -67,6 +67,18 @@ const TOOL_LABELS = {
   remove_workflow: 'Removing workflow…',
 }
 
+const SECTION_LABELS = {
+  financials: 'KPI Bar',
+  thesis: 'The Pattern Underneath',
+  workflows: 'Before vs. After AI',
+  profit_levers: 'Profit Uplift',
+  cost_of_delay: 'Cost of Delay',
+  cta: 'What Happens Next',
+  resilience_rows: 'Resilience Table',
+  risks: 'Risks & Mitigations',
+  pilot: 'Pilot Recommendation',
+}
+
 // Render **bold** markdown from agent responses
 function renderText(text) {
   return text
@@ -90,9 +102,11 @@ export default function ReportViewer({ initialState, email }) {
   const [input, setInput] = useState('')
   const [emailStatus, setEmailStatus] = useState('idle')
   const [activeTab, setActiveTab] = useState('exec')
+  const [lastChangedSections, setLastChangedSections] = useState([])
 
   const iframeRef = useRef(null)
   const messagesEndRef = useRef(null)
+  const pendingHighlightsRef = useRef([])
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
@@ -114,6 +128,11 @@ export default function ReportViewer({ initialState, email }) {
       setChatHistory(newHistory)
       if (!overrideMsg) setInput('')
       setIsAgentRunning(true)
+      setLastChangedSections([])
+      // Clear any section highlights from the previous agent response
+      iframeRef.current?.contentDocument
+        ?.querySelectorAll('.section-highlighted')
+        .forEach((el) => el.classList.remove('section-highlighted'))
       setStreamingText('')
       setActiveTool(null)
 
@@ -142,6 +161,10 @@ export default function ReportViewer({ initialState, email }) {
           } else if (event.type === 'tool_start') {
             setActiveTool(TOOL_LABELS[event.tool] ?? event.tool)
           } else if (event.type === 'report_update') {
+            pendingHighlightsRef.current = event.changedSections ?? []
+            setLastChangedSections((prev) =>
+              [...new Set([...prev, ...(event.changedSections ?? [])])]
+            )
             setReportState(event.state)
             setActiveTool(null)
           } else if (event.type === 'done') {
@@ -168,6 +191,19 @@ export default function ReportViewer({ initialState, email }) {
     },
     [input, isAgentRunning, chatHistory, reportState],
   )
+
+  const handleIframeLoad = useCallback(() => {
+    const sections = pendingHighlightsRef.current
+    if (!sections.length) return
+    pendingHighlightsRef.current = []
+    const doc = iframeRef.current?.contentDocument
+    if (!doc) return
+    sections.forEach((section) => {
+      doc.querySelectorAll(`[data-section="${section}"]`).forEach((el) => {
+        el.classList.add('section-highlighted')
+      })
+    })
+  }, [])
 
   const handleDownload = useCallback(() => {
     iframeRef.current?.contentWindow?.print()
@@ -380,6 +416,7 @@ export default function ReportViewer({ initialState, email }) {
           <iframe
             ref={iframeRef}
             srcDoc={activeHtml ?? ''}
+            onLoad={handleIframeLoad}
             style={{ width: '100%', height: '100%', border: 'none' }}
             title="ROI Report Preview"
           />
@@ -443,6 +480,41 @@ export default function ReportViewer({ initialState, email }) {
                 </div>
               )
             })}
+
+            {/* Changed sections chips — shown after agent finishes */}
+            {!isAgentRunning && lastChangedSections.length > 0 && (
+              <div
+                style={{
+                  display: 'flex',
+                  flexWrap: 'wrap',
+                  alignItems: 'center',
+                  gap: 5,
+                  paddingLeft: 2,
+                }}
+              >
+                <span
+                  style={{ fontSize: 11, color: '#8a8aaa', flexShrink: 0 }}
+                >
+                  Sections updated:
+                </span>
+                {[...new Set(lastChangedSections)].map((s) => (
+                  <span
+                    key={s}
+                    style={{
+                      fontSize: 11,
+                      fontWeight: 500,
+                      background: '#eef2ff',
+                      color: '#2957ff',
+                      border: '1px solid #c7d2fe',
+                      borderRadius: 4,
+                      padding: '2px 7px',
+                    }}
+                  >
+                    {SECTION_LABELS[s] ?? s}
+                  </span>
+                ))}
+              </div>
+            )}
 
             {/* Agent working — tool label + streaming text in one assistant bubble */}
             {(activeTool || streamingText) && (
