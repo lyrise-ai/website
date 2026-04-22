@@ -112,21 +112,24 @@ export default function ReportViewer({ initialState, email }) {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [chatHistory, streamingText, activeTool])
 
-  // Apply pending highlights after reportState updates.
-  // Handles the case where the HTML didn't change (same srcDoc) so onLoad never fires.
-  useEffect(() => {
-    const sections = pendingHighlightsRef.current
-    if (!sections.length) return
-    const doc = iframeRef.current?.contentDocument
-    // If the document has no data-section elements yet it's still loading — onLoad will handle it
-    if (!doc?.body?.querySelector('[data-section]')) return
-    pendingHighlightsRef.current = []
+  const applySectionHighlights = useCallback((doc, sections) => {
+    if (!doc?.body?.querySelector('[data-section]')) return false
     sections.forEach((section) => {
       doc.querySelectorAll(`[data-section="${section}"]`).forEach((el) => {
         el.classList.add('section-highlighted')
       })
     })
-  }, [reportState])
+    return true
+  }, [])
+
+  // Fallback: if srcDoc didn't change, onLoad won't fire — apply highlights directly.
+  useEffect(() => {
+    const sections = pendingHighlightsRef.current
+    if (!sections.length) return
+    const doc = iframeRef.current?.contentDocument
+    if (!applySectionHighlights(doc, sections)) return
+    pendingHighlightsRef.current = []
+  }, [reportState, applySectionHighlights])
 
   const activeHtml =
     activeTab === 'exec'
@@ -211,15 +214,11 @@ export default function ReportViewer({ initialState, email }) {
   const handleIframeLoad = useCallback(() => {
     const sections = pendingHighlightsRef.current
     if (!sections.length) return
-    pendingHighlightsRef.current = []
     const doc = iframeRef.current?.contentDocument
-    if (!doc) return
-    sections.forEach((section) => {
-      doc.querySelectorAll(`[data-section="${section}"]`).forEach((el) => {
-        el.classList.add('section-highlighted')
-      })
-    })
-  }, [])
+    if (applySectionHighlights(doc, sections)) {
+      pendingHighlightsRef.current = []
+    }
+  }, [applySectionHighlights])
 
   const handleDownload = useCallback(() => {
     iframeRef.current?.contentWindow?.print()

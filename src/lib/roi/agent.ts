@@ -286,8 +286,12 @@ function buildTools(
 
           const modelerOut = result.object as ModelerResult
 
+          // Currencies whose official symbols are non-Latin script — always use the ISO code instead
+          const SCRIPT_SYMBOL_CODES = new Set(['SAR', 'AED', 'QAR', 'KWD', 'BHD', 'OMR', 'EGP', 'JOD', 'IQD', 'LBP', 'IRR', 'YER'])
           const rawCurrencySym = modelerOut.currency.symbol
-          const cleanSym = /[^\x00-\x7F]/.test(rawCurrencySym)
+          // eslint-disable-next-line no-control-regex
+          const hasNonAscii = /[^\x00-\x7F]/.test(rawCurrencySym)
+          const cleanSym = SCRIPT_SYMBOL_CODES.has(modelerOut.currency.code) || hasNonAscii
             ? modelerOut.currency.code
             : rawCurrencySym
           globals = {
