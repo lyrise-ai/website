@@ -429,10 +429,7 @@ export function assembleReport(state: ReportState): AssembleReportOutput {
     throw new Error('assembleReport: missing required state fields')
   }
 
-  const rawSym = /[^\x00-\x7F]/.test(globals.currency.symbol)
-    ? globals.currency.code
-    : globals.currency.symbol
-  const sym = rawSym.length > 1 && !rawSym.endsWith(' ') ? rawSym + ' ' : rawSym
+  const sym = globals.currency.symbol
   const s = calcOutput.summary
 
   const fmt = (n: number | null | undefined) =>

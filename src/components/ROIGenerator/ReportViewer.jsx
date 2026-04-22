@@ -112,22 +112,6 @@ export default function ReportViewer({ initialState, email }) {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [chatHistory, streamingText, activeTool])
 
-  // Apply pending highlights after reportState updates.
-  // Handles the case where the HTML didn't change (same srcDoc) so onLoad never fires.
-  useEffect(() => {
-    const sections = pendingHighlightsRef.current
-    if (!sections.length) return
-    const doc = iframeRef.current?.contentDocument
-    // If the document has no data-section elements yet it's still loading — onLoad will handle it
-    if (!doc?.body?.querySelector('[data-section]')) return
-    pendingHighlightsRef.current = []
-    sections.forEach((section) => {
-      doc.querySelectorAll(`[data-section="${section}"]`).forEach((el) => {
-        el.classList.add('section-highlighted')
-      })
-    })
-  }, [reportState])
-
   const activeHtml =
     activeTab === 'exec'
       ? reportState?.renderedHtml ?? initialState?.renderedHtml
