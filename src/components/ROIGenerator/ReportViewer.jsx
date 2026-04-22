@@ -90,37 +90,80 @@ export default function ReportViewer({ initialState, email }) {
   const [input, setInput] = useState('')
   const [emailStatus, setEmailStatus] = useState('idle')
   const [activeTab, setActiveTab] = useState('exec')
-  const [badgesDismissed, setBadgesDismissed] = useState(true)
   const [downloadStatus, setDownloadStatus] = useState('idle')
+  const [tourStep, setTourStep] = useState(0)
+  const [tourRect, setTourRect] = useState(null)
 
   const iframeRef = useRef(null)
   const messagesEndRef = useRef(null)
+  const execTabRef = useRef(null)
+  const fullTabRef = useRef(null)
+  const downloadRef = useRef(null)
+  const chatPanelRef = useRef(null)
+
+  const TOUR_STEPS = [
+    {
+      title: 'Executive Summary',
+      body: 'Quick 2-page snapshot — share this version with execs and decision-makers.',
+      placement: 'bottom-start',
+    },
+    {
+      title: 'Full Report',
+      body: 'Multi-page deep dive — workflows, projections, case studies, and the full financial model.',
+      placement: 'bottom-start',
+    },
+    {
+      title: 'Download as PDF',
+      body: 'Save the report you’re viewing as a PDF you can share, attach, or print.',
+      placement: 'bottom-end',
+    },
+    {
+      title: 'Refine with AI',
+      body: 'Ask the assistant to adjust numbers, change currency, swap workflows, or rewrite copy. The report updates live.',
+      placement: 'left',
+    },
+  ]
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [chatHistory, streamingText, activeTool])
 
   useEffect(() => {
-    if (typeof window === 'undefined') return
-    const dismissed =
-      window.localStorage.getItem('roi.tabBadges.dismissed') === '1'
-    setBadgesDismissed(dismissed)
-  }, [])
-
-  const dismissBadges = useCallback(() => {
-    setBadgesDismissed(true)
-    if (typeof window !== 'undefined') {
-      window.localStorage.setItem('roi.tabBadges.dismissed', '1')
+    if (tourStep < 0 || tourStep >= TOUR_STEPS.length) {
+      setTourRect(null)
+      return undefined
     }
+    const targets = [execTabRef, fullTabRef, downloadRef, chatPanelRef]
+    const recompute = () => {
+      const el = targets[tourStep]?.current
+      if (!el) {
+        setTourRect(null)
+        return
+      }
+      const r = el.getBoundingClientRect()
+      setTourRect({
+        top: r.top,
+        left: r.left,
+        width: r.width,
+        height: r.height,
+      })
+    }
+    recompute()
+    window.addEventListener('resize', recompute)
+    return () => window.removeEventListener('resize', recompute)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tourStep])
+
+  const advanceTour = useCallback(() => {
+    setTourStep((s) => (s + 1 >= TOUR_STEPS.length ? -1 : s + 1))
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  const handleTabSelect = useCallback(
-    (tab) => {
-      setActiveTab(tab)
-      dismissBadges()
-    },
-    [dismissBadges],
-  )
+  const closeTour = useCallback(() => setTourStep(-1), [])
+
+  const handleTabSelect = useCallback((tab) => {
+    setActiveTab(tab)
+  }, [])
 
   const activeHtml =
     activeTab === 'exec'
@@ -297,54 +340,31 @@ export default function ReportViewer({ initialState, email }) {
       verticalAlign: 'middle',
       animation: 'pulse 1s infinite',
     },
-    tabBadge: {
-      position: 'relative',
-      width: 240,
-      padding: '10px 28px 10px 12px',
-      background: '#0a2540',
-      color: '#fff',
-      borderRadius: 8,
-      boxShadow: '0 6px 18px rgba(10, 37, 64, 0.25)',
-      fontSize: 12,
-      lineHeight: 1.45,
-    },
-    tabBadgeArrow: {
-      position: 'absolute',
-      top: -5,
-      left: 36,
-      width: 10,
-      height: 10,
-      background: '#0a2540',
-      transform: 'rotate(45deg)',
-    },
-    tabBadgeTitle: {
-      fontSize: 11,
-      fontWeight: 700,
-      textTransform: 'uppercase',
-      letterSpacing: 0.6,
-      color: '#7fb3ff',
-      marginBottom: 4,
-    },
-    tabBadgeBody: {
-      fontSize: 12,
-      color: '#e6efff',
-    },
-    tabBadgeClose: {
-      position: 'absolute',
-      top: 4,
-      right: 6,
-      width: 20,
-      height: 20,
-      lineHeight: '18px',
-      textAlign: 'center',
-      border: 'none',
-      background: 'transparent',
-      color: '#9bb6d6',
-      fontSize: 16,
-      cursor: 'pointer',
-      padding: 0,
-    },
   }
+
+  const popoverPositionFor = (placement, rect) => {
+    const w = 300
+    const gap = 14
+    if (placement === 'bottom-start') {
+      return { top: rect.top + rect.height + gap, left: Math.max(8, rect.left) }
+    }
+    if (placement === 'bottom-end') {
+      return {
+        top: rect.top + rect.height + gap,
+        left: Math.max(8, rect.left + rect.width - w),
+      }
+    }
+    if (placement === 'left') {
+      return {
+        top: Math.max(8, rect.top + 24),
+        left: Math.max(16, rect.left - w - gap),
+      }
+    }
+    return { top: rect.top + rect.height + gap, left: rect.left }
+  }
+  const isTourOpen =
+    tourStep >= 0 && tourStep < TOUR_STEPS.length && tourRect !== null
+  const isLastStep = tourStep === TOUR_STEPS.length - 1
 
   return (
     <div
@@ -384,6 +404,7 @@ export default function ReportViewer({ initialState, email }) {
               }}
             >
               <button
+                ref={execTabRef}
                 type="button"
                 onClick={() => handleTabSelect('exec')}
                 style={{
@@ -399,6 +420,7 @@ export default function ReportViewer({ initialState, email }) {
                 Executive Summary
               </button>
               <button
+                ref={fullTabRef}
                 type="button"
                 onClick={() => handleTabSelect('full')}
                 style={{
@@ -414,57 +436,9 @@ export default function ReportViewer({ initialState, email }) {
                 Full Report
               </button>
             </div>
-
-            {!badgesDismissed && (
-              <div
-                style={{
-                  position: 'absolute',
-                  top: 'calc(100% + 10px)',
-                  left: 0,
-                  display: 'flex',
-                  gap: 8,
-                  zIndex: 30,
-                  whiteSpace: 'normal',
-                }}
-              >
-                <div style={styles.tabBadge}>
-                  <div style={styles.tabBadgeArrow} />
-                  <div style={styles.tabBadgeTitle}>You have 2 reports</div>
-                  <div style={styles.tabBadgeBody}>
-                    <strong>Executive Summary:</strong> Quick 2-page snapshot —
-                    share with execs and decision-makers.
-                  </div>
-                  <button
-                    type="button"
-                    onClick={dismissBadges}
-                    aria-label="Dismiss"
-                    style={styles.tabBadgeClose}
-                  >
-                    ×
-                  </button>
-                </div>
-                <div style={styles.tabBadge}>
-                  <div
-                    style={{ ...styles.tabBadgeArrow, left: 'auto', right: 36 }}
-                  />
-                  <div style={styles.tabBadgeTitle}>And the deep dive</div>
-                  <div style={styles.tabBadgeBody}>
-                    <strong>Full Report:</strong> Detailed multi-page analysis
-                    with workflows, projections, and case studies.
-                  </div>
-                  <button
-                    type="button"
-                    onClick={dismissBadges}
-                    aria-label="Dismiss"
-                    style={styles.tabBadgeClose}
-                  >
-                    ×
-                  </button>
-                </div>
-              </div>
-            )}
           </div>
           <button
+            ref={downloadRef}
             type="button"
             onClick={handleDownload}
             disabled={downloadStatus === 'downloading'}
@@ -544,6 +518,7 @@ export default function ReportViewer({ initialState, email }) {
 
         {/* Chat panel */}
         <div
+          ref={chatPanelRef}
           style={{
             flex: '0 0 35%',
             display: 'flex',
@@ -691,6 +666,164 @@ export default function ReportViewer({ initialState, email }) {
           </div>
         </div>
       </div>
+
+      {isTourOpen && (
+        <>
+          {/* Top dim */}
+          <div
+            style={{
+              position: 'fixed',
+              top: 0,
+              left: 0,
+              right: 0,
+              height: Math.max(0, tourRect.top - 6),
+              background: 'rgba(15, 23, 42, 0.72)',
+              zIndex: 1000,
+              transition: 'all 0.25s ease',
+            }}
+          />
+          {/* Bottom dim */}
+          <div
+            style={{
+              position: 'fixed',
+              top: tourRect.top + tourRect.height + 6,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              background: 'rgba(15, 23, 42, 0.72)',
+              zIndex: 1000,
+              transition: 'all 0.25s ease',
+            }}
+          />
+          {/* Left dim */}
+          <div
+            style={{
+              position: 'fixed',
+              top: Math.max(0, tourRect.top - 6),
+              left: 0,
+              width: Math.max(0, tourRect.left - 6),
+              height: tourRect.height + 12,
+              background: 'rgba(15, 23, 42, 0.72)',
+              zIndex: 1000,
+              transition: 'all 0.25s ease',
+            }}
+          />
+          {/* Right dim */}
+          <div
+            style={{
+              position: 'fixed',
+              top: Math.max(0, tourRect.top - 6),
+              left: tourRect.left + tourRect.width + 6,
+              right: 0,
+              height: tourRect.height + 12,
+              background: 'rgba(15, 23, 42, 0.72)',
+              zIndex: 1000,
+              transition: 'all 0.25s ease',
+            }}
+          />
+          {/* Spotlight outline */}
+          <div
+            style={{
+              position: 'fixed',
+              top: tourRect.top - 6,
+              left: tourRect.left - 6,
+              width: tourRect.width + 12,
+              height: tourRect.height + 12,
+              borderRadius: 10,
+              boxShadow:
+                '0 0 0 2px rgba(255,255,255,0.45) inset, 0 0 24px rgba(41, 87, 255, 0.55)',
+              pointerEvents: 'none',
+              zIndex: 1001,
+              transition: 'all 0.25s ease',
+            }}
+          />
+          {/* Popover */}
+          <div
+            style={{
+              position: 'fixed',
+              ...popoverPositionFor(TOUR_STEPS[tourStep].placement, tourRect),
+              width: 300,
+              background: '#fff',
+              borderRadius: 10,
+              padding: '16px 18px 14px',
+              boxShadow:
+                '0 16px 40px rgba(0,0,0,0.35), 0 4px 12px rgba(0,0,0,0.15)',
+              zIndex: 1002,
+              transition: 'all 0.25s ease',
+            }}
+          >
+            <button
+              type="button"
+              onClick={closeTour}
+              aria-label="Close"
+              style={{
+                position: 'absolute',
+                top: 8,
+                right: 10,
+                width: 24,
+                height: 24,
+                border: 'none',
+                background: 'transparent',
+                color: '#94a3b8',
+                fontSize: 18,
+                cursor: 'pointer',
+                padding: 0,
+                lineHeight: 1,
+              }}
+            >
+              ×
+            </button>
+            <div
+              style={{
+                fontSize: 15,
+                fontWeight: 700,
+                color: '#0a2540',
+                marginBottom: 6,
+                paddingRight: 18,
+              }}
+            >
+              {TOUR_STEPS[tourStep].title}
+            </div>
+            <div
+              style={{
+                fontSize: 13,
+                color: '#475569',
+                lineHeight: 1.5,
+                marginBottom: 14,
+              }}
+            >
+              {TOUR_STEPS[tourStep].body}
+            </div>
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+              }}
+            >
+              <span style={{ fontSize: 12, color: '#64748b' }}>
+                Step {tourStep + 1} of {TOUR_STEPS.length}
+              </span>
+              <button
+                type="button"
+                onClick={advanceTour}
+                style={{
+                  padding: '7px 16px',
+                  background: '#2957FF',
+                  color: '#fff',
+                  border: 'none',
+                  borderRadius: 8,
+                  fontSize: 13,
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                }}
+              >
+                {isLastStep ? 'Got it' : 'Next →'}
+              </button>
+            </div>
+          </div>
+        </>
+      )}
 
       <style>{`
         @keyframes pulse {
