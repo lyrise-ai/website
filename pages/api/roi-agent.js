@@ -140,12 +140,11 @@ export default async function handler(req, res) {
       callbacks: {
         onTextDelta: (delta) => send(res, { type: 'text_delta', delta }),
         onToolStart: (tool) => send(res, { type: 'tool_start', tool }),
-        onReportUpdate: (s, changedSections) => {
+        onReportUpdate: (s) => {
           const { renderedHtml, renderedFullHtml, ...rest } = s
           send(res, {
             type: 'report_update',
             state: { ...rest, renderedHtml, renderedFullHtml },
-            changedSections,
           })
         },
         onDone: (messages) =>

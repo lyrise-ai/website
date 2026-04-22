@@ -12,7 +12,7 @@ each with research-derived monthlyVolume and minutesPerItemBefore),
 processes[] (questionnaire data), selectedCurrency.
 
 CURRENCY: Parse from selectedCurrency (format "CODE – Name (symbol)").
-Always use English/Latin symbols only — never Arabic script. GCC currencies: SAR→"SAR", AED→"AED", QAR→"QAR", KWD→"KWD", BHD→"BHD", OMR→"OMR".
+Use exact GCC symbols: SAR→"ر.س", AED→"د.إ", QAR→"ر.ق", KWD→"د.ك", BHD→"BD", OMR→"ر.ع.".
 If blank, infer from country.
 
 VOLUME & TIME ANCHORING:

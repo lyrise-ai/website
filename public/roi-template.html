@@ -387,14 +387,6 @@
         color: #2957ff;
         font-weight: bold;
       }
-
-      /* ── Chat section highlight ── */
-      [data-section].section-highlighted {
-        outline: 2px solid #2957ff;
-        outline-offset: 3px;
-        border-radius: 2px;
-        background-color: rgba(41, 87, 255, 0.06);
-      }
     </style>
   </head>
   <body>
@@ -523,7 +515,7 @@
       <h2 style="margin-top: 10px">Executive Summary</h2>
 
       <!-- Unified Pattern Thesis (KR-16) -->
-      <div class="insight-panel" data-section="thesis">
+      <div class="insight-panel">
         <div class="insight-stripe"></div>
         <div class="insight-content">
           <p
@@ -690,7 +682,7 @@
       <div class="top-bar"></div>
 
       <!-- Before/After AI -->
-      <h2 data-section="workflows">Before vs. After AI Automation</h2>
+      <h2>Before vs. After AI Automation</h2>
       <table>
         <thead>
           <tr>
@@ -713,7 +705,7 @@
       {{$json.display.calculationPanelHTML}}
 
       <!-- Profit Uplift -->
-      <h2 style="margin-top: 10px" data-section="profit_levers">Profit Uplift Analysis</h2>
+      <h2 style="margin-top: 10px">Profit Uplift Analysis</h2>
       <p class="muted" style="margin-bottom: 4px">
         Downstream revenue and margin gains from redirecting recaptured
         capacity. All arithmetic is shown for transparency.
@@ -752,7 +744,7 @@
       <div class="top-bar"></div>
 
       <!-- Total Financial Case -->
-      <h2 data-section="financials">Total Financial Case — 3-Year Projection</h2>
+      <h2>Total Financial Case — 3-Year Projection</h2>
       <table>
         <thead>
           <tr>
@@ -797,11 +789,11 @@
       </p>
 
       <!-- Cost of Delay (KR-18) -->
-      <h2 style="margin-top: 10px" data-section="cost_of_delay">Cost of Delay</h2>
+      <h2 style="margin-top: 10px">Cost of Delay</h2>
       {{$json.display.costOfDelayHTML}}
 
       <!-- Resilience Positioning (KR-17) -->
-      <h2 style="margin-top: 10px" data-section="resilience_rows">Resilience Positioning</h2>
+      <h2 style="margin-top: 10px">Resilience Positioning</h2>
       <p style="font-size: 9pt; color: #2d2d2d; margin-bottom: 6px">
         The gap between automated and manual operations compounds over time —
         the following dimensions illustrate what acting now protects against.
@@ -824,7 +816,7 @@
       <div class="top-bar"></div>
 
       <!-- What We'd Deploy (WD-1) -->
-      <h2 data-section="pilot">What We'd Deploy</h2>
+      <h2>What We'd Deploy</h2>
       <table>
         <thead>
           <tr>
@@ -885,7 +877,7 @@
       <div class="top-bar"></div>
 
       <!-- Risks & Mitigations -->
-      <h2 data-section="risks">Risks &amp; Mitigations</h2>
+      <h2>Risks &amp; Mitigations</h2>
       <table>
         <thead>
           <tr>
@@ -930,7 +922,7 @@
       <div class="top-bar"></div>
 
       <!-- Next Steps (NS-1 + NS-2) -->
-      <h2 data-section="cta">Next Steps</h2>
+      <h2>Next Steps</h2>
       {{$json.display.nextStepsHTML}}
 
       <!-- Contact -->

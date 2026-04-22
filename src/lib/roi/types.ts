@@ -320,7 +320,7 @@ export interface ReportState {
 export interface AgentCallbacks {
   onTextDelta(delta: string): void
   onToolStart(toolName: string): void
-  onReportUpdate(state: ReportState, changedSections?: string[]): void
+  onReportUpdate(state: ReportState): void
   onDone(newMessages: import('ai').ModelMessage[]): void
   onError(err: Error): void
 }
