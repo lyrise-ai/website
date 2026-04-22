@@ -54,7 +54,10 @@ export function roiCalculator(
   globals: GlobalInputs,
   company: CompanyProfile,
 ): RoiCalculatorOutput {
-  const sym = globals.currency.symbol
+  const rawSym = /[^\x00-\x7F]/.test(globals.currency.symbol)
+    ? globals.currency.code
+    : globals.currency.symbol
+  const sym = rawSym.length > 1 && !rawSym.endsWith(' ') ? rawSym + ' ' : rawSym
   const workingMonthFactor = globals.workWeeksPerYear / 52
 
   const workflowCalcs: WorkflowCalc[] = workflows.map((wf) => {
