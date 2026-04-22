@@ -1052,6 +1052,7 @@ function buildChatSystemPrompt(state: ReportState): string {
   const company = state.company!
   const globals = state.globals!
   // Fall back to ISO code if symbol contains non-ASCII characters (e.g. Arabic script)
+  // eslint-disable-next-line no-control-regex
   const sym = /[^\x00-\x7F]/.test(globals.currency.symbol)
     ? globals.currency.code + ' '
     : globals.currency.symbol
