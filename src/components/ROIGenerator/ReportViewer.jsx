@@ -104,12 +104,12 @@ export default function ReportViewer({ initialState, email }) {
   const TOUR_STEPS = [
     {
       title: 'Executive Summary',
-      body: 'Quick 2-page snapshot — share this version with execs and decision-makers.',
+      body: 'Quick 2-page snapshot — share this version with execs and decision-makers. If anything here feels unclear or you want the reasoning behind a number, switch to the Full Report for the detail behind every section.',
       placement: 'bottom-start',
     },
     {
       title: 'Full Report',
-      body: 'Multi-page deep dive — workflows, projections, case studies, and the full financial model.',
+      body: 'Multi-page deep dive — workflows, projections, case studies, data provenance, and the full financial model.',
       placement: 'bottom-start',
     },
     {
