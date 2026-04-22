@@ -99,6 +99,7 @@ export default function ReportViewer({ initialState, email }) {
   const execTabRef = useRef(null)
   const fullTabRef = useRef(null)
   const downloadRef = useRef(null)
+  const resendEmailRef = useRef(null)
   const chatPanelRef = useRef(null)
 
   const TOUR_STEPS = [
@@ -118,6 +119,11 @@ export default function ReportViewer({ initialState, email }) {
       placement: 'bottom-end',
     },
     {
+      title: 'Re-send Email',
+      body: 'You should already have the initial version of this report in your inbox — it was sent automatically as soon as the report finished generating. After you refine anything with the AI assistant, click here to email yourself the updated version.',
+      placement: 'bottom-end',
+    },
+    {
       title: 'Refine with AI',
       body: 'Ask the assistant to adjust numbers, change currency, swap workflows, or rewrite copy. The report updates live.',
       placement: 'left',
@@ -133,7 +139,13 @@ export default function ReportViewer({ initialState, email }) {
       setTourRect(null)
       return undefined
     }
-    const targets = [execTabRef, fullTabRef, downloadRef, chatPanelRef]
+    const targets = [
+      execTabRef,
+      fullTabRef,
+      downloadRef,
+      resendEmailRef,
+      chatPanelRef,
+    ]
     const recompute = () => {
       const el = targets[tourStep]?.current
       if (!el) {
@@ -374,7 +386,11 @@ export default function ReportViewer({ initialState, email }) {
         display: 'flex',
         flexDirection: 'column',
         height: '100vh',
-        fontFamily: 'system-ui, sans-serif',
+        fontFamily:
+          "Calibri, 'Carlito', 'Segoe UI', 'Helvetica Neue', Arial, sans-serif",
+        WebkitFontSmoothing: 'antialiased',
+        MozOsxFontSmoothing: 'grayscale',
+        textRendering: 'optimizeLegibility',
       }}
     >
       {/* Toolbar */}
@@ -463,6 +479,7 @@ export default function ReportViewer({ initialState, email }) {
               : 'Download PDF'}
           </button>
           <button
+            ref={resendEmailRef}
             type="button"
             onClick={handleResendEmail}
             disabled={emailStatus === 'sending'}
