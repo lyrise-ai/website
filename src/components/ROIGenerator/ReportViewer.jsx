@@ -301,23 +301,25 @@ export default function ReportViewer({ initialState, email }) {
     bubble: {
       user: {
         maxWidth: '82%',
-        padding: '8px 12px',
+        padding: '9px 13px',
         fontSize: 13,
         lineHeight: 1.5,
         wordBreak: 'break-word',
         borderRadius: '14px 14px 3px 14px',
-        background: '#2957FF',
+        background: '#003f87',
         color: '#fff',
+        boxShadow: '0 1px 2px rgba(0, 63, 135, 0.18)',
       },
       assistant: {
         maxWidth: '92%',
-        padding: '8px 12px',
+        padding: '9px 13px',
         fontSize: 13,
         lineHeight: 1.55,
         wordBreak: 'break-word',
         borderRadius: '14px 14px 14px 3px',
-        background: '#f1f5f9',
+        background: '#fff',
         color: '#1a1a1a',
+        border: '1px solid #d0d0d0',
       },
     },
     dot: {
@@ -325,7 +327,7 @@ export default function ReportViewer({ initialState, email }) {
       width: 6,
       height: 6,
       borderRadius: '50%',
-      background: '#2957FF',
+      background: '#003f87',
       marginRight: 5,
       verticalAlign: 'middle',
       animation: 'pulse 1s infinite',
@@ -335,7 +337,7 @@ export default function ReportViewer({ initialState, email }) {
       width: 6,
       height: 6,
       borderRadius: '50%',
-      background: '#2957FF',
+      background: '#003f87',
       marginLeft: 4,
       verticalAlign: 'middle',
       animation: 'pulse 1s infinite',
@@ -523,9 +525,40 @@ export default function ReportViewer({ initialState, email }) {
             flex: '0 0 35%',
             display: 'flex',
             flexDirection: 'column',
-            background: '#fff',
+            background: '#f5f5f5',
           }}
         >
+          {/* Chat header */}
+          <div
+            style={{
+              padding: '12px 16px 10px',
+              background: '#fff',
+              borderBottom: '2.5px solid #003f87',
+              flexShrink: 0,
+            }}
+          >
+            <div
+              style={{
+                fontSize: 11,
+                fontWeight: 700,
+                textTransform: 'uppercase',
+                letterSpacing: 0.8,
+                color: '#003f87',
+              }}
+            >
+              AI Assistant
+            </div>
+            <div
+              style={{
+                fontSize: 11,
+                color: '#5a5a6e',
+                marginTop: 2,
+              }}
+            >
+              Refine the report with natural language
+            </div>
+          </div>
+
           {/* Messages */}
           <div
             style={{
@@ -534,12 +567,42 @@ export default function ReportViewer({ initialState, email }) {
               padding: '16px 14px',
               display: 'flex',
               flexDirection: 'column',
-              gap: 8,
+              gap: 10,
             }}
           >
-            {/* Initial assistant message — always shown as first bubble */}
-            <div style={{ display: 'flex', justifyContent: 'flex-start' }}>
-              <div style={styles.bubble.assistant}>{initialMessage}</div>
+            {/* Initial assistant message — rendered as insight panel */}
+            <div
+              style={{
+                display: 'flex',
+                background: '#fff',
+                border: '1px solid #d0d0d0',
+                marginRight: 8,
+              }}
+            >
+              <div style={{ width: 4, background: '#003f87', flexShrink: 0 }} />
+              <div
+                style={{
+                  padding: '10px 14px',
+                  fontSize: 13,
+                  color: '#1a1a1a',
+                  lineHeight: 1.55,
+                  flex: 1,
+                }}
+              >
+                <div
+                  style={{
+                    fontSize: 10,
+                    fontWeight: 700,
+                    textTransform: 'uppercase',
+                    letterSpacing: 0.6,
+                    color: '#003f87',
+                    marginBottom: 4,
+                  }}
+                >
+                  Report Ready
+                </div>
+                {initialMessage}
+              </div>
             </div>
 
             {/* Conversation history */}
@@ -576,27 +639,35 @@ export default function ReportViewer({ initialState, email }) {
               )
             })}
 
-            {/* Agent working — tool label + streaming text in one assistant bubble */}
-            {(activeTool || streamingText) && (
+            {/* Agent working — tool label as pill, streaming text in bubble */}
+            {activeTool && !streamingText && (
+              <div style={{ display: 'flex', justifyContent: 'flex-start' }}>
+                <div
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: 7,
+                    padding: '5px 11px',
+                    background: '#ebf0f8',
+                    border: '1px solid #003f87',
+                    borderRadius: 12,
+                    fontSize: 11,
+                    color: '#003f87',
+                    fontWeight: 700,
+                    textTransform: 'uppercase',
+                    letterSpacing: 0.5,
+                  }}
+                >
+                  <span style={styles.dot} />
+                  {activeTool}
+                </div>
+              </div>
+            )}
+            {streamingText && (
               <div style={{ display: 'flex', justifyContent: 'flex-start' }}>
                 <div style={styles.bubble.assistant}>
-                  {activeTool && !streamingText && (
-                    <span
-                      style={{
-                        color: '#8a8aaa',
-                        fontStyle: 'italic',
-                        fontSize: 12,
-                      }}
-                    >
-                      <span style={styles.dot} /> {activeTool}
-                    </span>
-                  )}
-                  {streamingText && (
-                    <>
-                      {renderText(streamingText)}
-                      <span style={styles.cursor} />
-                    </>
-                  )}
+                  {renderText(streamingText)}
+                  <span style={styles.cursor} />
                 </div>
               </div>
             )}
@@ -607,8 +678,9 @@ export default function ReportViewer({ initialState, email }) {
           {/* Input */}
           <div
             style={{
-              padding: '10px 14px 12px',
-              borderTop: '1px solid #e2e8f0',
+              padding: '12px 14px 14px',
+              background: '#fff',
+              borderTop: '1px solid #d0d0d0',
             }}
           >
             <form
@@ -624,40 +696,45 @@ export default function ReportViewer({ initialState, email }) {
                 rows={2}
                 style={{
                   flex: 1,
-                  padding: '8px 11px',
-                  border: '1px solid #e2e8f0',
-                  borderRadius: 8,
+                  padding: '9px 12px',
+                  border: '1px solid #d0d0d0',
+                  borderRadius: 6,
                   fontSize: 13,
                   lineHeight: 1.5,
                   resize: 'none',
                   outline: 'none',
                   fontFamily: 'inherit',
                   color: '#1a1a1a',
-                  background: isAgentRunning ? '#f9fafb' : '#fff',
-                  transition: 'border-color 0.15s',
+                  background: isAgentRunning ? '#f5f5f5' : '#fff',
+                  transition: 'border-color 0.15s, box-shadow 0.15s',
                 }}
                 onFocus={(e) => {
-                  e.target.style.borderColor = '#2957FF'
+                  e.target.style.borderColor = '#003f87'
+                  e.target.style.boxShadow = '0 0 0 2px rgba(0, 63, 135, 0.15)'
                 }}
                 onBlur={(e) => {
-                  e.target.style.borderColor = '#e2e8f0'
+                  e.target.style.borderColor = '#d0d0d0'
+                  e.target.style.boxShadow = 'none'
                 }}
               />
               <button
                 type="submit"
                 disabled={isAgentRunning || !input.trim()}
                 style={{
-                  padding: '8px 16px',
-                  borderRadius: 8,
+                  padding: '9px 18px',
+                  borderRadius: 6,
                   border: 'none',
                   background:
-                    isAgentRunning || !input.trim() ? '#e2e8f0' : '#2957FF',
-                  color: isAgentRunning || !input.trim() ? '#94a3b8' : '#fff',
-                  fontWeight: 600,
-                  fontSize: 13,
+                    isAgentRunning || !input.trim() ? '#d0d0d0' : '#003f87',
+                  color: isAgentRunning || !input.trim() ? '#5a5a6e' : '#fff',
+                  fontWeight: 700,
+                  fontSize: 12,
+                  textTransform: 'uppercase',
+                  letterSpacing: 0.5,
                   cursor:
                     isAgentRunning || !input.trim() ? 'not-allowed' : 'pointer',
                   flexShrink: 0,
+                  transition: 'background 0.15s',
                 }}
               >
                 Send
