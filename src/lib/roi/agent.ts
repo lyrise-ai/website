@@ -71,6 +71,7 @@ function reAssemble(
   execTemplateHtml: string,
   fullTemplateHtml: string,
   callbacks: AgentCallbacks,
+  changedSections?: string[],
 ) {
   if (!state.workflows || !state.globals || !state.company) return
   state.calcOutput = roiCalculator(
@@ -82,7 +83,7 @@ function reAssemble(
   state.assembled = assembleReport(state)
   state.renderedHtml = renderTemplate(execTemplateHtml, state.assembled)
   state.renderedFullHtml = renderTemplate(fullTemplateHtml, state.assembled)
-  callbacks.onReportUpdate(state)
+  callbacks.onReportUpdate(state, changedSections)
 }
 
 // ── Tool definitions ──────────────────────────────────────────────────────────
@@ -473,7 +474,9 @@ function buildTools(
       }),
       execute: async (copy: ReportCopy) => {
         state.copy = copy
-        reAssemble(state, execTemplateHtml, fullTemplateHtml, callbacks)
+        reAssemble(state, execTemplateHtml, fullTemplateHtml, callbacks, [
+          'thesis', 'workflows', 'profit_levers', 'cost_of_delay', 'cta',
+        ])
         return { ok: true }
       },
     }),
@@ -596,11 +599,22 @@ function buildTools(
             next_steps_checklist: patches.next_steps,
           }),
         }
-        reAssemble(state, execTemplateHtml, fullTemplateHtml, callbacks)
-        const updated = Object.keys(patches).filter(
-          (k) => patches[k as keyof typeof patches] !== undefined,
-        )
-        return { ok: true, updated_sections: updated }
+        const COPY_TO_SECTION: Record<string, string> = {
+          thesis: 'thesis',
+          cta: 'cta',
+          pilot: 'pilot',
+          profit_levers: 'profit_levers',
+          resilience_rows: 'resilience_rows',
+          cost_of_delay: 'cost_of_delay',
+          risks: 'risks',
+          next_steps: 'cta',
+        }
+        const changedSections = Object.keys(patches)
+          .filter((k) => patches[k as keyof typeof patches] !== undefined)
+          .map((k) => COPY_TO_SECTION[k])
+          .filter(Boolean)
+        reAssemble(state, execTemplateHtml, fullTemplateHtml, callbacks, changedSections)
+        return { ok: true, updated_sections: changedSections }
       },
     }),
 
@@ -672,7 +686,7 @@ function buildTools(
                 }),
               },
         )
-        reAssemble(state, execTemplateHtml, fullTemplateHtml, callbacks)
+        reAssemble(state, execTemplateHtml, fullTemplateHtml, callbacks, ['workflows', 'financials'])
         const s = state.calcOutput?.summary
         return {
           ok: true,
@@ -754,7 +768,7 @@ function buildTools(
             'Added via chat — defaults applied. Use update_workflow to refine.',
         }
         state.workflows = [...state.workflows, newWorkflow]
-        reAssemble(state, execTemplateHtml, fullTemplateHtml, callbacks)
+        reAssemble(state, execTemplateHtml, fullTemplateHtml, callbacks, ['workflows', 'financials'])
         return { ok: true, workflow_count: state.workflows.length }
       },
     }),
@@ -766,7 +780,7 @@ function buildTools(
       execute: async ({ workflowName }: { workflowName: string }) => {
         if (!state.workflows) return { error: 'No workflows' }
         state.workflows = state.workflows.filter((w) => w.name !== workflowName)
-        reAssemble(state, execTemplateHtml, fullTemplateHtml, callbacks)
+        reAssemble(state, execTemplateHtml, fullTemplateHtml, callbacks, ['workflows', 'financials'])
         return { ok: true, workflow_count: state.workflows.length }
       },
     }),
@@ -812,7 +826,7 @@ function buildTools(
             revenueEstimateM: state.company.revenueEstimateM * multiplier,
           }
         }
-        reAssemble(state, execTemplateHtml, fullTemplateHtml, callbacks)
+        reAssemble(state, execTemplateHtml, fullTemplateHtml, callbacks, ['financials'])
         return { ok: true, multiplier }
       },
     }),
@@ -859,7 +873,7 @@ function buildTools(
         if (state.globals) state.globals = { ...state.globals, currency }
         if (state.normInput)
           state.normInput = { ...state.normInput, selectedCurrency: code }
-        reAssemble(state, execTemplateHtml, fullTemplateHtml, callbacks)
+        reAssemble(state, execTemplateHtml, fullTemplateHtml, callbacks, ['financials'])
         return { ok: true, currency }
       },
     }),
@@ -915,7 +929,7 @@ function buildTools(
             realizationFactor: patches.realizationFactor,
           }),
         }
-        reAssemble(state, execTemplateHtml, fullTemplateHtml, callbacks)
+        reAssemble(state, execTemplateHtml, fullTemplateHtml, callbacks, ['financials'])
         const s = state.calcOutput?.summary
         return {
           ok: true,
