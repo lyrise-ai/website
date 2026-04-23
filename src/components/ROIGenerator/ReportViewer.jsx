@@ -92,7 +92,12 @@ function renderText(text) {
     )
 }
 
-export default function ReportViewer({ initialState, email }) {
+export default function ReportViewer({
+  initialState,
+  email,
+  reportId,
+  isEmployee,
+}) {
   const [reportState, setReportState] = useState(initialState)
   const [chatHistory, setChatHistory] = useState([])
   const [initialMessage] = useState(() => buildInitialMessage(initialState))
@@ -103,6 +108,8 @@ export default function ReportViewer({ initialState, email }) {
   const [emailStatus, setEmailStatus] = useState('idle')
   const [activeTab, setActiveTab] = useState('exec')
   const [lastChangedSections, setLastChangedSections] = useState([])
+  const [limitReached, setLimitReached] = useState(false)
+  const [userSentCount, setUserSentCount] = useState(0)
 
   const iframeRef = useRef(null)
   const messagesEndRef = useRef(null)
@@ -164,8 +171,17 @@ export default function ReportViewer({ initialState, email }) {
             message: msg,
             chatHistory: newHistory,
             state: reportState,
+            reportId,
           }),
         })
+
+        if (res.status === 403) {
+          setLimitReached(true)
+          setIsAgentRunning(false)
+          return
+        }
+
+        setUserSentCount((prev) => prev + 1)
 
         if (!res.ok) throw new Error(`HTTP ${res.status}`)
 
@@ -181,9 +197,9 @@ export default function ReportViewer({ initialState, email }) {
             setActiveTool(TOOL_LABELS[event.tool] ?? event.tool)
           } else if (event.type === 'report_update') {
             pendingHighlightsRef.current = event.changedSections ?? []
-            setLastChangedSections((prev) =>
-              [...new Set([...prev, ...(event.changedSections ?? [])])]
-            )
+            setLastChangedSections((prev) => [
+              ...new Set([...prev, ...(event.changedSections ?? [])]),
+            ])
             setReportState(event.state)
             setActiveTool(null)
           } else if (event.type === 'done') {
@@ -208,7 +224,7 @@ export default function ReportViewer({ initialState, email }) {
         setActiveTool(null)
       }
     },
-    [input, isAgentRunning, chatHistory, reportState],
+    [input, isAgentRunning, chatHistory, reportState, reportId],
   )
 
   const handleIframeLoad = useCallback(() => {
@@ -507,9 +523,7 @@ export default function ReportViewer({ initialState, email }) {
                   paddingLeft: 2,
                 }}
               >
-                <span
-                  style={{ fontSize: 11, color: '#8a8aaa', flexShrink: 0 }}
-                >
+                <span style={{ fontSize: 11, color: '#8a8aaa', flexShrink: 0 }}>
                   Sections updated:
                 </span>
                 {[...new Set(lastChangedSections)].map((s) => (
@@ -562,62 +576,110 @@ export default function ReportViewer({ initialState, email }) {
           {/* Input */}
           <div
             style={{
-              padding: '10px 14px 12px',
               borderTop: '1px solid #e2e8f0',
             }}
           >
-            <form
-              onSubmit={handleSend}
-              style={{ display: 'flex', gap: 8, alignItems: 'flex-end' }}
-            >
-              <textarea
-                value={input}
-                onChange={(e) => setInput(e.target.value)}
-                onKeyDown={handleKeyDown}
-                placeholder="Ask me to change anything in the report…"
-                disabled={isAgentRunning}
-                rows={2}
+            {reportId && !isEmployee && (
+              <div
                 style={{
-                  flex: 1,
-                  padding: '8px 11px',
-                  border: '1px solid #e2e8f0',
-                  borderRadius: 8,
-                  fontSize: 13,
-                  lineHeight: 1.5,
-                  resize: 'none',
-                  outline: 'none',
-                  fontFamily: 'inherit',
-                  color: '#1a1a1a',
-                  background: isAgentRunning ? '#f9fafb' : '#fff',
-                  transition: 'border-color 0.15s',
-                }}
-                onFocus={(e) => {
-                  e.target.style.borderColor = '#2957FF'
-                }}
-                onBlur={(e) => {
-                  e.target.style.borderColor = '#e2e8f0'
-                }}
-              />
-              <button
-                type="submit"
-                disabled={isAgentRunning || !input.trim()}
-                style={{
-                  padding: '8px 16px',
-                  borderRadius: 8,
-                  border: 'none',
-                  background:
-                    isAgentRunning || !input.trim() ? '#e2e8f0' : '#2957FF',
-                  color: isAgentRunning || !input.trim() ? '#94a3b8' : '#fff',
-                  fontWeight: 600,
-                  fontSize: 13,
-                  cursor:
-                    isAgentRunning || !input.trim() ? 'not-allowed' : 'pointer',
-                  flexShrink: 0,
+                  padding: '6px 14px 0',
+                  textAlign: 'right',
                 }}
               >
-                Send
-              </button>
-            </form>
+                <span
+                  style={{
+                    fontSize: 11,
+                    color: limitReached ? '#f59e0b' : '#94a3b8',
+                  }}
+                >
+                  {Math.min(userSentCount, 5)} / 5 messages used
+                </span>
+              </div>
+            )}
+            {!isEmployee && limitReached ? (
+              <div
+                style={{
+                  padding: '12px 14px',
+                  background: '#fffbeb',
+                  textAlign: 'center',
+                }}
+              >
+                <p
+                  style={{
+                    fontSize: 13,
+                    fontWeight: 600,
+                    color: '#92400e',
+                    margin: '0 0 4px',
+                  }}
+                >
+                  You&apos;ve used your 5 free messages.
+                </p>
+                <a
+                  href="https://calendly.com/elena-lyrise/30min"
+                  style={{ fontSize: 12, color: '#2957FF' }}
+                >
+                  Contact LyRise to continue →
+                </a>
+              </div>
+            ) : (
+              <div style={{ padding: '10px 14px 12px' }}>
+                <form
+                  onSubmit={handleSend}
+                  style={{ display: 'flex', gap: 8, alignItems: 'flex-end' }}
+                >
+                  <textarea
+                    value={input}
+                    onChange={(e) => setInput(e.target.value)}
+                    onKeyDown={handleKeyDown}
+                    placeholder="Ask me to change anything in the report…"
+                    disabled={isAgentRunning}
+                    rows={2}
+                    style={{
+                      flex: 1,
+                      padding: '8px 11px',
+                      border: '1px solid #e2e8f0',
+                      borderRadius: 8,
+                      fontSize: 13,
+                      lineHeight: 1.5,
+                      resize: 'none',
+                      outline: 'none',
+                      fontFamily: 'inherit',
+                      color: '#1a1a1a',
+                      background: isAgentRunning ? '#f9fafb' : '#fff',
+                      transition: 'border-color 0.15s',
+                    }}
+                    onFocus={(e) => {
+                      e.target.style.borderColor = '#2957FF'
+                    }}
+                    onBlur={(e) => {
+                      e.target.style.borderColor = '#e2e8f0'
+                    }}
+                  />
+                  <button
+                    type="submit"
+                    disabled={isAgentRunning || !input.trim()}
+                    style={{
+                      padding: '8px 16px',
+                      borderRadius: 8,
+                      border: 'none',
+                      background:
+                        isAgentRunning || !input.trim() ? '#e2e8f0' : '#2957FF',
+                      color:
+                        isAgentRunning || !input.trim() ? '#94a3b8' : '#fff',
+                      fontWeight: 600,
+                      fontSize: 13,
+                      cursor:
+                        isAgentRunning || !input.trim()
+                          ? 'not-allowed'
+                          : 'pointer',
+                      flexShrink: 0,
+                    }}
+                  >
+                    Send
+                  </button>
+                </form>
+              </div>
+            )}
           </div>
         </div>
       </div>

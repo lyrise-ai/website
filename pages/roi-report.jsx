@@ -739,7 +739,14 @@ export default function ROIReport({ isEmployee }) {
   }
 
   if (viewState === 'preview' && reportState) {
-    return <ReportViewer initialState={reportState} email={s2.email} />
+    return (
+      <ReportViewer
+        initialState={reportState}
+        email={s2.email}
+        reportId={reportId}
+        isEmployee={isEmployee}
+      />
+    )
   }
 
   if (viewState === 'success') {

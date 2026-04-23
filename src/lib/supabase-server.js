@@ -1,4 +1,5 @@
 import { createServerClient } from '@supabase/ssr'
+import { createClient as createSupabaseClient } from '@supabase/supabase-js'
 
 function serializeCookie(name, value, options = {}) {
   let str = `${name}=${encodeURIComponent(value)}`
@@ -14,6 +15,13 @@ function serializeCookie(name, value, options = {}) {
     str += `; SameSite=${s.charAt(0).toUpperCase() + s.slice(1)}`
   }
   return str
+}
+
+export function createAdminClient() {
+  return createSupabaseClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL,
+    process.env.SUPABASE_SERVICE_ROLE_KEY,
+  )
 }
 
 export function createClient(req, res) {

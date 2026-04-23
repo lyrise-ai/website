@@ -17,7 +17,7 @@ import { runReportAgent } from '@/src/lib/roi/agent'
 import { buildDevMockReportState } from '@/src/lib/roi/devMockReport'
 import { generatePdf } from '@/src/lib/roi/services/pdf'
 import { sendReportEmail } from '@/src/lib/roi/services/email'
-import { createClient } from '../../src/lib/supabase-server'
+import { createClient, createAdminClient } from '../../src/lib/supabase-server'
 
 export const config = {
   maxDuration: 300,
@@ -60,11 +60,6 @@ export default async function handler(req, res) {
     return
   }
 
-  res.setHeader('Content-Type', 'text/event-stream')
-  res.setHeader('Cache-Control', 'no-cache, no-transform')
-  res.setHeader('Connection', 'keep-alive')
-  res.setHeader('X-Accel-Buffering', 'no')
-
   const {
     mode,
     formData,
@@ -72,16 +67,62 @@ export default async function handler(req, res) {
     chatHistory,
     state: clientState,
     devOptions,
+    reportId,
   } = req.body
 
   if (!mode || !['generate', 'chat'].includes(mode)) {
-    send(res, {
-      type: 'error',
-      message: 'Invalid mode. Must be "generate" or "chat".',
-    })
-    res.end()
+    res
+      .status(400)
+      .json({ error: 'Invalid mode. Must be "generate" or "chat".' })
     return
   }
+
+  const CHAT_LIMIT = 5
+  let chatUserRole = 'CLIENT'
+  const adminSupabase = createAdminClient()
+
+  if (mode === 'chat' && reportId) {
+    const [{ data: userData }, { data: report }] = await Promise.all([
+      supabase.from('users').select('role').eq('id', user.id).single(),
+      supabase.from('reports').select('user_id').eq('id', reportId).single(),
+    ])
+    chatUserRole = userData?.role ?? 'CLIENT'
+
+    if (
+      !report ||
+      (report.user_id !== user.id && chatUserRole !== 'EMPLOYEE')
+    ) {
+      res.status(403).json({ error: 'Unauthorized' })
+      return
+    }
+
+    if (chatUserRole !== 'EMPLOYEE') {
+      const { data: usage } = await adminSupabase
+        .from('chat_usage')
+        .select('id, message_count')
+        .eq('user_id', user.id)
+        .eq('report_id', reportId)
+        .single()
+
+      if (usage && usage.message_count >= CHAT_LIMIT) {
+        adminSupabase
+          .from('events')
+          .insert({
+            user_id: user.id,
+            report_id: reportId,
+            type: 'chat_limit_reached',
+          })
+          .then(() => {})
+        res.status(403).json({ error: 'limit_reached' })
+        return
+      }
+    }
+  }
+
+  res.setHeader('Content-Type', 'text/event-stream')
+  res.setHeader('Cache-Control', 'no-cache, no-transform')
+  res.setHeader('Connection', 'keep-alive')
+  res.setHeader('X-Accel-Buffering', 'no')
 
   try {
     const execTemplateHtml = loadTemplate('roi-exec-template.html')
@@ -139,6 +180,8 @@ export default async function handler(req, res) {
       }
     }
 
+    let capturedMessages = []
+
     await runReportAgent({
       mode,
       state,
@@ -158,18 +201,78 @@ export default async function handler(req, res) {
             changedSections,
           })
         },
-        onDone: (messages) =>
+        onDone: (messages) => {
+          capturedMessages = messages ?? []
           send(res, {
             type: 'done',
             assembled: Boolean(state?.assembled),
             messages,
-          }),
+          })
+        },
         onError: (err) => send(res, { type: 'error', message: err.message }),
       },
     })
 
+    if (mode === 'chat' && reportId) {
+      const userRole = chatUserRole
+
+      await supabase.from('chat_messages').insert({
+        report_id: reportId,
+        user_id: user.id,
+        role: 'user',
+        content: message,
+      })
+
+      const assistantText = capturedMessages
+        .filter((m) => m.role === 'assistant')
+        .map((m) => (typeof m.content === 'string' ? m.content : ''))
+        .join('')
+
+      if (assistantText) {
+        await supabase.from('chat_messages').insert({
+          report_id: reportId,
+          user_id: user.id,
+          role: 'assistant',
+          content: assistantText,
+        })
+      }
+
+      if (userRole !== 'EMPLOYEE') {
+        const { data: usage, error: usageReadErr } = await adminSupabase
+          .from('chat_usage')
+          .select('id, message_count')
+          .eq('user_id', user.id)
+          .eq('report_id', reportId)
+          .single()
+
+        if (usageReadErr && usageReadErr.code !== 'PGRST116') {
+          console.error('[roi-agent] chat_usage read error:', usageReadErr)
+        }
+
+        if (usage) {
+          const { error: updateErr } = await adminSupabase
+            .from('chat_usage')
+            .update({ message_count: usage.message_count + 1 })
+            .eq('user_id', user.id)
+            .eq('report_id', reportId)
+            .lt('message_count', CHAT_LIMIT)
+          if (updateErr)
+            console.error('[roi-agent] chat_usage update error:', updateErr)
+        } else {
+          const { error: upsertErr } = await adminSupabase
+            .from('chat_usage')
+            .upsert(
+              { user_id: user.id, report_id: reportId, message_count: 1 },
+              { onConflict: 'user_id,report_id' },
+            )
+          if (upsertErr)
+            console.error('[roi-agent] chat_usage upsert error:', upsertErr)
+        }
+      }
+    }
+
     // Save report to DB after generation
-    if (mode === 'generate' && !IS_DEV && state.assembled) {
+    if (mode === 'generate' && state.assembled) {
       const { data: savedReport } = await supabase
         .from('reports')
         .insert({
