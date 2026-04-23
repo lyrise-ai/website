@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react'
+import React, { useState, useCallback, useEffect, useRef } from 'react'
 import Head from 'next/head'
 import { motion, AnimatePresence } from 'framer-motion'
 import { FaCheckCircle } from 'react-icons/fa'
@@ -369,44 +369,242 @@ function GeneratingView({ generationLog }) {
   )
 }
 
-function SuccessView({ email }) {
+function SuccessView({ email, reportId, isEmployee }) {
+  const [messages, setMessages] = useState([])
+  const [inputValue, setInputValue] = useState('')
+  const [isSending, setIsSending] = useState(false)
+  const [limitReached, setLimitReached] = useState(false)
+  const bottomRef = useRef(null)
+
+  const userSentCount = messages.filter((m) => m.role === 'user').length
+
+  // Load existing conversation from DB when reportId is set
+  useEffect(() => {
+    if (!reportId) return
+    fetch(`/api/chat?reportId=${reportId}`)
+      .then((r) => r.json())
+      .then((data) => {
+        if (Array.isArray(data.messages) && data.messages.length > 0) {
+          setMessages(data.messages)
+        }
+      })
+      .catch(() => {})
+  }, [reportId])
+
+  useEffect(() => {
+    bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
+  }, [messages, isSending])
+
+  const sendMessage = async () => {
+    const trimmed = inputValue.trim()
+    if (!trimmed || isSending || limitReached || !reportId) return
+
+    const updated = [...messages, { role: 'user', content: trimmed }]
+    setMessages(updated)
+    setInputValue('')
+    setIsSending(true)
+
+    try {
+      const res = await fetch('/api/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ reportId, message: trimmed }),
+      })
+
+      if (res.status === 403) {
+        setLimitReached(true)
+        return
+      }
+      if (res.status === 429) {
+        // Remove the optimistic user message we added
+        setMessages((prev) => prev.slice(0, -1))
+        setInputValue(trimmed)
+        return
+      }
+
+      const data = await res.json()
+      setMessages((prev) => [
+        ...prev,
+        { role: 'assistant', content: data.reply },
+      ])
+    } catch {
+      setMessages((prev) => [
+        ...prev,
+        {
+          role: 'assistant',
+          content: 'Something went wrong. Please try again.',
+        },
+      ])
+    } finally {
+      setIsSending(false)
+    }
+  }
+
   return (
-    <div className="text-center py-14">
-      <div className="mx-auto w-14 h-14 bg-green-50 rounded-full flex items-center justify-center mb-6 border border-green-100">
-        <FaCheckCircle className="text-3xl text-green-500" />
+    <div className="p-8">
+      {/* ── Success header ── */}
+      <div className="text-center pb-8 border-b border-gray-100">
+        <div className="mx-auto w-14 h-14 bg-green-50 rounded-full flex items-center justify-center mb-6 border border-green-100">
+          <FaCheckCircle className="text-3xl text-green-500" />
+        </div>
+        <h2 className="text-2xl font-bold text-gray-900 mb-3">
+          Report on its way
+        </h2>
+        <p className="text-gray-600 mb-4 max-w-sm mx-auto text-sm leading-relaxed">
+          Your personalised AI ROI analysis has been generated and is being
+          emailed to:
+        </p>
+        <div className="inline-block text-sm font-semibold bg-gray-100 rounded-lg px-4 py-2 mb-6">
+          {email}
+        </div>
+        <p className="text-gray-500 text-sm mb-6 max-w-sm mx-auto">
+          Want to walk through the findings with our team? Book a free 30-min
+          call.
+        </p>
+        <a
+          href="https://calendly.com/elena-lyrise/30min"
+          className="inline-flex items-center gap-2 px-5 py-2.5 bg-gray-900 text-white text-sm font-semibold rounded-lg hover:bg-gray-700 transition-colors"
+        >
+          Book a 30-min call →
+        </a>
       </div>
-      <h2 className="text-2xl font-bold text-gray-900 mb-3">
-        Report on its way
-      </h2>
-      <p className="text-gray-600 mb-4 max-w-sm mx-auto text-sm leading-relaxed">
-        Your personalised AI ROI analysis has been generated and is being
-        emailed to:
-      </p>
-      <div className="inline-block text-sm font-semibold bg-gray-100 rounded-lg px-4 py-2 mb-6">
-        {email}
+
+      {/* ── Chat ── */}
+      <div className="pt-6">
+        <div className="flex items-center justify-between mb-3">
+          <h3 className="font-semibold text-gray-900 text-sm">
+            Ask about your report
+          </h3>
+          {!isEmployee && (
+            <span
+              className={`text-xs font-mono ${
+                limitReached ? 'text-amber-500 font-semibold' : 'text-gray-400'
+              }`}
+            >
+              {Math.min(userSentCount, 5)} / 5 messages used
+            </span>
+          )}
+        </div>
+
+        {/* Message history */}
+        {messages.length > 0 && (
+          <div className="max-h-72 overflow-y-auto mb-4 space-y-3 pr-1">
+            {messages.map((msg, i) => (
+              <div
+                key={i}
+                className={`flex ${
+                  msg.role === 'user' ? 'justify-end' : 'justify-start'
+                }`}
+              >
+                <div
+                  className={`max-w-[82%] rounded-2xl px-4 py-2.5 text-sm leading-relaxed ${
+                    msg.role === 'user'
+                      ? 'bg-[#2957FF] text-white'
+                      : 'bg-gray-100 text-gray-800'
+                  }`}
+                >
+                  {msg.content}
+                </div>
+              </div>
+            ))}
+            {isSending && (
+              <div className="flex justify-start">
+                <div className="bg-gray-100 rounded-2xl px-4 py-3">
+                  <div className="flex gap-1 items-center">
+                    {[0, 150, 300].map((delay) => (
+                      <span
+                        key={delay}
+                        className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce"
+                        style={{ animationDelay: `${delay}ms` }}
+                      />
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
+            <div ref={bottomRef} />
+          </div>
+        )}
+
+        {/* Limit reached banner */}
+        {limitReached ? (
+          <div className="bg-amber-50 border border-amber-200 rounded-xl p-5 text-center">
+            <p className="text-xs font-mono font-semibold text-amber-500 mb-2">
+              5 / 5 messages used
+            </p>
+            <p className="text-sm font-semibold text-amber-800 mb-1">
+              You&apos;ve used your 5 free messages.
+            </p>
+            <p className="text-xs text-amber-600 mb-4">
+              Want unlimited edits? Contact LyRise to refine your ROI strategy.
+            </p>
+            <a
+              href="https://calendly.com/elena-lyrise/30min"
+              className="inline-flex items-center gap-2 px-4 py-2 bg-amber-600 text-white text-xs font-semibold rounded-lg hover:bg-amber-700 transition-colors"
+            >
+              Contact Sales →
+            </a>
+          </div>
+        ) : (
+          <div className="flex gap-2">
+            <input
+              type="text"
+              value={inputValue}
+              onChange={(e) => setInputValue(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                  e.preventDefault()
+                  sendMessage()
+                }
+              }}
+              disabled={isSending}
+              placeholder="Ask a question about your ROI report…"
+              className="flex-1 text-sm border border-gray-200 rounded-xl px-3.5 py-2.5 outline-none focus:border-[#2957FF] transition-colors bg-white"
+            />
+            <button
+              type="button"
+              onClick={sendMessage}
+              disabled={!inputValue.trim() || isSending}
+              className="px-4 py-2.5 bg-[#2957FF] text-white text-sm font-semibold rounded-xl hover:bg-blue-700 transition-colors disabled:opacity-50"
+            >
+              Send
+            </button>
+          </div>
+        )}
       </div>
-      <p className="text-gray-500 text-sm mb-6 max-w-sm mx-auto">
-        Want to walk through the findings with our team? Book a free 30-min
-        call.
-      </p>
-      <a
-        href="https://calendly.com/elena-lyrise/30min"
-        className="inline-flex items-center gap-2 px-5 py-2.5 bg-gray-900 text-white text-sm font-semibold rounded-lg hover:bg-gray-700 transition-colors"
-      >
-        Book a 30-min call →
-      </a>
     </div>
   )
 }
 
 // ── Main ──────────────────────────────────────────────────────────────────────
 
-export default function ROIReport() {
+export async function getServerSideProps({ req, res }) {
+  const { createClient } = await import('../src/lib/supabase-server')
+  const supabase = createClient(req, res)
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+
+  if (!user) {
+    return { redirect: { destination: '/login', permanent: false } }
+  }
+
+  const { data: userData } = await supabase
+    .from('users')
+    .select('role')
+    .eq('id', user.id)
+    .single()
+
+  return { props: { isEmployee: userData?.role === 'EMPLOYEE' } }
+}
+
+export default function ROIReport({ isEmployee }) {
   const [step, setStep] = useState(1)
   const [viewState, setViewState] = useState('form')
   const [generationLog, setGenerationLog] = useState('')
   const [reportState, setReportState] = useState(null)
   const [errorMessage, setErrorMessage] = useState('')
+  const [reportId, setReportId] = useState(null)
 
   const [s1, setS1] = useState(
     IS_DEV
@@ -543,7 +741,11 @@ export default function ROIReport() {
         <MainHeader />
         <div className="min-h-screen flex flex-col items-center justify-center p-4">
           <div className="w-full max-w-xl bg-white rounded-2xl shadow-xl border border-gray-100">
-            <SuccessView email={s2.email} />
+            <SuccessView
+              email={s2.email}
+              reportId={reportId}
+              isEmployee={isEmployee}
+            />
           </div>
           <div className="md:w-1/2 w-full mt-12">
             <LogosMarquee />
