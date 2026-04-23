@@ -17,6 +17,7 @@ import { runReportAgent } from '@/src/lib/roi/agent'
 import { buildDevMockReportState } from '@/src/lib/roi/devMockReport'
 import { generatePdf } from '@/src/lib/roi/services/pdf'
 import { sendReportEmail } from '@/src/lib/roi/services/email'
+import { createClient } from '../../src/lib/supabase-server'
 
 export const config = {
   maxDuration: 300,
@@ -47,6 +48,15 @@ function mapFormToPayload(body) {
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
     res.status(405).json({ error: 'Method not allowed' })
+    return
+  }
+
+  const supabase = createClient(req, res)
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+  if (!user) {
+    res.status(401).json({ error: 'Unauthorized' })
     return
   }
 
@@ -157,6 +167,29 @@ export default async function handler(req, res) {
         onError: (err) => send(res, { type: 'error', message: err.message }),
       },
     })
+
+    // Save report to DB after generation
+    if (mode === 'generate' && !IS_DEV && state.assembled) {
+      const { data: savedReport } = await supabase
+        .from('reports')
+        .insert({
+          user_id: user.id,
+          company_name:
+            state.assembled.roi_data?.company ??
+            state.normInput?.companyName ??
+            '',
+          email: state.normInput?.email ?? '',
+          status: 'SUCCESS',
+          input_data: state.normInput,
+          completed_at: new Date().toISOString(),
+        })
+        .select('id')
+        .single()
+
+      if (savedReport?.id) {
+        send(res, { type: 'report_saved', report_id: savedReport.id })
+      }
+    }
 
     // Fire-and-forget PDF + email after generation
     if (

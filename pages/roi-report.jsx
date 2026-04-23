@@ -662,6 +662,11 @@ export default function ROIReport({ isEmployee }) {
           }),
         })
 
+        if (response.status === 401) {
+          window.location.href = '/login'
+          return
+        }
+
         let latestState = null
         await drainSSE(
           response.body.getReader(),
@@ -674,6 +679,8 @@ export default function ROIReport({ isEmployee }) {
             } else if (event.type === 'report_update') {
               latestState = event.state
               setReportState(event.state)
+            } else if (event.type === 'report_saved') {
+              setReportId(event.report_id)
             } else if (event.type === 'done') {
               if (event.assembled || latestState?.assembled) {
                 setViewState('preview')
