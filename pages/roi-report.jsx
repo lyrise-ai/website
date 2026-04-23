@@ -600,11 +600,12 @@ export async function getServerSideProps({ req, res }) {
 
 export default function ROIReport({ isEmployee }) {
   const [step, setStep] = useState(1)
-  const [viewState, setViewState] = useState('form')
+  const [viewState, setViewState] = useState('loading')
   const [generationLog, setGenerationLog] = useState('')
   const [reportState, setReportState] = useState(null)
   const [errorMessage, setErrorMessage] = useState('')
   const [reportId, setReportId] = useState(null)
+  const [initialMessagesUsed, setInitialMessagesUsed] = useState(0)
 
   const [s1, setS1] = useState(
     IS_DEV
@@ -667,6 +668,32 @@ export default function ROIReport({ isEmployee }) {
           return
         }
 
+        if (response.status === 409) {
+          const getRes = await fetch('/api/roi-agent')
+          const getData = await getRes.json()
+          if (getData.report) {
+            const {
+              rendered_html,
+              rendered_full_html,
+              state_data,
+              messages_used,
+            } = getData.report
+            setReportState({
+              ...state_data,
+              renderedHtml: rendered_html,
+              renderedFullHtml: rendered_full_html,
+            })
+            setReportId(getData.report.id)
+            setS2((prev) => ({
+              ...prev,
+              email: state_data?.normInput?.email ?? '',
+            }))
+            setInitialMessagesUsed(messages_used ?? 0)
+            setViewState('preview')
+          }
+          return
+        }
+
         let latestState = null
         await drainSSE(
           response.body.getReader(),
@@ -724,7 +751,48 @@ export default function ROIReport({ isEmployee }) {
     setErrors({})
   }, [])
 
+  useEffect(() => {
+    fetch('/api/roi-agent')
+      .then((r) => r.json())
+      .then((data) => {
+        if (data.report) {
+          const {
+            rendered_html,
+            rendered_full_html,
+            state_data,
+            messages_used,
+          } = data.report
+          setReportState({
+            ...state_data,
+            renderedHtml: rendered_html,
+            renderedFullHtml: rendered_full_html,
+          })
+          setReportId(data.report.id)
+          setS2((prev) => ({
+            ...prev,
+            email: state_data?.normInput?.email ?? '',
+          }))
+          setInitialMessagesUsed(messages_used ?? 0)
+          setViewState('preview')
+        } else {
+          setViewState('form')
+        }
+      })
+      .catch(() => setViewState('form'))
+  }, [])
+
   // Non-form views
+  if (viewState === 'loading') {
+    return (
+      <div className="rebranding-landing-page -mt-[12px]">
+        <MainHeader />
+        <div className="min-h-screen flex items-center justify-center">
+          <div className="w-8 h-8 border-4 border-gray-200 border-t-gray-900 rounded-full animate-spin" />
+        </div>
+      </div>
+    )
+  }
+
   if (viewState === 'generating') {
     return (
       <div className="rebranding-landing-page -mt-[12px]">
@@ -745,6 +813,7 @@ export default function ROIReport({ isEmployee }) {
         email={s2.email}
         reportId={reportId}
         isEmployee={isEmployee}
+        initialMessagesUsed={initialMessagesUsed}
       />
     )
   }

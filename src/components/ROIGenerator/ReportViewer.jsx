@@ -97,6 +97,7 @@ export default function ReportViewer({
   email,
   reportId,
   isEmployee,
+  initialMessagesUsed = 0,
 }) {
   const [reportState, setReportState] = useState(initialState)
   const [chatHistory, setChatHistory] = useState([])
@@ -108,8 +109,9 @@ export default function ReportViewer({
   const [emailStatus, setEmailStatus] = useState('idle')
   const [activeTab, setActiveTab] = useState('exec')
   const [lastChangedSections, setLastChangedSections] = useState([])
-  const [limitReached, setLimitReached] = useState(false)
-  const [userSentCount, setUserSentCount] = useState(0)
+  const [limitReached, setLimitReached] = useState(initialMessagesUsed >= 5)
+  const [userSentCount, setUserSentCount] = useState(initialMessagesUsed)
+  const [showCallPrompt, setShowCallPrompt] = useState(false)
 
   const iframeRef = useRef(null)
   const messagesEndRef = useRef(null)
@@ -181,7 +183,8 @@ export default function ReportViewer({
           return
         }
 
-        setUserSentCount((prev) => prev + 1)
+        const newCount = userSentCount + 1
+        setUserSentCount(newCount)
 
         if (!res.ok) throw new Error(`HTTP ${res.status}`)
 
@@ -210,6 +213,7 @@ export default function ReportViewer({
             if (nextMessages.length) {
               setChatHistory([...newHistory, ...nextMessages])
             }
+            if (!isEmployee && newCount === 5) setShowCallPrompt(true)
             setStreamingText('')
             setIsAgentRunning(false)
             setActiveTool(null)
@@ -224,7 +228,15 @@ export default function ReportViewer({
         setActiveTool(null)
       }
     },
-    [input, isAgentRunning, chatHistory, reportState, reportId],
+    [
+      input,
+      isAgentRunning,
+      chatHistory,
+      reportState,
+      reportId,
+      userSentCount,
+      isEmployee,
+    ],
   )
 
   const handleIframeLoad = useCallback(() => {
@@ -511,6 +523,57 @@ export default function ReportViewer({
                 </div>
               )
             })}
+
+            {/* Schedule-a-call prompt — shown after 5th message response */}
+            {showCallPrompt && !isEmployee && (
+              <div
+                style={{
+                  background: '#f0f4ff',
+                  border: '1px solid #c7d2fe',
+                  borderRadius: 12,
+                  padding: '12px 14px',
+                }}
+              >
+                <p
+                  style={{
+                    fontSize: 13,
+                    fontWeight: 600,
+                    color: '#1e3a8a',
+                    margin: '0 0 5px',
+                  }}
+                >
+                  Want to walk through these findings with our team?
+                </p>
+                <p
+                  style={{
+                    fontSize: 13,
+                    color: '#374151',
+                    lineHeight: 1.5,
+                    margin: '0 0 10px',
+                  }}
+                >
+                  Book a free 30-min call with a LyRise specialist to explore
+                  next steps for your ROI strategy.
+                </p>
+                <a
+                  href="https://calendly.com/elena-lyrise/30min"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{
+                    display: 'inline-block',
+                    padding: '7px 14px',
+                    background: '#2957FF',
+                    color: '#fff',
+                    borderRadius: 7,
+                    fontSize: 13,
+                    fontWeight: 600,
+                    textDecoration: 'none',
+                  }}
+                >
+                  Schedule a free call →
+                </a>
+              </div>
+            )}
 
             {/* Changed sections chips — shown after agent finishes */}
             {!isAgentRunning && lastChangedSections.length > 0 && (

@@ -46,6 +46,41 @@ function mapFormToPayload(body) {
 }
 
 export default async function handler(req, res) {
+  if (req.method === 'GET') {
+    const supabase = createClient(req, res)
+    const {
+      data: { user },
+    } = await supabase.auth.getUser()
+    if (!user) {
+      res.status(401).json({ error: 'Unauthorized' })
+      return
+    }
+    const { data: report } = await supabase
+      .from('reports')
+      .select('id, rendered_html, rendered_full_html, state_data')
+      .eq('user_id', user.id)
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .maybeSingle()
+
+    let messagesUsed = 0
+    if (report) {
+      const adminSupabase = createAdminClient()
+      const { data: usage } = await adminSupabase
+        .from('chat_usage')
+        .select('message_count')
+        .eq('user_id', user.id)
+        .eq('report_id', report.id)
+        .maybeSingle()
+      messagesUsed = usage?.message_count ?? 0
+    }
+
+    res.status(200).json({
+      report: report ? { ...report, messages_used: messagesUsed } : null,
+    })
+    return
+  }
+
   if (req.method !== 'POST') {
     res.status(405).json({ error: 'Method not allowed' })
     return
@@ -116,6 +151,21 @@ export default async function handler(req, res) {
         res.status(403).json({ error: 'limit_reached' })
         return
       }
+    }
+  }
+
+  if (mode === 'generate') {
+    const { data: existingReport } = await supabase
+      .from('reports')
+      .select('id')
+      .eq('user_id', user.id)
+      .limit(1)
+      .maybeSingle()
+    if (existingReport) {
+      res
+        .status(409)
+        .json({ error: 'report_exists', report_id: existingReport.id })
+      return
     }
   }
 
@@ -237,6 +287,20 @@ export default async function handler(req, res) {
         })
       }
 
+      const {
+        renderedHtml: _rh,
+        renderedFullHtml: _rfh,
+        ...chatStateData
+      } = state
+      await adminSupabase
+        .from('reports')
+        .update({
+          rendered_html: state.renderedHtml ?? null,
+          rendered_full_html: state.renderedFullHtml ?? null,
+          state_data: chatStateData,
+        })
+        .eq('id', reportId)
+
       if (userRole !== 'EMPLOYEE') {
         const { data: usage, error: usageReadErr } = await adminSupabase
           .from('chat_usage')
@@ -273,6 +337,7 @@ export default async function handler(req, res) {
 
     // Save report to DB after generation
     if (mode === 'generate' && state.assembled) {
+      const { renderedHtml: _rh, renderedFullHtml: _rfh, ...stateData } = state
       const { data: savedReport } = await supabase
         .from('reports')
         .insert({
@@ -285,6 +350,9 @@ export default async function handler(req, res) {
           status: 'SUCCESS',
           input_data: state.normInput,
           completed_at: new Date().toISOString(),
+          rendered_html: state.renderedHtml ?? null,
+          rendered_full_html: state.renderedFullHtml ?? null,
+          state_data: stateData,
         })
         .select('id')
         .single()
