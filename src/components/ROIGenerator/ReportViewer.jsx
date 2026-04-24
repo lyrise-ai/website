@@ -1,4 +1,5 @@
 import React, { useState, useRef, useCallback, useEffect } from 'react'
+import Link from 'next/link'
 import { drainSSE } from '@/src/lib/drainSSE'
 
 const SUGGEST_RE = /\[SUGGEST:\s*([^\]]+)\]$/
@@ -98,6 +99,7 @@ export default function ReportViewer({
   reportId,
   isEmployee,
   initialMessagesUsed = 0,
+  backHref,
 }) {
   const [reportState, setReportState] = useState(initialState)
   const [chatHistory, setChatHistory] = useState([])
@@ -348,8 +350,23 @@ export default function ReportViewer({
           flexShrink: 0,
         }}
       >
-        <div style={{ fontWeight: 600, fontSize: 14, color: '#1a1a1a' }}>
-          {company} — AI ROI Report
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+          {backHref && (
+            <Link
+              href={backHref}
+              style={{
+                fontSize: 13,
+                color: '#6b7280',
+                textDecoration: 'none',
+                fontWeight: 500,
+              }}
+            >
+              ← Back
+            </Link>
+          )}
+          <div style={{ fontWeight: 600, fontSize: 14, color: '#1a1a1a' }}>
+            {company} — AI ROI Report
+          </div>
         </div>
         <div style={{ display: 'flex', gap: 8 }}>
           <div

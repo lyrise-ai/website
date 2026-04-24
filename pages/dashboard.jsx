@@ -1,6 +1,8 @@
 import Head from 'next/head'
 import Link from 'next/link'
+import { useState } from 'react'
 import { useRouter } from 'next/router'
+import { FaTrash } from 'react-icons/fa'
 import { createClient as createServerClient } from '../src/lib/supabase-server'
 import { createClient as createBrowserClient } from '../src/lib/supabase-browser'
 import MainHeader from '../src/layout/MainHeader'
@@ -64,13 +66,33 @@ export async function getServerSideProps({ req, res }) {
   }
 }
 
-export default function Dashboard({ user, reports, isEmployee }) {
+export default function Dashboard({
+  user,
+  reports: initialReports,
+  isEmployee,
+}) {
   const router = useRouter()
+  const [reports, setReports] = useState(initialReports)
+  const [confirmingId, setConfirmingId] = useState(null)
+  const [deletingId, setDeletingId] = useState(null)
 
   const handleSignOut = async () => {
     const supabase = createBrowserClient()
     await supabase.auth.signOut()
     router.replace('/login')
+  }
+
+  const handleDelete = async (id) => {
+    setDeletingId(id)
+    try {
+      const res = await fetch(`/api/reports/${id}`, { method: 'DELETE' })
+      if (res.ok) {
+        setReports((prev) => prev.filter((r) => r.id !== id))
+      }
+    } finally {
+      setDeletingId(null)
+      setConfirmingId(null)
+    }
   }
 
   return (
@@ -138,30 +160,82 @@ export default function Dashboard({ user, reports, isEmployee }) {
                   <th className="font-outfit font-semibold text-[11px] uppercase tracking-wider text-gray-400 text-left px-6 py-3.5">
                     Date
                   </th>
+                  <th className="px-6 py-3.5" />
                 </tr>
               </thead>
               <tbody>
-                {reports.map((r, i) => (
-                  <tr
-                    key={r.id}
-                    className={`${
-                      i < reports.length - 1 ? 'border-b border-gray-50' : ''
-                    } hover:bg-gray-50 transition-colors`}
-                  >
-                    <td className="font-outfit font-medium text-[#2C2C2C] px-6 py-4">
-                      {r.company_name || '—'}
-                    </td>
-                    <td className="font-outfit text-gray-500 px-6 py-4">
-                      {r.email || '—'}
-                    </td>
-                    <td className="px-6 py-4">
-                      <StatusBadge status={r.status} />
-                    </td>
-                    <td className="font-outfit text-gray-400 px-6 py-4">
-                      {formatDate(r.created_at)}
-                    </td>
-                  </tr>
-                ))}
+                {reports.map((r, i) => {
+                  const clickable = isEmployee || r.status === 'SUCCESS'
+                  return (
+                    <tr
+                      key={r.id}
+                      onClick={() =>
+                        clickable && router.push(`/report/${r.id}`)
+                      }
+                      className={`${
+                        i < reports.length - 1 ? 'border-b border-gray-50' : ''
+                      } hover:bg-gray-50 transition-colors ${
+                        clickable ? 'cursor-pointer' : 'cursor-default'
+                      }`}
+                    >
+                      <td className="font-outfit font-medium text-[#2C2C2C] px-6 py-4">
+                        {r.company_name || '—'}
+                      </td>
+                      <td className="font-outfit text-gray-500 px-6 py-4">
+                        {r.email || '—'}
+                      </td>
+                      <td className="px-6 py-4">
+                        <StatusBadge status={r.status} />
+                      </td>
+                      <td className="font-outfit text-gray-400 px-6 py-4">
+                        {formatDate(r.created_at)}
+                      </td>
+                      <td
+                        className="px-6 py-4 text-right"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <div className="flex items-center justify-end gap-3">
+                          {clickable && (
+                            <span className="font-outfit text-xs font-semibold text-[#2957FF]">
+                              View →
+                            </span>
+                          )}
+                          {isEmployee &&
+                            (confirmingId === r.id ? (
+                              <span className="flex items-center gap-2">
+                                <button
+                                  type="button"
+                                  onClick={() => handleDelete(r.id)}
+                                  disabled={deletingId === r.id}
+                                  className="font-outfit text-xs font-semibold text-red-600 hover:text-red-800 transition-colors disabled:opacity-50"
+                                >
+                                  {deletingId === r.id
+                                    ? 'Deleting…'
+                                    : 'Confirm'}
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => setConfirmingId(null)}
+                                  className="font-outfit text-xs text-gray-400 hover:text-gray-600 transition-colors"
+                                >
+                                  Cancel
+                                </button>
+                              </span>
+                            ) : (
+                              <button
+                                type="button"
+                                onClick={() => setConfirmingId(r.id)}
+                                className="text-gray-300 hover:text-red-500 transition-colors"
+                                title="Delete report"
+                              >
+                                <FaTrash size={13} />
+                              </button>
+                            ))}
+                        </div>
+                      </td>
+                    </tr>
+                  )
+                })}
               </tbody>
             </table>
           </div>

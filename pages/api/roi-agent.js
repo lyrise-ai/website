@@ -118,20 +118,24 @@ export default async function handler(req, res) {
 
   if (mode === 'chat' && reportId) {
     const [{ data: userData }, { data: report }] = await Promise.all([
-      supabase.from('users').select('role').eq('id', user.id).single(),
-      supabase.from('reports').select('user_id').eq('id', reportId).single(),
+      adminSupabase.from('users').select('role').eq('id', user.id).single(),
+      adminSupabase
+        .from('reports')
+        .select('user_id')
+        .eq('id', reportId)
+        .single(),
     ])
-    chatUserRole = userData?.role ?? 'CLIENT'
+    const isEmployeeChat =
+      userData?.role === 'EMPLOYEE' ||
+      user.email?.endsWith('@lyrise.ai') === true
+    chatUserRole = isEmployeeChat ? 'EMPLOYEE' : userData?.role ?? 'CLIENT'
 
-    if (
-      !report ||
-      (report.user_id !== user.id && chatUserRole !== 'EMPLOYEE')
-    ) {
+    if (!report || (report.user_id !== user.id && !isEmployeeChat)) {
       res.status(403).json({ error: 'Unauthorized' })
       return
     }
 
-    if (chatUserRole !== 'EMPLOYEE') {
+    if (!isEmployeeChat) {
       const { data: usage } = await adminSupabase
         .from('chat_usage')
         .select('id, message_count')
@@ -155,17 +159,29 @@ export default async function handler(req, res) {
   }
 
   if (mode === 'generate') {
-    const { data: existingReport } = await supabase
-      .from('reports')
-      .select('id')
-      .eq('user_id', user.id)
-      .limit(1)
-      .maybeSingle()
-    if (existingReport) {
-      res
-        .status(409)
-        .json({ error: 'report_exists', report_id: existingReport.id })
-      return
+    const { data: genUserData } = await adminSupabase
+      .from('users')
+      .select('role')
+      .eq('id', user.id)
+      .single()
+    // fall back to email domain if the users row is missing or has wrong role
+    const isEmployee =
+      genUserData?.role === 'EMPLOYEE' ||
+      user.email?.endsWith('@lyrise.ai') === true
+
+    if (!isEmployee) {
+      const { data: existingReport } = await supabase
+        .from('reports')
+        .select('id')
+        .eq('user_id', user.id)
+        .limit(1)
+        .maybeSingle()
+      if (existingReport) {
+        res
+          .status(409)
+          .json({ error: 'report_exists', report_id: existingReport.id })
+        return
+      }
     }
   }
 

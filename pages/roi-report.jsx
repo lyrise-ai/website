@@ -58,10 +58,11 @@ const DEV_STEP2_PRESET = {
 
 function validateStep(step, s1, s2) {
   const errors = {}
-  if (step === 1) {
-    if (!s1.companyName.trim() || s1.companyName.trim().length < 2) {
-      errors.companyName = 'Please enter your company name'
-    }
+  if (
+    step === 1 &&
+    (!s1.companyName.trim() || s1.companyName.trim().length < 2)
+  ) {
+    errors.companyName = 'Please enter your company name'
   }
   if (step === 2) {
     if (!s2.email.trim() || !/\S+@\S+\.\S+/.test(s2.email)) {
@@ -579,7 +580,9 @@ function SuccessView({ email, reportId, isEmployee }) {
 // ── Main ──────────────────────────────────────────────────────────────────────
 
 export async function getServerSideProps({ req, res }) {
-  const { createClient } = await import('../src/lib/supabase-server')
+  const { createClient, createAdminClient } = await import(
+    '../src/lib/supabase-server'
+  )
   const supabase = createClient(req, res)
   const {
     data: { user },
@@ -589,18 +592,22 @@ export async function getServerSideProps({ req, res }) {
     return { redirect: { destination: '/login', permanent: false } }
   }
 
-  const { data: userData } = await supabase
+  const admin = createAdminClient()
+  const { data: userData } = await admin
     .from('users')
     .select('role')
     .eq('id', user.id)
     .single()
 
-  return { props: { isEmployee: userData?.role === 'EMPLOYEE' } }
+  const isEmployee =
+    userData?.role === 'EMPLOYEE' || user.email?.endsWith('@lyrise.ai')
+
+  return { props: { isEmployee } }
 }
 
 export default function ROIReport({ isEmployee }) {
   const [step, setStep] = useState(1)
-  const [viewState, setViewState] = useState('loading')
+  const [viewState, setViewState] = useState('form')
   const [generationLog, setGenerationLog] = useState('')
   const [reportState, setReportState] = useState(null)
   const [errorMessage, setErrorMessage] = useState('')
@@ -669,27 +676,9 @@ export default function ROIReport({ isEmployee }) {
         }
 
         if (response.status === 409) {
-          const getRes = await fetch('/api/roi-agent')
-          const getData = await getRes.json()
-          if (getData.report) {
-            const {
-              rendered_html,
-              rendered_full_html,
-              state_data,
-              messages_used,
-            } = getData.report
-            setReportState({
-              ...state_data,
-              renderedHtml: rendered_html,
-              renderedFullHtml: rendered_full_html,
-            })
-            setReportId(getData.report.id)
-            setS2((prev) => ({
-              ...prev,
-              email: state_data?.normInput?.email ?? '',
-            }))
-            setInitialMessagesUsed(messages_used ?? 0)
-            setViewState('preview')
+          const data = await response.json()
+          if (data.report_id) {
+            window.location.href = `/report/${data.report_id}`
           }
           return
         }
@@ -709,7 +698,10 @@ export default function ROIReport({ isEmployee }) {
             } else if (event.type === 'report_saved') {
               setReportId(event.report_id)
             } else if (event.type === 'done') {
-              if (event.assembled || latestState?.assembled) {
+              if (
+                (event.assembled || latestState?.assembled) &&
+                latestState?.renderedHtml
+              ) {
                 setViewState('preview')
               } else {
                 setErrorMessage(
@@ -751,36 +743,6 @@ export default function ROIReport({ isEmployee }) {
     setErrors({})
   }, [])
 
-  useEffect(() => {
-    fetch('/api/roi-agent')
-      .then((r) => r.json())
-      .then((data) => {
-        if (data.report) {
-          const {
-            rendered_html,
-            rendered_full_html,
-            state_data,
-            messages_used,
-          } = data.report
-          setReportState({
-            ...state_data,
-            renderedHtml: rendered_html,
-            renderedFullHtml: rendered_full_html,
-          })
-          setReportId(data.report.id)
-          setS2((prev) => ({
-            ...prev,
-            email: state_data?.normInput?.email ?? '',
-          }))
-          setInitialMessagesUsed(messages_used ?? 0)
-          setViewState('preview')
-        } else {
-          setViewState('form')
-        }
-      })
-      .catch(() => setViewState('form'))
-  }, [])
-
   // Non-form views
   if (viewState === 'loading') {
     return (
@@ -814,6 +776,7 @@ export default function ROIReport({ isEmployee }) {
         reportId={reportId}
         isEmployee={isEmployee}
         initialMessagesUsed={initialMessagesUsed}
+        backHref={isEmployee ? '/dashboard' : undefined}
       />
     )
   }

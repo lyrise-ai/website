@@ -37,7 +37,10 @@ export default function Login() {
   useEffect(() => {
     const supabase = createClient()
     supabase.auth.getUser().then(({ data: { user } }) => {
-      if (user) router.replace('/roi-report')
+      if (user)
+        router.replace(
+          user.email?.endsWith('@lyrise.ai') ? '/dashboard' : '/roi-report',
+        )
     })
   }, [router])
 
@@ -92,7 +95,9 @@ export default function Login() {
         return
       }
 
-      router.replace('/roi-report')
+      router.replace(
+        trimmedEmail.endsWith('@lyrise.ai') ? '/dashboard' : '/roi-report',
+      )
     } catch {
       setError('Something went wrong. Please try again.')
       setLoading(false)

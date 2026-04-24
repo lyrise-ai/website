@@ -1,5 +1,5 @@
 import { generateText } from 'ai'
-import { createClient } from '../../src/lib/supabase-server'
+import { createAdminClient, createClient } from '../../src/lib/supabase-server'
 import { fastModel } from '@/src/lib/roi/llm'
 
 const CHAT_LIMIT = 5
@@ -24,8 +24,9 @@ async function handleGet(req, res) {
   const { reportId } = req.query
   if (!reportId) return res.status(400).json({ error: 'reportId is required' })
 
+  const admin = createAdminClient()
   const [{ data: userData }, { data: report }] = await Promise.all([
-    supabase.from('users').select('role').eq('id', user.id).single(),
+    admin.from('users').select('role').eq('id', user.id).single(),
     supabase.from('reports').select('user_id').eq('id', reportId).single(),
   ])
 
@@ -70,8 +71,9 @@ async function handlePost(req, res) {
   }
 
   // ── Step 1: get user role + Fix 3: report ownership ───────────────────────
+  const admin = createAdminClient()
   const [{ data: userData }, { data: report }] = await Promise.all([
-    supabase.from('users').select('role').eq('id', user.id).single(),
+    admin.from('users').select('role').eq('id', user.id).single(),
     supabase
       .from('reports')
       .select('input_data, company_name, user_id')

@@ -20,6 +20,12 @@ export async function getServerSideProps({ req, res, query }) {
         email: user.email,
         role: isEmployee ? 'EMPLOYEE' : 'CLIENT',
       })
+      return {
+        redirect: {
+          destination: isEmployee ? '/dashboard' : '/roi-report',
+          permanent: false,
+        },
+      }
     }
   }
 
