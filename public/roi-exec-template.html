@@ -74,6 +74,21 @@
         padding-top: 2mm;
         margin-top: auto;
       }
+      @media print {
+        .page {
+          height: 297mm;
+          padding: 10mm 15mm 18mm;
+          position: relative;
+          overflow: hidden;
+        }
+        .page-footer {
+          position: absolute;
+          bottom: 10mm;
+          left: 15mm;
+          right: 15mm;
+          margin-top: 0;
+        }
+      }
 
       /* ── Cover ── */
       .cover-panel {
