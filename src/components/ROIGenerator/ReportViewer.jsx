@@ -114,10 +114,46 @@ export default function ReportViewer({
   const [limitReached, setLimitReached] = useState(initialMessagesUsed >= 5)
   const [userSentCount, setUserSentCount] = useState(initialMessagesUsed)
   const [showCallPrompt, setShowCallPrompt] = useState(false)
+  const [downloadStatus, setDownloadStatus] = useState('idle')
+  const [tourStep, setTourStep] = useState(0)
+  const [tourRect, setTourRect] = useState(null)
 
   const iframeRef = useRef(null)
   const messagesEndRef = useRef(null)
   const pendingHighlightsRef = useRef([])
+  const execTabRef = useRef(null)
+  const fullTabRef = useRef(null)
+  const downloadRef = useRef(null)
+  const resendEmailRef = useRef(null)
+  const chatPanelRef = useRef(null)
+
+  const TOUR_STEPS = [
+    {
+      title: 'Executive Summary',
+      body: 'Quick 2-page snapshot — share this version with execs and decision-makers. If anything here feels unclear or you want the reasoning behind a number, switch to the Full Report for the detail behind every section.',
+      placement: 'bottom-start',
+    },
+    {
+      title: 'Full Report',
+      body: 'Multi-page deep dive — workflows, projections, case studies, data provenance, and the full financial model.',
+      placement: 'bottom-start',
+    },
+    {
+      title: 'Download as PDF',
+      body: 'Save the report you’re viewing as a PDF you can share, attach, or print.',
+      placement: 'bottom-end',
+    },
+    {
+      title: 'Re-send Email',
+      body: 'You should already have the initial version of this report in your inbox — it was sent automatically as soon as the report finished generating. After you refine anything with the AI assistant, click here to email yourself the updated version.',
+      placement: 'bottom-end',
+    },
+    {
+      title: 'Refine with AI',
+      body: 'Ask the assistant to adjust numbers, change currency, swap workflows, or rewrite copy. The report updates live.',
+      placement: 'left',
+    },
+  ]
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
@@ -141,6 +177,49 @@ export default function ReportViewer({
     if (!applySectionHighlights(doc, sections)) return
     pendingHighlightsRef.current = []
   }, [reportState, applySectionHighlights])
+
+  useEffect(() => {
+    if (tourStep < 0 || tourStep >= TOUR_STEPS.length) {
+      setTourRect(null)
+      return undefined
+    }
+    const targets = [
+      execTabRef,
+      fullTabRef,
+      downloadRef,
+      resendEmailRef,
+      chatPanelRef,
+    ]
+    const recompute = () => {
+      const el = targets[tourStep]?.current
+      if (!el) {
+        setTourRect(null)
+        return
+      }
+      const r = el.getBoundingClientRect()
+      setTourRect({
+        top: r.top,
+        left: r.left,
+        width: r.width,
+        height: r.height,
+      })
+    }
+    recompute()
+    window.addEventListener('resize', recompute)
+    return () => window.removeEventListener('resize', recompute)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tourStep])
+
+  const advanceTour = useCallback(() => {
+    setTourStep((s) => (s + 1 >= TOUR_STEPS.length ? -1 : s + 1))
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  const closeTour = useCallback(() => setTourStep(-1), [])
+
+  const handleTabSelect = useCallback((tab) => {
+    setActiveTab(tab)
+  }, [])
 
   const activeHtml =
     activeTab === 'exec'
@@ -250,9 +329,38 @@ export default function ReportViewer({
     }
   }, [applySectionHighlights])
 
-  const handleDownload = useCallback(() => {
-    iframeRef.current?.contentWindow?.print()
-  }, [])
+  const handleDownload = useCallback(async () => {
+    if (downloadStatus === 'downloading') return
+    setDownloadStatus('downloading')
+    try {
+      const res = await fetch('/api/roi-pdf', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ state: reportState, reportType: activeTab }),
+      })
+      if (!res.ok) throw new Error(`HTTP ${res.status}`)
+
+      const cd = res.headers.get('content-disposition') || ''
+      const match = cd.match(/filename="([^"]+)"/)
+      const filename = match?.[1] || 'ROI_Report.pdf'
+
+      const blob = await res.blob()
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = filename
+      document.body.appendChild(a)
+      a.click()
+      document.body.removeChild(a)
+      URL.revokeObjectURL(url)
+
+      setDownloadStatus('idle')
+    } catch (err) {
+      console.error('[ReportViewer] PDF download failed:', err)
+      setDownloadStatus('error')
+      setTimeout(() => setDownloadStatus('idle'), 3000)
+    }
+  }, [downloadStatus, reportState, activeTab])
 
   const handleResendEmail = useCallback(async () => {
     if (emailStatus === 'sending') return
@@ -286,23 +394,25 @@ export default function ReportViewer({
     bubble: {
       user: {
         maxWidth: '82%',
-        padding: '8px 12px',
+        padding: '9px 13px',
         fontSize: 13,
         lineHeight: 1.5,
         wordBreak: 'break-word',
         borderRadius: '14px 14px 3px 14px',
-        background: '#2957FF',
+        background: '#003f87',
         color: '#fff',
+        boxShadow: '0 1px 2px rgba(0, 63, 135, 0.18)',
       },
       assistant: {
         maxWidth: '92%',
-        padding: '8px 12px',
+        padding: '9px 13px',
         fontSize: 13,
         lineHeight: 1.55,
         wordBreak: 'break-word',
         borderRadius: '14px 14px 14px 3px',
-        background: '#f1f5f9',
+        background: '#fff',
         color: '#1a1a1a',
+        border: '1px solid #d0d0d0',
       },
     },
     dot: {
@@ -310,7 +420,7 @@ export default function ReportViewer({
       width: 6,
       height: 6,
       borderRadius: '50%',
-      background: '#2957FF',
+      background: '#003f87',
       marginRight: 5,
       verticalAlign: 'middle',
       animation: 'pulse 1s infinite',
@@ -320,12 +430,36 @@ export default function ReportViewer({
       width: 6,
       height: 6,
       borderRadius: '50%',
-      background: '#2957FF',
+      background: '#003f87',
       marginLeft: 4,
       verticalAlign: 'middle',
       animation: 'pulse 1s infinite',
     },
   }
+
+  const popoverPositionFor = (placement, rect) => {
+    const w = 300
+    const gap = 14
+    if (placement === 'bottom-start') {
+      return { top: rect.top + rect.height + gap, left: Math.max(8, rect.left) }
+    }
+    if (placement === 'bottom-end') {
+      return {
+        top: rect.top + rect.height + gap,
+        left: Math.max(8, rect.left + rect.width - w),
+      }
+    }
+    if (placement === 'left') {
+      return {
+        top: Math.max(8, rect.top + 24),
+        left: Math.max(16, rect.left - w - gap),
+      }
+    }
+    return { top: rect.top + rect.height + gap, left: rect.left }
+  }
+  const isTourOpen =
+    tourStep >= 0 && tourStep < TOUR_STEPS.length && tourRect !== null
+  const isLastStep = tourStep === TOUR_STEPS.length - 1
 
   return (
     <div
@@ -333,7 +467,11 @@ export default function ReportViewer({
         display: 'flex',
         flexDirection: 'column',
         height: '100vh',
-        fontFamily: 'system-ui, sans-serif',
+        fontFamily:
+          "Calibri, 'Carlito', 'Segoe UI', 'Helvetica Neue', Arial, sans-serif",
+        WebkitFontSmoothing: 'antialiased',
+        MozOsxFontSmoothing: 'grayscale',
+        textRendering: 'optimizeLegibility',
       }}
     >
       {/* Toolbar */}
@@ -369,49 +507,55 @@ export default function ReportViewer({
           </div>
         </div>
         <div style={{ display: 'flex', gap: 8 }}>
-          <div
-            style={{
-              display: 'flex',
-              gap: 2,
-              border: '1px solid #e2e8f0',
-              borderRadius: 6,
-              overflow: 'hidden',
-            }}
-          >
-            <button
-              type="button"
-              onClick={() => setActiveTab('exec')}
+          <div style={{ position: 'relative' }}>
+            <div
               style={{
-                padding: '6px 12px',
-                fontSize: 13,
-                fontWeight: 500,
-                border: 'none',
-                background: activeTab === 'exec' ? '#2957FF' : '#fff',
-                color: activeTab === 'exec' ? '#fff' : '#374151',
-                cursor: 'pointer',
+                display: 'flex',
+                gap: 2,
+                border: '1px solid #e2e8f0',
+                borderRadius: 6,
+                overflow: 'hidden',
               }}
             >
-              Executive Summary
-            </button>
-            <button
-              type="button"
-              onClick={() => setActiveTab('full')}
-              style={{
-                padding: '6px 12px',
-                fontSize: 13,
-                fontWeight: 500,
-                border: 'none',
-                background: activeTab === 'full' ? '#2957FF' : '#fff',
-                color: activeTab === 'full' ? '#fff' : '#374151',
-                cursor: 'pointer',
-              }}
-            >
-              Full Report
-            </button>
+              <button
+                ref={execTabRef}
+                type="button"
+                onClick={() => handleTabSelect('exec')}
+                style={{
+                  padding: '6px 12px',
+                  fontSize: 13,
+                  fontWeight: 500,
+                  border: 'none',
+                  background: activeTab === 'exec' ? '#2957FF' : '#fff',
+                  color: activeTab === 'exec' ? '#fff' : '#374151',
+                  cursor: 'pointer',
+                }}
+              >
+                Executive Summary
+              </button>
+              <button
+                ref={fullTabRef}
+                type="button"
+                onClick={() => handleTabSelect('full')}
+                style={{
+                  padding: '6px 12px',
+                  fontSize: 13,
+                  fontWeight: 500,
+                  border: 'none',
+                  background: activeTab === 'full' ? '#2957FF' : '#fff',
+                  color: activeTab === 'full' ? '#fff' : '#374151',
+                  cursor: 'pointer',
+                }}
+              >
+                Full Report
+              </button>
+            </div>
           </div>
           <button
+            ref={downloadRef}
             type="button"
             onClick={handleDownload}
+            disabled={downloadStatus === 'downloading'}
             style={{
               padding: '6px 14px',
               fontSize: 13,
@@ -420,12 +564,18 @@ export default function ReportViewer({
               borderRadius: 6,
               background: '#fff',
               color: '#374151',
-              cursor: 'pointer',
+              cursor: downloadStatus === 'downloading' ? 'wait' : 'pointer',
+              opacity: downloadStatus === 'downloading' ? 0.6 : 1,
             }}
           >
-            Download PDF
+            {downloadStatus === 'downloading'
+              ? 'Generating PDF…'
+              : downloadStatus === 'error'
+              ? 'Download failed — retry'
+              : 'Download PDF'}
           </button>
           <button
+            ref={resendEmailRef}
             type="button"
             onClick={handleResendEmail}
             disabled={emailStatus === 'sending'}
@@ -484,13 +634,45 @@ export default function ReportViewer({
 
         {/* Chat panel */}
         <div
+          ref={chatPanelRef}
           style={{
             flex: '0 0 35%',
             display: 'flex',
             flexDirection: 'column',
-            background: '#fff',
+            background: '#f5f5f5',
           }}
         >
+          {/* Chat header */}
+          <div
+            style={{
+              padding: '12px 16px 10px',
+              background: '#fff',
+              borderBottom: '2.5px solid #003f87',
+              flexShrink: 0,
+            }}
+          >
+            <div
+              style={{
+                fontSize: 11,
+                fontWeight: 700,
+                textTransform: 'uppercase',
+                letterSpacing: 0.8,
+                color: '#003f87',
+              }}
+            >
+              AI Assistant
+            </div>
+            <div
+              style={{
+                fontSize: 11,
+                color: '#5a5a6e',
+                marginTop: 2,
+              }}
+            >
+              Refine the report with natural language
+            </div>
+          </div>
+
           {/* Messages */}
           <div
             style={{
@@ -499,12 +681,42 @@ export default function ReportViewer({
               padding: '16px 14px',
               display: 'flex',
               flexDirection: 'column',
-              gap: 8,
+              gap: 10,
             }}
           >
-            {/* Initial assistant message — always shown as first bubble */}
-            <div style={{ display: 'flex', justifyContent: 'flex-start' }}>
-              <div style={styles.bubble.assistant}>{initialMessage}</div>
+            {/* Initial assistant message — rendered as insight panel */}
+            <div
+              style={{
+                display: 'flex',
+                background: '#fff',
+                border: '1px solid #d0d0d0',
+                marginRight: 8,
+              }}
+            >
+              <div style={{ width: 4, background: '#003f87', flexShrink: 0 }} />
+              <div
+                style={{
+                  padding: '10px 14px',
+                  fontSize: 13,
+                  color: '#1a1a1a',
+                  lineHeight: 1.55,
+                  flex: 1,
+                }}
+              >
+                <div
+                  style={{
+                    fontSize: 10,
+                    fontWeight: 700,
+                    textTransform: 'uppercase',
+                    letterSpacing: 0.6,
+                    color: '#003f87',
+                    marginBottom: 4,
+                  }}
+                >
+                  Report Ready
+                </div>
+                {initialMessage}
+              </div>
             </div>
 
             {/* Conversation history */}
@@ -625,27 +837,35 @@ export default function ReportViewer({
               </div>
             )}
 
-            {/* Agent working — tool label + streaming text in one assistant bubble */}
-            {(activeTool || streamingText) && (
+            {/* Agent working — tool label as pill, streaming text in bubble */}
+            {activeTool && !streamingText && (
+              <div style={{ display: 'flex', justifyContent: 'flex-start' }}>
+                <div
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: 7,
+                    padding: '5px 11px',
+                    background: '#ebf0f8',
+                    border: '1px solid #003f87',
+                    borderRadius: 12,
+                    fontSize: 11,
+                    color: '#003f87',
+                    fontWeight: 700,
+                    textTransform: 'uppercase',
+                    letterSpacing: 0.5,
+                  }}
+                >
+                  <span style={styles.dot} />
+                  {activeTool}
+                </div>
+              </div>
+            )}
+            {streamingText && (
               <div style={{ display: 'flex', justifyContent: 'flex-start' }}>
                 <div style={styles.bubble.assistant}>
-                  {activeTool && !streamingText && (
-                    <span
-                      style={{
-                        color: '#8a8aaa',
-                        fontStyle: 'italic',
-                        fontSize: 12,
-                      }}
-                    >
-                      <span style={styles.dot} /> {activeTool}
-                    </span>
-                  )}
-                  {streamingText && (
-                    <>
-                      {renderText(streamingText)}
-                      <span style={styles.cursor} />
-                    </>
-                  )}
+                  {renderText(streamingText)}
+                  <span style={styles.cursor} />
                 </div>
               </div>
             )}
@@ -656,7 +876,9 @@ export default function ReportViewer({
           {/* Input */}
           <div
             style={{
-              borderTop: '1px solid #e2e8f0',
+              padding: '12px 14px 14px',
+              background: '#fff',
+              borderTop: '1px solid #d0d0d0',
             }}
           >
             {reportId && !isEmployee && (
@@ -716,44 +938,49 @@ export default function ReportViewer({
                     rows={2}
                     style={{
                       flex: 1,
-                      padding: '8px 11px',
-                      border: '1px solid #e2e8f0',
-                      borderRadius: 8,
+                      padding: '9px 12px',
+                      border: '1px solid #d0d0d0',
+                      borderRadius: 6,
                       fontSize: 13,
                       lineHeight: 1.5,
                       resize: 'none',
                       outline: 'none',
                       fontFamily: 'inherit',
                       color: '#1a1a1a',
-                      background: isAgentRunning ? '#f9fafb' : '#fff',
-                      transition: 'border-color 0.15s',
+                      background: isAgentRunning ? '#f5f5f5' : '#fff',
+                      transition: 'border-color 0.15s, box-shadow 0.15s',
                     }}
                     onFocus={(e) => {
-                      e.target.style.borderColor = '#2957FF'
+                      e.target.style.borderColor = '#003f87'
+                  e.target.style.boxShadow = '0 0 0 2px rgba(0, 63, 135, 0.15)'
                     }}
                     onBlur={(e) => {
-                      e.target.style.borderColor = '#e2e8f0'
+                      e.target.style.borderColor = '#d0d0d0'
+                  e.target.style.boxShadow = 'none'
                     }}
                   />
                   <button
                     type="submit"
                     disabled={isAgentRunning || !input.trim()}
                     style={{
-                      padding: '8px 16px',
-                      borderRadius: 8,
+                      padding: '9px 18px',
+                      borderRadius: 6,
                       border: 'none',
                       background:
-                        isAgentRunning || !input.trim() ? '#e2e8f0' : '#2957FF',
+                        isAgentRunning || !input.trim() ? '#d0d0d0' : '#003f87',
                       color:
-                        isAgentRunning || !input.trim() ? '#94a3b8' : '#fff',
-                      fontWeight: 600,
-                      fontSize: 13,
+                        isAgentRunning || !input.trim() ? '#5a5a6e' : '#fff',
+                      fontWeight: 700,
+                      fontSize: 12,
+                  textTransform: 'uppercase',
+                  letterSpacing: 0.5,
                       cursor:
                         isAgentRunning || !input.trim()
                           ? 'not-allowed'
                           : 'pointer',
                       flexShrink: 0,
-                    }}
+                      transition: 'background 0.15s',
+                }}
                   >
                     Send
                   </button>
@@ -763,6 +990,164 @@ export default function ReportViewer({
           </div>
         </div>
       </div>
+
+      {isTourOpen && (
+        <>
+          {/* Top dim */}
+          <div
+            style={{
+              position: 'fixed',
+              top: 0,
+              left: 0,
+              right: 0,
+              height: Math.max(0, tourRect.top - 6),
+              background: 'rgba(15, 23, 42, 0.72)',
+              zIndex: 1000,
+              transition: 'all 0.25s ease',
+            }}
+          />
+          {/* Bottom dim */}
+          <div
+            style={{
+              position: 'fixed',
+              top: tourRect.top + tourRect.height + 6,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              background: 'rgba(15, 23, 42, 0.72)',
+              zIndex: 1000,
+              transition: 'all 0.25s ease',
+            }}
+          />
+          {/* Left dim */}
+          <div
+            style={{
+              position: 'fixed',
+              top: Math.max(0, tourRect.top - 6),
+              left: 0,
+              width: Math.max(0, tourRect.left - 6),
+              height: tourRect.height + 12,
+              background: 'rgba(15, 23, 42, 0.72)',
+              zIndex: 1000,
+              transition: 'all 0.25s ease',
+            }}
+          />
+          {/* Right dim */}
+          <div
+            style={{
+              position: 'fixed',
+              top: Math.max(0, tourRect.top - 6),
+              left: tourRect.left + tourRect.width + 6,
+              right: 0,
+              height: tourRect.height + 12,
+              background: 'rgba(15, 23, 42, 0.72)',
+              zIndex: 1000,
+              transition: 'all 0.25s ease',
+            }}
+          />
+          {/* Spotlight outline */}
+          <div
+            style={{
+              position: 'fixed',
+              top: tourRect.top - 6,
+              left: tourRect.left - 6,
+              width: tourRect.width + 12,
+              height: tourRect.height + 12,
+              borderRadius: 10,
+              boxShadow:
+                '0 0 0 2px rgba(255,255,255,0.45) inset, 0 0 24px rgba(41, 87, 255, 0.55)',
+              pointerEvents: 'none',
+              zIndex: 1001,
+              transition: 'all 0.25s ease',
+            }}
+          />
+          {/* Popover */}
+          <div
+            style={{
+              position: 'fixed',
+              ...popoverPositionFor(TOUR_STEPS[tourStep].placement, tourRect),
+              width: 300,
+              background: '#fff',
+              borderRadius: 10,
+              padding: '16px 18px 14px',
+              boxShadow:
+                '0 16px 40px rgba(0,0,0,0.35), 0 4px 12px rgba(0,0,0,0.15)',
+              zIndex: 1002,
+              transition: 'all 0.25s ease',
+            }}
+          >
+            <button
+              type="button"
+              onClick={closeTour}
+              aria-label="Close"
+              style={{
+                position: 'absolute',
+                top: 8,
+                right: 10,
+                width: 24,
+                height: 24,
+                border: 'none',
+                background: 'transparent',
+                color: '#94a3b8',
+                fontSize: 18,
+                cursor: 'pointer',
+                padding: 0,
+                lineHeight: 1,
+              }}
+            >
+              ×
+            </button>
+            <div
+              style={{
+                fontSize: 15,
+                fontWeight: 700,
+                color: '#0a2540',
+                marginBottom: 6,
+                paddingRight: 18,
+              }}
+            >
+              {TOUR_STEPS[tourStep].title}
+            </div>
+            <div
+              style={{
+                fontSize: 13,
+                color: '#475569',
+                lineHeight: 1.5,
+                marginBottom: 14,
+              }}
+            >
+              {TOUR_STEPS[tourStep].body}
+            </div>
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+              }}
+            >
+              <span style={{ fontSize: 12, color: '#64748b' }}>
+                Step {tourStep + 1} of {TOUR_STEPS.length}
+              </span>
+              <button
+                type="button"
+                onClick={advanceTour}
+                style={{
+                  padding: '7px 16px',
+                  background: '#2957FF',
+                  color: '#fff',
+                  border: 'none',
+                  borderRadius: 8,
+                  fontSize: 13,
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                }}
+              >
+                {isLastStep ? 'Got it' : 'Next →'}
+              </button>
+            </div>
+          </div>
+        </>
+      )}
 
       <style>{`
         @keyframes pulse {
