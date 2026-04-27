@@ -2,21 +2,30 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Carlito:wght@400;700&display=swap"
+      rel="stylesheet"
+    />
     <style>
       /* ── Reset ── */
       * {
         box-sizing: border-box;
         margin: 0;
         padding: 0;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
       }
       @page {
         size: A4;
-        margin: 12mm 15mm 10mm;
+        margin: 0;
       }
       body {
-        font-family: Calibri, 'Segoe UI', sans-serif;
-        font-size: 8.5pt;
-        line-height: 1.35;
+        font-family: Calibri, 'Carlito', 'Segoe UI', 'Helvetica Neue', Arial,
+          sans-serif;
+        font-size: 9.5pt;
+        line-height: 1.4;
         color: #1a1a1a;
       }
 
@@ -24,9 +33,12 @@
       .page {
         width: 100%;
         max-width: 794px;
+        min-height: 297mm;
         margin: 0 auto;
         padding: 10mm 15mm;
         page-break-after: always;
+        display: flex;
+        flex-direction: column;
       }
       .page.last {
         page-break-after: auto;
@@ -46,7 +58,7 @@
       .page-header {
         display: flex;
         justify-content: space-between;
-        font-size: 7pt;
+        font-size: 8pt;
         color: #5a5a6e;
         border-bottom: 1px solid #d0d0d0;
         padding-bottom: 2mm;
@@ -56,11 +68,26 @@
         display: flex;
         justify-content: space-between;
         align-items: center;
-        font-size: 7pt;
+        font-size: 8pt;
         color: #5a5a6e;
         border-top: 1px solid #d0d0d0;
         padding-top: 2mm;
-        margin-top: 4mm;
+        margin-top: auto;
+      }
+      @media print {
+        .page {
+          height: 297mm;
+          padding: 10mm 15mm 18mm;
+          position: relative;
+          overflow: hidden;
+        }
+        .page-footer {
+          position: absolute;
+          bottom: 10mm;
+          left: 15mm;
+          right: 15mm;
+          margin-top: 0;
+        }
       }
 
       /* ── Cover ── */
@@ -70,7 +97,7 @@
         margin-bottom: 5mm;
       }
       .cover-eyebrow {
-        font-size: 7pt;
+        font-size: 8pt;
         font-weight: bold;
         color: #4a90d9;
         letter-spacing: 1.5px;
@@ -83,7 +110,7 @@
         margin: 3mm 0;
       }
       .cover-headline {
-        font-size: 20pt;
+        font-size: 22pt;
         font-weight: bold;
         color: #fff;
         line-height: 1.15;
@@ -98,7 +125,7 @@
       .cover-meta-item {
       }
       .cover-meta-label {
-        font-size: 7pt;
+        font-size: 8pt;
         font-weight: bold;
         color: #4a90d9;
         letter-spacing: 1px;
@@ -106,49 +133,65 @@
         margin-bottom: 1mm;
       }
       .cover-meta-value {
-        font-size: 10pt;
+        font-size: 11pt;
         font-weight: bold;
         color: #fff;
       }
       .cover-meta-value.muted {
         color: #b0c0d0;
         font-weight: normal;
-        font-size: 9pt;
+        font-size: 10pt;
       }
 
-      /* ── KPI bar ── */
-      .kpi-bar {
+      /* ── KPI stat cards (matches Full Report cover) ── */
+      .stat-table {
         width: 100%;
-        border-collapse: collapse;
         margin-bottom: 3mm;
+        border-collapse: separate;
+        border-spacing: 5px;
       }
-      .kpi-cell {
-        padding: 3mm 4mm;
+      .stat-table td {
+        background: #fff;
+        border: none;
         border-top: 3px solid #003f87;
-        border-right: 1px solid #d0d0d0;
+        padding: 9px 11px;
         width: 25%;
         vertical-align: top;
       }
-      .kpi-cell.last {
-        border-right: none;
-      }
-      .kpi-val {
-        font-size: 15pt;
+      .stat-label {
+        font-size: 8pt;
+        text-transform: uppercase;
+        letter-spacing: 0.8px;
+        color: #94a3b8;
         font-weight: bold;
-        color: #003f87;
-        line-height: 1.1;
+        margin-bottom: 3px;
+        display: block;
       }
-      .kpi-lbl {
-        font-size: 7pt;
+      .stat-value {
+        font-size: 19pt;
+        font-weight: bold;
+        color: #1a1a1a;
+        line-height: 1.1;
+        display: block;
+      }
+      .stat-sub {
+        font-size: 8.5pt;
         color: #5a5a6e;
-        margin-top: 1mm;
+        margin-top: 2px;
+        display: block;
+      }
+      .accent {
+        color: #003f87;
+        font-weight: bold;
       }
 
       /* ── Panels ── */
       .insight-panel {
         display: flex;
-        margin: 2mm 0 3mm;
+        margin: 1.5mm 0 2mm;
         background: #f5f5f5;
+        page-break-inside: avoid;
+        break-inside: avoid;
       }
       .stripe {
         width: 4px;
@@ -157,7 +200,7 @@
       }
       .panel-content {
         padding: 2.5mm 3mm;
-        font-size: 8pt;
+        font-size: 9pt;
         color: #1a1a1a;
         flex: 1;
       }
@@ -168,38 +211,42 @@
 
       /* ── Section headings ── */
       h2 {
-        font-size: 8.5pt;
+        font-size: 10pt;
         font-weight: bold;
         color: #003f87;
         text-transform: uppercase;
         letter-spacing: 0.5px;
-        border-bottom: 1.5px solid #003f87;
-        padding-bottom: 1mm;
-        margin: 5mm 0 2mm;
+        border-bottom: 2.5px solid #003f87;
+        padding-bottom: 0.8mm;
+        margin: 3.5mm 0 1.5mm;
+        page-break-after: avoid;
+        break-after: avoid;
       }
       p {
-        margin-bottom: 2mm;
+        margin-bottom: 1.5mm;
       }
 
       /* ── Data tables ── */
       .data-table {
         width: 100%;
         border-collapse: collapse;
-        margin-bottom: 3mm;
-        font-size: 8pt;
+        margin-bottom: 2mm;
+        font-size: 9pt;
+        page-break-inside: avoid;
+        break-inside: avoid;
       }
       .data-table thead tr {
-        background: #0a1628;
+        background: #2d2d2d;
         color: #fff;
       }
       .data-table th {
-        padding: 2mm 2.5mm;
+        padding: 1.6mm 2.5mm;
         font-weight: bold;
         text-align: left;
-        font-size: 7.5pt;
+        font-size: 8.5pt;
       }
       .data-table td {
-        padding: 1.5mm 2.5mm;
+        padding: 1.2mm 2.5mm;
         border-bottom: 1px solid #d0d0d0;
         vertical-align: top;
       }
@@ -259,23 +306,30 @@
         </div>
       </div>
 
-      <table class="kpi-bar" data-section="financials">
+      <table class="stat-table">
         <tr>
-          <td class="kpi-cell">
-            <div class="kpi-val">{{$json.display.statHours}}</div>
-            <div class="kpi-lbl">Hours Returned / yr</div>
+          <td>
+            <span class="stat-label">Hours Returned / Year</span>
+            <span class="stat-value">{{$json.display.statHours}}</span>
+            <span class="stat-sub"
+              >{{$json.display.statHoursSub}} hrs/month ·
+              {{$json.display.statFTE}} FTE equiv.</span
+            >
           </td>
-          <td class="kpi-cell">
-            <div class="kpi-val">{{$json.display.statOD}}</div>
-            <div class="kpi-lbl">Operational Dividend</div>
+          <td>
+            <span class="stat-label">Operational Dividend (per year)</span>
+            <span class="stat-value">{{$json.display.statOD}}</span>
+            <span class="stat-sub">Labor value recaptured</span>
           </td>
-          <td class="kpi-cell">
-            <div class="kpi-val">{{$json.display.statPU}}</div>
-            <div class="kpi-lbl">Profit Uplift</div>
+          <td>
+            <span class="stat-label">Profit Uplift (per year)</span>
+            <span class="stat-value">{{$json.display.statPU}}</span>
+            <span class="stat-sub">Redirected capacity gains</span>
           </td>
-          <td class="kpi-cell last">
-            <div class="kpi-val">{{$json.display.statTF}}</div>
-            <div class="kpi-lbl">Total Financial Gain</div>
+          <td>
+            <span class="stat-label">Total Financial Gain (per year)</span>
+            <span class="stat-value accent">{{$json.display.statTF}}</span>
+            <span class="stat-sub">OD + Profit Uplift</span>
           </td>
         </tr>
       </table>
@@ -289,6 +343,10 @@
           stakeholder validation before decisions are made.
         </div>
       </div>
+
+      <!-- Case studies (same format as Full Report) -->
+      <h2>Results We've Delivered for Similar Companies</h2>
+      {{$json.display.caseStudiesHTML}}
 
       <div class="page-footer">
         <span>Prepared by LyRise AI | Confidential — not for distribution</span>
@@ -310,24 +368,33 @@
         <p>{{$json.display.unifiedPatternThesis}}</p>
       </div>
 
-      <div data-section="workflows">
-        <h2>Before vs. After AI</h2>
-        <table class="data-table">
-          <thead>
-            <tr>
-              <th>Workflow</th>
-              <th>Hrs/mo Now</th>
-              <th>Hrs/mo After AI</th>
-              <th>Hrs Saved/mo</th>
-              <th>Value/mo</th>
-              <th>AI Agent Deployed</th>
-            </tr>
-          </thead>
-          <tbody>
-            {{$json.display.bvaTableBodyCompact}}
-          </tbody>
-        </table>
+      <h2>Where the Operational Dividend Comes From</h2>
+      <div class="insight-panel">
+        <div class="stripe"></div>
+        <div class="panel-content">
+          <span class="panel-label">What is Operational Dividend?</span>
+          The dollar value of hours recaptured each month when AI takes over
+          high-volume, rules-based work currently consuming your team. The
+          table below contrasts hours spent today vs. after AI, then prices
+          the freed time at fully-loaded labor rates. Total Operational
+          Dividend: <strong>{{$json.display.statOD}} / yr</strong>
+        </div>
       </div>
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Workflow</th>
+            <th>Hrs/mo Now</th>
+            <th>Hrs/mo After AI</th>
+            <th>Hrs Saved/mo</th>
+            <th>Value/mo</th>
+            <th>AI Agent Deployed</th>
+          </tr>
+        </thead>
+        <tbody>
+          {{$json.display.bvaTableBodyCompact}}
+        </tbody>
+      </table>
 
       <div data-section="profit_levers">
         <h2>Where the Profit Uplift Comes From</h2>

@@ -74,10 +74,10 @@ function buildCaseStudiesHTML(): string {
       `<div style="font-size:7pt;text-transform:uppercase;letter-spacing:0.8px;color:#94a3b8;font-weight:bold;margin-bottom:2px">${esc(
         cs.industry,
       )}</div>` +
-      `<div style="font-size:10pt;font-weight:bold;color:#0a1628;margin-bottom:4px">${esc(
+      `<div style="font-size:10pt;font-weight:bold;color:#003f87;margin-bottom:4px">${esc(
         cs.client,
       )}</div>` +
-      `<div style="font-size:12pt;font-weight:bold;color:#003F87;margin-bottom:6px;padding-bottom:5px;border-bottom:1px solid #e2e8f0">${esc(
+      `<div style="font-size:12pt;font-weight:bold;color:#003f87;margin-bottom:6px;padding-bottom:5px;border-bottom:1px solid #e2e8f0">${esc(
         cs.headline,
       )}</div>` +
       cs.results
@@ -151,7 +151,7 @@ function buildCostOfDelayHTML(
     `<div class="insight-panel">` +
     `<div class="stripe"></div>` +
     `<div class="panel-content">` +
-    `<div style="font-size:18pt;font-weight:bold;color:#0a1628;line-height:1">${sym}${addCommas(
+    `<div style="font-size:18pt;font-weight:bold;color:#003f87;line-height:1">${sym}${addCommas(
       Math.round(monthlyCostRaw),
     )}<span style="font-size:9pt;font-weight:normal;color:#64748b"> / month</span></div>` +
     `<p style="font-size:8.5pt;color:#2d2d2d;margin-top:6px;line-height:1.5">${esc(
@@ -207,7 +207,7 @@ function buildNextStepsHTML(cta: string): string {
     `<div class="stripe"></div>` +
     `<div class="panel-content" style="font-size:9pt">` +
     `<p style="margin:0 0 6px">${esc(cta)}</p>` +
-    `<div style="font-size:8.5pt;color:#2957FF;font-weight:bold">Book: calendly.com/elena-lyrise/30min &nbsp;|&nbsp; elena@lyrise.ai</div>` +
+    `<div style="font-size:8.5pt;color:#003f87;font-weight:bold">Book: calendly.com/elena-lyrise/30min &nbsp;|&nbsp; elena@lyrise.ai</div>` +
     `</div></div>`
   )
 }
@@ -217,15 +217,15 @@ function buildOdVsPuPanelHTML(sym: string, od: number, pu: number): string {
     `<div class="insight-panel" style="margin-top:8px">` +
     `<div class="insight-stripe"></div>` +
     `<div class="insight-content">` +
-    `<div style="font-size:7pt;text-transform:uppercase;letter-spacing:0.8px;color:#2957FF;font-weight:bold;margin-bottom:6px">Understanding These Numbers</div>` +
+    `<div style="font-size:7pt;text-transform:uppercase;letter-spacing:0.8px;color:#003f87;font-weight:bold;margin-bottom:6px">Understanding These Numbers</div>` +
     `<div style="display:flex;gap:20px">` +
     `<div style="flex:1"><div style="font-size:7pt;text-transform:uppercase;color:#94a3b8;font-weight:bold">Operational Dividend</div>` +
-    `<div style="font-size:13pt;font-weight:bold;color:#0a1628">${sym}${addCommas(
+    `<div style="font-size:13pt;font-weight:bold;color:#003f87">${sym}${addCommas(
       od,
     )}</div>` +
     `<div style="font-size:8pt;color:#64748b;margin-top:2px">Direct labor value recaptured from freed hours — measurable on day one of full adoption</div></div>` +
     `<div style="flex:1"><div style="font-size:7pt;text-transform:uppercase;color:#94a3b8;font-weight:bold">Profit Uplift</div>` +
-    `<div style="font-size:13pt;font-weight:bold;color:#2957FF">${sym}${addCommas(
+    `<div style="font-size:13pt;font-weight:bold;color:#003f87">${sym}${addCommas(
       pu,
     )}</div>` +
     `<div style="font-size:8pt;color:#64748b;margin-top:2px">Downstream revenue and margin gains from redirecting recaptured capacity to higher-value activities</div></div>` +
@@ -258,7 +258,7 @@ function buildCalculationPanelHTML(
     `<div class="insight-panel" style="margin-top:6px">` +
     `<div class="insight-stripe"></div>` +
     `<div class="insight-content" style="font-size:8.5pt">` +
-    `<div style="font-size:7pt;text-transform:uppercase;letter-spacing:0.8px;color:#2957FF;font-weight:bold;margin-bottom:6px">How This Is Calculated</div>` +
+    `<div style="font-size:7pt;text-transform:uppercase;letter-spacing:0.8px;color:#003f87;font-weight:bold;margin-bottom:6px">How This Is Calculated</div>` +
     `<div style="margin-bottom:4px"><strong>Formula:</strong> Value recaptured/mo = Volume × (Before AI hrs − After AI hrs) × Rate (${sym}/hr)</div>` +
     `<div style="margin-bottom:4px"><strong>Worked example — ${esc(
       topWf.name,
@@ -404,7 +404,7 @@ function buildRoadmapTableBody(pilotWfName: string): string {
     .map(
       ([timeline, phase, activities]) =>
         `<tr>` +
-        `<td style="color:#2957FF;font-weight:bold;white-space:nowrap">${timeline}</td>` +
+        `<td style="color:#003f87;font-weight:bold;white-space:nowrap">${timeline}</td>` +
         `<td><strong>${phase}</strong></td>` +
         `<td>${activities}</td>` +
         `</tr>`,
@@ -577,7 +577,7 @@ export function assembleReport(state: ReportState): AssembleReportOutput {
           `</tr>`,
       )
       .join('') +
-    `<tr class="total-row"><td colspan="4"><strong>12-month incremental profit</strong></td><td class="accent"><strong>${sym}${fmt(
+    `<tr class="total-row"><td colspan="4"><strong>Annual incremental profit (per year)</strong></td><td class="accent"><strong>${sym}${fmt(
       s.profitUplift12mo,
     )}</strong></td></tr>`
 
@@ -592,6 +592,81 @@ export function assembleReport(state: ReportState): AssembleReportOutput {
         `</tr>`,
     )
     .join('')
+
+  // Master workflow table — consolidates As-Is + Before/After + Deploy
+  // (each workflow appears once with all relevant columns).
+  const workflowMasterTableBody =
+    merged
+      .map((wf) => {
+        const beforeHrs = (wf.minutesPerItemBefore / 60).toFixed(2)
+        const afterHrs = (wf.minutesPerItemAfter / 60).toFixed(2)
+        const monthlyValue = Math.round(wf.monthlyHours * wf.effectiveRate)
+        const srcClass =
+          wf.sourceType === 'user_stated'
+            ? 'badge-scraped'
+            : wf.sourceType === 'research_derived'
+            ? 'badge-scraped'
+            : 'badge-benchmarked'
+        const srcLabel =
+          wf.sourceType === 'user_stated'
+            ? 'User-stated'
+            : wf.sourceType === 'research_derived'
+            ? 'Scraped'
+            : 'Benchmarked'
+        const detailParts: string[] = []
+        if (wf.expectedOutcome) {
+          detailParts.push(
+            `<strong>Target outcome:</strong> ${esc(wf.expectedOutcome)}`,
+          )
+        }
+        if (wf.whyItMatters) {
+          detailParts.push(
+            `<strong>Why it fits:</strong> ${esc(wf.whyItMatters)}`,
+          )
+        }
+        const detailRow = detailParts.length
+          ? `<tr><td colspan="9" style="background:#f8fafc;font-size:8.5pt;color:#475569;padding:4px 8px;border-bottom:1px solid #e2e8f0">${detailParts.join(
+              ' &nbsp;·&nbsp; ',
+            )}</td></tr>`
+          : ''
+        return (
+          `<tr>` +
+          `<td>` +
+          `<strong>${esc(wf.name)}</strong> ` +
+          `<span class="${srcClass}">${srcLabel}</span>` +
+          (wf.owner
+            ? `<div style="font-size:7.5pt;color:#5a5a6e;margin-top:2px">${esc(
+                wf.owner,
+              )}</div>`
+            : '') +
+          `</td>` +
+          `<td style="text-align:center">${fmt(wf.monthlyVolume)}</td>` +
+          `<td style="text-align:center">${beforeHrs}</td>` +
+          `<td style="text-align:center">${afterHrs}</td>` +
+          `<td style="text-align:center">${fmt(wf.monthlyHours)}</td>` +
+          `<td>${sym}${fmt(wf.effectiveRate)}/hr</td>` +
+          `<td>${sym}${fmt(wf.monthlyCost)}</td>` +
+          `<td class="accent"><strong>${sym}${fmt(
+            monthlyValue,
+          )}</strong></td>` +
+          `<td class="accent"><strong>${esc(wf.agentName ?? '—')}</strong></td>` +
+          `</tr>` +
+          detailRow
+        )
+      })
+      .join('') +
+    `<tr class="total-row">` +
+    `<td colspan="4"><strong>Totals — across ${merged.length} workflow${
+      merged.length === 1 ? '' : 's'
+    }</strong></td>` +
+    `<td style="text-align:center"><strong>${fmt(
+      totalMonthlyHours,
+    )} hrs</strong></td>` +
+    `<td></td>` +
+    `<td><strong>${sym}${fmt(totalMonthlyCost)}</strong></td>` +
+    `<td class="accent"><strong>${sym}${fmt(totalValMo)}/mo</strong></td>` +
+    `<td></td>` +
+    `</tr>`
 
   const provenanceTableHTML =
     `<table><thead><tr>` +
@@ -691,7 +766,7 @@ export function assembleReport(state: ReportState): AssembleReportOutput {
           `<td style="text-align:center">${hrsBefore}</td>` +
           `<td style="text-align:center">${hrsAfter}</td>` +
           `<td style="text-align:center;font-weight:bold">${hrsSaved}</td>` +
-          `<td style="text-align:right;color:#003F87;font-weight:bold">${sym}${addCommas(
+          `<td style="text-align:right;color:#003f87;font-weight:bold">${sym}${addCommas(
             valMo,
           )}</td>` +
           `<td style="color:#5a5a6e">${esc(wf.agentName ?? '')}</td>` +
@@ -712,6 +787,12 @@ export function assembleReport(state: ReportState): AssembleReportOutput {
     `<td style="color:#fff;font-size:8pt">${fmt(
       s.totalAnnualHours,
     )} hrs/yr · ${(s.totalAnnualHours / 2000).toFixed(1)} FTE equiv.</td>` +
+    `</tr>` +
+    `<tr class="total-row">` +
+    `<td colspan="4" style="color:#fff;font-weight:bold;font-size:8.5pt">Total Operational Dividend (per year)</td>` +
+    `<td colspan="2" style="color:#aad0ff;font-weight:bold;font-size:9.5pt">${sym}${addCommas(
+      s.operationalDividend12mo,
+    )} / yr · value of hours recaptured</td>` +
     `</tr>`
 
   // Profit uplift logic table (exec template)
@@ -720,7 +801,7 @@ export function assembleReport(state: ReportState): AssembleReportOutput {
       .map(
         (l) =>
           `<tr>` +
-          `<td style="color:#003F87;font-weight:bold;vertical-align:top;width:22%">${esc(
+          `<td style="color:#003f87;font-weight:bold;vertical-align:top;width:22%">${esc(
             l.derived_from,
           )}</td>` +
           `<td style="font-style:italic;vertical-align:top;width:22%;font-size:8.5pt">${esc(
@@ -745,9 +826,9 @@ export function assembleReport(state: ReportState): AssembleReportOutput {
     currencyCode: globals.currency.code,
     currencySymbol: sym,
     workflowCount: String(merged.length),
-    coverHeadline: `${fmt(s.totalAnnualHours)} hrs/yr & ${short(
+    coverHeadline: `${fmt(s.totalAnnualHours)} hrs/year & ${short(
       tf12,
-    )} total financial gain — 12-month conservative estimate`,
+    )} total financial gain per year (conservative estimate)`,
     statHours: fmt(s.totalAnnualHours),
     statHoursSub: fmt(totalMonthlyHours),
     statOD: short(s.operationalDividend12mo),
@@ -784,6 +865,7 @@ export function assembleReport(state: ReportState): AssembleReportOutput {
     bvaTableBody,
     profitLeversBody,
     deployTableBody,
+    workflowMasterTableBody,
     provenanceTableHTML,
     cta:
       copy.cta_paragraph ||

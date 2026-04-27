@@ -2,97 +2,124 @@
 <html>
   <head>
     <meta charset="UTF-8" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Carlito:wght@400;700&display=swap"
+      rel="stylesheet"
+    />
     <style>
       * {
         box-sizing: border-box;
         margin: 0;
         padding: 0;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+      }
+      @page {
+        size: A4;
+        margin: 0;
       }
       body {
-        font-family: 'Helvetica Neue', Arial, Helvetica, sans-serif;
-        font-size: 9.5pt;
+        font-family: Calibri, 'Carlito', 'Segoe UI', 'Helvetica Neue', Arial,
+          sans-serif;
+        font-size: 10.5pt;
         color: #1a1a1a;
-        line-height: 1.55;
-        background: #fff;
+        line-height: 1.4;
       }
       .page {
-        width: 210mm;
-        padding: 12mm 15mm 10mm;
+        width: 100%;
+        max-width: 794px;
+        min-height: 297mm;
+        padding: 10mm 15mm;
         margin: 0 auto;
         page-break-after: always;
+        display: flex;
+        flex-direction: column;
       }
       .page.last {
         page-break-after: auto;
       }
+      @media screen {
+        body {
+          background: #f1f5f9;
+        }
+        .page {
+          background: #fff;
+          margin: 12px auto;
+          box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+        }
+      }
       .top-bar {
         height: 4px;
-        background: #2957ff;
+        background: #003f87;
         margin-bottom: 10px;
       }
       h2 {
-        font-size: 11pt;
+        font-size: 12.5pt;
         font-weight: bold;
-        color: #1a1a1a;
-        border-bottom: 2px solid #2957ff;
-        padding-bottom: 4px;
-        margin-bottom: 6px;
-        margin-top: 10px;
+        color: #003f87;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        border-bottom: 2.5px solid #003f87;
+        padding-bottom: 1mm;
+        margin: 5mm 0 2mm;
       }
       h2:first-child {
         margin-top: 0;
       }
       h3 {
-        font-size: 10pt;
+        font-size: 11pt;
         font-weight: bold;
         color: #2d2d2d;
         margin-bottom: 4px;
       }
       p {
-        font-size: 9.5pt;
+        font-size: 10.5pt;
         margin-bottom: 5px;
         color: #2d2d2d;
       }
       .accent {
-        color: #2957ff;
+        color: #003f87;
         font-weight: bold;
       }
       .muted {
         color: #5a5a6e;
-        font-size: 8.5pt;
+        font-size: 9pt;
       }
 
       /* Tables — horizontal borders only (McKinsey standard) */
       table {
         width: 100%;
         border-collapse: collapse;
-        font-size: 9pt;
+        font-size: 10pt;
         margin-bottom: 4px;
         page-break-inside: avoid;
       }
       th {
-        background: #2957ff;
+        background: #2d2d2d;
         color: #fff;
         font-weight: bold;
-        font-size: 7.5pt;
+        font-size: 8.5pt;
         text-transform: uppercase;
         letter-spacing: 0.3px;
         padding: 5px 7px;
         border: none;
-        border-bottom: 2px solid #2957ff;
+        border-bottom: 2px solid #2d2d2d;
         text-align: left;
       }
       td {
         padding: 4px 7px;
         border: none;
-        border-bottom: 1px solid #e2e8f0;
+        border-bottom: 1px solid #d0d0d0;
         vertical-align: top;
       }
       tr:nth-child(even) td {
-        background: #f9fafb;
+        background: #ebf0f8;
       }
       .total-row td {
-        border-top: 2px solid #2957ff;
-        background: #eef2ff !important;
+        background: #2d2d2d !important;
+        color: #fff !important;
         font-weight: bold;
       }
       .note {
@@ -105,7 +132,7 @@
         font-style: italic;
       }
       .footer {
-        margin-top: 8px;
+        margin-top: auto;
         padding-top: 6px;
         border-top: 1px solid #e2e8f0;
         font-size: 7.5pt;
@@ -115,27 +142,31 @@
         align-items: center;
       }
       .footer a {
-        color: #2957ff;
+        color: #003f87;
         text-decoration: none;
         font-weight: bold;
       }
 
-      /* Insight panel (LyRise-adapted McKinsey pattern) */
+      /* Insight panel (matches Executive Summary) */
       .insight-panel {
         display: flex;
-        border: 1px solid #e2e8f0;
-        margin-bottom: 8px;
-        border-radius: 2px;
+        margin: 2mm 0 3mm;
+        background: #f5f5f5;
       }
       .insight-stripe {
         width: 4px;
-        background: #2957ff;
+        background: #003f87;
         flex-shrink: 0;
-        border-radius: 2px 0 0 2px;
       }
       .insight-content {
-        padding: 8px 12px;
+        padding: 2.5mm 3mm;
+        font-size: 9.5pt;
+        color: #1a1a1a;
         flex: 1;
+      }
+      .panel-label {
+        font-weight: bold;
+        color: #003f87;
       }
 
       /* Source badges */
@@ -219,14 +250,15 @@
         border-spacing: 5px;
       }
       .stat-table td {
-        background: #f8fafc;
-        border: 1px solid #e2e8f0;
+        background: #fff;
+        border: none;
+        border-top: 3px solid #003f87;
         padding: 9px 11px;
         width: 25%;
         vertical-align: top;
       }
       .stat-label {
-        font-size: 7pt;
+        font-size: 8pt;
         text-transform: uppercase;
         letter-spacing: 0.8px;
         color: #94a3b8;
@@ -235,14 +267,14 @@
         display: block;
       }
       .stat-value {
-        font-size: 17pt;
+        font-size: 20pt;
         font-weight: bold;
         color: #1a1a1a;
         line-height: 1.1;
         display: block;
       }
       .stat-sub {
-        font-size: 7.5pt;
+        font-size: 8.5pt;
         color: #5a5a6e;
         margin-top: 2px;
         display: block;
@@ -250,10 +282,10 @@
 
       /* Cover panel (dark navy bleed) */
       .cover-panel {
-        background: #0f1e3d;
-        margin: -12mm -15mm 12mm;
+        background: #0a1628;
+        margin: -10mm -15mm 12mm;
         padding: 18mm 15mm 14mm;
-        border-bottom: 4px solid #2957ff;
+        border-bottom: 4px solid #4a90d9;
       }
       .cover-panel-eyebrow {
         font-size: 7pt;
@@ -271,7 +303,7 @@
       }
       .cover-panel-subtitle {
         font-size: 13pt;
-        color: #2957ff;
+        color: #4a90d9;
         font-weight: bold;
         margin-bottom: 14px;
       }
@@ -306,7 +338,7 @@
       /* Feature tiles (About LyRise) */
       .feature-tile {
         background: #eef2ff;
-        border: 1px solid #2957ff;
+        border: 1.5px solid #003f87;
         padding: 7px 10px;
         width: 33%;
         vertical-align: top;
@@ -314,7 +346,7 @@
       .feature-tile-label {
         font-size: 7pt;
         text-transform: uppercase;
-        color: #2957ff;
+        color: #003f87;
         font-weight: bold;
         margin-bottom: 2px;
       }
@@ -344,7 +376,7 @@
         content: '>';
         position: absolute;
         left: 0;
-        color: #2957ff;
+        color: #003f87;
         font-weight: bold;
       }
       .scope-list li:last-child {
@@ -372,7 +404,7 @@
       .roadmap-phase {
         display: inline-block;
         background: #eef2ff;
-        border: 1px solid #2957ff;
+        border: 1.5px solid #003f87;
         border-radius: 4px;
         padding: 6px 10px;
         margin: 3px;
@@ -384,7 +416,7 @@
       .roadmap-label {
         font-size: 7pt;
         text-transform: uppercase;
-        color: #2957ff;
+        color: #003f87;
         font-weight: bold;
       }
 
@@ -442,17 +474,17 @@
             >
           </td>
           <td>
-            <span class="stat-label">Operational Dividend (12 mo)</span>
+            <span class="stat-label">Operational Dividend (per year)</span>
             <span class="stat-value">{{$json.display.statOD}}</span>
             <span class="stat-sub">Labor value recaptured</span>
           </td>
           <td>
-            <span class="stat-label">Profit Uplift (12 mo)</span>
+            <span class="stat-label">Profit Uplift (per year)</span>
             <span class="stat-value">{{$json.display.statPU}}</span>
             <span class="stat-sub">Redirected capacity gains</span>
           </td>
           <td>
-            <span class="stat-label">Total Financial Gain (12 mo)</span>
+            <span class="stat-label">Total Financial Gain (per year)</span>
             <span class="stat-value accent">{{$json.display.statTF}}</span>
             <span class="stat-sub">OD + Profit Uplift</span>
           </td>
@@ -550,7 +582,7 @@
               style="
                 font-size: 7pt;
                 text-transform: uppercase;
-                color: #2957ff;
+                color: #003f87;
                 font-weight: bold;
                 letter-spacing: 0.8px;
                 margin-bottom: 4px;
@@ -567,13 +599,13 @@
               style="
                 font-size: 7pt;
                 text-transform: uppercase;
-                color: #2957ff;
+                color: #003f87;
                 font-weight: bold;
                 letter-spacing: 0.8px;
                 margin-bottom: 4px;
               "
             >
-              12-Month Financial Impact
+              Annual Financial Impact (per year)
             </div>
             <ul class="outcomes">
               <li>
@@ -650,27 +682,31 @@
         </tbody>
       </table>
 
-      <!-- As-Is Baseline -->
-      <h2>As-Is Baseline — Current State</h2>
+      <!-- Proposed AI Workflows — Master Table (consolidates baseline,
+           before/after, and deploy data into a single view) -->
+      <h2>Proposed AI Workflows</h2>
       <p class="muted" style="margin-bottom: 4px">
-        Monthly run-cost of the {{$json.display.workflowCount}} identified
-        workflows before automation.
+        The {{$json.display.workflowCount}} workflows we'd automate — current
+        baseline cost, post-AI hours, value recaptured per month, and the
+        agent we would deploy. Target outcomes and rationale appear under each
+        workflow's row.
       </p>
       <table>
         <thead>
           <tr>
-            <th style="width: 20%">Workflow</th>
-            <th style="width: 12%">Owner / Function</th>
-            <th style="width: 9%; text-align: center">Volume/mo</th>
-            <th style="width: 10%; text-align: center">Time/Run</th>
-            <th style="width: 10%">Rate</th>
-            <th style="width: 10%">Cost/Run</th>
-            <th style="width: 11%">Monthly Cost</th>
-            <th style="width: 10%">Source</th>
+            <th style="width: 22%">Workflow</th>
+            <th style="width: 7%; text-align: center">Vol/mo</th>
+            <th style="width: 8%; text-align: center">Before AI (hrs)</th>
+            <th style="width: 8%; text-align: center">After AI (hrs)</th>
+            <th style="width: 8%; text-align: center">Hrs Saved/mo</th>
+            <th style="width: 9%">Rate</th>
+            <th style="width: 10%">Monthly Cost</th>
+            <th style="width: 13%">Value Recaptured/mo</th>
+            <th style="width: 15%">AI Agent</th>
           </tr>
         </thead>
         <tbody>
-          {{$json.display.asisTableBody}}
+          {{$json.display.workflowMasterTableBody}}
         </tbody>
       </table>
 
@@ -684,30 +720,10 @@
     </div>
 
     <!-- ══════════════════════════════════════════════════════════════════════ -->
-    <!-- PAGE 4 — Before/After AI + Profit Uplift                              -->
+    <!-- PAGE 4 — Profit Uplift Analysis                                        -->
     <!-- ══════════════════════════════════════════════════════════════════════ -->
     <div class="page">
       <div class="top-bar"></div>
-
-      <!-- Before/After AI -->
-      <h2 data-section="workflows">Before vs. After AI Automation</h2>
-      <table>
-        <thead>
-          <tr>
-            <th style="width: 20%">Workflow</th>
-            <th style="width: 8%; text-align: center">Vol/mo</th>
-            <th style="width: 10%; text-align: center">Before AI (hrs)</th>
-            <th style="width: 10%; text-align: center">After AI (hrs)</th>
-            <th style="width: 10%; text-align: center">Saved (hrs)</th>
-            <th style="width: 10%; text-align: center">Hrs Saved/mo</th>
-            <th style="width: 10%">Rate {{$json.display.currencySymbol}}/hr</th>
-            <th style="width: 14%">Value Recaptured/mo</th>
-          </tr>
-        </thead>
-        <tbody>
-          {{$json.display.bvaTableBody}}
-        </tbody>
-      </table>
 
       <!-- Calculation transparency panel (Rule 6C) -->
       {{$json.display.calculationPanelHTML}}
@@ -752,20 +768,20 @@
       <div class="top-bar"></div>
 
       <!-- Total Financial Case -->
-      <h2 data-section="financials">Total Financial Case — 3-Year Projection</h2>
+      <h2>Total Financial Case — 3-Year Projection (cumulative totals)</h2>
       <table>
         <thead>
           <tr>
             <th style="width: 20%">Horizon</th>
-            <th style="width: 20%">Hours Returned</th>
-            <th style="width: 20%">Operational Dividend</th>
-            <th style="width: 20%">Profit Uplift</th>
-            <th style="width: 20%">Total Financial Gain</th>
+            <th style="width: 20%">Hours Returned (cumulative)</th>
+            <th style="width: 20%">Operational Dividend (cumulative)</th>
+            <th style="width: 20%">Profit Uplift (cumulative)</th>
+            <th style="width: 20%">Total Financial Gain (cumulative)</th>
           </tr>
         </thead>
         <tbody>
           <tr>
-            <td><strong>Year 1</strong></td>
+            <td><strong>Year 1 total</strong></td>
             <td>
               {{$json.display.totalAnnualHours}} hrs (~{{$json.display.statFTE}}
               FTEs)
@@ -775,14 +791,14 @@
             <td><strong class="accent">{{$json.display.tf12}}</strong></td>
           </tr>
           <tr>
-            <td><strong>Year 2</strong></td>
+            <td><strong>Through Year 2 total</strong></td>
             <td>{{$json.display.hrs24}} hrs</td>
             <td>{{$json.display.od24}}</td>
             <td>{{$json.display.pu24}}</td>
             <td><strong class="accent">{{$json.display.tf24}}</strong></td>
           </tr>
           <tr>
-            <td><strong>Year 3</strong></td>
+            <td><strong>Through Year 3 total</strong></td>
             <td>{{$json.display.hrs36}} hrs</td>
             <td>{{$json.display.od36}}</td>
             <td>{{$json.display.pu36}}</td>
@@ -791,9 +807,9 @@
         </tbody>
       </table>
       <p class="note">
-        Projections assume consistent adoption and compounding improvement. Year
-        2–3 figures apply a growth factor of 2.15× and 3.40× respectively to
-        reflect ramp-up and process maturity.
+        Cumulative totals — each row shows the running total from launch through
+        the end of that year. Year 2–3 figures apply a growth factor of 2.15×
+        and 3.40× respectively to reflect ramp-up and process maturity.
       </p>
 
       <!-- Cost of Delay (KR-18) -->
@@ -818,43 +834,21 @@
     </div>
 
     <!-- ══════════════════════════════════════════════════════════════════════ -->
-    <!-- PAGE 6 — What We'd Deploy + Data Provenance                           -->
+    <!-- PAGE 6 — Recommended Starting Point + Data Provenance                  -->
     <!-- ══════════════════════════════════════════════════════════════════════ -->
     <div class="page">
       <div class="top-bar"></div>
 
-      <!-- What We'd Deploy (WD-1) -->
-      <h2 data-section="pilot">What We'd Deploy</h2>
-      <table>
-        <thead>
-          <tr>
-            <th style="width: 18%">Workflow</th>
-            <th style="width: 24%">Target Outcome</th>
-            <th style="width: 20%">AI Agent / Capability</th>
-            <th style="width: 38%">Why It Fits This Business</th>
-          </tr>
-        </thead>
-        <tbody>
-          {{$json.display.deployTableBody}}
-        </tbody>
-      </table>
-
-      <!-- Pilot recommendation (WD-1) -->
+      <!-- Pilot recommendation (workflow agent details now live in the
+           consolidated Proposed AI Workflows table on page 3) -->
+      <h2>Recommended Starting Point</h2>
+      <p class="muted" style="margin-bottom: 6px">
+        Of the workflows on page 3, the one we'd recommend leading with — and
+        why it makes the strongest pilot.
+      </p>
       <div class="insight-panel" style="margin-top: 6px">
         <div class="insight-stripe"></div>
         <div class="insight-content">
-          <div
-            style="
-              font-size: 7pt;
-              text-transform: uppercase;
-              letter-spacing: 0.8px;
-              color: #2957ff;
-              font-weight: bold;
-              margin-bottom: 4px;
-            "
-          >
-            Recommended Starting Point
-          </div>
           <p style="font-size: 9pt; margin: 0; color: #2d2d2d">
             {{$json.display.pilotRecommendation}}
           </p>
@@ -940,7 +934,7 @@
           <td
             style="
               background: #eef2ff;
-              border: 1px solid #2957ff;
+              border: 1.5px solid #003f87;
               padding: 10px 14px;
               width: 50%;
               vertical-align: top;
@@ -950,7 +944,7 @@
               style="
                 font-size: 7pt;
                 text-transform: uppercase;
-                color: #2957ff;
+                color: #003f87;
                 font-weight: bold;
                 letter-spacing: 0.8px;
                 margin-bottom: 4px;
@@ -969,7 +963,7 @@
               Elena Easton
             </div>
             <div style="font-size: 9pt; color: #5a5a6e">Head of Operations</div>
-            <div style="font-size: 9pt; color: #2957ff; margin-top: 4px">
+            <div style="font-size: 9pt; color: #003f87; margin-top: 4px">
               elena@lyrise.ai
             </div>
           </td>
@@ -996,7 +990,7 @@
             </div>
             <div style="font-size: 9pt; color: #1a1a1a; margin-bottom: 4px">
               <strong>Website:</strong>
-              <span style="color: #2957ff">lyrise.ai</span>
+              <span style="color: #003f87">lyrise.ai</span>
             </div>
             <div style="font-size: 9pt; color: #1a1a1a; margin-bottom: 4px">
               <strong>LinkedIn:</strong> linkedin.com/company/lyrise-ai
