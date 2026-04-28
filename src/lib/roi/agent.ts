@@ -86,6 +86,50 @@ function reAssemble(
   callbacks.onReportUpdate(state, changedSections)
 }
 
+function ensureEvidenceItems(state: ReportState) {
+  if (!Array.isArray(state.evidenceItems)) {
+    state.evidenceItems = []
+  }
+  return state.evidenceItems
+}
+
+function mapWorkflowSourceTypeToEvidenceSource(
+  sourceType: WorkflowInput['sourceType'],
+): 'scraped' | 'benchmarked' | 'assumed' {
+  if (sourceType === 'research_derived') return 'scraped'
+  if (sourceType === 'user_stated') return 'assumed'
+  return 'benchmarked'
+}
+
+function addEvidence(
+  state: ReportState,
+  item: {
+    kind:
+      | 'search_result'
+      | 'search_answer'
+      | 'page_content'
+      | 'research_summary'
+      | 'workflow_signal'
+      | 'company_fact'
+      | 'unknown'
+    url?: string | null
+    title?: string | null
+    query?: string | null
+    snippet?: string | null
+    content?: string | null
+    sourceType?: 'scraped' | 'benchmarked' | 'assumed' | null
+    confidence?: 'high' | 'medium' | 'low' | null
+    facts?: Record<string, unknown>
+    usedInSections?: string[]
+  },
+) {
+  const evidenceItems = ensureEvidenceItems(state)
+  evidenceItems.push({
+    ...item,
+    createdAt: new Date().toISOString(),
+  })
+}
+
 // ── Tool definitions ──────────────────────────────────────────────────────────
 
 function buildTools(
@@ -114,7 +158,31 @@ function buildTools(
         query: string
         maxResults?: number
       }) => {
-        return webSearch(query, maxResults ?? 3)
+        const response = await webSearch(query, maxResults ?? 3)
+
+        if (response.answer) {
+          addEvidence(state, {
+            kind: 'search_answer',
+            query,
+            snippet: response.answer,
+            sourceType: 'benchmarked',
+            usedInSections: ['research'],
+          })
+        }
+
+        ;(response.results ?? []).forEach((result) => {
+          addEvidence(state, {
+            kind: 'search_result',
+            query,
+            url: result.url,
+            title: result.title,
+            snippet: result.content,
+            sourceType: result.url ? 'scraped' : 'benchmarked',
+            usedInSections: ['research'],
+          })
+        })
+
+        return response
       },
     }),
 
@@ -125,7 +193,17 @@ function buildTools(
         url: z.string().describe('The URL to fetch'),
       }),
       execute: async ({ url }: { url: string }) => {
-        return fetchPage(url)
+        const content = await fetchPage(url)
+        addEvidence(state, {
+          kind: 'page_content',
+          url,
+          title: url,
+          content,
+          snippet: content.slice(0, 1200),
+          sourceType: 'scraped',
+          usedInSections: ['research'],
+        })
+        return content
       },
     }),
 
@@ -227,8 +305,67 @@ function buildTools(
           rateOverride: null,
           rationale: w.volumeRationale ?? '',
         }))
+        state.painPoints = input.pain_points
+        state.researchSummary = input.researchSummary ?? null
         state.confidenceLevel = input.confidenceLevel
         state.coreThesis = input.coreThesis
+
+        if (input.researchSummary) {
+          addEvidence(state, {
+            kind: 'research_summary',
+            snippet: input.researchSummary,
+            sourceType:
+              input.confidenceLevel === 'high' ? 'scraped' : 'benchmarked',
+            confidence: input.confidenceLevel,
+            usedInSections: ['research', 'thesis'],
+          })
+        }
+
+        ;[
+          cp.primaryFocus
+            ? { title: 'Primary focus', value: cp.primaryFocus }
+            : null,
+          cp.employees != null
+            ? { title: 'Employee count', value: cp.employees }
+            : null,
+          cp.revenueEstimateM != null
+            ? { title: 'Revenue estimate (M)', value: cp.revenueEstimateM }
+            : null,
+          cp.country ? { title: 'Country', value: cp.country } : null,
+        ]
+          .filter(Boolean)
+          .forEach((fact) => {
+            addEvidence(state, {
+              kind: 'company_fact',
+              title: fact!.title,
+              snippet: String(fact!.value),
+              sourceType:
+                input.confidenceLevel === 'high' ? 'scraped' : 'benchmarked',
+              confidence: input.confidenceLevel,
+              facts: { key: fact!.title, value: fact!.value },
+              usedInSections: ['research'],
+            })
+          })
+
+        input.workflows.forEach((workflow) => {
+          addEvidence(state, {
+            kind: 'workflow_signal',
+            title: workflow.name,
+            snippet: workflow.whyItMatters,
+            sourceType: mapWorkflowSourceTypeToEvidenceSource(
+              workflow.sourceType,
+            ),
+            confidence: input.confidenceLevel,
+            facts: {
+              monthlyVolume: workflow.monthlyVolume ?? null,
+              minutesPerItemBefore: workflow.minutesPerItemBefore ?? null,
+              minutesPerItemAfter: workflow.minutesPerItemAfter ?? null,
+              rationale: workflow.volumeRationale ?? '',
+            },
+            usedInSections: ['workflows', 'financials'],
+          })
+        })
+
         return { ok: true, workflows: state.workflows.map((w) => w.name) }
       },
     }),
@@ -287,13 +424,27 @@ function buildTools(
           const modelerOut = result.object as ModelerResult
 
           // Currencies whose official symbols are non-Latin script — always use the ISO code instead
-          const SCRIPT_SYMBOL_CODES = new Set(['SAR', 'AED', 'QAR', 'KWD', 'BHD', 'OMR', 'EGP', 'JOD', 'IQD', 'LBP', 'IRR', 'YER'])
+          const SCRIPT_SYMBOL_CODES = new Set([
+            'SAR',
+            'AED',
+            'QAR',
+            'KWD',
+            'BHD',
+            'OMR',
+            'EGP',
+            'JOD',
+            'IQD',
+            'LBP',
+            'IRR',
+            'YER',
+          ])
           const rawCurrencySym = modelerOut.currency.symbol
           // eslint-disable-next-line no-control-regex
           const hasNonAscii = /[^\x00-\x7F]/.test(rawCurrencySym)
-          const cleanSym = SCRIPT_SYMBOL_CODES.has(modelerOut.currency.code) || hasNonAscii
-            ? modelerOut.currency.code
-            : rawCurrencySym
+          const cleanSym =
+            SCRIPT_SYMBOL_CODES.has(modelerOut.currency.code) || hasNonAscii
+              ? modelerOut.currency.code
+              : rawCurrencySym
           globals = {
             laborRate: modelerOut.labor.fullyLoadedHourlyCost,
             implementationCost: modelerOut.costs.implementationCost,
@@ -303,9 +454,10 @@ function buildTools(
             workWeeksPerYear: modelerOut.labor.workWeeksPerYear,
             currency: {
               ...modelerOut.currency,
-              symbol: cleanSym.length > 1 && !cleanSym.endsWith(' ')
-                ? cleanSym + ' '
-                : cleanSym,
+              symbol:
+                cleanSym.length > 1 && !cleanSym.endsWith(' ')
+                  ? cleanSym + ' '
+                  : cleanSym,
             },
           }
 
@@ -488,7 +640,11 @@ function buildTools(
       execute: async (copy: ReportCopy) => {
         state.copy = copy
         reAssemble(state, execTemplateHtml, fullTemplateHtml, callbacks, [
-          'thesis', 'workflows', 'profit_levers', 'cost_of_delay', 'cta',
+          'thesis',
+          'workflows',
+          'profit_levers',
+          'cost_of_delay',
+          'cta',
         ])
         return { ok: true }
       },
@@ -626,7 +782,13 @@ function buildTools(
           .filter((k) => patches[k as keyof typeof patches] !== undefined)
           .map((k) => COPY_TO_SECTION[k])
           .filter(Boolean)
-        reAssemble(state, execTemplateHtml, fullTemplateHtml, callbacks, changedSections)
+        reAssemble(
+          state,
+          execTemplateHtml,
+          fullTemplateHtml,
+          callbacks,
+          changedSections,
+        )
         return { ok: true, updated_sections: changedSections }
       },
     }),
@@ -699,7 +861,10 @@ function buildTools(
                 }),
               },
         )
-        reAssemble(state, execTemplateHtml, fullTemplateHtml, callbacks, ['workflows', 'financials'])
+        reAssemble(state, execTemplateHtml, fullTemplateHtml, callbacks, [
+          'workflows',
+          'financials',
+        ])
         const s = state.calcOutput?.summary
         return {
           ok: true,
@@ -781,7 +946,10 @@ function buildTools(
             'Added via chat — defaults applied. Use update_workflow to refine.',
         }
         state.workflows = [...state.workflows, newWorkflow]
-        reAssemble(state, execTemplateHtml, fullTemplateHtml, callbacks, ['workflows', 'financials'])
+        reAssemble(state, execTemplateHtml, fullTemplateHtml, callbacks, [
+          'workflows',
+          'financials',
+        ])
         return { ok: true, workflow_count: state.workflows.length }
       },
     }),
@@ -793,7 +961,10 @@ function buildTools(
       execute: async ({ workflowName }: { workflowName: string }) => {
         if (!state.workflows) return { error: 'No workflows' }
         state.workflows = state.workflows.filter((w) => w.name !== workflowName)
-        reAssemble(state, execTemplateHtml, fullTemplateHtml, callbacks, ['workflows', 'financials'])
+        reAssemble(state, execTemplateHtml, fullTemplateHtml, callbacks, [
+          'workflows',
+          'financials',
+        ])
         return { ok: true, workflow_count: state.workflows.length }
       },
     }),
@@ -839,7 +1010,9 @@ function buildTools(
             revenueEstimateM: state.company.revenueEstimateM * multiplier,
           }
         }
-        reAssemble(state, execTemplateHtml, fullTemplateHtml, callbacks, ['financials'])
+        reAssemble(state, execTemplateHtml, fullTemplateHtml, callbacks, [
+          'financials',
+        ])
         return { ok: true, multiplier }
       },
     }),
@@ -886,7 +1059,9 @@ function buildTools(
         if (state.globals) state.globals = { ...state.globals, currency }
         if (state.normInput)
           state.normInput = { ...state.normInput, selectedCurrency: code }
-        reAssemble(state, execTemplateHtml, fullTemplateHtml, callbacks, ['financials'])
+        reAssemble(state, execTemplateHtml, fullTemplateHtml, callbacks, [
+          'financials',
+        ])
         return { ok: true, currency }
       },
     }),
@@ -942,7 +1117,9 @@ function buildTools(
             realizationFactor: patches.realizationFactor,
           }),
         }
-        reAssemble(state, execTemplateHtml, fullTemplateHtml, callbacks, ['financials'])
+        reAssemble(state, execTemplateHtml, fullTemplateHtml, callbacks, [
+          'financials',
+        ])
         const s = state.calcOutput?.summary
         return {
           ok: true,
@@ -1004,14 +1181,18 @@ PHASE 2 — Multi-Vector Intelligence Gathering. Research in this sequence:
 4. If a recipient name is provided: web_search("{name} {company} site:linkedin.com/in") and fetch_page their profile
 5. Search for financial/industry signals: web_search("{company} {industry} revenue employees {year}")
 Narrate your findings to the user as you go. Flag confidence levels.
+If you find any concrete company signal (practice area, product line, geography, client type, transaction volume, headcount, tool stack, or regulatory context), you MUST use it to shape workflow selection and workflow rationales.
 
 PHASE 3 — Confidence Assessment: declare "high" (most data scraped) or "low" (mostly benchmarked/assumed). Derive revenue from headcount × industry avg if not found directly.
 
 PHASE 4 — Critical Thinking Nexus: produce ONE Core Operational Thesis: "[Main bottleneck] + [Highest-value automation opportunity]"
 
 PHASE 5 — Thesis-Driven Workflow Prioritization: select 4 workflows. Rule 6A: assign per-workflow rates from named benchmarks (Gulf Talent, Bayt.com, Robert Half, LinkedIn Salary Insights, Glassdoor).
+At least 2 workflows MUST be research-derived whenever public company signals are available. Avoid generic back-office workflows unless they are clearly tied to observed company operations.
 
 PHASE 6 — Quantitative Dossier: baseline + automation impact + source type for each workflow.
+
+In set_research_output, every workflow's whyItMatters must mention a concrete company or industry signal, and every workflow's volumeRationale must explain where the volume came from.
 
 After phases 1–6, call tools in order:
   set_research_output(…) → run_financial_model() → set_report_copy(…)
