@@ -6,10 +6,11 @@ Refactor the ROI system to produce company-specific, evidence-grounded reports t
 ## Locked Decisions
 - Backend foundation: Supabase
 - Export format: PDF only
-- Auth model: guest magic links + optional account creation
+- Auth model target: guest magic links + optional account creation
 - Existing strong Claude reports: evaluation gold set first, not full-report RAG
 - Keep current intake/UI working during early backend refactor
 - Keep legacy NextAuth untouched for non-ROI site flows
+- Current runtime reality: ROI is authenticated-only today; guest access is still a future milestone
 
 ## Current Baseline
 The branch now already includes a meaningful amount of ROI product infrastructure:
@@ -39,12 +40,50 @@ The branch now already includes a meaningful amount of ROI product infrastructur
   - `public/roi-exec-template.html`
 - PDF download route already exists:
   - `pages/api/roi-pdf.js`
+- Current eval harness is not yet present in this checked-out branch; it exists only in the paused stash and must be restored explicitly
+
+## Current Runtime Architecture
+- Authenticated ROI flow runs on Supabase, not NextAuth.
+- Report generation flow is still centered on:
+  - `pages/roi-report.jsx`
+  - `pages/api/roi-agent.js`
+  - `src/lib/roi/agent.ts`
+- Persisted report viewing flow is centered on:
+  - `pages/dashboard.jsx`
+  - `pages/report/[id].jsx`
+  - `reports.state_data` + `reports.rendered_html` + `reports.rendered_full_html`
+- Current chat exists in two parallel systems:
+  - editable SSE chat via `pages/api/roi-agent.js` with `mode: 'chat'`
+  - simple persisted Q&A chat via `pages/api/chat.js`
+- Current PDF/export flow is still template-first and client-state-driven:
+  - `pages/api/roi-pdf.js`
+  - `pages/api/roi-email.js`
+- Current runtime prompt path is still the monolithic generator in `src/lib/roi/agent.ts`; `MasterPrompt.md` and the prompt modules are not the active orchestration path
+
+## Current Source Of Truth
+The system does not have a single report source of truth yet.
+
+- Active edit session truth: client-held `reportState`
+- Persisted structured truth: `reports.state_data`
+- Persisted render artifacts: `reports.rendered_html` / `reports.rendered_full_html`
+
+Most future refactor work should treat `reports.state_data` as the compatibility structured source, but the app must stop trusting client-supplied state in chat mode.
+
+## Known Root Causes Of Generic Workflows
+- Current intake is too weak:
+  - `pages/roi-report.jsx` still submits empty `Number of Employees`, `Estimated Annual Revenue`, `Country`, `Key Priorities`, and `processes`
+- Active generation does not run from `MasterPrompt.md`; it still uses `buildGenerationSystemPrompt()` in `src/lib/roi/agent.ts`
+- Runtime has explicit generic fallback behavior when research is weak
+- Evidence is not persisted as first-class data anywhere in the DB
+- No specificity/verification gate exists before saving the report
+- Some narrative scaffolding in `src/lib/roi/pipeline/assembleReport.ts` remains inherently generic even when research quality is good
 
 ## Rebaseline Rules
 - Do not replace the current auth/report/template flow wholesale.
 - Build the new architecture additively beside the current implementation.
 - Keep `reports` as the compatibility table while introducing versioned/evidence-first tables.
 - Treat the current merged branch as the new baseline for all remaining ROI refactor work.
+- Prefer backend-first changes that avoid `ReportViewer.jsx`, templates, and `pages/roi-report.jsx` until the schema bridge is in place.
 
 ## Success Metrics
 | Metric | Baseline | Current | Target | Notes |
@@ -65,20 +104,20 @@ The branch now already includes a meaningful amount of ROI product infrastructur
 | ID | Milestone | Status | Exit Criteria |
 |---|---|---|---|
 | M0 | Eval harness and rubric | Not Started | Eval harness restored on this merged baseline; gold set + scorer + baseline run complete |
-| M1 | Schema bridge and canonical report schema | In Progress | Current `reports` rows map cleanly into canonical documents; bridge tables exist |
+| M1 | Schema bridge and canonical report schema | Partially Satisfied | Current `reports` rows map cleanly into canonical documents; bridge tables exist |
 | M2 | Staged generation pipeline | Not Started | Current UI generates through new pipeline |
 | M3 | Evidence-first validation and specificity gate | Not Started | Generic reports are blocked or downgraded |
-| M4 | Server-owned reports and versioning APIs | In Progress | `reportId` is authoritative and version rows are the durable state source |
-| M5 | Consultant-style chat with targeted recompute | In Progress | Chat no longer depends on client-owned full state |
-| M6 | Interactive report renderer + export flow | In Progress | Interactive web report becomes source of truth; PDF remains export artifact |
-| M7 | Guest access, optional accounts, freemium scaffolding | In Progress | Magic links + account claim + quotas |
+| M4 | Server-owned reports and versioning APIs | Partially Satisfied | `reportId` is authoritative and version rows are the durable state source |
+| M5 | Consultant-style chat with targeted recompute | Partially Satisfied | Chat no longer depends on client-owned full state |
+| M6 | Interactive report renderer + export flow | Partially Satisfied | Interactive web report becomes source of truth; PDF remains export artifact |
+| M7 | Guest access, optional accounts, freemium scaffolding | Not Started | Magic links + account claim + quotas |
 
 ## Current Priority
-1. M0
+1. M4
 2. M1
-3. M4
-4. M2
-5. M3
+3. M0
+4. M3
+5. M2
 6. M5
 7. M6
 8. M7
@@ -172,6 +211,9 @@ src/components/ROIWorkspace/
 - Existing chat persistence source:
   - `chat_messages`
   - `chat_usage`
+- Existing report constraints in runtime:
+  - non-employees are currently limited to one report in `pages/api/roi-agent.js`
+  - employee detection is still inconsistent across some files (role vs email-domain checks)
 
 ## Canonical Report Document
 ```ts
@@ -243,6 +285,8 @@ Bridge tables to add next:
 - `report_versions`: immutable version snapshots of canonical report documents
 - `report_evidence`: persisted sources, snippets, facts, and confidence
 - `artifacts`: PDF and other export artifacts
+
+Later bridge tables, after the core evidence/version flow is stable:
 - `access_grants`: future guest-link claiming layer
 - `subscriptions`: future freemium plan/limit layer
 
@@ -282,7 +326,7 @@ Bridge rules:
 - [ ] ROI-004 Add trace logging to the current runtime (`roi-agent`, chat, pdf, email)
 
 ### M1 — Schema Bridge And Canonical Report Model
-- [ ] ROI-010 Add bridge migration for `report_versions`, `report_evidence`, `artifacts`, `access_grants`, and `subscriptions`
+- [ ] ROI-010 Add bridge migration for `report_versions`, `report_evidence`, and `artifacts`
 - [ ] ROI-011 Define canonical Zod schemas for `ReportDocument` and related evidence/version types
 - [ ] ROI-012 Add mappers from current `reports` rows and `ReportState` into canonical documents
 - [ ] ROI-013 Add repository layer that can read current `reports` rows and future `report_versions`
@@ -303,18 +347,19 @@ Bridge rules:
 - [ ] Define specificity thresholds against the gold set
 - [ ] Enforce MasterPrompt rule validators in a verification stage
 - [ ] Add downgrade path for low-confidence hypothesis-led output
+- [ ] Start with a non-blocking verification gate before save, then tighten to blocking once thresholds are calibrated
 
 ### M4 — Server-Owned Reports And APIs
 - [ ] ROI-030 Stop trusting client-supplied full report state in chat mode
 - [ ] ROI-031 Load persisted canonical state server-side before edits
 - [ ] ROI-032 Persist version snapshots as the durable state source
-- [ ] ROI-033 Add guest access grants and magic links
+- [ ] ROI-033 Keep current `reports` writes for compatibility while shadow-writing versions
 
 ### M5 — Consultant-Style Chat
 - [ ] ROI-040 Build chat intent classifier
 - [ ] ROI-041 Build action executor
 - [ ] ROI-042 Add invalidation and selective recompute rules
-- [ ] ROI-043 Unify the current chat behavior around the canonical report model
+- [ ] ROI-043 Unify the current dual chat behavior around the canonical report model
 - [ ] ROI-044 Add version summaries for material edits
 
 ### M6 — Interactive Report Renderer And Export Flow
@@ -325,14 +370,16 @@ Bridge rules:
 - [ ] ROI-054 Refactor email flow around the canonical report document
 
 ### M7 — Access And Freemium
-- [ ] ROI-060 Add Supabase auth flows
+- [ ] ROI-060 Add guest access grants and magic-link access flow
 - [ ] ROI-061 Add guest-to-account claim flow
-- [ ] ROI-062 Build dashboard
+- [ ] ROI-062 Extend the existing dashboard for versions, evidence access, and ownership transitions
 - [ ] ROI-063 Add freemium quotas
 - [ ] ROI-064 Add internal/admin roles
 
 ## First Build Slice
 These are the first tickets to execute:
+- ROI-030
+- ROI-031
 - ROI-001
 - ROI-002
 - ROI-003
@@ -342,16 +389,17 @@ These are the first tickets to execute:
 - ROI-012
 - ROI-013
 - ROI-014
-- ROI-020
-- ROI-021
-- ROI-022
+- Persist evidence items and extracted facts as first-class data
+- Define specificity thresholds against the gold set
 
 ## Acceptance Criteria For First Build Slice
-- The eval harness is restored and runs against the current merged baseline
+- Chat no longer trusts client-supplied full report state in `/api/roi-agent`.
+- The eval harness is restored and runs against the current merged baseline.
 - The current branch still builds and the current ROI UX still works
 - Bridge tables exist without breaking current auth/report/chat behavior
 - Current `reports` rows can be mapped into canonical report documents
 - Successful generation and material chat edits can shadow-write version rows without replacing the current compatibility flow
+- Research evidence can be persisted separately from final prose
 
 ## Decisions Log
 - 2026-04-21: Use Supabase for DB/Auth/Storage
@@ -369,6 +417,8 @@ These are the first tickets to execute:
 - Need threshold tuning for specificity gate
 - `/api/roi-pdf` is currently unauthenticated and should be revisited before merge-forwarding to production
 - Auth/report/template code is now live enough that `ReportViewer.jsx` and `pages/api/roi-agent.js` are high-conflict surfaces for future work
+- There are currently two chat systems (`/api/roi-agent` chat and `/api/chat`) that need to be unified later
+- The template/report scaffolding in `assembleReport.ts` still injects generic content even when research quality is high
 
 ## Progress Log
 ### 2026-04-21
@@ -378,3 +428,4 @@ These are the first tickets to execute:
 ### 2026-04-27
 - Auth, report persistence, dashboard, and template/PDF changes were merged into the working ROI branch
 - The plan was rebaselined to build on the current merged implementation instead of replacing auth/report/template flows from scratch
+- A deeper exploration pass confirmed that the immediate next leverage is server-owned chat state, schema bridge tables, evidence persistence, and a non-blocking specificity gate
