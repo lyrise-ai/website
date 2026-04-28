@@ -429,3 +429,8 @@ These are the first tickets to execute:
 - Auth, report persistence, dashboard, and template/PDF changes were merged into the working ROI branch
 - The plan was rebaselined to build on the current merged implementation instead of replacing auth/report/template flows from scratch
 - A deeper exploration pass confirmed that the immediate next leverage is server-owned chat state, schema bridge tables, evidence persistence, and a non-blocking specificity gate
+- Restored the ROI eval harness and curated gold set onto the merged baseline; `npm run eval:roi` now runs successfully with 10 cases
+- Made `/api/roi-agent` chat server-owned by loading persisted report state and persisted chat history from `reportId` instead of trusting client-supplied full state
+- Switched `/api/roi-pdf` and `/api/roi-email` to load report state from DB by `reportId` for the MVP flow
+- Added `report_evidence` migration and persisted research evidence during generation/chat updates
+- Added a first non-blocking specificity assessment that is saved into report state and warns on weak evidence-backed outputs
