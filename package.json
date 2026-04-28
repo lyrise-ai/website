@@ -9,6 +9,8 @@
     "lint": "next lint",
     "lint:fix": "next lint --fix",
     "prettier": "prettier --write .",
+    "eval:roi": "node evals/roi/run.mjs",
+    "eval:roi:scaffold": "node evals/roi/scaffoldCasesFromPdf.mjs",
     "prepare": "husky install"
   },
   "dependencies": {
