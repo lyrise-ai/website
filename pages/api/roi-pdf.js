@@ -15,6 +15,8 @@ import {
   renderTemplate,
 } from '@/src/lib/roi/pipeline/renderTemplate'
 import { generatePdf } from '@/src/lib/roi/services/pdf'
+import { createClient, createAdminClient } from '../../src/lib/supabase-server'
+import { buildStateFromReportRow } from '@/src/lib/roi/reportState'
 
 export const config = {
   maxDuration: 120,
@@ -29,7 +31,44 @@ export default async function handler(req, res) {
     return
   }
 
-  const { state, reportType = 'full' } = req.body ?? {}
+  const supabase = createClient(req, res)
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+
+  if (!user) {
+    res.status(401).json({ error: 'Unauthorized' })
+    return
+  }
+
+  const { reportId, reportType = 'full' } = req.body ?? {}
+
+  if (!reportId) {
+    res.status(400).json({ error: 'reportId is required' })
+    return
+  }
+
+  const admin = createAdminClient()
+  const [{ data: userData }, { data: report }] = await Promise.all([
+    admin.from('users').select('role').eq('id', user.id).single(),
+    admin
+      .from('reports')
+      .select(
+        'id, user_id, company_name, email, input_data, state_data, rendered_html, rendered_full_html',
+      )
+      .eq('id', reportId)
+      .single(),
+  ])
+
+  const isEmployee =
+    userData?.role === 'EMPLOYEE' || user.email?.endsWith('@lyrise.ai')
+
+  if (!report || (!isEmployee && report.user_id !== user.id)) {
+    res.status(403).json({ error: 'Unauthorized' })
+    return
+  }
+
+  const state = buildStateFromReportRow(report)
 
   if (!state?.assembled) {
     res.status(400).json({ error: 'state.assembled is required' })

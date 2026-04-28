@@ -330,13 +330,13 @@ export default function ReportViewer({
   }, [applySectionHighlights])
 
   const handleDownload = useCallback(async () => {
-    if (downloadStatus === 'downloading') return
+    if (!reportId || downloadStatus === 'downloading') return
     setDownloadStatus('downloading')
     try {
       const res = await fetch('/api/roi-pdf', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ state: reportState, reportType: activeTab }),
+        body: JSON.stringify({ reportId, reportType: activeTab }),
       })
       if (!res.ok) throw new Error(`HTTP ${res.status}`)
 
@@ -360,16 +360,16 @@ export default function ReportViewer({
       setDownloadStatus('error')
       setTimeout(() => setDownloadStatus('idle'), 3000)
     }
-  }, [downloadStatus, reportState, activeTab])
+  }, [downloadStatus, reportId, activeTab])
 
   const handleResendEmail = useCallback(async () => {
-    if (emailStatus === 'sending') return
+    if (!reportId || emailStatus === 'sending') return
     setEmailStatus('sending')
     try {
       const res = await fetch('/api/roi-email', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ state: reportState }),
+        body: JSON.stringify({ reportId }),
       })
       if (!res.ok) throw new Error(`HTTP ${res.status}`)
       setEmailStatus('sent')
@@ -378,7 +378,7 @@ export default function ReportViewer({
       setEmailStatus('error')
       setTimeout(() => setEmailStatus('idle'), 3000)
     }
-  }, [emailStatus, reportState])
+  }, [emailStatus, reportId])
 
   const handleKeyDown = useCallback(
     (e) => {
@@ -555,7 +555,7 @@ export default function ReportViewer({
             ref={downloadRef}
             type="button"
             onClick={handleDownload}
-            disabled={downloadStatus === 'downloading'}
+            disabled={!reportId || downloadStatus === 'downloading'}
             style={{
               padding: '6px 14px',
               fontSize: 13,
@@ -564,8 +564,11 @@ export default function ReportViewer({
               borderRadius: 6,
               background: '#fff',
               color: '#374151',
-              cursor: downloadStatus === 'downloading' ? 'wait' : 'pointer',
-              opacity: downloadStatus === 'downloading' ? 0.6 : 1,
+              cursor:
+                !reportId || downloadStatus === 'downloading'
+                  ? 'not-allowed'
+                  : 'pointer',
+              opacity: !reportId || downloadStatus === 'downloading' ? 0.6 : 1,
             }}
           >
             {downloadStatus === 'downloading'
@@ -578,7 +581,7 @@ export default function ReportViewer({
             ref={resendEmailRef}
             type="button"
             onClick={handleResendEmail}
-            disabled={emailStatus === 'sending'}
+            disabled={!reportId || emailStatus === 'sending'}
             style={{
               padding: '6px 14px',
               fontSize: 13,
@@ -597,8 +600,11 @@ export default function ReportViewer({
                   : emailStatus === 'error'
                   ? '#991b1b'
                   : '#fff',
-              cursor: emailStatus === 'sending' ? 'not-allowed' : 'pointer',
-              opacity: emailStatus === 'sending' ? 0.7 : 1,
+              cursor:
+                !reportId || emailStatus === 'sending'
+                  ? 'not-allowed'
+                  : 'pointer',
+              opacity: !reportId || emailStatus === 'sending' ? 0.7 : 1,
             }}
           >
             {emailStatus === 'sending'
@@ -952,11 +958,12 @@ export default function ReportViewer({
                     }}
                     onFocus={(e) => {
                       e.target.style.borderColor = '#003f87'
-                  e.target.style.boxShadow = '0 0 0 2px rgba(0, 63, 135, 0.15)'
+                      e.target.style.boxShadow =
+                        '0 0 0 2px rgba(0, 63, 135, 0.15)'
                     }}
                     onBlur={(e) => {
                       e.target.style.borderColor = '#d0d0d0'
-                  e.target.style.boxShadow = 'none'
+                      e.target.style.boxShadow = 'none'
                     }}
                   />
                   <button
@@ -972,15 +979,15 @@ export default function ReportViewer({
                         isAgentRunning || !input.trim() ? '#5a5a6e' : '#fff',
                       fontWeight: 700,
                       fontSize: 12,
-                  textTransform: 'uppercase',
-                  letterSpacing: 0.5,
+                      textTransform: 'uppercase',
+                      letterSpacing: 0.5,
                       cursor:
                         isAgentRunning || !input.trim()
                           ? 'not-allowed'
                           : 'pointer',
                       flexShrink: 0,
                       transition: 'background 0.15s',
-                }}
+                    }}
                   >
                     Send
                   </button>

@@ -18,6 +18,12 @@ import { buildDevMockReportState } from '@/src/lib/roi/devMockReport'
 import { generatePdf } from '@/src/lib/roi/services/pdf'
 import { sendReportEmail } from '@/src/lib/roi/services/email'
 import { createClient, createAdminClient } from '../../src/lib/supabase-server'
+import {
+  buildStateFromReportRow,
+  splitStoredState,
+} from '@/src/lib/roi/reportState'
+import { persistReportEvidence } from '@/src/lib/roi/reportEvidence'
+import { assessReportSpecificity } from '@/src/lib/roi/specificity'
 
 export const config = {
   maxDuration: 300,
@@ -43,6 +49,12 @@ function mapFormToPayload(body) {
     'Operating Currency': body.currency ?? body['Operating Currency'] ?? 'USD',
     processes: body.processes ?? [],
   }
+}
+
+function buildPersistedChatHistory(rows = []) {
+  return rows
+    .filter((row) => row?.role === 'user' || row?.role === 'assistant')
+    .map((row) => ({ role: row.role, content: row.content }))
 }
 
 export default async function handler(req, res) {
@@ -95,15 +107,8 @@ export default async function handler(req, res) {
     return
   }
 
-  const {
-    mode,
-    formData,
-    message,
-    chatHistory,
-    state: clientState,
-    devOptions,
-    reportId,
-  } = req.body
+  const { mode, formData, message, chatHistory, devOptions, reportId } =
+    req.body
 
   if (!mode || !['generate', 'chat'].includes(mode)) {
     res
@@ -115,16 +120,33 @@ export default async function handler(req, res) {
   const CHAT_LIMIT = 5
   let chatUserRole = 'CLIENT'
   const adminSupabase = createAdminClient()
+  let persistedReport = null
+  let persistedChatHistory = []
 
-  if (mode === 'chat' && reportId) {
-    const [{ data: userData }, { data: report }] = await Promise.all([
-      adminSupabase.from('users').select('role').eq('id', user.id).single(),
-      adminSupabase
-        .from('reports')
-        .select('user_id')
-        .eq('id', reportId)
-        .single(),
-    ])
+  if (mode === 'chat') {
+    if (!reportId) {
+      res.status(400).json({ error: 'reportId is required for chat mode' })
+      return
+    }
+
+    const [{ data: userData }, { data: report }, { data: messages }] =
+      await Promise.all([
+        adminSupabase.from('users').select('role').eq('id', user.id).single(),
+        adminSupabase
+          .from('reports')
+          .select(
+            'id, user_id, email, status, input_data, state_data, rendered_html, rendered_full_html',
+          )
+          .eq('id', reportId)
+          .single(),
+        adminSupabase
+          .from('chat_messages')
+          .select('role, content')
+          .eq('report_id', reportId)
+          .eq('user_id', user.id)
+          .order('created_at', { ascending: true })
+          .limit(20),
+      ])
     const isEmployeeChat =
       userData?.role === 'EMPLOYEE' ||
       user.email?.endsWith('@lyrise.ai') === true
@@ -156,6 +178,9 @@ export default async function handler(req, res) {
         return
       }
     }
+
+    persistedReport = report
+    persistedChatHistory = buildPersistedChatHistory(messages ?? [])
   }
 
   if (mode === 'generate') {
@@ -232,18 +257,13 @@ export default async function handler(req, res) {
         renderedFullHtml: null,
         confidenceLevel: null,
         coreThesis: null,
+        painPoints: [],
+        researchSummary: null,
+        evidenceItems: [],
+        specificityAssessment: null,
       }
     } else {
-      // Chat mode — client sends full current state
-      state = clientState
-      if (!state) {
-        send(res, {
-          type: 'error',
-          message: 'Chat mode requires state in request body.',
-        })
-        res.end()
-        return
-      }
+      state = buildStateFromReportRow(persistedReport)
     }
 
     let capturedMessages = []
@@ -252,7 +272,7 @@ export default async function handler(req, res) {
       mode,
       state,
       message,
-      chatHistory,
+      chatHistory: mode === 'chat' ? persistedChatHistory : chatHistory,
       templateHtml: execTemplateHtml,
       fullTemplateHtml,
       estimatesOnly: Boolean(devOptions?.estimatesOnly),
@@ -281,12 +301,13 @@ export default async function handler(req, res) {
 
     if (mode === 'chat' && reportId) {
       const userRole = chatUserRole
+      state.specificityAssessment = assessReportSpecificity(state)
 
       await supabase.from('chat_messages').insert({
         report_id: reportId,
         user_id: user.id,
         role: 'user',
-        content: message,
+        content: message?.trim() ?? '',
       })
 
       const assistantText = capturedMessages
@@ -303,19 +324,18 @@ export default async function handler(req, res) {
         })
       }
 
-      const {
-        renderedHtml: _rh,
-        renderedFullHtml: _rfh,
-        ...chatStateData
-      } = state
+      const { stateData, renderedHtml, renderedFullHtml } =
+        splitStoredState(state)
       await adminSupabase
         .from('reports')
         .update({
-          rendered_html: state.renderedHtml ?? null,
-          rendered_full_html: state.renderedFullHtml ?? null,
-          state_data: chatStateData,
+          rendered_html: renderedHtml,
+          rendered_full_html: renderedFullHtml,
+          state_data: stateData,
         })
         .eq('id', reportId)
+
+      await persistReportEvidence(adminSupabase, reportId, state.evidenceItems)
 
       if (userRole !== 'EMPLOYEE') {
         const { data: usage, error: usageReadErr } = await adminSupabase
@@ -353,7 +373,18 @@ export default async function handler(req, res) {
 
     // Save report to DB after generation
     if (mode === 'generate' && state.assembled) {
-      const { renderedHtml: _rh, renderedFullHtml: _rfh, ...stateData } = state
+      state.specificityAssessment = assessReportSpecificity(state)
+
+      if (state.specificityAssessment.level === 'weak') {
+        send(res, {
+          type: 'text_delta',
+          delta:
+            '\n\nLow-confidence note: public company evidence was limited, so some workflow assumptions may still rely on benchmarks.',
+        })
+      }
+
+      const { stateData, renderedHtml, renderedFullHtml } =
+        splitStoredState(state)
       const { data: savedReport } = await supabase
         .from('reports')
         .insert({
@@ -366,14 +397,19 @@ export default async function handler(req, res) {
           status: 'SUCCESS',
           input_data: state.normInput,
           completed_at: new Date().toISOString(),
-          rendered_html: state.renderedHtml ?? null,
-          rendered_full_html: state.renderedFullHtml ?? null,
+          rendered_html: renderedHtml,
+          rendered_full_html: renderedFullHtml,
           state_data: stateData,
         })
         .select('id')
         .single()
 
       if (savedReport?.id) {
+        await persistReportEvidence(
+          adminSupabase,
+          savedReport.id,
+          state.evidenceItems,
+        )
         send(res, { type: 'report_saved', report_id: savedReport.id })
       }
     }
