@@ -1,5 +1,4 @@
 import { useState } from 'react'
-import { supabase } from '../../src/lib/supabase'
 
 export default function Signup() {
   const [email, setEmail] = useState('')
@@ -9,26 +8,17 @@ export default function Signup() {
   const handleSubmit = async (e) => {
     e.preventDefault()
     setMessage('Signing up...')
-
-    const { data, error } = await supabase.auth.signUp({
-      email,
-      password,
+    const res = await fetch('/api/auth/signup', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password }),
     })
-
-    if (error) {
-      setMessage('Error: ' + error.message)
+    const data = await res.json()
+    if (!res.ok) {
+      setMessage('Error: ' + data.error)
       return
     }
-    const { error: insertError } = await supabase.from('users').insert({
-      id: data.user.id,
-      email: data.user.email,
-      role: 'CLIENT',
-    })
-    if (insertError) {
-      setMessage('Auth created but user row failed: ' + insertError.message)
-      return
-    }
-    setMessage('Success! User created with id: ' + data.user.id)
+    setMessage('Success!')
   }
 
   return (
