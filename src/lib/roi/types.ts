@@ -175,6 +175,45 @@ export interface CompanySnapshotItem {
   sourceType: 'scraped' | 'benchmarked' | 'assumed'
 }
 
+export interface PainPoint {
+  title: string
+  description: string
+  confidence: 'high' | 'medium' | 'low'
+  source: 'user_stated' | 'inferred' | 'research_derived'
+}
+
+export interface ReportEvidenceItem {
+  kind:
+    | 'search_result'
+    | 'search_answer'
+    | 'page_content'
+    | 'research_summary'
+    | 'workflow_signal'
+    | 'company_fact'
+    | 'unknown'
+  url?: string | null
+  title?: string | null
+  query?: string | null
+  snippet?: string | null
+  content?: string | null
+  sourceType?: 'scraped' | 'benchmarked' | 'assumed' | null
+  confidence?: 'high' | 'medium' | 'low' | null
+  facts?: Record<string, unknown>
+  usedInSections?: string[]
+  createdAt?: string
+}
+
+export interface SpecificityAssessment {
+  score: number
+  level: 'strong' | 'moderate' | 'weak'
+  evidenceCount: number
+  researchDerivedWorkflowCount: number
+  inferredWorkflowCount: number
+  scrapedSnapshotCount: number
+  companySignalCount: number
+  warnings: string[]
+}
+
 export interface CostOfDelayData {
   monthly_cost?: number // computed by calculator; LLM no longer outputs this
   narrative: string
@@ -316,6 +355,10 @@ export interface ReportState {
   // Metadata
   confidenceLevel: 'high' | 'low' | null
   coreThesis: string | null
+  painPoints?: PainPoint[]
+  researchSummary?: string | null
+  evidenceItems?: ReportEvidenceItem[]
+  specificityAssessment?: SpecificityAssessment | null
 }
 
 export interface AgentCallbacks {

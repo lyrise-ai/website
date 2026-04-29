@@ -1,6 +1,7 @@
 import Head from 'next/head'
 import { createClient, createAdminClient } from '../../src/lib/supabase-server'
 import ReportViewer from '../../src/components/ROIGenerator/ReportViewer'
+import { buildStateFromReportRow } from '@/src/lib/roi/reportState'
 
 export async function getServerSideProps({ req, res, params }) {
   const supabase = createClient(req, res)
@@ -40,11 +41,7 @@ export async function getServerSideProps({ req, res, params }) {
     return { redirect: { destination: '/dashboard', permanent: false } }
   }
 
-  const initialState = {
-    ...(report.state_data ?? {}),
-    renderedHtml: report.rendered_html,
-    renderedFullHtml: report.rendered_full_html,
-  }
+  const initialState = buildStateFromReportRow(report)
 
   let initialMessagesUsed = 0
   if (!isEmployee) {
