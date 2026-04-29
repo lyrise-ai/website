@@ -130,7 +130,7 @@ export default function ReportViewer({
   const TOUR_STEPS = [
     {
       title: 'Executive Summary',
-      body: 'Quick 2-page snapshot — share this version with execs and decision-makers. If anything here feels unclear or you want the reasoning behind a number, switch to the Full Report for the detail behind every section.',
+      body: 'Concise snapshot — share this version with execs and decision-makers. If anything here feels unclear or you want the reasoning behind a number, switch to the Full Report for the detail behind every section.',
       placement: 'bottom-start',
     },
     {
@@ -952,11 +952,12 @@ export default function ReportViewer({
                     }}
                     onFocus={(e) => {
                       e.target.style.borderColor = '#003f87'
-                  e.target.style.boxShadow = '0 0 0 2px rgba(0, 63, 135, 0.15)'
+                      e.target.style.boxShadow =
+                        '0 0 0 2px rgba(0, 63, 135, 0.15)'
                     }}
                     onBlur={(e) => {
                       e.target.style.borderColor = '#d0d0d0'
-                  e.target.style.boxShadow = 'none'
+                      e.target.style.boxShadow = 'none'
                     }}
                   />
                   <button
@@ -972,15 +973,15 @@ export default function ReportViewer({
                         isAgentRunning || !input.trim() ? '#5a5a6e' : '#fff',
                       fontWeight: 700,
                       fontSize: 12,
-                  textTransform: 'uppercase',
-                  letterSpacing: 0.5,
+                      textTransform: 'uppercase',
+                      letterSpacing: 0.5,
                       cursor:
                         isAgentRunning || !input.trim()
                           ? 'not-allowed'
                           : 'pointer',
                       flexShrink: 0,
                       transition: 'background 0.15s',
-                }}
+                    }}
                   >
                     Send
                   </button>

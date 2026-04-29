@@ -30,15 +30,15 @@
       .page {
         width: 100%;
         max-width: 794px;
-        min-height: 297mm;
-        padding: 10mm 15mm;
+        padding: 10mm 15mm 18mm;
         margin: 0 auto;
         page-break-after: always;
-        display: flex;
-        flex-direction: column;
       }
       .page.last {
         page-break-after: auto;
+      }
+      .footer {
+        margin-top: auto;
       }
       @media screen {
         body {
@@ -48,7 +48,11 @@
           background: #fff;
           margin: 12px auto;
           box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+          min-height: 297mm;
+          display: flex;
+          flex-direction: column;
         }
+
       }
       .top-bar {
         height: 4px;
@@ -64,6 +68,8 @@
         border-bottom: 2.5px solid #003f87;
         padding-bottom: 1mm;
         margin: 5mm 0 2mm;
+        page-break-after: avoid;
+        break-after: avoid;
       }
       h2:first-child {
         margin-top: 0;
@@ -94,7 +100,6 @@
         border-collapse: collapse;
         font-size: 10pt;
         margin-bottom: 4px;
-        page-break-inside: avoid;
       }
       th {
         background: #2d2d2d;
@@ -117,6 +122,10 @@
       tr:nth-child(even) td {
         background: #ebf0f8;
       }
+      .total-row {
+        page-break-inside: avoid;
+        break-inside: avoid;
+      }
       .total-row td {
         background: #2d2d2d !important;
         color: #fff !important;
@@ -132,7 +141,6 @@
         font-style: italic;
       }
       .footer {
-        margin-top: auto;
         padding-top: 6px;
         border-top: 1px solid #e2e8f0;
         font-size: 7.5pt;
@@ -152,6 +160,8 @@
         display: flex;
         margin: 2mm 0 3mm;
         background: #f5f5f5;
+        page-break-inside: avoid;
+        break-inside: avoid;
       }
       .insight-stripe {
         width: 4px;
@@ -248,6 +258,10 @@
         margin-bottom: 8px;
         border-collapse: separate;
         border-spacing: 5px;
+      }
+      .stat-table tr {
+        page-break-inside: avoid;
+        break-inside: avoid;
       }
       .stat-table td {
         background: #fff;

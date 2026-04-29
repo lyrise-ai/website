@@ -33,15 +33,16 @@
       .page {
         width: 100%;
         max-width: 794px;
-        min-height: 297mm;
         margin: 0 auto;
-        padding: 10mm 15mm;
+        padding: 10mm 15mm 18mm;
         page-break-after: always;
-        display: flex;
-        flex-direction: column;
       }
       .page.last {
         page-break-after: auto;
+      }
+      .page-footer,
+      .footer {
+          margin-top: auto;
       }
       @media screen {
         body {
@@ -51,6 +52,9 @@
           background: #fff;
           margin: 12px auto;
           box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+          min-height: 297mm;
+          display: flex;
+          flex-direction: column;
         }
       }
 
@@ -72,22 +76,25 @@
         color: #5a5a6e;
         border-top: 1px solid #d0d0d0;
         padding-top: 2mm;
-        margin-top: auto;
       }
-      @media print {
-        .page {
-          height: 297mm;
-          padding: 10mm 15mm 18mm;
-          position: relative;
-          overflow: hidden;
-        }
-        .page-footer {
-          position: absolute;
-          bottom: 10mm;
-          left: 15mm;
-          right: 15mm;
-          margin-top: 0;
-        }
+      .page-footer a {
+        color: #003f87;
+        text-decoration: none;
+        font-weight: bold;
+      }
+      .footer {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: 7.5pt;
+        color: #94a3b8;
+        border-top: 1px solid #e2e8f0;
+        padding-top: 6px;
+      }
+      .footer a {
+        color: #003f87;
+        text-decoration: none;
+        font-weight: bold;
       }
 
       /* ── Cover ── */
@@ -232,8 +239,6 @@
         border-collapse: collapse;
         margin-bottom: 2mm;
         font-size: 9pt;
-        page-break-inside: avoid;
-        break-inside: avoid;
       }
       .data-table thead tr {
         background: #2d2d2d;
@@ -349,13 +354,13 @@
       {{$json.display.caseStudiesHTML}}
 
       <div class="page-footer">
-        <span>Prepared by LyRise AI | Confidential — not for distribution</span>
-        <span>1</span>
+        <span>LyRise AI · AI Automation for Enterprise Growth</span>
+        <a href="https://lyrise.ai">lyrise.ai</a>
       </div>
     </div>
 
     <!-- ═══════════════════════════════════════════ PAGE 2 — ANALYSIS ═══════════════════════════════════════════ -->
-    <div class="page last">
+    <div class="page">
       <div class="page-header">
         <span>{{$json.roi_data.company}} | Executive Summary</span>
         <span>LyRise AI | Confidential | {{$json.current_date}}</span>
@@ -423,6 +428,21 @@
         </table>
       </div>
 
+      <div class="page-footer">
+        <span
+          >LyRise AI | elena@lyrise.ai | calendly.com/elena-lyrise/30min
+          </span>
+        <span>2</span>
+      </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════ PAGE 3 — DELAY & CTA ═══════════════════════════════════════════ -->
+    <div class="page last">
+      <div class="page-header">
+        <span>{{$json.roi_data.company}} | Executive Summary</span>
+        <span>LyRise AI | Confidential | {{$json.current_date}}</span>
+      </div>
+
       <div data-section="cost_of_delay">
         <h2>Cost of Delay</h2>
         {{$json.display.costOfDelayHTML}}
@@ -435,11 +455,9 @@
 
       <div class="page-footer">
         <span
-          >LyRise AI | elena@lyrise.ai | calendly.com/elena-lyrise/30min |
-          Hypothesis-led estimate — not for distribution without
-          validation</span
-        >
-        <span>2</span>
+          >LyRise AI | elena@lyrise.ai | calendly.com/elena-lyrise/30min
+          </span>
+        <span>3</span>
       </div>
     </div>
   </body>
