@@ -312,10 +312,14 @@ function buildProvenanceTableBody(
 
   ;(workflows ?? []).forEach((wf) => {
     const calc = calcOutput?.workflows.find((c) => c.name === wf.name)
+    const rateSourceLabel = wf.rateSource ? wf.rateSource : 'Benchmarked'
+    const seniorityNote = wf.seniorityLevel ? ` — ${wf.seniorityLevel}` : ''
     rows.push({
       input: `${wf.name} — blended rate`,
-      detail: `${sym}${calc?.effectiveRate ?? globals?.laborRate ?? '—'}/hr`,
-      source: 'Benchmarked',
+      detail: `${sym}${
+        calc?.effectiveRate ?? globals?.laborRate ?? '—'
+      }/hr${seniorityNote}`,
+      source: rateSourceLabel,
       status: 'Needs validation',
     })
     rows.push({
@@ -430,12 +434,26 @@ export function assembleReport(state: ReportState): AssembleReportOutput {
   }
 
   // Currencies whose official symbols are non-Latin script — always use the ISO code instead
-  const SCRIPT_SYMBOL_CODES = new Set(['SAR', 'AED', 'QAR', 'KWD', 'BHD', 'OMR', 'EGP', 'JOD', 'IQD', 'LBP', 'IRR', 'YER'])
+  const SCRIPT_SYMBOL_CODES = new Set([
+    'SAR',
+    'AED',
+    'QAR',
+    'KWD',
+    'BHD',
+    'OMR',
+    'EGP',
+    'JOD',
+    'IQD',
+    'LBP',
+    'IRR',
+    'YER',
+  ])
   // eslint-disable-next-line no-control-regex
   const hasNonAscii = /[^\x00-\x7F]/.test(globals.currency.symbol)
-  const rawSym = SCRIPT_SYMBOL_CODES.has(globals.currency.code) || hasNonAscii
-    ? globals.currency.code
-    : globals.currency.symbol
+  const rawSym =
+    SCRIPT_SYMBOL_CODES.has(globals.currency.code) || hasNonAscii
+      ? globals.currency.code
+      : globals.currency.symbol
   const sym = rawSym.length > 1 && !rawSym.endsWith(' ') ? rawSym + ' ' : rawSym
   const s = calcOutput.summary
 
@@ -649,7 +667,9 @@ export function assembleReport(state: ReportState): AssembleReportOutput {
           `<td class="accent"><strong>${sym}${fmt(
             monthlyValue,
           )}</strong></td>` +
-          `<td class="accent"><strong>${esc(wf.agentName ?? '—')}</strong></td>` +
+          `<td class="accent"><strong>${esc(
+            wf.agentName ?? '—',
+          )}</strong></td>` +
           `</tr>` +
           detailRow
         )
@@ -733,7 +753,7 @@ export function assembleReport(state: ReportState): AssembleReportOutput {
   const roadmapTableBody =
     merged.length > 0 ? buildRoadmapTableBody(merged[0].name) : ''
 
-  // BLUF paragraph
+  // BLUF paragraph — use coreThesis from research agent when available
   const profileParts: string[] = []
   if (company.employees)
     profileParts.push(`${company.employees.toLocaleString()}-person`)
@@ -742,13 +762,14 @@ export function assembleReport(state: ReportState): AssembleReportOutput {
     ? `${company.company} is a ${profileParts.join(' ')} firm`
     : company.company
   const wfNames = merged.map((w) => w.name.toLowerCase()).join(', ')
+  const coreThesisLine = state.coreThesis
+    ? ` ${state.coreThesis}`
+    : ` Across its workflows — ${wfNames} — the same structural drain recurs: qualified professionals spending significant time on high-volume, rules-based process that does not require their judgment.`
   const blufParagraph =
-    `${profileDesc}. Across its workflows — ${wfNames} — the same structural` +
-    ` drain recurs: qualified professionals spending significant time on high-volume, rules-based` +
-    ` process that does not require their judgment. This report estimates ${short(
+    `${profileDesc}.${coreThesisLine}` +
+    ` This report estimates ${short(
       tf12,
-    )} in Total` +
-    ` Financial Gain available through targeted AI deployment — without adding headcount.`
+    )} in Total Financial Gain available through targeted AI deployment — without adding headcount.`
 
   // BVA compact table (exec template)
   const bvaTableBodyCompact =
@@ -786,7 +807,7 @@ export function assembleReport(state: ReportState): AssembleReportOutput {
     )}</strong></td>` +
     `<td style="color:#fff;font-size:8pt">${fmt(
       s.totalAnnualHours,
-    )} hrs/yr · ${(s.totalAnnualHours / 2000).toFixed(1)} FTE equiv.</td>` +
+    )} hrs/yr · ${(s.totalAnnualHours / 2080).toFixed(1)} FTE equiv.</td>` +
     `</tr>` +
     `<tr class="total-row">` +
     `<td colspan="4" style="color:#fff;font-weight:bold;font-size:8.5pt">Total Operational Dividend (per year)</td>` +
@@ -834,7 +855,7 @@ export function assembleReport(state: ReportState): AssembleReportOutput {
     statOD: short(s.operationalDividend12mo),
     statPU: short(s.profitUplift12mo),
     statTF: short(tf12),
-    statFTE: (s.totalAnnualHours / 2000).toFixed(1),
+    statFTE: (s.totalAnnualHours / 2080).toFixed(1),
     totalAnnualHours: fmt(s.totalAnnualHours),
     totalMonthlyHours: fmt(totalMonthlyHours),
     od12: cur(s.operationalDividend12mo),

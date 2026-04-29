@@ -55,12 +55,26 @@ export function roiCalculator(
   company: CompanyProfile,
 ): RoiCalculatorOutput {
   // Currencies whose official symbols are non-Latin script — always use the ISO code instead
-  const SCRIPT_SYMBOL_CODES = new Set(['SAR', 'AED', 'QAR', 'KWD', 'BHD', 'OMR', 'EGP', 'JOD', 'IQD', 'LBP', 'IRR', 'YER'])
+  const SCRIPT_SYMBOL_CODES = new Set([
+    'SAR',
+    'AED',
+    'QAR',
+    'KWD',
+    'BHD',
+    'OMR',
+    'EGP',
+    'JOD',
+    'IQD',
+    'LBP',
+    'IRR',
+    'YER',
+  ])
   // eslint-disable-next-line no-control-regex
   const hasNonAscii = /[^\x00-\x7F]/.test(globals.currency.symbol)
-  const rawSym = SCRIPT_SYMBOL_CODES.has(globals.currency.code) || hasNonAscii
-    ? globals.currency.code
-    : globals.currency.symbol
+  const rawSym =
+    SCRIPT_SYMBOL_CODES.has(globals.currency.code) || hasNonAscii
+      ? globals.currency.code
+      : globals.currency.symbol
   const sym = rawSym.length > 1 && !rawSym.endsWith(' ') ? rawSym + ' ' : rawSym
   const workingMonthFactor = globals.workWeeksPerYear / 52
 
@@ -90,37 +104,6 @@ export function roiCalculator(
       annualValue: Math.round(annualValue),
     }
   })
-
-  // Revenue guardrail — keep TFG within 5–20% of estimated revenue
-  const revenueM = company.revenueEstimateM
-  if (revenueM != null && revenueM > 0) {
-    const rawOD = workflowCalcs.reduce((s, w) => s + w.annualValue, 0)
-    const rawTF = rawOD * globals.profitMultiplier
-    const revenueU = revenueM * 1e6
-    const ceiling = revenueU * 0.2
-    const floor = revenueU * 0.05
-
-    const applyScale = (scale: number) => {
-      workflowCalcs.forEach((w) => {
-        w.annualValue = Math.round(w.annualValue * scale)
-        w.monthlyValue = Math.round(w.monthlyValue * scale)
-        w.annualHours = Math.round(w.annualHours * scale)
-        w.monthlyHours = Math.round(w.monthlyHours * scale)
-      })
-    }
-
-    if (rawOD > 0) {
-      if (rawTF > ceiling) {
-        const targetOD = ceiling / globals.profitMultiplier
-        const rounded = Math.round(targetOD / 1000) * 1000
-        applyScale((rounded > 0 ? rounded : targetOD) / rawOD)
-      } else if (rawTF < floor) {
-        const targetOD = floor / globals.profitMultiplier
-        const rounded = Math.round(targetOD / 1000) * 1000
-        applyScale((rounded > 0 ? rounded : targetOD) / rawOD)
-      }
-    }
-  }
 
   const totalMonthlyHours = workflowCalcs.reduce(
     (s, w) => s + w.monthlyHours,
@@ -182,7 +165,7 @@ export function roiCalculator(
     figures: {
       totalMonthlyHours: addCommas(Math.round(totalMonthlyHours)),
       totalAnnualHours: addCommas(Math.round(totalAnnualHours)),
-      statFTE: (totalAnnualHours / 2000).toFixed(1),
+      statFTE: (totalAnnualHours / 2080).toFixed(1),
       operationalDividend12mo: fmtCur(od12),
       profitUplift12mo: fmtCur(pu12),
       totalFinancialGain12mo: fmtCur(tf12),

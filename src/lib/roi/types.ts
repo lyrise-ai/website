@@ -104,6 +104,8 @@ export interface WorkflowInput {
   exceptionMinutes: number
   rateOverride: number | null // per-workflow hourly rate; null = use GlobalInputs.laborRate
   rationale: string
+  rateSource?: string // benchmark name from modeler (e.g. "Gulf Talent", "Robert Half")
+  seniorityLevel?: string // role seniority description from modeler (e.g. "Senior sales executive")
 }
 
 // ── Single source of truth: global financial inputs ──────────────────────────

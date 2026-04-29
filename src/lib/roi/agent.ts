@@ -61,6 +61,8 @@ interface ModelerResult {
     adoption_base: number
     rationale: string
     fullyLoadedHourlyCostOverride: number
+    rateSource: string
+    seniorityLevel: string
   }>
 }
 
@@ -262,9 +264,9 @@ function buildTools(
               volumeRationale: z.string().optional(),
             }),
           )
-          .min(3)
+          .min(4)
           .describe(
-            'Minimum 3 workflows required. Infer from industry benchmarks if not found online.',
+            'Exactly 4 workflows required. Infer from industry benchmarks if not found online.',
           ),
         researchSummary: z.string().optional(),
         confidenceLevel: z.enum(['high', 'low']),
@@ -381,11 +383,28 @@ function buildTools(
           }
         }
 
+        // Fix 1: surface scraped rate/salary signals to the modeler
+        const rateSignals = (state.evidenceItems ?? [])
+          .filter(
+            (item) =>
+              item.kind === 'search_result' ||
+              item.kind === 'search_answer' ||
+              item.kind === 'page_content',
+          )
+          .slice(0, 12)
+          .map((item) => ({
+            query: item.query ?? null,
+            snippet: (item.snippet ?? '').slice(0, 400),
+            url: item.url ?? null,
+          }))
+
         const modelerUserContent = JSON.stringify({
           company_profile: state.company,
+          // Fix 3: include owner so modeler can differentiate by seniority
           workflows: state.workflows.map((w) => ({
             name: w.name,
             function: w.function,
+            owner: w.owner,
             monthlyVolume: w.monthlyVolume,
             minutesPerItemBefore: w.minutesPerItemBefore,
             minutesPerItemAfter: w.minutesPerItemAfter,
@@ -396,6 +415,8 @@ function buildTools(
           country: state.normInput.country,
           teamSize: state.normInput.teamSize,
           revenueRange: state.normInput.revenueRange,
+          researchSummary: state.researchSummary ?? undefined,
+          researchEvidence: rateSignals.length > 0 ? rateSignals : undefined,
         })
 
         let globals: GlobalInputs | null = null
@@ -403,10 +424,18 @@ function buildTools(
         let lastError = ''
 
         for (let attempt = 0; attempt < 3; attempt++) {
-          const retryHint =
-            attempt > 0
-              ? `\n\nPREVIOUS ATTEMPT FAILED: ${lastError}. Adjust assumptions accordingly.`
-              : ''
+          let retryHint = ''
+          if (attempt > 0) {
+            let prescription = ''
+            if (lastError.includes('Rule 6B')) {
+              prescription =
+                ' Increase monthlyVolume for all workflows to raise Total Financial Gain into the required band.'
+            } else if (lastError.includes('Rule 6E')) {
+              prescription =
+                ' Set profitMultiplier ≥ 1.8 to satisfy the Profit Uplift / Operational Dividend ratio requirement.'
+            }
+            retryHint = `\n\nPREVIOUS ATTEMPT FAILED: ${lastError}.${prescription}`
+          }
 
           const result = await generateObject({
             model: fastModel,
@@ -461,11 +490,20 @@ function buildTools(
             },
           }
 
-          // Merge per-workflow assumptions from modeler into state.workflows
+          // Merge per-workflow assumptions from modeler into state.workflows.
+          // Fuzzy match: exact → contains → starts-with, so minor LLM name drift
+          // (e.g. "Proposal Drafting" vs "Proposal Drafting and Tailoring") still
+          // gets the right assumptions instead of silently falling back to defaults.
           updatedWorkflows = state.workflows!.map((wf) => {
-            const assump = modelerOut.workflowAssumptions.find(
-              (a) => a.workflowName.toLowerCase() === wf.name.toLowerCase(),
-            )
+            const wfLow = wf.name.toLowerCase()
+            const assump =
+              modelerOut.workflowAssumptions.find(
+                (a) => a.workflowName.toLowerCase() === wfLow,
+              ) ??
+              modelerOut.workflowAssumptions.find((a) => {
+                const aLow = a.workflowName.toLowerCase()
+                return aLow.includes(wfLow) || wfLow.includes(aLow)
+              })
             if (!assump) return wf
             return {
               ...wf,
@@ -486,6 +524,8 @@ function buildTools(
               exceptionMinutes: assump.exceptionMinutes,
               rateOverride: assump.fullyLoadedHourlyCostOverride,
               rationale: assump.rationale,
+              rateSource: assump.rateSource,
+              seniorityLevel: assump.seniorityLevel,
             }
           })
 
@@ -500,8 +540,10 @@ function buildTools(
           const tf = s.totalFinancialGain12mo
           const revenueM = state.company!.revenueEstimateM
 
-          // Rule 6B: 5–20% revenue band
-          if (revenueM && revenueM > 0) {
+          // Rule 6B: 5–20% revenue band.
+          // Skip when confidence is low — revenueEstimateM is an LLM guess and
+          // an uncertain estimate makes the band an impossible constraint to hit.
+          if (revenueM && revenueM > 0 && state.confidenceLevel !== 'low') {
             const revenueU = revenueM * 1e6
             const ratio = tf / revenueU
             if (ratio < 0.05) {
@@ -1180,6 +1222,10 @@ PHASE 2 — Multi-Vector Intelligence Gathering. Research in this sequence:
 3. Search LinkedIn: web_search("{company} site:linkedin.com/company") then fetch_page for headcount + industry
 4. If a recipient name is provided: web_search("{name} {company} site:linkedin.com/in") and fetch_page their profile
 5. Search for financial/industry signals: web_search("{company} {industry} revenue employees {year}")
+6. Search for salary/rate benchmarks for the roles that will own each workflow in this country and industry. Run 1–2 targeted searches, e.g.:
+   web_search("{industry} {country} operations manager hourly rate site:gulftalent.com OR site:bayt.com")
+   web_search("{industry} {country} average salary {role} {year}")
+   Note any specific figures (hourly, monthly, or annual) — the financial model will use them to set per-workflow rates.
 Narrate your findings to the user as you go. Flag confidence levels.
 If you find any concrete company signal (practice area, product line, geography, client type, transaction volume, headcount, tool stack, or regulatory context), you MUST use it to shape workflow selection and workflow rationales.
 
@@ -1361,6 +1407,15 @@ CURRENCY  set_currency(code)              — change display symbol/code only; p
 COPY      update_copy(patches)            — update any combination of copy sections in one call
 STRUCTURE add_workflow | remove_workflow
 RESEARCH  web_search | fetch_page
+  When asked to fix or improve rates: search for real benchmarks before updating.
+  Query patterns:
+    • "{industry} {country} {role} hourly rate site:gulftalent.com OR site:bayt.com"
+    • "{industry} {country} average salary {role} {year} glassdoor OR linkedin"
+    • "Robert Half salary guide {year} {industry} {country}"
+  Convert to fully-loaded hourly: annual ÷ (${
+    globals.workWeeksPerYear
+  } × 40) × 1.30
+  Then call update_workflow(name, { rateOverride: <computed> }) or update_globals({ laborRate: <blended> }).
 
 COMPOSITION EXAMPLES:
   "Convert to AED at 3.67"          → set_currency("AED")  then  scale_rates(3.67)

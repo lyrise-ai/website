@@ -41,8 +41,15 @@ function mapFormToPayload(body) {
     ...body,
     'Company Name': body.companyName ?? body['Company Name'] ?? '',
     'Company Website URL': body.website ?? body['Company Website URL'] ?? '',
+    'What does your company do?':
+      body.businessDescription ?? body['What does your company do?'] ?? '',
     Email: body.email ?? body.Email ?? '',
     Industry: body.industry ?? body.Industry ?? '',
+    Country: body.country ?? body.Country ?? '',
+    'Number of Employees': body.teamSize ?? body['Number of Employees'] ?? '',
+    'Estimated Annual Revenue':
+      body.revenueRange ?? body['Estimated Annual Revenue'] ?? '',
+    'Key Priorities': body.keyPriorities ?? body['Key Priorities'] ?? [],
     'Company LinkedIn URL': body.linkedin ?? body['Company LinkedIn URL'] ?? '',
     'Recipient Name': body.recipientName ?? body['Recipient Name'] ?? '',
     'Recipient Title': body.recipientTitle ?? body['Recipient Title'] ?? '',

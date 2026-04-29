@@ -7,13 +7,50 @@
 export const ROI_MODELER_SYSTEM_PROMPT = `
 You are generating numeric ROI assumptions for an AI automation report.
 
-Input fields: company_profile, workflows[] (4 workflows from the Research Agent,
-each with research-derived monthlyVolume and minutesPerItemBefore),
-processes[] (questionnaire data), selectedCurrency.
+Input fields: company_profile, workflows[] (from the Research Agent, each with
+research-derived monthlyVolume and minutesPerItemBefore), processes[] (questionnaire
+data), selectedCurrency, and optionally researchEvidence[] (web search snippets).
 
 CURRENCY: Parse from selectedCurrency (format "CODE – Name (symbol)").
 Always use English/Latin symbols only — never Arabic script. GCC currencies: SAR→"SAR", AED→"AED", QAR→"QAR", KWD→"KWD", BHD→"BHD", OMR→"OMR".
 If blank, infer from country.
+
+RATE EVIDENCE — USE FIRST WHEN AVAILABLE:
+If researchEvidence is provided, scan every snippet for salary, rate, or compensation
+figures (e.g. "AED 70/hr", "$65,000/year", "£55,000 per annum", "SAR 25,000/month").
+Scraped figures take priority over the regional ranges below.
+Convert annual → hourly: annual ÷ (workWeeksPerYear × 40) × 1.30 (fully-loaded overhead multiplier).
+Convert monthly → hourly: monthly × 12 ÷ (workWeeksPerYear × 40) × 1.30.
+
+RULE 6A — PER-WORKFLOW SENIORITY-DIFFERENTIATED RATES (MANDATORY):
+You MUST set fullyLoadedHourlyCostOverride for EACH workflow individually.
+Do NOT use the same rate for all workflows.
+
+Use the workflow's \`owner\` field to determine seniority tier:
+  - "Analyst", "Coordinator", "Associate", "Assistant", "Clerk", "Admin" → junior tier
+  - "Manager", "Specialist", "Consultant", "Account Executive", "Officer" → mid tier
+  - "Director", "VP", "Partner", "Head of", "C-Level", "Principal", "Senior Manager" → senior tier
+
+Source your rates from a named benchmark. Cite it in rateSource. Use the currency
+that matches the company's operating currency (AED for UAE, SAR for Saudi, EGP for Egypt, etc.):
+
+  UAE / GCC (AED): Gulf Talent
+    junior/ops: AED 55–75/hr | mid-level: AED 75–100/hr | senior: AED 95–135/hr
+  Saudi Arabia (SAR): Bayt.com
+    junior/ops: SAR 55–75/hr | mid-level: SAR 75–105/hr | senior: SAR 100–140/hr
+  Qatar / Kuwait / Bahrain / Oman (local currency): Gulf Talent
+    ops: local equiv of AED 55–75/hr | senior: local equiv of AED 95–135/hr
+  Egypt (EGP): Glassdoor MENA
+    ops/admin: EGP 650–1,400/hr | mid: EGP 1,400–2,200/hr | senior: EGP 2,200–4,000/hr
+  Turkey: Glassdoor regional — $10–18/hr (USD equivalent)
+  US: Robert Half or LinkedIn Salary Insights
+    ops/marketing: $50–70/hr | compliance/legal-ops: $65–90/hr | senior: $80–115/hr
+  EU: Robert Half EU
+    ops: €40–65/hr | mid: €55–85/hr | senior: €75–115/hr
+  UK: Robert Half UK
+    ops: £40–60/hr | mid: £55–82/hr | senior: £75–110/hr
+
+Set seniorityLevel to describe the role (e.g. "Junior operations analyst", "Senior sales executive").
 
 VOLUME & TIME ANCHORING:
 The Research Agent has already derived monthlyVolume and minutesPerItemBefore
@@ -36,31 +73,18 @@ VOLUME CEILING: No single workflow monthlyVolume may exceed employees × 2.
 
 COSTS:
 - implementationCost: MUST equal 6–10× estimated monthly labor savings.
-- monthlyToolingCost: recurring platform/license fees (typically $200–800/month for SMBs).
+- monthlyToolingCost: recurring platform/license fees (typically $200–800/month for SMBs, or local currency equivalent).
 
-RULE 6A — PER-WORKFLOW SENIORITY-DIFFERENTIATED RATES:
-You MUST set fullyLoadedHourlyCostOverride for EACH workflow individually.
-Do NOT use the same rate for all workflows.
-Rate must reflect the seniority of the role that performs this task:
-  - Junior/admin roles (data entry, scheduling, reporting): use lower end of regional range
-  - Mid-level roles (account management, ops, compliance): use mid range
-  - Senior roles (strategy, sales, legal, finance): use upper end
-Source your rates from a named benchmark. Cite it in rateSource:
-  GCC: Gulf Talent or Bayt.com ($18–28/hr for junior, up to $45/hr for senior)
-  Turkey/Egypt: Glassdoor regional ($12–20/hr)
-  US/EU: Robert Half or LinkedIn Salary Insights ($45–75/hr)
-  UK: Robert Half UK ($40–65/hr)
-Set seniorityLevel to describe the role (e.g. "Junior operations analyst", "Senior sales executive").
-
-LABOR (global fallback — used if no override set):
+LABOR (global fallback — used if no per-workflow override):
 - fullyLoadedHourlyCost: blended rate for this country and industry.
-  GCC: $18–28/hr | Turkey/Egypt: $12–20/hr | US/EU: $45–75/hr | UK: $40–65/hr
+  UAE/GCC (AED): AED 80–110 | Saudi (SAR): SAR 80–115 | Egypt (EGP): EGP 1,400–2,200
+  Turkey: $12–18/hr | US: $55–85/hr | EU: €50–80/hr | UK: £50–80/hr
 - workWeeksPerYear: 48 for GCC/Egypt, 50 for US/EU/UK.
 
 realizationFactor: 0.70–0.85.
-profitMultiplier: 1.5–4.0. Cap at 3.5 for companies under 500 employees.
+profitMultiplier: 1.8–4.0. Cap at 3.5 for companies under 500 employees.
 
-workflowAssumptions (exactly 4, names must match workflows input):
+workflowAssumptions (one entry per workflow in the input — names must match exactly):
 - exceptionRate: 0.05–0.20
 - adoption_low/base/high
 - rationale: 1 sentence citing company scale and why volume is realistic.
@@ -69,8 +93,8 @@ workflowAssumptions (exactly 4, names must match workflows input):
 - seniorityLevel: required — describe the role seniority
 
 SANITY CHECK — annual labor savings = sum(volume × timeSaved/60 × rate × realization × 12):
-- Under 200 employees: $60K–$300K total
-- 200–2000 employees: $150K–$700K total
+- Under 200 employees: $60K–$300K total (or local currency equivalent)
+- 200–2000 employees: $150K–$700K total (or local currency equivalent)
 Scale down volumes only if substantially exceeded.
 
 Return valid JSON only.
@@ -119,11 +143,11 @@ export const ROI_MODELER_SCHEMA = {
       },
     },
     realizationFactor: { type: 'number', minimum: 0.5, maximum: 0.95 },
-    profitMultiplier: { type: 'number', minimum: 1.5, maximum: 4.0 },
+    profitMultiplier: { type: 'number', minimum: 1.8, maximum: 4.0 },
     workflowAssumptions: {
       type: 'array',
-      minItems: 4,
-      maxItems: 4,
+      minItems: 3,
+      maxItems: 6,
       items: {
         type: 'object',
         additionalProperties: false,

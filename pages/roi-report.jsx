@@ -42,16 +42,17 @@ const CURRENCIES = [
 const TOTAL_STEPS = 2
 const IS_DEV = process.env.NODE_ENV === 'development'
 const DEV_STEP1_PRESET = {
-  companyName: 'LyRise',
-  website: 'lyrise.ai',
-  whatYouDo: 'selling ai solutions for businesses',
-  industry: 'Technology / SaaS',
+  companyName: 'Dr. Mohammed Al-Muhanna & Partners. Lawyers and Consultants',
+  website: 'https://dr-almuhanna.com/',
+  whatYouDo:
+    'Dr. Mohammed Al Muhanna & Partners, Lawyers, And Consultants. is well managed and operated by qualified and professional legal consultants and attorneys, providing a state of the art of legal services in line with the well-known legal services standards to meet the requirements of different business sectors, companies and individuals in various fields. The firm usually provides implementable and qualified legal consultancies and advices that can meet the needs of clients in the best possible manner and in accordance with professional standards.',
+  industry: 'Legal & Professional Services',
 }
 const DEV_STEP2_PRESET = {
   email: 'yousef@lyrise.ai',
   recipientName: 'Yousef',
   recipientTitle: 'COO',
-  currency: 'USD – US Dollar (USD)',
+  currency: 'SAR – Saudi Riyal (SAR)',
 }
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
