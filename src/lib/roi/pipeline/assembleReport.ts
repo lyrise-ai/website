@@ -236,11 +236,21 @@ function buildOdVsPuPanelHTML(sym: string, od: number, pu: number): string {
 function buildCalculationPanelHTML(
   sym: string,
   wfs: Array<WorkflowInput & WorkflowCalc>,
+  globals: { realizationFactor: number; workWeeksPerYear: number },
   totalMonthlyHours: number,
   annualOD: number,
 ): string {
   const topWf = wfs[0]
-  const savedHrs = (topWf.timeSaved / 60).toFixed(2)
+  // Real formula used by roiCalculator:
+  //   netSaved = (minutesBefore − minutesAfter) − (exceptionRate × exceptionMinutes)
+  //   monthlyHours = volume × adoptionRate × (netSaved / 60) × realizationFactor × (workWeeks/52)
+  const netSavedMin = Math.max(
+    0,
+    topWf.minutesPerItemBefore -
+      topWf.minutesPerItemAfter -
+      topWf.exceptionRate * topWf.exceptionMinutes,
+  )
+  const workingMonthFactor = globals.workWeeksPerYear / 52
   const monthlyValue = Math.round(topWf.monthlyHours * topWf.effectiveRate)
   const totalMonthlyValue = wfs.reduce(
     (a, w) => a + Math.round(w.monthlyHours * w.effectiveRate),
@@ -254,25 +264,26 @@ function buildCalculationPanelHTML(
           `${sym}${addCommas(Math.round(w.monthlyHours * w.effectiveRate))}`,
       )
       .join(' + ') + ` = ${sym}${addCommas(totalMonthlyValue)}/mo`
+
+  const formulaLine =
+    `hrs/mo = volume × adoptionRate × (netSavedMin ÷ 60) × realizationFactor × (workWeeks ÷ 52)`
+  const exampleLine =
+    `${addCommas(topWf.monthlyVolume)} × ${(topWf.adoptionRate * 100).toFixed(0)}% × ` +
+    `(${netSavedMin.toFixed(1)}min ÷ 60) × ${globals.realizationFactor} × ` +
+    `(${globals.workWeeksPerYear}÷52) = ${addCommas(topWf.monthlyHours)} hrs → ` +
+    `${addCommas(topWf.monthlyHours)} × ${sym}${addCommas(topWf.effectiveRate)}/hr = ${sym}${addCommas(monthlyValue)}/mo`
+
   return (
     `<div class="insight-panel" style="margin-top:6px">` +
     `<div class="insight-stripe"></div>` +
     `<div class="insight-content" style="font-size:8.5pt">` +
     `<div style="font-size:7pt;text-transform:uppercase;letter-spacing:0.8px;color:#003f87;font-weight:bold;margin-bottom:6px">How This Is Calculated</div>` +
-    `<div style="margin-bottom:4px"><strong>Formula:</strong> Value recaptured/mo = Volume × (Before AI hrs − After AI hrs) × Rate (${sym}/hr)</div>` +
-    `<div style="margin-bottom:4px"><strong>Worked example — ${esc(
-      topWf.name,
-    )}:</strong> <span style="font-family:monospace">${addCommas(
-      topWf.monthlyVolume,
-    )} × ${savedHrs} hrs × ${sym}${addCommas(
-      topWf.effectiveRate,
-    )}/hr = ${sym}${addCommas(monthlyValue)}/mo</span></div>` +
+    `<div style="margin-bottom:4px"><strong>Formula:</strong> <span style="font-family:monospace;font-size:8pt">${formulaLine}</span></div>` +
+    `<div style="margin-bottom:4px"><strong>Worked example — ${esc(topWf.name)}:</strong> <span style="font-family:monospace">${exampleLine}</span></div>` +
     `<div style="margin-bottom:4px"><strong>Monthly total:</strong> <span style="font-family:monospace">${sumLine}</span></div>` +
     `<div style="margin-bottom:2px"><strong>Annual hours returned:</strong> <span style="font-family:monospace">${addCommas(
       totalMonthlyHours,
-    )} × 12 = ${addCommas(
-      totalMonthlyHours * 12,
-    )} hrs (~${ftes} FTEs at 2,080 hrs/yr)</span></div>` +
+    )} × 12 = ${addCommas(totalMonthlyHours * 12)} hrs (~${ftes} FTEs at 2,080 hrs/yr)</span></div>` +
     `<div><strong>Annual Operational Dividend:</strong> <span style="font-family:monospace">${sym}${addCommas(
       totalMonthlyValue,
     )}/mo × 12 = ${sym}${addCommas(annualOD)}</span></div>` +
@@ -468,7 +479,7 @@ export function assembleReport(state: ReportState): AssembleReportOutput {
     return cur(v)
   }
 
-  const tf12 = s.operationalDividend12mo + s.profitUplift12mo
+  const tf12 = s.totalFinancialGain12mo
 
   // Merge WorkflowInput + WorkflowCalc — sorted desc by annual value for display
   const merged: Array<WorkflowInput & WorkflowCalc> = [...calcOutput.workflows]
@@ -485,7 +496,11 @@ export function assembleReport(state: ReportState): AssembleReportOutput {
       acc + Math.round((w.monthlyVolume * w.minutesPerItemBefore) / 60),
     0,
   )
-  const totalHrsAfter = totalHrsBefore - Math.round(s.totalAnnualHours / 12)
+  const totalHrsAfter = merged.reduce(
+    (acc, w) =>
+      acc + Math.round((w.monthlyVolume * w.minutesPerItemAfter) / 60),
+    0,
+  )
   const totalValMo = merged.reduce(
     (acc, w) => acc + Math.round(w.monthlyHours * w.effectiveRate),
     0,
@@ -514,69 +529,6 @@ export function assembleReport(state: ReportState): AssembleReportOutput {
   const caseStudiesHTML = buildCaseStudiesHTML()
   const scopeListHTML = merged.map((w) => `<li>${esc(w.name)}</li>`).join('')
 
-  const asisTableBody =
-    merged
-      .map((wf) => {
-        const srcClass =
-          wf.sourceType === 'user_stated'
-            ? 'badge-scraped'
-            : wf.sourceType === 'research_derived'
-            ? 'badge-scraped'
-            : 'badge-benchmarked'
-        const srcLabel =
-          wf.sourceType === 'user_stated'
-            ? 'User-stated'
-            : wf.sourceType === 'research_derived'
-            ? 'Scraped'
-            : 'Benchmarked'
-        const timeBeforeHrs = (wf.minutesPerItemBefore / 60).toFixed(2)
-        return (
-          `<tr>` +
-          `<td><strong>${esc(wf.name)}</strong></td>` +
-          `<td>${esc(wf.owner || '—')}</td>` +
-          `<td style="text-align:center">${fmt(wf.monthlyVolume)}</td>` +
-          `<td style="text-align:center">${timeBeforeHrs} hrs</td>` +
-          `<td>${sym}${fmt(wf.effectiveRate)}/hr</td>` +
-          `<td>${sym}${fmt(wf.costPerRun)}</td>` +
-          `<td><strong>${sym}${fmt(wf.monthlyCost)}</strong></td>` +
-          `<td><span class="${srcClass}">${srcLabel}</span></td>` +
-          `</tr>`
-        )
-      })
-      .join('') +
-    `<tr class="total-row"><td colspan="7"><strong>Total monthly run-cost</strong></td><td><strong>${sym}${fmt(
-      totalMonthlyCost,
-    )}</strong></td></tr>`
-
-  const bvaTableBody =
-    merged
-      .map((wf) => {
-        const beforeHrs = (wf.minutesPerItemBefore / 60).toFixed(2)
-        const afterHrs = (wf.minutesPerItemAfter / 60).toFixed(2)
-        const savedHrs = (wf.timeSaved / 60).toFixed(2)
-        const monthlyValue = Math.round(wf.monthlyHours * wf.effectiveRate)
-        return (
-          `<tr>` +
-          `<td><strong>${esc(wf.name)}</strong></td>` +
-          `<td style="text-align:center">${fmt(wf.monthlyVolume)}</td>` +
-          `<td style="text-align:center">${beforeHrs} hrs</td>` +
-          `<td style="text-align:center">${afterHrs} hrs</td>` +
-          `<td style="text-align:center">${savedHrs} hrs</td>` +
-          `<td style="text-align:center">${fmt(wf.monthlyHours)} hrs</td>` +
-          `<td>${sym}${fmt(wf.effectiveRate)}/hr</td>` +
-          `<td class="accent"><strong>${sym}${fmt(
-            monthlyValue,
-          )}</strong></td>` +
-          `</tr>`
-        )
-      })
-      .join('') +
-    `<tr class="total-row"><td colspan="5"><strong>Monthly capacity unlocked</strong></td><td><strong>${fmt(
-      totalMonthlyHours,
-    )} hrs</strong></td><td></td><td class="accent"><strong>${sym}${fmt(
-      totalValMo,
-    )}/mo</strong></td></tr>`
-
   const levers = copy.profit_levers ?? []
   const profitLeversBody =
     levers
@@ -588,7 +540,7 @@ export function assembleReport(state: ReportState): AssembleReportOutput {
             l.derived_from ?? '',
           )}</td>` +
           `<td>${esc(l.baseline_data ?? '')}</td>` +
-          `<td>${esc(l.assumption ?? '')}</td>` +
+          `<td>${esc(l.ai_agent_action ?? '')}</td>` +
           `<td style="font-size:8pt;color:#2d2d2d;font-family:monospace">${esc(
             l.rationale_with_arithmetic ?? l.rationale ?? '',
           )}</td>` +
@@ -598,18 +550,6 @@ export function assembleReport(state: ReportState): AssembleReportOutput {
     `<tr class="total-row"><td colspan="4"><strong>Annual incremental profit (per year)</strong></td><td class="accent"><strong>${sym}${fmt(
       s.profitUplift12mo,
     )}</strong></td></tr>`
-
-  const deployTableBody = merged
-    .map(
-      (wf) =>
-        `<tr>` +
-        `<td><strong>${esc(wf.name)}</strong></td>` +
-        `<td>${esc(wf.expectedOutcome ?? '')}</td>` +
-        `<td class="accent"><strong>${esc(wf.agentName ?? '')}</strong></td>` +
-        `<td>${esc(wf.whyItMatters ?? '')}</td>` +
-        `</tr>`,
-    )
-    .join('')
 
   // Master workflow table — consolidates As-Is + Before/After + Deploy
   // (each workflow appears once with all relevant columns).
@@ -746,6 +686,7 @@ export function assembleReport(state: ReportState): AssembleReportOutput {
       ? buildCalculationPanelHTML(
           sym,
           merged,
+          globals,
           totalMonthlyHours,
           s.operationalDividend12mo,
         )
@@ -778,8 +719,10 @@ export function assembleReport(state: ReportState): AssembleReportOutput {
         const hrsBefore = Math.round(
           (wf.monthlyVolume * wf.minutesPerItemBefore) / 60,
         )
+        const hrsAfter = Math.round(
+          (wf.monthlyVolume * wf.minutesPerItemAfter) / 60,
+        )
         const hrsSaved = Math.round(wf.monthlyHours)
-        const hrsAfter = hrsBefore - hrsSaved
         const valMo = Math.round(wf.monthlyHours * wf.effectiveRate)
         return (
           `<tr>` +
@@ -847,9 +790,9 @@ export function assembleReport(state: ReportState): AssembleReportOutput {
     currencyCode: globals.currency.code,
     currencySymbol: sym,
     workflowCount: String(merged.length),
-    coverHeadline: `${fmt(s.totalAnnualHours)} hrs/year & ${short(
+    coverHeadline: `${fmt(s.totalAnnualHours)} Hrs Returned & ${short(
       tf12,
-    )} total financial gain per year (conservative estimate)`,
+    )} Total Financial Gain per year`,
     statHours: fmt(s.totalAnnualHours),
     statHoursSub: fmt(totalMonthlyHours),
     statOD: short(s.operationalDividend12mo),
@@ -857,7 +800,6 @@ export function assembleReport(state: ReportState): AssembleReportOutput {
     statTF: short(tf12),
     statFTE: (s.totalAnnualHours / 2080).toFixed(1),
     totalAnnualHours: fmt(s.totalAnnualHours),
-    totalMonthlyHours: fmt(totalMonthlyHours),
     od12: cur(s.operationalDividend12mo),
     pu12: cur(s.profitUplift12mo),
     tf12: cur(tf12),
@@ -869,12 +811,6 @@ export function assembleReport(state: ReportState): AssembleReportOutput {
     od36: cur(s.operationalDividend36mo),
     pu36: cur(s.profitUplift36mo),
     tf36: cur(s.totalFinancialGain36mo),
-    employeesDisplay: company.employees
-      ? `${addCommas(company.employees)} (est. midpoint)`
-      : 'Not specified',
-    revenueDisplay: company.revenueEstimateM
-      ? `${sym}${company.revenueEstimateM}M (est. midpoint)`
-      : 'Not specified',
     recipientDisplay: normInput?.recipientName
       ? normInput.recipientTitle
         ? `${normInput.recipientName}, ${normInput.recipientTitle}`
@@ -882,17 +818,9 @@ export function assembleReport(state: ReportState): AssembleReportOutput {
       : `${company.company} Leadership`,
     caseStudiesHTML,
     scopeListHTML,
-    asisTableBody,
-    bvaTableBody,
     profitLeversBody,
-    deployTableBody,
     workflowMasterTableBody,
     provenanceTableHTML,
-    cta:
-      copy.cta_paragraph ||
-      `Let us show you how we can return ${fmt(
-        totalMonthlyHours,
-      )} hours to your team each month.`,
     revenueContextStatement,
     companySnapshotTableBody,
     confidenceBadge,

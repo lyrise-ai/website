@@ -233,20 +233,13 @@ export interface RiskRow {
   mitigation: string
 }
 
-export interface ChecklistItem {
-  action: string
-  owner: string
-  due: string
-}
-
 export interface ProfitLever {
   lever_name: string
   baseline_data: string
-  assumption: string
+  ai_agent_action: string
   rationale: string
   rationale_with_arithmetic: string
   derived_from: string
-  profit?: string // legacy — not rendered; total comes from calculator
 }
 
 export interface ReportCopy {
@@ -258,7 +251,6 @@ export interface ReportCopy {
   resilience_rows: ResilienceRow[]
   pilot_recommendation: string
   risks: RiskRow[]
-  next_steps_checklist: ChecklistItem[]
 }
 
 // ── Assemble Report output (display object) ──────────────────────────────────
@@ -275,7 +267,6 @@ export interface DisplayObject {
   statFTE: string
   statPU: string
   totalAnnualHours: string
-  totalMonthlyHours: string
   od12: string
   pu12: string
   tf12: string
@@ -287,18 +278,12 @@ export interface DisplayObject {
   od36: string
   pu36: string
   tf36: string
-  employeesDisplay: string
-  revenueDisplay: string
   recipientDisplay: string
   caseStudiesHTML: string
   scopeListHTML: string
-  asisTableBody: string
-  bvaTableBody: string
   profitLeversBody: string
-  deployTableBody: string
   workflowMasterTableBody: string
   provenanceTableHTML: string
-  cta: string
   revenueContextStatement: string
   companySnapshotTableBody: string
   confidenceBadge: string

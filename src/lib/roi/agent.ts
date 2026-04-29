@@ -39,7 +39,6 @@ import type {
   ProfitLever,
   ResilienceRow,
   RiskRow,
-  ChecklistItem,
   CostOfDelayData,
 } from '@/src/lib/roi/types'
 
@@ -627,19 +626,23 @@ function buildTools(
               lever_name: z.string(),
               derived_from: z.string(),
               baseline_data: z.string(),
-              assumption: z.string(),
+              ai_agent_action: z
+                .string()
+                .describe(
+                  'The specific named action the AI agent takes, e.g. "AI drafts and routes contract renewal notices". No vague efficiency language.',
+                ),
               rationale: z.string(),
               rationale_with_arithmetic: z
                 .string()
                 .describe(
-                  'Full arithmetic chain, e.g. "120 hrs/mo × 12 × $45/hr × 0.35 = $22,680/yr". Total Profit Uplift is computed by the calculator from profitMultiplier — do not invent a separate per-lever total.',
+                  'Monthly arithmetic only, e.g. "120 hrs/mo freed × $45/hr × 0.35 redirected = $1,890/mo". Total Profit Uplift is computed by the calculator — do not invent a separate per-lever annual total.',
                 ),
             }),
           )
           .min(3)
           .max(3)
           .describe(
-            'Exactly 3 levers. Each rationale_with_arithmetic must show the arithmetic that substantiates the lever.',
+            'Exactly 3 levers. Each must name the specific AI agent action and show monthly arithmetic.',
           ),
         cost_of_delay: z.object({
           narrative: z
@@ -669,15 +672,6 @@ function buildTools(
             }),
           )
           .min(3),
-        next_steps_checklist: z
-          .array(
-            z.object({
-              action: z.string(),
-              owner: z.string(),
-              due: z.string(),
-            }),
-          )
-          .length(6),
       }),
       execute: async (copy: ReportCopy) => {
         state.copy = copy
@@ -719,19 +713,23 @@ function buildTools(
               lever_name: z.string(),
               derived_from: z.string(),
               baseline_data: z.string(),
-              assumption: z.string(),
+              ai_agent_action: z
+                .string()
+                .describe(
+                  'The specific named action the AI agent takes. No vague efficiency language.',
+                ),
               rationale: z.string(),
               rationale_with_arithmetic: z
                 .string()
                 .describe(
-                  'Full arithmetic chain showing how the lever works. Total Profit Uplift is computed by the calculator — do not add a per-lever profit total.',
+                  'Monthly arithmetic only. Total Profit Uplift is computed by the calculator — do not add a per-lever annual total.',
                 ),
             }),
           )
           .min(3)
           .max(3)
           .optional()
-          .describe('Exactly 3 levers with full arithmetic rationale.'),
+          .describe('Exactly 3 levers with named AI agent action and monthly arithmetic.'),
         resilience_rows: z
           .array(
             z.object({
@@ -764,17 +762,6 @@ function buildTools(
           )
           .min(3)
           .optional(),
-        next_steps: z
-          .array(
-            z.object({
-              action: z.string(),
-              owner: z.string(),
-              due: z.string(),
-            }),
-          )
-          .length(6)
-          .optional()
-          .describe('NS-2: exactly 6 items with named owner'),
       }),
       execute: async (patches: {
         thesis?: string
@@ -784,7 +771,6 @@ function buildTools(
         resilience_rows?: ResilienceRow[]
         cost_of_delay?: CostOfDelayData
         risks?: RiskRow[]
-        next_steps?: ChecklistItem[]
       }) => {
         if (!state.copy) return { error: 'No report copy to update' }
         state.copy = {
@@ -806,9 +792,6 @@ function buildTools(
             cost_of_delay: patches.cost_of_delay,
           }),
           ...(patches.risks !== undefined && { risks: patches.risks }),
-          ...(patches.next_steps !== undefined && {
-            next_steps_checklist: patches.next_steps,
-          }),
         }
         const COPY_TO_SECTION: Record<string, string> = {
           thesis: 'thesis',
@@ -818,7 +801,6 @@ function buildTools(
           resilience_rows: 'resilience_rows',
           cost_of_delay: 'cost_of_delay',
           risks: 'risks',
-          next_steps: 'cta',
         }
         const changedSections = Object.keys(patches)
           .filter((k) => patches[k as keyof typeof patches] !== undefined)
@@ -1197,15 +1179,13 @@ Do not write any text before calling set_research_output. Act immediately.
 MANDATORY for set_report_copy:
 • unified_pattern_thesis (KR-16): 2-3 sentences naming SINGLE operating pattern
 • profit_levers: exactly 3 levers. For each lever:
-  - Write rationale_with_arithmetic as monthly arithmetic only, e.g. "120 hrs/mo freed × $45/hr × 0.35 redirected = $1,890/mo"
-  - Use the hourly rate from run_financial_model figures, NOT the FTE count
-  - Total Profit Uplift is computed by the calculator — do NOT include a per-lever annual total
+  - ai_agent_action: the specific named action the AI agent takes (e.g. "AI auto-drafts contract renewal notices and routes for partner sign-off"). No vague efficiency language.
+  - rationale_with_arithmetic: monthly arithmetic only, e.g. "120 hrs/mo freed × $45/hr × 0.35 redirected = $1,890/mo". Use the hourly rate from run_financial_model figures, NOT FTE count. Do NOT include a per-lever annual total — the calculator owns that.
 • derived_from: workflow name(s) each lever originates from
 • cost_of_delay (KR-18): narrative only — company-specific urgency prose, no dollar figures, MUST end with "Delay is not neutral — it carries a monthly price."
 • resilience_rows (KR-17): exactly 4 rows; dimensions: Cost per unit, Delivery speed, Error rate, Strategic capacity
 • pilot_recommendation (WD-1): MUST reference specific company characteristics
 • cta_paragraph (NS-1): criteria-based — "If [conditions] describe your situation, a 30-min call with elena@lyrise.ai would be worthwhile."
-• next_steps_checklist (NS-2): exactly 6 items, each with named owner + due date
 
 TERMINOLOGY: "Operational Dividend" · "Total Financial Gain" · "Hours Returned"`
   }
@@ -1246,15 +1226,13 @@ After phases 1–6, call tools in order:
 MANDATORY for set_report_copy:
 • unified_pattern_thesis (KR-16): 2-3 sentences naming SINGLE operating pattern, no workflow lists
 • profit_levers: exactly 3 levers. For each lever:
-  - Write rationale_with_arithmetic as monthly arithmetic only, e.g. "120 hrs/mo freed × $45/hr × 0.35 redirected = $1,890/mo"
-  - Use the hourly rate from run_financial_model figures, NOT the FTE count
-  - Total Profit Uplift is computed by the calculator — do NOT include a per-lever annual total
+  - ai_agent_action: the specific named action the AI agent takes (e.g. "AI auto-drafts contract renewal notices and routes for partner sign-off"). No vague efficiency language.
+  - rationale_with_arithmetic: monthly arithmetic only, e.g. "120 hrs/mo freed × $45/hr × 0.35 redirected = $1,890/mo". Use the hourly rate from run_financial_model figures, NOT FTE count. Do NOT include a per-lever annual total — the calculator owns that.
 • derived_from: workflow name(s) each lever originates from
 • cost_of_delay (KR-18): narrative only — company-specific urgency prose, no dollar figures, MUST end with "Delay is not neutral — it carries a monthly price."
 • resilience_rows (KR-17): exactly 4 rows; dimensions: Cost per unit, Delivery speed, Error rate, Strategic capacity
 • pilot_recommendation (WD-1): MUST reference specific company characteristics (employees, volume)
 • cta_paragraph (NS-1): criteria-based — "If [conditions] describe your situation, a 30-min call with elena@lyrise.ai would be worthwhile."
-• next_steps_checklist (NS-2): exactly 6 items, each with named owner + due date
 
 TERMINOLOGY (mandatory):
 • "Operational Dividend" — never "cost savings"
@@ -1315,6 +1293,8 @@ function buildChatSystemPrompt(state: ReportState): string {
       (l, i) =>
         `  [${i + 1}] lever_name="${l.lever_name}" | derived_from="${
           l.derived_from
+        }"\n       ai_agent_action="${
+          l.ai_agent_action
         }"\n       rationale_with_arithmetic="${
           l.rationale_with_arithmetic ?? l.rationale
         }"`,
@@ -1329,13 +1309,6 @@ function buildChatSystemPrompt(state: ReportState): string {
 
   const riskLines = (copy.risks ?? [])
     .map((r, i) => `  [${i + 1}] "${r.risk}"`)
-    .join('\n')
-
-  const nextStepLines = (copy.next_steps_checklist ?? [])
-    .map(
-      (ns, i) =>
-        `  [${i + 1}] "${ns.action}" | owner:${ns.owner} | due:${ns.due}`,
-    )
     .join('\n')
 
   return `You are the LyRise ROI Report Editor for ${company.company}.
@@ -1396,9 +1369,6 @@ ${resilienceLines}
 RISKS → risks (min 3)
 ${riskLines}
 
-NEXT STEPS → next_steps (exactly 6)
-${nextStepLines}
-
 ═══ YOUR TOOLS ══════════════════════════════════════════
 NUMBERS   update_workflow(name, patches)   — set volume, timeBefore, timeAfter, rateOverride, adoptionRate
           update_globals(patches)          — set laborRate, implCost, toolingCostMonthly, profitMultiplier, realizationFactor
@@ -1434,7 +1404,6 @@ STRICT RULES:
 - For a single-section edit, use a targeted update_* tool — never set_report_copy.
 - KR-18: cost_of_delay narrative MUST end with "Delay is not neutral — it carries a monthly price."
 - KR-17: resilience_rows always exactly 4 rows.
-- NS-2: next_steps always exactly 6 items.
 - Narrate what you're doing before calling tools.
 - If you cannot satisfy a request with the available tools, say so explicitly.`
 }
