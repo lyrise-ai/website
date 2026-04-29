@@ -130,7 +130,7 @@ export default function ReportViewer({
   const TOUR_STEPS = [
     {
       title: 'Executive Summary',
-      body: 'Quick 2-page snapshot — share this version with execs and decision-makers. If anything here feels unclear or you want the reasoning behind a number, switch to the Full Report for the detail behind every section.',
+      body: 'Concise snapshot — share this version with execs and decision-makers. If anything here feels unclear or you want the reasoning behind a number, switch to the Full Report for the detail behind every section.',
       placement: 'bottom-start',
     },
     {
