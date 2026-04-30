@@ -120,7 +120,7 @@ export default function ReportViewer({
   const [userSentCount, setUserSentCount] = useState(initialMessagesUsed)
   const [showCallPrompt, setShowCallPrompt] = useState(false)
   const [downloadStatus, setDownloadStatus] = useState('idle')
-  const [tourStep, setTourStep] = useState(0)
+  const [tourStep, setTourStep] = useState(-1)
   const [tourRect, setTourRect] = useState(null)
 
   const iframeRef = useRef(null)
@@ -170,6 +170,12 @@ export default function ReportViewer({
       })
       .catch(() => setHtmlLoading(false))
   }, [reportId, htmlLoading])
+
+  useEffect(() => {
+    try {
+      if (!localStorage.getItem('lyrise_tour_seen')) setTourStep(0)
+    } catch {}
+  }, [])
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
@@ -227,11 +233,20 @@ export default function ReportViewer({
   }, [tourStep])
 
   const advanceTour = useCallback(() => {
-    setTourStep((s) => (s + 1 >= TOUR_STEPS.length ? -1 : s + 1))
+    setTourStep((s) => {
+      const next = s + 1 >= TOUR_STEPS.length ? -1 : s + 1
+      if (next === -1) {
+        try { localStorage.setItem('lyrise_tour_seen', '1') } catch {}
+      }
+      return next
+    })
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  const closeTour = useCallback(() => setTourStep(-1), [])
+  const closeTour = useCallback(() => {
+    try { localStorage.setItem('lyrise_tour_seen', '1') } catch {}
+    setTourStep(-1)
+  }, [])
 
   const handleTabSelect = useCallback((tab) => {
     setActiveTab(tab)
@@ -592,6 +607,25 @@ export default function ReportViewer({
               : downloadStatus === 'error'
               ? 'Download failed — retry'
               : 'Download PDF'}
+          </button>
+          <button
+            type="button"
+            onClick={() => setTourStep(0)}
+            title="Take a tour"
+            style={{
+              width: 32,
+              height: 32,
+              borderRadius: '50%',
+              border: '1px solid #e2e8f0',
+              background: '#fff',
+              color: '#6b7280',
+              fontSize: 14,
+              fontWeight: 700,
+              cursor: 'pointer',
+              flexShrink: 0,
+            }}
+          >
+            ?
           </button>
           <button
             ref={resendEmailRef}
