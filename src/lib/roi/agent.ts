@@ -208,6 +208,49 @@ function buildTools(
       },
     }),
 
+    // ── Evidence lookup tool (chat mode) ────────────────────────────────────
+    search_evidence: tool({
+      description:
+        'Search the evidence gathered during report generation. Use this when the user asks where a figure came from, why a value was chosen, or what sources back a claim. Check here before calling web_search.',
+      inputSchema: z.object({
+        query: z
+          .string()
+          .describe(
+            'Keywords to match, e.g. "labor rate", "revenue", "employee count"',
+          ),
+      }),
+      execute: async ({ query }: { query: string }) => {
+        const items = state.evidenceItems ?? []
+        if (items.length === 0)
+          return {
+            results: [],
+            note: 'No evidence recorded for this report.',
+          }
+        const q = query.toLowerCase()
+        const matches = items
+          .filter((e) =>
+            [e.snippet, e.title, e.query, e.url].some((f) =>
+              f?.toLowerCase().includes(q),
+            ),
+          )
+          .slice(0, 8)
+          .map((e) => ({
+            source: e.url ?? (e.query ? `search: "${e.query}"` : 'internal'),
+            snippet: (e.snippet ?? '').slice(0, 400),
+            sourceType: e.sourceType,
+            confidence: e.confidence,
+          }))
+        return {
+          results: matches,
+          total_evidence_items: items.length,
+          note:
+            matches.length === 0
+              ? 'No matching evidence — try broader keywords or web_search for new data.'
+              : undefined,
+        }
+      },
+    }),
+
     // ── Generation tools (sequenced during initial generation) ──────────────
     set_research_output: tool({
       description:
@@ -1276,28 +1319,36 @@ function buildChatSystemPrompt(state: ReportState): string {
         (w.monthlyVolume * w.minutesPerItemBefore) / 60,
       )
       const hrsAfter = Math.round(hrsBefore - w.monthlyHours)
+      const rateLabel =
+        w.rateOverride != null
+          ? `${sym}${w.rateOverride}/hr (workflow override)`
+          : `${sym}${globals.laborRate}/hr (global)`
+      const rateSource = (w as WorkflowInput & { rateSource?: string })
+        .rateSource
+      const seniorityLevel = (w as WorkflowInput & { seniorityLevel?: string })
+        .seniorityLevel
+      const rateDetail = [
+        rateSource ? `source: ${rateSource}` : null,
+        seniorityLevel ? `seniority: ${seniorityLevel}` : null,
+      ]
+        .filter(Boolean)
+        .join(' | ')
       return `[${w.name}]
-  Displayed: ${hrsBefore}→${hrsAfter} hrs/mo | ${
-        w.monthlyHours
-      } saved | ${sym}${w.monthlyValue}/mo
-  Raw inputs (update_workflow): volume=${w.monthlyVolume}/mo | before=${
-        w.minutesPerItemBefore
-      }min | after=${w.minutesPerItemAfter}min | rate=${sym}${
-        w.rateOverride ?? globals.laborRate
-      }/hr | adoption=${w.adoptionRate}`
+  Displayed: ${hrsBefore}→${hrsAfter} hrs/mo | ${w.monthlyHours} hrs saved | ${sym}${w.monthlyValue}/mo
+  Raw inputs (update_workflow): volume=${w.monthlyVolume}/mo | before=${w.minutesPerItemBefore}min | after=${w.minutesPerItemAfter}min | rate=${rateLabel}${rateDetail ? ' | ' + rateDetail : ''} | adoption=${w.adoptionRate}
+  Owner: ${w.owner} | Type: ${w.sourceType}
+  Why it matters: ${w.whyItMatters}
+  Volume rationale: ${w.rationale || '(none recorded)'}`
     })
     .join('\n\n')
 
   const leverLines = (copy.profit_levers ?? [])
     .map(
       (l, i) =>
-        `  [${i + 1}] lever_name="${l.lever_name}" | derived_from="${
-          l.derived_from
-        }"\n       ai_agent_action="${
-          l.ai_agent_action
-        }"\n       rationale_with_arithmetic="${
-          l.rationale_with_arithmetic ?? l.rationale
-        }"`,
+        `  [${i + 1}] lever_name="${l.lever_name}" | derived_from="${l.derived_from}"
+       baseline_data="${l.baseline_data}"
+       ai_agent_action="${l.ai_agent_action}"
+       rationale_with_arithmetic="${l.rationale_with_arithmetic ?? l.rationale}"`,
     )
     .join('\n')
 
@@ -1308,7 +1359,21 @@ function buildChatSystemPrompt(state: ReportState): string {
     .join('\n')
 
   const riskLines = (copy.risks ?? [])
-    .map((r, i) => `  [${i + 1}] "${r.risk}"`)
+    .map(
+      (r, i) =>
+        `  [${i + 1}] "${r.risk}"\n       Detail: ${r.detail}\n       Mitigation: ${r.mitigation}`,
+    )
+    .join('\n')
+
+  const snapshotLines = (copy.company_snapshot ?? [])
+    .map((b) => `  • [${b.sourceType}] ${b.text}`)
+    .join('\n')
+
+  const painPointLines = (state.painPoints ?? [])
+    .map(
+      (p) =>
+        `  • ${p.title} (${p.confidence}, ${p.source}): ${p.description}`,
+    )
     .join('\n')
 
   return `You are the LyRise ROI Report Editor for ${company.company}.
@@ -1317,30 +1382,38 @@ HOW THIS WORKS: every displayed figure has a raw input behind it. You see both b
 Edit the raw input with a tool → the pipeline recalculates and re-renders everything automatically.
 Never compute derived values yourself. Never do arithmetic on report numbers.
 
+INTENT INFERENCE — resolve the user's goal before acting:
+• "where did X come from" / "why is X this value" → call search_evidence("X") first, then explain using the results and workflow rationale below
+• "X seems too high / too low / wrong" → call search_evidence("X") to surface the source, then offer to research alternatives or update
+• "change [thing] to [value]" → map to the exact tool+field (see COMPOSITION EXAMPLES); ask only if truly ambiguous
+• "the rate / salary / hourly cost" → update_workflow rateOverride (per-workflow) or update_globals laborRate (all workflows)
+• "the volume / frequency / how many per month" → update_workflow monthlyVolume
+• "time / duration / minutes" → update_workflow minutesPerItemBefore or minutesPerItemAfter
+• "add [process/workflow]" → add_workflow (must not already exist in the WORKFLOWS list)
+• "rewrite / update / fix [copy section]" → update_copy with the relevant field(s)
+• Before re-searching for a rate or benchmark, check RESEARCH EVIDENCE — it may already be there
+
 ═══ COMPANY ════════════════════════════════════════════
-${company.company} | ${company.industry} | ${company.country ?? 'unknown'} | ${
-    company.employees ?? '?'
-  } employees
-Revenue: ${
-    company.revenueEstimateM ? sym + company.revenueEstimateM + 'M' : 'unknown'
-  } | Confidence: ${state.confidenceLevel ?? 'low'}
+${company.company} | ${company.industry} | ${company.country ?? 'unknown'} | ${company.employees ?? '?'} employees
+Revenue: ${company.revenueEstimateM ? sym + company.revenueEstimateM + 'M' : 'unknown'} | Confidence: ${state.confidenceLevel ?? 'low'}
 Thesis: ${state.coreThesis ?? ''}
+Research summary: ${state.researchSummary ?? '(none)'}
+
+COMPANY SNAPSHOT (displayed in report):
+${snapshotLines || '  (none)'}
+
+PAIN POINTS IDENTIFIED:
+${painPointLines || '  (none)'}
 
 ═══ WORKFLOWS ══════════════════════════════════════════
 ${workflowSection}
 
-TOTALS (displayed): ${calc.figures.totalAnnualHours} hrs/yr | OD ${sym}${
-    s.operationalDividend12mo
-  } | PU ${sym}${s.profitUplift12mo} | TFG ${sym}${s.totalFinancialGain12mo}
+TOTALS (displayed): ${calc.figures.totalAnnualHours} hrs/yr | OD ${sym}${s.operationalDividend12mo} | PU ${sym}${s.profitUplift12mo} | TFG ${sym}${s.totalFinancialGain12mo}
 
 ═══ GLOBAL INPUTS ═══════════════════════════════════════
 Edit with update_globals. Applied to all workflows unless a workflow has its own rate override above.
-  laborRate=${sym}${globals.laborRate}/hr | implCost=${sym}${
-    globals.implementationCost
-  } | toolingCostMonthly=${sym}${globals.monthlyToolingCost}/mo
-  profitMultiplier=${globals.profitMultiplier} | realizationFactor=${
-    globals.realizationFactor
-  }
+  laborRate=${sym}${globals.laborRate}/hr | implCost=${sym}${globals.implementationCost} | toolingCostMonthly=${sym}${globals.monthlyToolingCost}/mo
+  profitMultiplier=${globals.profitMultiplier} | realizationFactor=${globals.realizationFactor} | workWeeksPerYear=${globals.workWeeksPerYear}
 
 ═══ COPY SECTIONS ═══════════════════════════════════════
 Edit with update_copy(patches). Field names shown after →.
@@ -1358,9 +1431,7 @@ WHERE PROFIT UPLIFT COMES FROM → profit_levers (exactly 3)
 ${leverLines}
 
 COST OF DELAY → cost_of_delay
-  monthly_cost is computed by the calculator (tf12/12 = ${sym}${Math.round(
-    s.totalFinancialGain12mo / 12,
-  ).toLocaleString()}) — do not set this
+  monthly_cost is computed by the calculator (tf12/12 = ${sym}${Math.round(s.totalFinancialGain12mo / 12).toLocaleString()}) — do not set this
   narrative="${copy.cost_of_delay?.narrative ?? ''}"
 
 RESILIENCE TABLE → resilience_rows (exactly 4)
@@ -1376,24 +1447,24 @@ NUMBERS   update_workflow(name, patches)   — set volume, timeBefore, timeAfter
 CURRENCY  set_currency(code)              — change display symbol/code only; pair with scale_rates when converting values
 COPY      update_copy(patches)            — update any combination of copy sections in one call
 STRUCTURE add_workflow | remove_workflow
-RESEARCH  web_search | fetch_page
-  When asked to fix or improve rates: search for real benchmarks before updating.
+RESEARCH  search_evidence(query)        — look up sources for any figure already found during generation
+          web_search | fetch_page       — search/scrape new data not in evidence
+  When asked about sources: call search_evidence first. Only call web_search if evidence returns no match.
   Query patterns:
     • "{industry} {country} {role} hourly rate site:gulftalent.com OR site:bayt.com"
     • "{industry} {country} average salary {role} {year} glassdoor OR linkedin"
     • "Robert Half salary guide {year} {industry} {country}"
-  Convert to fully-loaded hourly: annual ÷ (${
-    globals.workWeeksPerYear
-  } × 40) × 1.30
+  Convert to fully-loaded hourly: annual ÷ (${globals.workWeeksPerYear} × 40) × 1.30
   Then call update_workflow(name, { rateOverride: <computed> }) or update_globals({ laborRate: <blended> }).
 
 COMPOSITION EXAMPLES:
   "Convert to AED at 3.67"          → set_currency("AED")  then  scale_rates(3.67)
-  "Proposal rate is ${sym}80/hr"   → update_workflow("Proposal drafting and tailoring", { rateOverride: 80 })
+  "Proposal rate is ${sym}80/hr"    → update_workflow("Proposal drafting and tailoring", { rateOverride: 80 })
   "Inbound volume is 200/mo"        → update_workflow("Inbound lead qualification", { monthlyVolume: 200 })
   "Rewrite the thesis"              → update_copy({ thesis: "..." })
   "Fix profit lever arithmetic"     → update_copy({ profit_levers: [...] })
   "Rate change + update lever math" → update_workflow(...) then update_copy({ profit_levers: [...] })
+  "Where did $45/hr come from?"     → search_evidence("labor rate") → explain results + workflow rationale
 
 STRICT RULES:
 - NEVER describe a change without calling the tool that makes it.
@@ -1495,7 +1566,7 @@ ${
     system,
     messages,
     tools,
-    stopWhen: stepCountIs(mode === 'generate' ? 20 : 8),
+    stopWhen: stepCountIs(mode === 'generate' ? 20 : 14),
   })
 
   for await (const part of result.fullStream) {

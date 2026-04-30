@@ -43,16 +43,31 @@ export async function getServerSideProps({ req, res, params }) {
 
   const initialState = buildStateFromReportRow(report)
 
-  let initialMessagesUsed = 0
-  if (!isEmployee) {
-    const { data: usage } = await admin
-      .from('chat_usage')
-      .select('message_count')
-      .eq('user_id', user.id)
-      .eq('report_id', report.id)
-      .single()
-    initialMessagesUsed = usage?.message_count ?? 0
-  }
+  // Load chat history and usage count in parallel
+  let msgQuery = admin
+    .from('chat_messages')
+    .select('role, content')
+    .eq('report_id', report.id)
+    .order('created_at', { ascending: true })
+    .limit(20)
+  if (!isEmployee) msgQuery = msgQuery.eq('user_id', user.id)
+
+  const [{ data: messages }, usageResult] = await Promise.all([
+    msgQuery,
+    isEmployee
+      ? Promise.resolve({ data: null })
+      : admin
+          .from('chat_usage')
+          .select('message_count')
+          .eq('user_id', user.id)
+          .eq('report_id', report.id)
+          .single(),
+  ])
+
+  const initialMessagesUsed = usageResult.data?.message_count ?? 0
+  const initialChatHistory = (messages ?? [])
+    .filter((m) => m.role === 'user' || m.role === 'assistant')
+    .filter((m) => m.content && m.content.trim() !== '')
 
   return {
     props: {
@@ -61,6 +76,7 @@ export async function getServerSideProps({ req, res, params }) {
       reportId: report.id,
       isEmployee,
       initialMessagesUsed,
+      initialChatHistory,
     },
   }
 }
@@ -71,6 +87,7 @@ export default function ReportPage({
   reportId,
   isEmployee,
   initialMessagesUsed,
+  initialChatHistory,
 }) {
   return (
     <>
@@ -83,6 +100,7 @@ export default function ReportPage({
         reportId={reportId}
         isEmployee={isEmployee}
         initialMessagesUsed={initialMessagesUsed}
+        initialChatHistory={initialChatHistory}
         backHref="/dashboard"
       />
     </>

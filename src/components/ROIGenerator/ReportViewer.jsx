@@ -56,6 +56,7 @@ function buildInitialMessage(state) {
 const TOOL_LABELS = {
   web_search: 'Searching the web…',
   fetch_page: 'Reading page…',
+  search_evidence: 'Looking up sources…',
   set_research_output: 'Processing research findings…',
   run_financial_model: 'Running financial model…',
   set_report_copy: 'Writing report copy…',
@@ -99,10 +100,11 @@ export default function ReportViewer({
   reportId,
   isEmployee,
   initialMessagesUsed = 0,
+  initialChatHistory = [],
   backHref,
 }) {
   const [reportState, setReportState] = useState(initialState)
-  const [chatHistory, setChatHistory] = useState([])
+  const [chatHistory, setChatHistory] = useState(initialChatHistory)
   const [initialMessage] = useState(() => buildInitialMessage(initialState))
   const [streamingText, setStreamingText] = useState('')
   const [activeTool, setActiveTool] = useState(null)
