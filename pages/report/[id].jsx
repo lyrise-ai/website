@@ -19,9 +19,7 @@ export async function getServerSideProps({ req, res, params }) {
     admin.from('users').select('role').eq('id', user.id).single(),
     admin
       .from('reports')
-      .select(
-        'id, company_name, email, status, state_data, rendered_html, rendered_full_html, user_id',
-      )
+      .select('id, company_name, email, status, state_data, user_id')
       .eq('id', params.id)
       .single(),
   ])

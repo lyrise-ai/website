@@ -104,6 +104,9 @@ export default function ReportViewer({
   backHref,
 }) {
   const [reportState, setReportState] = useState(initialState)
+  const [htmlLoading, setHtmlLoading] = useState(
+    !initialState?.renderedHtml && !initialState?.renderedFullHtml,
+  )
   const [chatHistory, setChatHistory] = useState(initialChatHistory)
   const [initialMessage] = useState(() => buildInitialMessage(initialState))
   const [streamingText, setStreamingText] = useState('')
@@ -156,6 +159,17 @@ export default function ReportViewer({
       placement: 'left',
     },
   ]
+
+  useEffect(() => {
+    if (!htmlLoading) return
+    fetch(`/api/reports/${reportId}`)
+      .then((r) => r.json())
+      .then(({ renderedHtml, renderedFullHtml }) => {
+        setReportState((prev) => ({ ...prev, renderedHtml, renderedFullHtml }))
+        setHtmlLoading(false)
+      })
+      .catch(() => setHtmlLoading(false))
+  }, [reportId, htmlLoading])
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
@@ -629,13 +643,48 @@ export default function ReportViewer({
             overflow: 'hidden',
             borderRight: '1px solid #e2e8f0',
             background: '#f1f5f9',
+            position: 'relative',
           }}
         >
+          {htmlLoading && (
+            <div
+              style={{
+                position: 'absolute',
+                inset: 0,
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: 16,
+                background: '#f1f5f9',
+                zIndex: 2,
+              }}
+            >
+              <div
+                style={{
+                  width: 36,
+                  height: 36,
+                  border: '3px solid #e2e8f0',
+                  borderTopColor: '#2957FF',
+                  borderRadius: '50%',
+                  animation: 'spin 0.75s linear infinite',
+                }}
+              />
+              <span style={{ fontSize: 13, color: '#6b7280', fontWeight: 500 }}>
+                Loading report…
+              </span>
+            </div>
+          )}
           <iframe
             ref={iframeRef}
             srcDoc={activeHtml ?? ''}
             onLoad={handleIframeLoad}
-            style={{ width: '100%', height: '100%', border: 'none' }}
+            style={{
+              width: '100%',
+              height: '100%',
+              border: 'none',
+              opacity: htmlLoading ? 0 : 1,
+            }}
             title="ROI Report Preview"
           />
         </div>
@@ -1162,6 +1211,9 @@ export default function ReportViewer({
         @keyframes pulse {
           0%, 100% { opacity: 1; }
           50% { opacity: 0.3; }
+        }
+        @keyframes spin {
+          to { transform: rotate(360deg); }
         }
       `}</style>
     </div>
