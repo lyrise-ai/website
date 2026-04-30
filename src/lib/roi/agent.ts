@@ -440,6 +440,19 @@ function buildTools(
             url: item.url ?? null,
           }))
 
+        // Pre-compute TFG target band so the modeler hits Rule 6B on the first try
+        const revenueU = (state.company.revenueEstimateM ?? 0) * 1e6
+        const tfgTargetRange =
+          revenueU > 0 && state.confidenceLevel !== 'low'
+            ? { min: Math.round(revenueU * 0.05), max: Math.round(revenueU * 0.2) }
+            : null
+
+        // Currencies whose official symbols are non-Latin script — built once outside the loop
+        const SCRIPT_SYMBOL_CODES = new Set([
+          'SAR', 'AED', 'QAR', 'KWD', 'BHD', 'OMR',
+          'EGP', 'JOD', 'IQD', 'LBP', 'IRR', 'YER',
+        ])
+
         const modelerUserContent = JSON.stringify({
           company_profile: state.company,
           // Fix 3: include owner so modeler can differentiate by seniority
@@ -459,6 +472,7 @@ function buildTools(
           revenueRange: state.normInput.revenueRange,
           researchSummary: state.researchSummary ?? undefined,
           researchEvidence: rateSignals.length > 0 ? rateSignals : undefined,
+          ...(tfgTargetRange && { tfg_target_range: tfgTargetRange }),
         })
 
         let globals: GlobalInputs | null = null
@@ -479,11 +493,13 @@ function buildTools(
             retryHint = `\n\nPREVIOUS ATTEMPT FAILED: ${lastError}.${prescription}`
           }
 
+          // System prompt is stable across all attempts to enable OpenAI prefix caching;
+          // retry hint goes into the user prompt instead
           const result = await generateObject({
             model: fastModel,
             schema: jsonSchema(ROI_MODELER_SCHEMA as object),
-            system: ROI_MODELER_SYSTEM_PROMPT + retryHint,
-            prompt: modelerUserContent,
+            system: ROI_MODELER_SYSTEM_PROMPT,
+            prompt: retryHint ? modelerUserContent + retryHint : modelerUserContent,
           })
           const callLabel = attempt > 0 ? `modeler_retry${attempt}` : 'modeler'
           tracker?.record({
@@ -494,21 +510,6 @@ function buildTools(
 
           const modelerOut = result.object as ModelerResult
 
-          // Currencies whose official symbols are non-Latin script — always use the ISO code instead
-          const SCRIPT_SYMBOL_CODES = new Set([
-            'SAR',
-            'AED',
-            'QAR',
-            'KWD',
-            'BHD',
-            'OMR',
-            'EGP',
-            'JOD',
-            'IQD',
-            'LBP',
-            'IRR',
-            'YER',
-          ])
           const rawCurrencySym = modelerOut.currency.symbol
           // eslint-disable-next-line no-control-regex
           const hasNonAscii = /[^\x00-\x7F]/.test(rawCurrencySym)
@@ -520,7 +521,7 @@ function buildTools(
             laborRate: modelerOut.labor.fullyLoadedHourlyCost,
             implementationCost: modelerOut.costs.implementationCost,
             monthlyToolingCost: modelerOut.costs.monthlyToolingCost,
-            profitMultiplier: modelerOut.profitMultiplier,
+            profitMultiplier: Math.max(1.8, Math.min(4.0, modelerOut.profitMultiplier)),
             realizationFactor: modelerOut.realizationFactor,
             workWeeksPerYear: modelerOut.labor.workWeeksPerYear,
             currency: {
@@ -580,13 +581,10 @@ function buildTools(
           const od = s.operationalDividend12mo
           const pu = s.profitUplift12mo
           const tf = s.totalFinancialGain12mo
-          const revenueM = state.company!.revenueEstimateM
-
           // Rule 6B: 5–20% revenue band.
           // Skip when confidence is low — revenueEstimateM is an LLM guess and
           // an uncertain estimate makes the band an impossible constraint to hit.
-          if (revenueM && revenueM > 0 && state.confidenceLevel !== 'low') {
-            const revenueU = revenueM * 1e6
+          if (revenueU > 0 && state.confidenceLevel !== 'low') {
             const ratio = tf / revenueU
             if (ratio < 0.05) {
               lastError = `Rule 6B: TFG (${tf}) is only ${(ratio * 100).toFixed(
