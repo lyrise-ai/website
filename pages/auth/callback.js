@@ -1,33 +1,64 @@
-import { createClient } from '../../src/lib/supabase-server'
-
-export default function AuthCallback() {
-  return null
-}
+import { createRouteClient } from '../../src/lib/supabaseRouteClient'
+import {
+  getRoleForUser,
+  canSignUp,
+  createUserRecord,
+} from '../../src/lib/authHelpers'
+import { supabaseAdmin } from '../../src/lib/supabaseAdmin'
 
 export async function getServerSideProps({ req, res, query }) {
   const { code } = query
-
-  if (code) {
-    const supabase = createClient(req, res)
-    const {
-      data: { user },
-    } = await supabase.auth.exchangeCodeForSession(code)
-
-    if (user) {
-      const isEmployee = user.email?.endsWith('@lyrise.ai')
-      await supabase.from('users').upsert({
-        id: user.id,
-        email: user.email,
-        role: isEmployee ? 'EMPLOYEE' : 'CLIENT',
-      })
-      return {
-        redirect: {
-          destination: isEmployee ? '/dashboard' : '/roi-report',
-          permanent: false,
-        },
-      }
-    }
+  if (!code) {
+    return { redirect: { destination: '/auth/login', permanent: false } }
   }
 
-  return { redirect: { destination: '/roi-report', permanent: false } }
+  const supabase = createRouteClient(req, res)
+  const { error: exchangeError } = await supabase.auth.exchangeCodeForSession(
+    code,
+  )
+  if (exchangeError) {
+    return { redirect: { destination: '/auth/login', permanent: false } }
+  }
+
+  const { data: userData } = await supabase.auth.getUser()
+  const userId = userData.user.id
+  const userEmail = userData.user.email
+
+  let role
+  const { role: existingRole, error: roleError } = await getRoleForUser(userId)
+  if (roleError) {
+    return { redirect: { destination: '/auth/login', permanent: false } }
+  }
+
+  if (existingRole) {
+    role = existingRole
+  } else {
+    const {
+      allowed,
+      role: newRole,
+      error: checkError,
+    } = await canSignUp(userEmail, { skipWhitelist: true })
+    if (!allowed || checkError) {
+      await supabaseAdmin.auth.admin.deleteUser(userId)
+      return { redirect: { destination: '/auth/login', permanent: false } }
+    }
+
+    const { error: insertError } = await createUserRecord(
+      userEmail,
+      userId,
+      newRole,
+    )
+    if (insertError) {
+      await supabaseAdmin.auth.admin.deleteUser(userId)
+      return { redirect: { destination: '/auth/login', permanent: false } }
+    }
+    role = newRole
+  }
+
+  const destination = role === 'EMPLOYEE' ? '/dashboard' : '/roi-report'
+  return { redirect: { destination, permanent: false } }
+}
+
+export default function Callback() {
+  return null
 }

@@ -8,7 +8,7 @@ import {
   createAdminClient,
 } from '../src/lib/supabase-server'
 import { createClient as createBrowserClient } from '../src/lib/supabase-browser'
-import MainHeader from '../src/layout/MainHeader'
+import MainHeader from '../src/layout/MainHeader/index'
 
 const STATUS_STYLES = {
   SUCCESS: { bg: 'bg-green-50', text: 'text-green-700', label: 'Done' },
