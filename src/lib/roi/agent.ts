@@ -159,7 +159,7 @@ function buildTools(
         query: string
         maxResults?: number
       }) => {
-        const response = await webSearch(query, maxResults ?? 3)
+        const response = await webSearch(query, maxResults ?? 5)
 
         if (response.answer) {
           addEvidence(state, {
@@ -504,7 +504,7 @@ function buildTools(
           const callLabel = attempt > 0 ? `modeler_retry${attempt}` : 'modeler'
           tracker?.record({
             call: callLabel,
-            model: 'gpt-4o-mini',
+            model: 'gpt-4o',
             ...result.usage,
           })
 
@@ -1243,10 +1243,11 @@ PHASE 2 — Multi-Vector Intelligence Gathering. Research in this sequence:
 3. Search LinkedIn: web_search("{company} site:linkedin.com/company") then fetch_page for headcount + industry
 4. If a recipient name is provided: web_search("{name} {company} site:linkedin.com/in") and fetch_page their profile
 5. Search for financial/industry signals: web_search("{company} {industry} revenue employees {year}")
-6. Search for salary/rate benchmarks for the roles that will own each workflow in this country and industry. Run 1–2 targeted searches, e.g.:
+6. Search for salary/rate benchmarks for the roles that will own each workflow in this country and industry. MANDATORY — run at least 2 targeted searches:
    web_search("{industry} {country} operations manager hourly rate site:gulftalent.com OR site:bayt.com")
-   web_search("{industry} {country} average salary {role} {year}")
-   Note any specific figures (hourly, monthly, or annual) — the financial model will use them to set per-workflow rates.
+   web_search("{industry} {country} average salary {role} {year} glassdoor OR linkedin")
+   web_search("Robert Half salary guide {year} {country} {industry} {role}")
+   Extract every specific figure (hourly, monthly, or annual) — the financial model will use them to set per-workflow seniority-differentiated rates. Without this data the modeler falls back to generic ranges.
 Narrate your findings to the user as you go. Flag confidence levels.
 If you find any concrete company signal (practice area, product line, geography, client type, transaction volume, headcount, tool stack, or regulatory context), you MUST use it to shape workflow selection and workflow rationales.
 
@@ -1564,7 +1565,7 @@ ${
     system,
     messages,
     tools,
-    stopWhen: stepCountIs(mode === 'generate' ? 20 : 14),
+    stopWhen: stepCountIs(mode === 'generate' ? 25 : 14),
   })
 
   for await (const part of result.fullStream) {
@@ -1587,7 +1588,7 @@ ${
   // Track main agent loop usage and flush summary
   try {
     const usage = await result.usage
-    tracker.record({ call: 'main_agent', model: 'gpt-4o', ...usage })
+    tracker.record({ call: 'main_agent', model: 'o4-mini', ...usage })
   } catch {
     /* usage not available — skip */
   }
