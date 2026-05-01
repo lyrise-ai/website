@@ -1133,12 +1133,18 @@ function buildTools(
 
     update_globals: tool({
       description:
-        'Update global financial model parameters shared across all workflows. Instantly recalculates everything.',
+        'Update global financial model parameters. laborRate is the fallback/default rate; set applyToWorkflowOverrides to also rewrite existing workflow rates.',
       inputSchema: z.object({
         laborRate: z
           .number()
           .optional()
-          .describe('Global fully loaded hourly cost'),
+          .describe('Global fallback fully loaded hourly cost'),
+        applyToWorkflowOverrides: z
+          .boolean()
+          .optional()
+          .describe(
+            'When changing laborRate, also set every current workflow rateOverride to that value. Use this for whole-report rate changes.',
+          ),
         implCost: z
           .number()
           .optional()
@@ -1158,12 +1164,20 @@ function buildTools(
       }),
       execute: async (patches: {
         laborRate?: number
+        applyToWorkflowOverrides?: boolean
         implCost?: number
         toolingCostMonthly?: number
         profitMultiplier?: number
         realizationFactor?: number
       }) => {
         if (!state.globals) return { error: 'No globals to update' }
+        const everyWorkflowHasOverride =
+          Boolean(state.workflows?.length) &&
+          state.workflows!.every((w) => w.rateOverride != null)
+        const shouldSyncWorkflowRates =
+          patches.laborRate !== undefined &&
+          (patches.applyToWorkflowOverrides ?? everyWorkflowHasOverride)
+
         state.globals = {
           ...state.globals,
           ...(patches.laborRate !== undefined && {
@@ -1182,12 +1196,28 @@ function buildTools(
             realizationFactor: patches.realizationFactor,
           }),
         }
-        reAssemble(state, execTemplateHtml, fullTemplateHtml, callbacks, [
-          'financials',
-        ])
+        if (shouldSyncWorkflowRates && state.workflows) {
+          state.workflows = state.workflows.map((w) => ({
+            ...w,
+            rateOverride: patches.laborRate ?? w.rateOverride,
+          }))
+        }
+        reAssemble(
+          state,
+          execTemplateHtml,
+          fullTemplateHtml,
+          callbacks,
+          shouldSyncWorkflowRates ? ['workflows', 'financials'] : ['financials'],
+        )
         const s = state.calcOutput?.summary
         return {
           ok: true,
+          labor_rate_scope: shouldSyncWorkflowRates
+            ? 'all_workflows_and_global'
+            : 'global_fallback_only',
+          updated_workflow_rates: shouldSyncWorkflowRates
+            ? state.workflows?.length ?? 0
+            : 0,
           new_od12: s?.operationalDividend12mo,
           new_tf12: s?.totalFinancialGain12mo,
         }
@@ -1385,7 +1415,8 @@ INTENT INFERENCE — resolve the user's goal before acting:
 • "where did X come from" / "why is X this value" → call search_evidence("X") first, then explain using the results and workflow rationale below
 • "X seems too high / too low / wrong" → call search_evidence("X") to surface the source, then offer to research alternatives or update
 • "change [thing] to [value]" → map to the exact tool+field (see COMPOSITION EXAMPLES); ask only if truly ambiguous
-• "the rate / salary / hourly cost" → update_workflow rateOverride (per-workflow) or update_globals laborRate (all workflows)
+• "the rate / salary / hourly cost" for one named workflow → update_workflow rateOverride
+• "the rate / salary / hourly cost" for the whole report / no workflow named → update_globals({ laborRate: X, applyToWorkflowOverrides: true }) so the displayed workflow rates actually change
 • "the volume / frequency / how many per month" → update_workflow monthlyVolume
 • "time / duration / minutes" → update_workflow minutesPerItemBefore or minutesPerItemAfter
 • "add [process/workflow]" → add_workflow (must not already exist in the WORKFLOWS list)
@@ -1410,7 +1441,8 @@ ${workflowSection}
 TOTALS (displayed): ${calc.figures.totalAnnualHours} hrs/yr | OD ${sym}${s.operationalDividend12mo} | PU ${sym}${s.profitUplift12mo} | TFG ${sym}${s.totalFinancialGain12mo}
 
 ═══ GLOBAL INPUTS ═══════════════════════════════════════
-Edit with update_globals. Applied to all workflows unless a workflow has its own rate override above.
+Edit with update_globals. laborRate is the fallback/default rate.
+If workflows above already show overrides, changing only laborRate will not move their displayed rates unless applyToWorkflowOverrides is true.
   laborRate=${sym}${globals.laborRate}/hr | implCost=${sym}${globals.implementationCost} | toolingCostMonthly=${sym}${globals.monthlyToolingCost}/mo
   profitMultiplier=${globals.profitMultiplier} | realizationFactor=${globals.realizationFactor} | workWeeksPerYear=${globals.workWeeksPerYear}
 
@@ -1441,7 +1473,7 @@ ${riskLines}
 
 ═══ YOUR TOOLS ══════════════════════════════════════════
 NUMBERS   update_workflow(name, patches)   — set volume, timeBefore, timeAfter, rateOverride, adoptionRate
-          update_globals(patches)          — set laborRate, implCost, toolingCostMonthly, profitMultiplier, realizationFactor
+          update_globals(patches)          — set laborRate, implCost, toolingCostMonthly, profitMultiplier, realizationFactor; for whole-report rate changes set applyToWorkflowOverrides: true
           scale_rates(multiplier)          — multiply ALL monetary inputs by a factor; use for currency conversion, no arithmetic needed
 CURRENCY  set_currency(code)              — change display symbol/code only; pair with scale_rates when converting values
 COPY      update_copy(patches)            — update any combination of copy sections in one call
@@ -1454,10 +1486,11 @@ RESEARCH  search_evidence(query)        — look up sources for any figure alrea
     • "{industry} {country} average salary {role} {year} glassdoor OR linkedin"
     • "Robert Half salary guide {year} {industry} {country}"
   Convert to fully-loaded hourly: annual ÷ (${globals.workWeeksPerYear} × 40) × 1.30
-  Then call update_workflow(name, { rateOverride: <computed> }) or update_globals({ laborRate: <blended> }).
+  Then call update_workflow(name, { rateOverride: <computed> }) or update_globals({ laborRate: <blended>, applyToWorkflowOverrides: true }) if the user means one rate across the whole report.
 
 COMPOSITION EXAMPLES:
   "Convert to AED at 3.67"          → set_currency("AED")  then  scale_rates(3.67)
+  "Change the hourly rate to ${sym}200/hr" → update_globals({ laborRate: 200, applyToWorkflowOverrides: true })
   "Proposal rate is ${sym}80/hr"    → update_workflow("Proposal drafting and tailoring", { rateOverride: 80 })
   "Inbound volume is 200/mo"        → update_workflow("Inbound lead qualification", { monthlyVolume: 200 })
   "Rewrite the thesis"              → update_copy({ thesis: "..." })
@@ -1469,6 +1502,7 @@ STRICT RULES:
 - NEVER describe a change without calling the tool that makes it.
 - NEVER do arithmetic on report values — use scale_rates for relative scaling.
 - set_currency only changes the symbol; always also call scale_rates if values need converting.
+- If every workflow above shows a rate override, changing only global laborRate will not change the displayed workflow rates. Use applyToWorkflowOverrides: true for whole-report rate edits.
 - NEVER call add_workflow for a workflow already listed above — the tool will reject it.
 - set_report_copy: only call if the user explicitly asks to regenerate the full report copy.
 - For a single-section edit, use a targeted update_* tool — never set_report_copy.
