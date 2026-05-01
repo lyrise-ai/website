@@ -1,6 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
-import { supabaseServer } from '../../../src/lib/supabaseServer'
-import { supabaseAdmin } from '../../../src/lib/supabaseAdmin'
+import { createRouteClient } from '../../../src/lib/supabaseRouteClient'
+import { getRoleForUser } from '../../../src/lib/authHelpers'
 
 export default async function loginHandler(
   req: NextApiRequest,
@@ -12,7 +12,9 @@ export default async function loginHandler(
 
   const { email, password } = req.body
 
-  const { data, error } = await supabaseServer.auth.signInWithPassword({
+  const supabase = createRouteClient(req, res)
+
+  const { data, error } = await supabase.auth.signInWithPassword({
     email,
     password,
   })
@@ -20,18 +22,13 @@ export default async function loginHandler(
     return res.status(400).json({ error: error.message })
   }
 
-  const { data: roleRow, error: roleError } = await supabaseAdmin
-    .from('users')
-    .select('role')
-    .eq('id', data.user.id)
-    .single()
+  const { role, error: roleError } = await getRoleForUser(data.user.id)
 
   if (roleError) {
-    return res.status(500).json({ error: 'failed to fetch role' })
+    return res.status(500).json({ error: roleError })
   }
 
   return res.status(200).json({
-    session: data.session,
-    role: roleRow.role,
+    role,
   })
 }

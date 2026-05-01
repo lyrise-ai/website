@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react'
+import React, { useState, useCallback, useEffect, useRef } from 'react'
 import Head from 'next/head'
 import { motion, AnimatePresence } from 'framer-motion'
 import { FaCheckCircle } from 'react-icons/fa'
@@ -8,6 +8,8 @@ import LogosMarquee from '../src/components/MainLandingPage/LogosMarquee'
 import LastSection from '../src/components/MainLandingPage/LastSection'
 import ReportViewer from '../src/components/ROIGenerator/ReportViewer'
 import { drainSSE } from '../src/lib/drainSSE'
+import { createRouteClient } from '../src/lib/supabaseRouteClient'
+import { getRoleForUser } from '../src/lib/authHelpers'
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 
@@ -58,10 +60,11 @@ const DEV_STEP2_PRESET = {
 
 function validateStep(step, s1, s2) {
   const errors = {}
-  if (step === 1) {
-    if (!s1.companyName.trim() || s1.companyName.trim().length < 2) {
-      errors.companyName = 'Please enter your company name'
-    }
+  if (
+    step === 1 &&
+    (!s1.companyName.trim() || s1.companyName.trim().length < 2)
+  ) {
+    errors.companyName = 'Please enter your company name'
   }
   if (step === 2) {
     if (!s2.email.trim() || !/\S+@\S+\.\S+/.test(s2.email)) {
@@ -145,7 +148,7 @@ function TextInput({
             : 'border-gray-200 hover:border-gray-300 focus:border-gray-500',
         )}
       />
-      {error && <p className="text-xs text-red-500 mt-1">{error}</p>}
+      {error && <p className="mt-1 text-xs text-red-500">{error}</p>}
     </div>
   )
 }
@@ -159,7 +162,7 @@ function Step1({ data, onChange, errors }) {
         <p className="text-[11px] font-semibold uppercase tracking-wider text-gray-400 mb-1">
           Your company
         </p>
-        <h2 className="text-xl font-bold text-gray-900 mb-1">
+        <h2 className="mb-1 text-xl font-bold text-gray-900">
           Let&apos;s start with the basics
         </h2>
         <p className="text-sm text-gray-500">
@@ -218,14 +221,14 @@ function Step2({ data, onChange, errors, isDev }) {
         <p className="text-[11px] font-semibold uppercase tracking-wider text-gray-400 mb-1">
           Delivery
         </p>
-        <h2 className="text-xl font-bold text-gray-900 mb-1">
+        <h2 className="mb-1 text-xl font-bold text-gray-900">
           Where should we send your report?
         </h2>
         <p className="text-sm text-gray-500">
           Your report is generated and emailed — usually ready in 60 seconds.
         </p>
         {isDev && (
-          <p className="text-xs text-amber-600 mt-2">
+          <p className="mt-2 text-xs text-amber-600">
             Dev mode is on: the form is prefilled, email/PDF are skipped, and
             you can use a fast mock preview.
           </p>
@@ -282,26 +285,26 @@ function ErrorView({ message, onRetry, onUseEstimates }) {
     message?.includes("couldn't research") ||
     message?.includes('retrieve specific web pages')
   return (
-    <div className="text-center py-10 px-8">
+    <div className="px-8 py-10 text-center">
       <div
-        className="w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-5 border"
+        className="flex items-center justify-center w-12 h-12 mx-auto mb-5 border rounded-full"
         style={{ background: '#fff7ed', borderColor: '#fed7aa' }}
       >
         <span style={{ fontSize: 22 }}>⚠</span>
       </div>
-      <h2 className="text-xl font-bold text-gray-900 mb-2">
+      <h2 className="mb-2 text-xl font-bold text-gray-900">
         {isResearchFailure
           ? "Couldn't gather company data online"
           : 'Generation incomplete'}
       </h2>
       {isResearchFailure ? (
         <>
-          <p className="text-sm text-gray-500 mb-6 max-w-sm mx-auto leading-relaxed">
+          <p className="max-w-sm mx-auto mb-6 text-sm leading-relaxed text-gray-500">
             The agent had trouble finding public data for this company. You can
             retry with web search, or generate a report instantly using your
             questionnaire inputs and industry benchmarks.
           </p>
-          <div className="flex flex-col gap-3 max-w-xs mx-auto">
+          <div className="flex flex-col max-w-xs gap-3 mx-auto">
             <button
               type="button"
               onClick={onUseEstimates}
@@ -320,10 +323,10 @@ function ErrorView({ message, onRetry, onUseEstimates }) {
         </>
       ) : (
         <>
-          <p className="text-sm text-gray-500 mb-6 max-w-sm mx-auto">
+          <p className="max-w-sm mx-auto mb-6 text-sm text-gray-500">
             {message || 'Something went wrong. Please try again.'}
           </p>
-          <div className="flex flex-col gap-3 max-w-xs mx-auto">
+          <div className="flex flex-col max-w-xs gap-3 mx-auto">
             <button
               type="button"
               onClick={onRetry}
@@ -347,66 +350,264 @@ function ErrorView({ message, onRetry, onUseEstimates }) {
 
 function GeneratingView({ generationLog }) {
   return (
-    <div className="text-center py-12 px-8">
+    <div className="px-8 py-12 text-center">
       <div
-        className="text-5xl mb-6 inline-block"
+        className="inline-block mb-6 text-5xl"
         style={{ animation: 'spin 1.2s linear infinite' }}
       >
         ⟳
       </div>
       <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
-      <h2 className="text-xl font-bold text-gray-900 mb-2">
+      <h2 className="mb-2 text-xl font-bold text-gray-900">
         Building your ROI report…
       </h2>
-      <p className="text-sm text-gray-500 mb-6">
+      <p className="mb-6 text-sm text-gray-500">
         Our AI is researching your company and modelling your automation
         potential. This takes about 45–90 seconds.
       </p>
-      <div className="font-mono text-xs text-gray-600 bg-gray-50 rounded-lg p-4 h-32 overflow-y-auto text-left whitespace-pre-wrap border border-gray-100">
+      <div className="h-32 p-4 overflow-y-auto font-mono text-xs text-left text-gray-600 whitespace-pre-wrap border border-gray-100 rounded-lg bg-gray-50">
         {generationLog || 'Starting…'}
       </div>
     </div>
   )
 }
 
-function SuccessView({ email }) {
+function SuccessView({ email, reportId, isEmployee }) {
+  const [messages, setMessages] = useState([])
+  const [inputValue, setInputValue] = useState('')
+  const [isSending, setIsSending] = useState(false)
+  const [limitReached, setLimitReached] = useState(false)
+  const bottomRef = useRef(null)
+
+  const userSentCount = messages.filter((m) => m.role === 'user').length
+
+  // Load existing conversation from DB when reportId is set
+  useEffect(() => {
+    if (!reportId) return
+    fetch(`/api/chat?reportId=${reportId}`)
+      .then((r) => r.json())
+      .then((data) => {
+        if (Array.isArray(data.messages) && data.messages.length > 0) {
+          setMessages(data.messages)
+        }
+      })
+      .catch(() => {})
+  }, [reportId])
+
+  useEffect(() => {
+    bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
+  }, [messages, isSending])
+
+  const sendMessage = async () => {
+    const trimmed = inputValue.trim()
+    if (!trimmed || isSending || limitReached || !reportId) return
+
+    const updated = [...messages, { role: 'user', content: trimmed }]
+    setMessages(updated)
+    setInputValue('')
+    setIsSending(true)
+
+    try {
+      const res = await fetch('/api/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ reportId, message: trimmed }),
+      })
+
+      if (res.status === 403) {
+        setLimitReached(true)
+        return
+      }
+      if (res.status === 429) {
+        // Remove the optimistic user message we added
+        setMessages((prev) => prev.slice(0, -1))
+        setInputValue(trimmed)
+        return
+      }
+
+      const data = await res.json()
+      setMessages((prev) => [
+        ...prev,
+        { role: 'assistant', content: data.reply },
+      ])
+    } catch {
+      setMessages((prev) => [
+        ...prev,
+        {
+          role: 'assistant',
+          content: 'Something went wrong. Please try again.',
+        },
+      ])
+    } finally {
+      setIsSending(false)
+    }
+  }
+
   return (
-    <div className="text-center py-14">
-      <div className="mx-auto w-14 h-14 bg-green-50 rounded-full flex items-center justify-center mb-6 border border-green-100">
-        <FaCheckCircle className="text-3xl text-green-500" />
+    <div className="p-8">
+      {/* ── Success header ── */}
+      <div className="pb-8 text-center border-b border-gray-100">
+        <div className="flex items-center justify-center mx-auto mb-6 border border-green-100 rounded-full w-14 h-14 bg-green-50">
+          <FaCheckCircle className="text-3xl text-green-500" />
+        </div>
+        <h2 className="mb-3 text-2xl font-bold text-gray-900">
+          Report on its way
+        </h2>
+        <p className="max-w-sm mx-auto mb-4 text-sm leading-relaxed text-gray-600">
+          Your personalised AI ROI analysis has been generated and is being
+          emailed to:
+        </p>
+        <div className="inline-block px-4 py-2 mb-6 text-sm font-semibold bg-gray-100 rounded-lg">
+          {email}
+        </div>
+        <p className="max-w-sm mx-auto mb-6 text-sm text-gray-500">
+          Want to walk through the findings with our team? Book a free 30-min
+          call.
+        </p>
+        <a
+          href="https://calendly.com/elena-lyrise/30min"
+          className="inline-flex items-center gap-2 px-5 py-2.5 bg-gray-900 text-white text-sm font-semibold rounded-lg hover:bg-gray-700 transition-colors"
+        >
+          Book a 30-min call →
+        </a>
       </div>
-      <h2 className="text-2xl font-bold text-gray-900 mb-3">
-        Report on its way
-      </h2>
-      <p className="text-gray-600 mb-4 max-w-sm mx-auto text-sm leading-relaxed">
-        Your personalised AI ROI analysis has been generated and is being
-        emailed to:
-      </p>
-      <div className="inline-block text-sm font-semibold bg-gray-100 rounded-lg px-4 py-2 mb-6">
-        {email}
+
+      {/* ── Chat ── */}
+      <div className="pt-6">
+        <div className="flex items-center justify-between mb-3">
+          <h3 className="text-sm font-semibold text-gray-900">
+            Ask about your report
+          </h3>
+          {!isEmployee && (
+            <span
+              className={`text-xs font-mono ${
+                limitReached ? 'text-amber-500 font-semibold' : 'text-gray-400'
+              }`}
+            >
+              {Math.min(userSentCount, 5)} / 5 messages used
+            </span>
+          )}
+        </div>
+
+        {/* Message history */}
+        {messages.length > 0 && (
+          <div className="pr-1 mb-4 space-y-3 overflow-y-auto max-h-72">
+            {messages.map((msg, i) => (
+              <div
+                key={i}
+                className={`flex ${
+                  msg.role === 'user' ? 'justify-end' : 'justify-start'
+                }`}
+              >
+                <div
+                  className={`max-w-[82%] rounded-2xl px-4 py-2.5 text-sm leading-relaxed ${
+                    msg.role === 'user'
+                      ? 'bg-[#2957FF] text-white'
+                      : 'bg-gray-100 text-gray-800'
+                  }`}
+                >
+                  {msg.content}
+                </div>
+              </div>
+            ))}
+            {isSending && (
+              <div className="flex justify-start">
+                <div className="px-4 py-3 bg-gray-100 rounded-2xl">
+                  <div className="flex items-center gap-1">
+                    {[0, 150, 300].map((delay) => (
+                      <span
+                        key={delay}
+                        className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce"
+                        style={{ animationDelay: `${delay}ms` }}
+                      />
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
+            <div ref={bottomRef} />
+          </div>
+        )}
+
+        {/* Limit reached banner */}
+        {limitReached ? (
+          <div className="p-5 text-center border bg-amber-50 border-amber-200 rounded-xl">
+            <p className="mb-2 font-mono text-xs font-semibold text-amber-500">
+              5 / 5 messages used
+            </p>
+            <p className="mb-1 text-sm font-semibold text-amber-800">
+              You&apos;ve used your 5 free messages.
+            </p>
+            <p className="mb-4 text-xs text-amber-600">
+              Want unlimited edits? Contact LyRise to refine your ROI strategy.
+            </p>
+            <a
+              href="https://calendly.com/elena-lyrise/30min"
+              className="inline-flex items-center gap-2 px-4 py-2 text-xs font-semibold text-white transition-colors rounded-lg bg-amber-600 hover:bg-amber-700"
+            >
+              Contact Sales →
+            </a>
+          </div>
+        ) : (
+          <div className="flex gap-2">
+            <input
+              type="text"
+              value={inputValue}
+              onChange={(e) => setInputValue(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                  e.preventDefault()
+                  sendMessage()
+                }
+              }}
+              disabled={isSending}
+              placeholder="Ask a question about your ROI report…"
+              className="flex-1 text-sm border border-gray-200 rounded-xl px-3.5 py-2.5 outline-none focus:border-[#2957FF] transition-colors bg-white"
+            />
+            <button
+              type="button"
+              onClick={sendMessage}
+              disabled={!inputValue.trim() || isSending}
+              className="px-4 py-2.5 bg-[#2957FF] text-white text-sm font-semibold rounded-xl hover:bg-blue-700 transition-colors disabled:opacity-50"
+            >
+              Send
+            </button>
+          </div>
+        )}
       </div>
-      <p className="text-gray-500 text-sm mb-6 max-w-sm mx-auto">
-        Want to walk through the findings with our team? Book a free 30-min
-        call.
-      </p>
-      <a
-        href="https://calendly.com/elena-lyrise/30min"
-        className="inline-flex items-center gap-2 px-5 py-2.5 bg-gray-900 text-white text-sm font-semibold rounded-lg hover:bg-gray-700 transition-colors"
-      >
-        Book a 30-min call →
-      </a>
     </div>
   )
 }
 
 // ── Main ──────────────────────────────────────────────────────────────────────
 
-export default function ROIReport() {
+export async function getServerSideProps({ req, res }) {
+  const supabase = createRouteClient(req, res)
+  const { data } = await supabase.auth.getUser()
+
+  if (!data.user) {
+    return { redirect: { destination: '/auth/login', permanent: false } }
+  }
+
+  const { role } = await getRoleForUser(data.user.id)
+  const isEmployee = role === 'EMPLOYEE'
+
+  return {
+    props: {
+      user: data.user,
+      isEmployee,
+    },
+  }
+}
+
+export default function ROIReport({ user, isEmployee }) {
   const [step, setStep] = useState(1)
   const [viewState, setViewState] = useState('form')
   const [generationLog, setGenerationLog] = useState('')
   const [reportState, setReportState] = useState(null)
   const [errorMessage, setErrorMessage] = useState('')
+  const [reportId, setReportId] = useState(null)
+  const [initialMessagesUsed, setInitialMessagesUsed] = useState(0)
 
   const [s1, setS1] = useState(
     IS_DEV
@@ -464,6 +665,19 @@ export default function ROIReport() {
           }),
         })
 
+        if (response.status === 401) {
+          window.location.href = '/login'
+          return
+        }
+
+        if (response.status === 409) {
+          const data = await response.json()
+          if (data.report_id) {
+            window.location.href = `/report/${data.report_id}`
+          }
+          return
+        }
+
         let latestState = null
         await drainSSE(
           response.body.getReader(),
@@ -476,8 +690,13 @@ export default function ROIReport() {
             } else if (event.type === 'report_update') {
               latestState = event.state
               setReportState(event.state)
+            } else if (event.type === 'report_saved') {
+              setReportId(event.report_id)
             } else if (event.type === 'done') {
-              if (event.assembled || latestState?.assembled) {
+              if (
+                (event.assembled || latestState?.assembled) &&
+                latestState?.renderedHtml
+              ) {
                 setViewState('preview')
               } else {
                 setErrorMessage(
@@ -520,12 +739,23 @@ export default function ROIReport() {
   }, [])
 
   // Non-form views
+  if (viewState === 'loading') {
+    return (
+      <div className="rebranding-landing-page -mt-[12px]">
+        <MainHeader user={user} />
+        <div className="flex items-center justify-center min-h-screen">
+          <div className="w-8 h-8 border-4 border-gray-200 rounded-full border-t-gray-900 animate-spin" />
+        </div>
+      </div>
+    )
+  }
+
   if (viewState === 'generating') {
     return (
       <div className="rebranding-landing-page -mt-[12px]">
-        <MainHeader />
-        <div className="min-h-screen flex items-center justify-center p-4">
-          <div className="w-full max-w-xl bg-white rounded-2xl shadow-xl border border-gray-100">
+        <MainHeader user={user} />
+        <div className="flex items-center justify-center min-h-screen p-4">
+          <div className="w-full max-w-xl bg-white border border-gray-100 shadow-xl rounded-2xl">
             <GeneratingView generationLog={generationLog} />
           </div>
         </div>
@@ -534,18 +764,31 @@ export default function ROIReport() {
   }
 
   if (viewState === 'preview' && reportState) {
-    return <ReportViewer initialState={reportState} email={s2.email} />
+    return (
+      <ReportViewer
+        initialState={reportState}
+        email={s2.email}
+        reportId={reportId}
+        isEmployee={isEmployee}
+        initialMessagesUsed={initialMessagesUsed}
+        backHref={isEmployee ? '/dashboard' : undefined}
+      />
+    )
   }
 
   if (viewState === 'success') {
     return (
       <div className="rebranding-landing-page -mt-[12px]">
-        <MainHeader />
-        <div className="min-h-screen flex flex-col items-center justify-center p-4">
-          <div className="w-full max-w-xl bg-white rounded-2xl shadow-xl border border-gray-100">
-            <SuccessView email={s2.email} />
+        <MainHeader user={user} />
+        <div className="flex flex-col items-center justify-center min-h-screen p-4">
+          <div className="w-full max-w-xl bg-white border border-gray-100 shadow-xl rounded-2xl">
+            <SuccessView
+              email={s2.email}
+              reportId={reportId}
+              isEmployee={isEmployee}
+            />
           </div>
-          <div className="md:w-1/2 w-full mt-12">
+          <div className="w-full mt-12 md:w-1/2">
             <LogosMarquee />
           </div>
         </div>
@@ -557,9 +800,9 @@ export default function ROIReport() {
   if (viewState === 'error') {
     return (
       <div className="rebranding-landing-page -mt-[12px]">
-        <MainHeader />
-        <div className="min-h-screen flex items-center justify-center p-4">
-          <div className="w-full max-w-xl bg-white rounded-2xl shadow-xl border border-gray-100">
+        <MainHeader user={user} />
+        <div className="flex items-center justify-center min-h-screen p-4">
+          <div className="w-full max-w-xl bg-white border border-gray-100 shadow-xl rounded-2xl">
             <ErrorView
               message={errorMessage}
               onRetry={() => runGeneration()}
@@ -575,7 +818,7 @@ export default function ROIReport() {
 
   return (
     <div className="rebranding-landing-page -mt-[12px]">
-      <MainHeader />
+      <MainHeader user={user} />
       <Head>
         <title>Get Your AI ROI Report | LyRise</title>
         <meta
@@ -584,24 +827,24 @@ export default function ROIReport() {
         />
       </Head>
 
-      <div className="min-h-screen flex flex-col items-center justify-center p-4 font-sans text-gray-900">
+      <div className="flex flex-col items-center justify-center min-h-screen p-4 font-sans text-gray-900">
         <div className="w-full max-w-xl">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
-            className="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden"
+            className="overflow-hidden bg-white border border-gray-100 shadow-xl rounded-2xl"
           >
             {/* Progress bar */}
             <div className="h-0.5 bg-gray-100">
               <div
-                className="h-full bg-gray-900 transition-all duration-300 ease-out"
+                className="h-full transition-all duration-300 ease-out bg-gray-900"
                 style={{ width: `${progress}%` }}
               />
             </div>
 
             {/* Card header */}
-            <div className="flex items-center justify-between px-7 pt-5 pb-1">
+            <div className="flex items-center justify-between pt-5 pb-1 px-7">
               <div className="flex items-center gap-2 text-sm font-semibold text-gray-900">
                 <div className="w-6 h-6 rounded-md bg-gray-900 flex items-center justify-center text-white text-[11px] font-bold tracking-tight">
                   Ly
@@ -614,7 +857,7 @@ export default function ROIReport() {
             </div>
 
             {/* Step content */}
-            <div className="px-7 pt-5 pb-2" style={{ minHeight: 360 }}>
+            <div className="pt-5 pb-2 px-7" style={{ minHeight: 360 }}>
               <AnimatePresence mode="wait">
                 <motion.div
                   key={step}
@@ -639,7 +882,7 @@ export default function ROIReport() {
             </div>
 
             {/* Nav */}
-            <div className="flex items-center justify-between px-7 py-5 border-t border-gray-100 mt-4">
+            <div className="flex items-center justify-between py-5 mt-4 border-t border-gray-100 px-7">
               <button
                 type="button"
                 onClick={back}
@@ -668,7 +911,7 @@ export default function ROIReport() {
                   <button
                     type="button"
                     onClick={() => next({ skipLLM: true })}
-                    className="text-sm font-semibold text-gray-700 bg-gray-100 rounded-lg px-5 py-2 hover:bg-gray-200 transition-colors"
+                    className="px-5 py-2 text-sm font-semibold text-gray-700 transition-colors bg-gray-100 rounded-lg hover:bg-gray-200"
                   >
                     Fast mock preview
                   </button>
@@ -676,7 +919,7 @@ export default function ROIReport() {
                 <button
                   type="button"
                   onClick={() => next()}
-                  className="text-sm font-semibold text-white bg-gray-900 rounded-lg px-5 py-2 hover:bg-gray-700 transition-colors shadow-sm"
+                  className="px-5 py-2 text-sm font-semibold text-white transition-colors bg-gray-900 rounded-lg shadow-sm hover:bg-gray-700"
                 >
                   {step === TOTAL_STEPS ? 'Generate my report →' : 'Continue →'}
                 </button>
@@ -685,7 +928,7 @@ export default function ROIReport() {
           </motion.div>
         </div>
 
-        <div className="md:w-1/2 w-full mt-12">
+        <div className="w-full mt-12 md:w-1/2">
           <LogosMarquee />
         </div>
       </div>

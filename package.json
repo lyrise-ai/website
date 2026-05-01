@@ -29,6 +29,7 @@
     "@rive-app/react-canvas": "^4.1.6",
     "@sparticuz/chromium": "^143.0.4",
     "@studio-freight/lenis": "^1.0.42",
+    "@supabase/ssr": "^0.10.2",
     "@supabase/supabase-js": "^2.105.1",
     "ai": "^6.0.138",
     "amplitude-js": "^8.20.0",

@@ -44,13 +44,20 @@ const NAVIGATIONS = [
   // },
 ]
 
-export default function MainHeader() {
+export default function MainHeader({ user = null }) {
   const router = useRouter()
+  const handleSignOut = async () => {
+    await fetch('/api/auth/logout', {
+      method: 'POST',
+      credentials: 'include',
+    })
+    router.push('/')
+  }
   const navigate = (path) => {
     router.push(path)
   }
   return (
-    <header className="py-4 mt-3 px-2 sm:px-10  mb-10 lg:mb-0">
+    <header className="px-2 py-4 mt-3 mb-10 sm:px-10 lg:mb-0">
       <div
         className={`custom-container px-[1rem] sm:px[2.5rem] flex items-center justify-between gap-4 py-3 ${styles.navbar}`}
       >
@@ -64,7 +71,7 @@ export default function MainHeader() {
           />
         </Link>
 
-        <ul className="hidden lg:flex items-center gap-10 font-outfit font-normal text-new-black">
+        <ul className="items-center hidden gap-10 font-normal lg:flex font-outfit text-new-black">
           {NAVIGATIONS.map(({ label, path, isPage }) => (
             <li key={path}>
               <div
@@ -88,16 +95,31 @@ export default function MainHeader() {
         </ul>
 
         <div className="hidden lg:block">
-          {BUTTONS.map(({ label, path }) => (
-            <WaitlistModal>
-              <div
-                key={path}
-                className="cursor-pointer group relative text-[22px] font-[400] flex items-center justify-center gap-2 p-2 px-5 leading-[24px]  rounded-[30px] text-white bg-new-black transition-colors hover:bg-new-black/85 font-outfit"
+          {user ? (
+            <button
+              type="button"
+              onClick={handleSignOut}
+              className="cursor-pointer text-[18px] font-[500] flex items-center justify-center gap-2 p-2 px-5 leading-[24px] rounded-[30px] text-gray-600 border border-gray-300 hover:bg-gray-50 transition-colors font-outfit"
+            >
+              Sign out
+            </button>
+          ) : (
+            <div className="flex items-center gap-3">
+              <Link
+                href="/auth/login"
+                className="cursor-pointer text-[18px] font-[500] flex items-center justify-center gap-2 p-2 px-5 leading-[24px] rounded-[30px] text-gray-600 border border-gray-300 hover:bg-gray-50 transition-colors font-outfit"
               >
-                {label}
-              </div>
-            </WaitlistModal>
-          ))}
+                Log in
+              </Link>
+              {BUTTONS.map(({ label, path }) => (
+                <WaitlistModal key={path}>
+                  <div className="cursor-pointer group relative text-[22px] font-[400] flex items-center justify-center gap-2 p-2 px-5 leading-[24px] rounded-[30px] text-white bg-new-black transition-colors hover:bg-new-black/85 font-outfit">
+                    {label}
+                  </div>
+                </WaitlistModal>
+              ))}
+            </div>
+          )}
         </div>
 
         <MainHeaderMobile navigation={NAVIGATIONS} buttons={BUTTONS} />
