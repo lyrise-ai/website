@@ -41,23 +41,17 @@ Pattern: "If [3 specific observable conditions] describe your situation,
 a 30-minute discovery call with LyRise (elena@lyrise.ai) would be worthwhile."
 Reference figures.totalMonthlyHours and figures.operationalDividend12mo verbatim.
 
-4. profit_levers (exactly 3, Rule 6C)
-The TOTAL Profit Uplift is computed by the calculator — do NOT output a per-lever profit amount.
+4. profit_levers (exactly 4 — ONE PER WORKFLOW, in workflow order, Rule 6C)
+The per-lever arithmetic chain is regenerated deterministically by the assemble step
+from the calculator output. Author the prose only — do NOT write rationale_with_arithmetic.
 Each lever:
-  lever_name: short label
-  derived_from: the specific workflow name(s) this lever is based on (REQUIRED)
+  lever_name: short label describing the mechanism (e.g. "Faster triage → higher retention")
+  derived_from: the workflow name VERBATIM from the workflow list (REQUIRED — used to join)
   baseline_data: 1 factual sentence using actual process names/volumes from figures.workflowLines
   assumption: 1 concrete sentence — use percentages and hours
   rationale: 1 plain CFO-style sentence: "[Outcome] because [direct operational reason]."
     NEVER mention seasons, holidays, named events, or external market conditions.
-  rationale_with_arithmetic (Rule 6C): monthly arithmetic chain only, e.g.:
-    "240 hrs/mo freed × $45/hr × 0.30 margin = $3,240/mo"
-    Use exact figures from the calculator. Do NOT include a per-lever annual total.
-
-Lever focus split (qualitative — do not compute dollar amounts per lever):
-  Lever 1 — Revenue Throughput: freed capacity redirected to revenue-generating activity
-  Lever 2 — Error Reduction / Quality: reduction in rework, corrections, and escalations
-  Lever 3 — Strategic Capacity: senior time freed for higher-value decisions
+  rationale_with_arithmetic: omit — leave empty string. Anything written is overwritten.
 
 5. cost_of_delay (KR-18)
   narrative: 1-2 sentences specific to this company and its workflows.
@@ -132,8 +126,8 @@ export const REPORT_WRITER_SCHEMA = {
     cta_paragraph: { type: 'string' },
     profit_levers: {
       type: 'array',
-      minItems: 3,
-      maxItems: 3,
+      minItems: 4,
+      maxItems: 4,
       items: {
         type: 'object',
         additionalProperties: false,
@@ -143,7 +137,6 @@ export const REPORT_WRITER_SCHEMA = {
           'baseline_data',
           'assumption',
           'rationale',
-          'rationale_with_arithmetic',
         ],
         properties: {
           lever_name: { type: 'string' },

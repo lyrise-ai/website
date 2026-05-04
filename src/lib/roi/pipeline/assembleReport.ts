@@ -672,25 +672,30 @@ export function assembleReport(state: ReportState): AssembleReportOutput {
 
   const levers = copy.profit_levers ?? []
   // Per-lever arithmetic is computed deterministically from WorkflowCalc so
-  // the rendered "X hrs × $Y × Z redirected = $W/mo" line always reconciles
-  // with the calculator's PU total. The modeler's authored
-  // rationale_with_arithmetic is only used as a fallback when no matching
-  // workflow can be found (rare — usually a lever_name typo).
+  // every rendered "X hrs × $Y × Z redirected = $W/mo" line reconciles with
+  // the calculator's PU total — the modeler is told to omit
+  // rationale_with_arithmetic (it's overwritten below). Join by derived_from
+  // first, then fall back to positional index (the prompt mandates lever
+  // ordering matches workflow ordering); only fall back to the LLM's text
+  // if both lookups fail.
   const redirectionPct = Math.max(0, globals.profitMultiplier - 1)
+  const leverArithmetic: string[] = levers.map((l, i) => {
+    const wf =
+      merged.find(
+        (w) => w.name.toLowerCase() === (l.derived_from ?? '').toLowerCase(),
+      ) ?? merged[i]
+    if (wf) {
+      return `${addCommas(wf.monthlyHours)} hrs/mo freed × ${sym}${addCommas(
+        wf.effectiveRate,
+      )}/hr × ${redirectionPct.toFixed(
+        2,
+      )} redirected = ${sym}${addCommas(wf.monthlyProfitUplift)}/mo`
+    }
+    return esc(l.rationale_with_arithmetic ?? l.rationale ?? '')
+  })
   const profitLeversBody =
     levers
-      .map((l) => {
-        const wf = merged.find(
-          (w) =>
-            w.name.toLowerCase() === (l.derived_from ?? '').toLowerCase(),
-        )
-        const arithmetic = wf
-          ? `${addCommas(wf.monthlyHours)} hrs/mo freed × ${sym}${addCommas(
-              wf.effectiveRate,
-            )}/hr × ${redirectionPct.toFixed(
-              2,
-            )} redirected = ${sym}${addCommas(wf.monthlyProfitUplift)}/mo`
-          : esc(l.rationale_with_arithmetic ?? l.rationale ?? '')
+      .map((l, i) => {
         return (
           `<tr>` +
           `<td><strong>${esc(l.lever_name ?? '')}</strong></td>` +
@@ -699,7 +704,7 @@ export function assembleReport(state: ReportState): AssembleReportOutput {
           )}</td>` +
           `<td>${esc(l.baseline_data ?? '')}</td>` +
           `<td>${esc(l.assumption ?? '')}</td>` +
-          `<td style="font-size:8pt;color:#2d2d2d;font-family:monospace">${arithmetic}</td>` +
+          `<td style="font-size:8pt;color:#2d2d2d;font-family:monospace">${leverArithmetic[i]}</td>` +
           `</tr>`
         )
       })
@@ -922,11 +927,13 @@ export function assembleReport(state: ReportState): AssembleReportOutput {
     )} / yr · value of hours recaptured</td>` +
     `</tr>`
 
-  // Profit uplift logic table (exec template)
+  // Profit uplift logic table (exec template) — arithmetic comes from the
+  // shared deterministic helper above so this table stays reconciled with the
+  // calculator's PU total even when the writer LLM authored stale numbers.
   const profitUpliftLogicBody =
     levers
       .map(
-        (l) =>
+        (l, i) =>
           `<tr>` +
           `<td style="color:#003f87;font-weight:bold;vertical-align:top;width:22%">${esc(
             l.derived_from,
@@ -934,9 +941,7 @@ export function assembleReport(state: ReportState): AssembleReportOutput {
           `<td style="font-style:italic;vertical-align:top;width:22%;font-size:8.5pt">${esc(
             l.lever_name,
           )}</td>` +
-          `<td style="color:#5a5a6e;vertical-align:top;width:56%;font-size:8pt">${esc(
-            l.rationale_with_arithmetic,
-          )}</td>` +
+          `<td style="color:#5a5a6e;vertical-align:top;width:56%;font-size:8pt">${leverArithmetic[i]}</td>` +
           `</tr>`,
       )
       .join('') +

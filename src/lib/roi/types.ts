@@ -273,7 +273,10 @@ export interface ProfitLever {
   baseline_data: string
   assumption: string
   rationale: string
-  rationale_with_arithmetic: string
+  // Authored by the LLM but overwritten in assembleReport with arithmetic
+  // derived from WorkflowCalc — so it always reconciles with the calculator
+  // PU total even when the writer model used stale rates.
+  rationale_with_arithmetic?: string
   derived_from: string
   profit?: string // legacy — not rendered; total comes from calculator
 }
