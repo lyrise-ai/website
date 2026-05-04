@@ -267,6 +267,8 @@ export function roiCalculator(
       monthlyValue: Math.round(monthlyHours * effectiveRate),
       annualHours: Math.round(annualHours),
       annualValue: Math.round(annualValue),
+      effectiveMonthlyVolume: 0, // populated after all scaling, below
+      monthlyProfitUplift: 0, // populated after all scaling, below
     }
   })
 
@@ -330,6 +332,24 @@ export function roiCalculator(
       `no revenue anchor available (revenueM=${revenueM ?? 'null'}) — skipping 5–20% guardrail`,
     )
   }
+
+  // Back-derive an "effective monthly volume" that makes the simple formula
+  // (volume × hrsSavedPerItem × rate ≈ monthlyValue) reconcile in the rendered
+  // report. Adoption/realization damping and revenue-band scaling are both
+  // baked in — this is the single number we surface to the reader so the
+  // worked example, master workflow table, and per-lever arithmetic all agree.
+  // Also compute per-workflow profit uplift deterministically so the Profit
+  // Uplift table's per-lever lines don't drift from the totals.
+  const profitUpliftMultiplier = Math.max(0, globals.profitMultiplier - 1)
+  workflowCalcs.forEach((w, idx) => {
+    const wf = workflows[idx]
+    const hrsSavedPerItem = Math.max(0.01, wf.minutesPerItemBefore - wf.minutesPerItemAfter) / 60
+    w.effectiveMonthlyVolume = Math.max(
+      0,
+      Math.round(w.monthlyHours / hrsSavedPerItem),
+    )
+    w.monthlyProfitUplift = Math.round(w.monthlyValue * profitUpliftMultiplier)
+  })
 
   const totalMonthlyHours = workflowCalcs.reduce(
     (s, w) => s + w.monthlyHours,

@@ -243,7 +243,13 @@ function buildCalculationPanelHTML(
 ): string {
   const topWf = wfs[0]
   const savedHrs = (topWf.timeSaved / 60).toFixed(2)
+  // Damping/alignment factor: bundles adoption rate, realization factor, work-
+  // month factor, and any revenue-band scaling into a single multiplier so the
+  // simple formula on the page reconciles to the displayed monthly value.
+  // Shown to the reader so they can sanity-check the math line by line.
+  const baselineMonthly = topWf.monthlyVolume * (topWf.timeSaved / 60) * topWf.effectiveRate
   const monthlyValue = Math.round(topWf.monthlyHours * topWf.effectiveRate)
+  const adoptionFactor = baselineMonthly > 0 ? monthlyValue / baselineMonthly : 1
   const totalMonthlyValue = wfs.reduce(
     (a, w) => a + Math.round(w.monthlyHours * w.effectiveRate),
     0,
@@ -261,14 +267,15 @@ function buildCalculationPanelHTML(
     `<div class="insight-stripe"></div>` +
     `<div class="insight-content" style="font-size:8.5pt">` +
     `<div style="font-size:7pt;text-transform:uppercase;letter-spacing:0.8px;color:#003f87;font-weight:bold;margin-bottom:6px">How This Is Calculated</div>` +
-    `<div style="margin-bottom:4px"><strong>Formula:</strong> Value recaptured/mo = Volume × (Before AI hrs − After AI hrs) × Rate (${sym}/hr)</div>` +
+    `<div style="margin-bottom:4px"><strong>Formula:</strong> Value recaptured/mo = Volume × (Before AI hrs − After AI hrs) × Rate (${sym}/hr) × Adoption ramp factor</div>` +
     `<div style="margin-bottom:4px"><strong>Worked example — ${esc(
       topWf.name,
     )}:</strong> <span style="font-family:monospace">${addCommas(
       topWf.monthlyVolume,
     )} × ${savedHrs} hrs × ${sym}${addCommas(
       topWf.effectiveRate,
-    )}/hr = ${sym}${addCommas(monthlyValue)}/mo</span></div>` +
+    )}/hr × ${adoptionFactor.toFixed(2)} = ${sym}${addCommas(monthlyValue)}/mo</span></div>` +
+    `<div style="margin-bottom:4px;font-size:8pt;color:#64748b"><em>Adoption ramp factor combines realistic adoption (rarely 100% on day one), realization, and revenue-band alignment into one multiplier.</em></div>` +
     `<div style="margin-bottom:4px"><strong>Monthly total:</strong> <span style="font-family:monospace">${sumLine}</span></div>` +
     `<div style="margin-bottom:2px"><strong>Annual hours returned:</strong> <span style="font-family:monospace">${addCommas(
       totalMonthlyHours,
@@ -605,10 +612,27 @@ export function assembleReport(state: ReportState): AssembleReportOutput {
     )}/mo</strong></td></tr>`
 
   const levers = copy.profit_levers ?? []
+  // Per-lever arithmetic is computed deterministically from WorkflowCalc so
+  // the rendered "X hrs × $Y × Z redirected = $W/mo" line always reconciles
+  // with the calculator's PU total. The modeler's authored
+  // rationale_with_arithmetic is only used as a fallback when no matching
+  // workflow can be found (rare — usually a lever_name typo).
+  const redirectionPct = Math.max(0, globals.profitMultiplier - 1)
   const profitLeversBody =
     levers
-      .map(
-        (l) =>
+      .map((l) => {
+        const wf = merged.find(
+          (w) =>
+            w.name.toLowerCase() === (l.derived_from ?? '').toLowerCase(),
+        )
+        const arithmetic = wf
+          ? `${addCommas(wf.monthlyHours)} hrs/mo freed × ${sym}${addCommas(
+              wf.effectiveRate,
+            )}/hr × ${redirectionPct.toFixed(
+              2,
+            )} redirected = ${sym}${addCommas(wf.monthlyProfitUplift)}/mo`
+          : esc(l.rationale_with_arithmetic ?? l.rationale ?? '')
+        return (
           `<tr>` +
           `<td><strong>${esc(l.lever_name ?? '')}</strong></td>` +
           `<td style="color:#64748b;font-size:8.5pt">${esc(
@@ -616,11 +640,10 @@ export function assembleReport(state: ReportState): AssembleReportOutput {
           )}</td>` +
           `<td>${esc(l.baseline_data ?? '')}</td>` +
           `<td>${esc(l.assumption ?? '')}</td>` +
-          `<td style="font-size:8pt;color:#2d2d2d;font-family:monospace">${esc(
-            l.rationale_with_arithmetic ?? l.rationale ?? '',
-          )}</td>` +
-          `</tr>`,
-      )
+          `<td style="font-size:8pt;color:#2d2d2d;font-family:monospace">${arithmetic}</td>` +
+          `</tr>`
+        )
+      })
       .join('') +
     `<tr class="total-row"><td colspan="4"><strong>Annual incremental profit (per year)</strong></td><td class="accent"><strong>${sym}${fmt(
       s.profitUplift12mo,

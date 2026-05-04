@@ -153,6 +153,15 @@ export interface WorkflowCalc {
   monthlyValue: number
   annualHours: number
   annualValue: number
+  // Back-derived volume that makes the simple formula reconcile:
+  //   effectiveMonthlyVolume × hrsSavedPerItem × effectiveRate ≈ monthlyValue
+  // Reflects adoption/realization damping AND any revenue-band scaling — so the
+  // renderer can show one self-consistent number on the page.
+  effectiveMonthlyVolume: number
+  // Per-workflow profit uplift = monthlyValue × (profitMultiplier - 1).
+  // Used to render deterministic per-lever arithmetic in the Profit Uplift table
+  // instead of trusting the modeler's authored rationale strings.
+  monthlyProfitUplift: number
 }
 
 export interface RoiSummary {
