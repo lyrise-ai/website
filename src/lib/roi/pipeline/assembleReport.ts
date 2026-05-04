@@ -4,6 +4,8 @@
 // Single input: ReportState (reads company, globals, workflows, copy, calcOutput)
 // ─────────────────────────────────────────────────────────────────────────────
 
+import { roiLog } from '@/src/lib/roi/debug'
+
 import type {
   ReportState,
   AssembleReportOutput,
@@ -286,10 +288,13 @@ function buildProvenanceTableBody(
   profitLevers: ReportState['copy']['profit_levers'],
 ): string {
   const { company, workflows, globals, calcOutput } = state
+  // `sourceIsHtml: true` means `source` is pre-escaped HTML and should be
+  // injected verbatim (used to embed real <a> hyperlinks for evidence URLs).
   const rows: {
     input: string
     detail: string
     source: string
+    sourceIsHtml?: boolean
     status: string
   }[] = []
 
@@ -312,11 +317,29 @@ function buildProvenanceTableBody(
 
   ;(workflows ?? []).forEach((wf) => {
     const calc = calcOutput?.workflows.find((c) => c.name === wf.name)
+    // Rule 6A — surface rateSource + URL when the modeler grounded the rate in
+    // real salary evidence; fall back to "Benchmarked" only when the modeler
+    // signaled benchmark_fallback or supplied no source.
+    const isFallback =
+      !wf.rateSource ||
+      wf.rateSource === 'benchmark_fallback' ||
+      wf.rateSource === 'assumed'
+    const rateSourceLabel = isFallback
+      ? 'Benchmarked'
+      : wf.rateSourceUrl
+      ? `Scraped — <a href="${esc(wf.rateSourceUrl)}" style="color:#003f87">${esc(
+          wf.rateSource ?? '',
+        )}</a>`
+      : `Scraped — ${esc(wf.rateSource ?? '')}`
+    const rateStatus = isFallback ? 'Needs validation' : 'Validated'
     rows.push({
       input: `${wf.name} — blended rate`,
-      detail: `${sym}${calc?.effectiveRate ?? globals?.laborRate ?? '—'}/hr`,
-      source: 'Benchmarked',
-      status: 'Needs validation',
+      detail: `${sym}${calc?.effectiveRate ?? globals?.laborRate ?? '—'}/hr${
+        wf.seniorityLevel ? ` (${wf.seniorityLevel})` : ''
+      }`,
+      source: rateSourceLabel,
+      sourceIsHtml: true,
+      status: rateStatus,
     })
     rows.push({
       input: `${wf.name} — monthly volume`,
@@ -365,7 +388,9 @@ function buildProvenanceTableBody(
         `<tr>` +
         `<td><strong>${esc(r.input)}</strong></td>` +
         `<td>${esc(r.detail)}</td>` +
-        `<td style="font-size:8.5pt;color:#64748b">${esc(r.source)}</td>` +
+        `<td style="font-size:8.5pt;color:#64748b">${
+          r.sourceIsHtml ? r.source : esc(r.source)
+        }</td>` +
         `<td style="font-size:8pt;${statusStyle(r.status)}">${esc(
           r.status,
         )}</td>` +
@@ -428,6 +453,26 @@ export function assembleReport(state: ReportState): AssembleReportOutput {
   if (!calcOutput || !copy || !workflows || !globals || !company) {
     throw new Error('assembleReport: missing required state fields')
   }
+
+  // Per-workflow rate provenance summary — confirms whether the renderer is
+  // about to show evidence-backed sources or the "Benchmarked" fallback label.
+  const evidenceCount = workflows.filter(
+    (w) =>
+      w.rateSource &&
+      w.rateSource !== 'benchmark_fallback' &&
+      w.rateSource !== 'assumed',
+  ).length
+  roiLog(
+    'assemble',
+    `building report — ${workflows.length} workflows | ${evidenceCount}/${workflows.length} have evidence-backed rate citation`,
+    workflows.map((w) => ({
+      name: w.name,
+      rate: w.rateOverride,
+      seniority: w.seniorityLevel,
+      source: w.rateSource ?? 'NULL',
+      url: w.rateSourceUrl,
+    })),
+  )
 
   // Currencies whose official symbols are non-Latin script — always use the ISO code instead
   const SCRIPT_SYMBOL_CODES = new Set(['SAR', 'AED', 'QAR', 'KWD', 'BHD', 'OMR', 'EGP', 'JOD', 'IQD', 'LBP', 'IRR', 'YER'])

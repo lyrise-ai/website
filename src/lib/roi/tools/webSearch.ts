@@ -38,8 +38,33 @@ async function tavilySearch(
       }),
       signal: AbortSignal.timeout(15_000),
     })
-    if (!res.ok) return { answer: null, results: [] }
+    if (!res.ok) {
+      // Sanity log: surface non-2xx responses (rate-limit, auth, etc.) so we can
+      // tell empty-result runs apart from upstream API failures.
+      let bodyPreview = ''
+      try {
+        bodyPreview = (await res.text()).slice(0, 300)
+      } catch {
+        // ignore
+      }
+      console.warn(
+        `[ROI:webSearch:tavily] HTTP ${res.status} for query="${query.slice(
+          0,
+          120,
+        )}" body=${bodyPreview}`,
+      )
+      return { answer: null, results: [] }
+    }
     const data = await res.json()
+    // Sanity log: dump Tavily's raw response shape so we can distinguish
+    // "Tavily returned []" from "downstream filtering dropped results".
+    console.log(
+      `[ROI:webSearch:tavily] query="${query.slice(0, 120)}" → raw_results=${
+        (data.results ?? []).length
+      } answer=${data.answer ? 'yes' : 'no'} firstUrl=${
+        data.results?.[0]?.url ?? 'none'
+      }`,
+    )
     return {
       answer: data.answer ?? null,
       results: (data.results ?? [])
@@ -50,7 +75,12 @@ async function tavilySearch(
           content: (r.content ?? '').slice(0, 600),
         })),
     }
-  } catch {
+  } catch (err) {
+    console.warn(
+      `[ROI:webSearch:tavily] exception for query="${query.slice(0, 120)}": ${
+        (err as Error)?.message ?? err
+      }`,
+    )
     return { answer: null, results: [] }
   }
 }

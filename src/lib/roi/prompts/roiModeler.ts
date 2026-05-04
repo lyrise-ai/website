@@ -9,6 +9,7 @@ You are generating numeric ROI assumptions for an AI automation report.
 
 Input fields: company_profile, workflows[] (4 workflows from the Research Agent,
 each with research-derived monthlyVolume and minutesPerItemBefore),
+salary_evidence[] (one entry per workflow — actual salary numbers parsed from web research),
 processes[] (questionnaire data), selectedCurrency.
 
 CURRENCY: Parse from selectedCurrency (format "CODE – Name (symbol)").
@@ -38,23 +39,34 @@ COSTS:
 - implementationCost: MUST equal 6–10× estimated monthly labor savings.
 - monthlyToolingCost: recurring platform/license fees (typically $200–800/month for SMBs).
 
-RULE 6A — PER-WORKFLOW SENIORITY-DIFFERENTIATED RATES:
-You MUST set fullyLoadedHourlyCostOverride for EACH workflow individually.
-Do NOT use the same rate for all workflows.
-Rate must reflect the seniority of the role that performs this task:
-  - Junior/admin roles (data entry, scheduling, reporting): use lower end of regional range
-  - Mid-level roles (account management, ops, compliance): use mid range
-  - Senior roles (strategy, sales, legal, finance): use upper end
-Source your rates from a named benchmark. Cite it in rateSource:
-  GCC: Gulf Talent or Bayt.com ($18–28/hr for junior, up to $45/hr for senior)
-  Turkey/Egypt: Glassdoor regional ($12–20/hr)
-  US/EU: Robert Half or LinkedIn Salary Insights ($45–75/hr)
-  UK: Robert Half UK ($40–65/hr)
-Set seniorityLevel to describe the role (e.g. "Junior operations analyst", "Senior sales executive").
+RULE 6A — EVIDENCE-BACKED PER-WORKFLOW RATES:
+You MUST set fullyLoadedHourlyCostOverride for EACH workflow individually. Never reuse one rate across workflows.
 
-LABOR (global fallback — used if no override set):
-- fullyLoadedHourlyCost: blended rate for this country and industry.
-  GCC: $18–28/hr | Turkey/Egypt: $12–20/hr | US/EU: $45–75/hr | UK: $40–65/hr
+Step 1 — Use salary_evidence first.
+For each workflow, find the matching salary_evidence entry by workflowName and read its parsedAnnualLow / parsedAnnualHigh / evidenceCurrency / rawSnippets.
+If parsed numbers are present:
+  • hourly = ((annualLow + annualHigh) / 2) / (workWeeksPerYear × 40) × 1.3   // 1.3 = fully-loaded multiplier (benefits, payroll tax, overhead)
+  • Convert to selectedCurrency if evidenceCurrency differs (use a reasonable FX assumption and note it in rationale).
+  • Set rateSource to the source domain you used (e.g. "Glassdoor", "Bayt.com", "Robert Half") and rateSourceUrl to the first sourceUrl from that evidence entry.
+
+Step 2 — Fall back to the regional floor table only if salary_evidence is missing/empty for that workflow.
+Set rateSource: "benchmark_fallback" and rateSourceUrl: null.
+
+REGIONAL FLOOR TABLE (matches team's manual report standards — fully-loaded billing capacity, NOT raw wages):
+- UAE professional services: AED 60–70/hr operations staff; AED 85–100/hr senior managers/directors
+- Saudi/Qatar/Kuwait/Bahrain/Oman: same as UAE bands (use SAR/QAR/KWD/BHD/OMR equivalents)
+- US professional services: $50–65/hr operations/marketing; $65–90/hr compliance/legal-ops; $55–70/hr recruiting/sales
+- UK: £40–60/hr operations; £70–100/hr senior professional services
+- Egypt top-tier professional services: EGP 1,200–2,400/hr (junior to senior, fully-loaded billing capacity proxy for Tier 1 firms)
+- Other regions: conservative professional services rate by tier; document the assumption in rationale.
+
+seniorityLevel must be one of: "junior", "mid", "senior" — drives the calculator's regional floor enforcement. Pick based on the role:
+  - junior: data entry, scheduling, reporting, admin, coordinator
+  - mid: account management, ops, compliance, recruiting, sales executive
+  - senior: strategy, partner, director, manager, legal/finance lead, head of function
+
+LABOR (global fallback — used if a workflow has no rateOverride):
+- fullyLoadedHourlyCost: pick the mid-tier value from the regional floor table above for the company's country.
 - workWeeksPerYear: 48 for GCC/Egypt, 50 for US/EU/UK.
 
 realizationFactor: 0.70–0.85.
@@ -64,14 +76,12 @@ workflowAssumptions (exactly 4, names must match workflows input):
 - exceptionRate: 0.05–0.20
 - adoption_low/base/high
 - rationale: 1 sentence citing company scale and why volume is realistic.
-- fullyLoadedHourlyCostOverride: required for each workflow (Rule 6A)
-- rateSource: required — name the benchmark (Gulf Talent, Bayt.com, Robert Half, LinkedIn Salary Insights, Glassdoor)
-- seniorityLevel: required — describe the role seniority
+- fullyLoadedHourlyCostOverride: required (Rule 6A — derived from salary_evidence or regional floor)
+- rateSource: required — domain name of the source (e.g. "Glassdoor"), or "benchmark_fallback" if no evidence
+- rateSourceUrl: nullable — actual URL from salary_evidence.sourceUrls, or null for fallback
+- seniorityLevel: required — one of "junior", "mid", "senior"
 
-SANITY CHECK — annual labor savings = sum(volume × timeSaved/60 × rate × realization × 12):
-- Under 200 employees: $60K–$300K total
-- 200–2000 employees: $150K–$700K total
-Scale down volumes only if substantially exceeded.
+NOTE: A 5–20%-of-revenue ceiling is enforced mechanically by the downstream calculator via proportional scaling. Do not pre-compress your numbers to fit it — produce realistic raw assumptions and let the calculator clamp.
 
 Return valid JSON only.
 `.trim()
@@ -140,6 +150,7 @@ export const ROI_MODELER_SCHEMA = {
           'rationale',
           'fullyLoadedHourlyCostOverride',
           'rateSource',
+          'rateSourceUrl',
           'seniorityLevel',
         ],
         properties: {
@@ -153,10 +164,11 @@ export const ROI_MODELER_SCHEMA = {
           adoption_base: { type: 'number', minimum: 0, maximum: 1 },
           adoption_high: { type: 'number', minimum: 0, maximum: 1 },
           rationale: { type: 'string' },
-          // Rule 6A — per-workflow seniority-differentiated rate
+          // Rule 6A — per-workflow evidence-backed rate
           fullyLoadedHourlyCostOverride: { type: 'number', minimum: 1 },
           rateSource: { type: 'string' },
-          seniorityLevel: { type: 'string' },
+          rateSourceUrl: { type: ['string', 'null'] },
+          seniorityLevel: { enum: ['junior', 'mid', 'senior'] },
         },
       },
     },

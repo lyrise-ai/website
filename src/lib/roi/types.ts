@@ -103,7 +103,29 @@ export interface WorkflowInput {
   exceptionRate: number // 0–1
   exceptionMinutes: number
   rateOverride: number | null // per-workflow hourly rate; null = use GlobalInputs.laborRate
+  // Seniority tier of the role performing this workflow — drives the regional
+  // rate-floor band enforced by roiCalculator (Rule 6A).
+  seniorityLevel: 'junior' | 'mid' | 'senior' | null
+  // Provenance of the rate (Rule 6A) — surfaced in the report's Data Provenance
+  // table. "benchmark_fallback" means no salary evidence was found and the
+  // regional floor was applied. A real domain like "Glassdoor" / "Bayt.com"
+  // means the rate was derived from a salary_evidence entry.
+  rateSource: string | null
+  rateSourceUrl: string | null
   rationale: string
+}
+
+// ── Salary evidence collected during research (per workflow) ─────────────────
+// One entry per workflow. Modeler reads this to set fullyLoadedHourlyCostOverride
+// from a real source instead of hallucinating from training data.
+export interface SalaryEvidence {
+  workflowName: string // join key — must match a WorkflowInput.name
+  roleQueried: string // e.g. "Senior sales executive in UAE"
+  sourceUrls: string[] // URLs where salary numbers were found
+  rawSnippets: string[] // verbatim snippets containing pay figures
+  parsedAnnualLow?: number | null // best-effort lower bound, in evidenceCurrency
+  parsedAnnualHigh?: number | null // best-effort upper bound, in evidenceCurrency
+  evidenceCurrency?: string | null // ISO code of the parsed numbers (e.g. "USD", "AED")
 }
 
 // ── Single source of truth: global financial inputs ──────────────────────────
@@ -359,6 +381,7 @@ export interface ReportState {
   researchSummary?: string | null
   evidenceItems?: ReportEvidenceItem[]
   specificityAssessment?: SpecificityAssessment | null
+  salaryEvidence?: SalaryEvidence[]
 }
 
 export interface AgentCallbacks {

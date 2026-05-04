@@ -3,6 +3,8 @@
 // Single source: WorkflowInput[] + GlobalInputs + CompanyProfile
 // ─────────────────────────────────────────────────────────────────────────────
 
+import { roiLog } from '@/src/lib/roi/debug'
+
 import type {
   WorkflowInput,
   GlobalInputs,
@@ -21,6 +23,177 @@ function addCommas(n: number): string {
     out += str[i]
   }
   return out
+}
+
+// ── Regional rate floor enforcement (Rule 6A) ────────────────────────────────
+// Bands sourced from `template_instructions.txt:140-148` — fully-loaded billing
+// capacity, not raw wages. Bands are stored in their native currency and
+// converted to the report's output currency at clamp time.
+type SeniorityTier = 'junior' | 'mid' | 'senior'
+type RegionBands = {
+  currency: string
+  bands: Record<SeniorityTier, [number, number]>
+}
+
+const REGIONAL_BANDS: Record<string, RegionBands> = {
+  UAE: {
+    currency: 'AED',
+    bands: { junior: [60, 70], mid: [70, 85], senior: [85, 100] },
+  },
+  SAUDI: {
+    currency: 'SAR',
+    bands: { junior: [60, 70], mid: [70, 85], senior: [85, 100] },
+  },
+  US: {
+    currency: 'USD',
+    bands: { junior: [50, 65], mid: [55, 75], senior: [65, 90] },
+  },
+  UK: {
+    currency: 'GBP',
+    bands: { junior: [40, 55], mid: [55, 75], senior: [70, 100] },
+  },
+  EGYPT: {
+    currency: 'EGP',
+    bands: { junior: [1200, 1600], mid: [1600, 2000], senior: [2000, 2400] },
+  },
+  DEFAULT: {
+    currency: 'USD',
+    bands: { junior: [25, 40], mid: [40, 60], senior: [60, 90] },
+  },
+}
+
+// Approximate FX — 1 USD = X local unit. Used only for rate-band conversion;
+// the report's actual numbers are in whatever currency the modeler chose.
+const USD_PER_UNIT: Record<string, number> = {
+  USD: 1,
+  EUR: 0.92,
+  GBP: 0.79,
+  AED: 3.6725,
+  SAR: 3.75,
+  QAR: 3.64,
+  KWD: 0.305,
+  BHD: 0.376,
+  OMR: 0.385,
+  EGP: 50,
+  JOD: 0.71,
+  NGN: 1500,
+  ZAR: 18,
+  INR: 84,
+  JPY: 150,
+  CAD: 1.36,
+  AUD: 1.5,
+  CHF: 0.88,
+}
+
+function toRegion(country: string | null): keyof typeof REGIONAL_BANDS {
+  if (!country) return 'DEFAULT'
+  const c = country.toLowerCase()
+  if (
+    c.includes('uae') ||
+    c.includes('united arab') ||
+    c.includes('emirates') ||
+    c.includes('dubai') ||
+    c.includes('abu dhabi')
+  )
+    return 'UAE'
+  if (c.includes('saudi') || c.includes('ksa')) return 'SAUDI'
+  // GCC peers tracked under UAE bands
+  if (
+    c.includes('qatar') ||
+    c.includes('kuwait') ||
+    c.includes('bahrain') ||
+    c.includes('oman')
+  )
+    return 'UAE'
+  if (
+    c === 'us' ||
+    c.includes('united states') ||
+    c.includes('usa') ||
+    c.includes('america')
+  )
+    return 'US'
+  if (
+    c === 'uk' ||
+    c.includes('united kingdom') ||
+    c.includes('britain') ||
+    c.includes('england') ||
+    c.includes('scotland') ||
+    c.includes('wales')
+  )
+    return 'UK'
+  if (c.includes('egypt')) return 'EGYPT'
+  return 'DEFAULT'
+}
+
+function convertCurrency(
+  amount: number,
+  fromCcy: string,
+  toCcy: string,
+): number {
+  if (fromCcy === toCcy) return amount
+  const fromRate = USD_PER_UNIT[fromCcy] ?? 1
+  const toRate = USD_PER_UNIT[toCcy] ?? 1
+  return (amount / fromRate) * toRate
+}
+
+function getRateBand(
+  country: string | null,
+  seniority: SeniorityTier,
+  outputCcy: string,
+): [number, number] {
+  const region = REGIONAL_BANDS[toRegion(country)]
+  const [lo, hi] = region.bands[seniority]
+  return [
+    convertCurrency(lo, region.currency, outputCcy),
+    convertCurrency(hi, region.currency, outputCcy),
+  ]
+}
+
+// Silently clamp each workflow's hourly rate into the regional band for its
+// seniority. Floor is strict (raises wages too low to match team standards);
+// ceiling allows 1.5× headroom for outlier roles before clamping. n8n parity:
+// silent — no warnings surfaced to user.
+function enforceRegionalRateFloors(
+  workflows: WorkflowInput[],
+  globals: GlobalInputs,
+  company: CompanyProfile,
+): WorkflowInput[] {
+  const ccy = globals.currency.code
+  const region = toRegion(company.country)
+  roiLog(
+    'calc:floor',
+    `region=${region} country="${
+      company.country ?? '?'
+    }" output_ccy=${ccy} — checking ${workflows.length} workflows`,
+  )
+  return workflows.map((wf) => {
+    const seniority: SeniorityTier = wf.seniorityLevel ?? 'mid'
+    const [floor, ceiling] = getRateBand(company.country, seniority, ccy)
+    const current = wf.rateOverride ?? globals.laborRate
+    let clamped = current
+    let action = 'OK'
+    if (current < floor) {
+      clamped = floor
+      action = `↑ FLOOR ENFORCED (${current.toFixed(0)} → ${clamped.toFixed(
+        0,
+      )})`
+    } else if (current > ceiling * 1.5) {
+      clamped = ceiling
+      action = `↓ CEILING ENFORCED (${current.toFixed(0)} → ${clamped.toFixed(
+        0,
+      )})`
+    }
+    roiLog(
+      'calc:floor',
+      `  ${wf.name} [${seniority}] band=${floor.toFixed(
+        0,
+      )}–${(ceiling * 1.5).toFixed(0)} ${ccy} | current=${current.toFixed(
+        0,
+      )} → ${action}`,
+    )
+    if (clamped === current) return wf
+    return { ...wf, rateOverride: Math.round(clamped) }
+  })
 }
 
 function calcScenario(
@@ -64,6 +237,12 @@ export function roiCalculator(
   const sym = rawSym.length > 1 && !rawSym.endsWith(' ') ? rawSym + ' ' : rawSym
   const workingMonthFactor = globals.workWeeksPerYear / 52
 
+  // Rule 6A: silently clamp per-workflow rates into the regional band for the
+  // workflow's seniority tier. Catches modeler hallucination of cheap-labor
+  // rates (e.g. $12/hr for an Egyptian senior lawyer). n8n-parity: no warnings.
+  // eslint-disable-next-line no-param-reassign
+  workflows = enforceRegionalRateFloors(workflows, globals, company)
+
   const workflowCalcs: WorkflowCalc[] = workflows.map((wf) => {
     const minutesBefore = Math.min(wf.minutesPerItemBefore, MAX_MIN)
     const minutesAfter = Math.min(wf.minutesPerItemAfter, minutesBefore)
@@ -99,6 +278,15 @@ export function roiCalculator(
     const revenueU = revenueM * 1e6
     const ceiling = revenueU * 0.2
     const floor = revenueU * 0.05
+    const ratioPct = ((rawTF / revenueU) * 100).toFixed(1)
+    roiLog(
+      'calc:revcap',
+      `revenue=${revenueM}M (${revenueU.toFixed(
+        0,
+      )}) | rawOD=${rawOD.toFixed(0)} rawTF=${rawTF.toFixed(
+        0,
+      )} | TF/revenue=${ratioPct}% (band: 5–20%)`,
+    )
 
     const applyScale = (scale: number) => {
       workflowCalcs.forEach((w) => {
@@ -113,13 +301,34 @@ export function roiCalculator(
       if (rawTF > ceiling) {
         const targetOD = ceiling / globals.profitMultiplier
         const rounded = Math.round(targetOD / 1000) * 1000
-        applyScale((rounded > 0 ? rounded : targetOD) / rawOD)
+        const scale = (rounded > 0 ? rounded : targetOD) / rawOD
+        roiLog(
+          'calc:revcap',
+          `↓ CLAMPED DOWN — TF exceeded 20% ceiling, scaling all workflows by ${scale.toFixed(
+            3,
+          )}× (proportional)`,
+        )
+        applyScale(scale)
       } else if (rawTF < floor) {
         const targetOD = floor / globals.profitMultiplier
         const rounded = Math.round(targetOD / 1000) * 1000
-        applyScale((rounded > 0 ? rounded : targetOD) / rawOD)
+        const scale = (rounded > 0 ? rounded : targetOD) / rawOD
+        roiLog(
+          'calc:revcap',
+          `↑ SCALED UP — TF below 5% floor, scaling all workflows by ${scale.toFixed(
+            3,
+          )}× (proportional)`,
+        )
+        applyScale(scale)
+      } else {
+        roiLog('calc:revcap', `OK — TF within 5–20% band, no scaling applied`)
       }
     }
+  } else {
+    roiLog(
+      'calc:revcap',
+      `no revenue anchor available (revenueM=${revenueM ?? 'null'}) — skipping 5–20% guardrail`,
+    )
   }
 
   const totalMonthlyHours = workflowCalcs.reduce(
@@ -132,6 +341,12 @@ export function roiCalculator(
   const od12 = Math.round(totalAnnualValue)
   const pu12 = Math.round(totalAnnualValue * (globals.profitMultiplier - 1))
   const tf12 = od12 + pu12
+  roiLog(
+    'calc:revcap',
+    `final: OD=${od12} PU=${pu12} TFG=${tf12} hrs/yr=${Math.round(
+      totalAnnualHours,
+    )} (profitMultiplier=${globals.profitMultiplier})`,
+  )
   const od24 = Math.round(od12 * 2.15)
   const pu24 = Math.round(pu12 * 2.15)
   const tf24 = od24 + pu24

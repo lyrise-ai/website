@@ -25,6 +25,7 @@ import { fetchPage } from '@/src/lib/roi/tools/fetchPage'
 import { roiCalculator } from '@/src/lib/roi/pipeline/roiCalculator'
 import { assembleReport } from '@/src/lib/roi/pipeline/assembleReport'
 import { renderTemplate } from '@/src/lib/roi/pipeline/renderTemplate'
+import { roiLog, roiWarn } from '@/src/lib/roi/debug'
 import {
   ROI_MODELER_SYSTEM_PROMPT,
   ROI_MODELER_SCHEMA,
@@ -61,7 +62,21 @@ interface ModelerResult {
     adoption_base: number
     rationale: string
     fullyLoadedHourlyCostOverride: number
+    seniorityLevel?: string
+    rateSource?: string
+    rateSourceUrl?: string | null
   }>
+}
+
+// Map free-text seniority strings (from modeler) to the three calculator tiers.
+function classifySeniority(s?: string | null): 'junior' | 'mid' | 'senior' {
+  if (!s) return 'mid'
+  const l = s.toLowerCase()
+  if (/(senior|director|manager|partner|head|chief|vp|principal|lead)/.test(l))
+    return 'senior'
+  if (/(junior|admin|assistant|entry|coordinator|clerk|intern)/.test(l))
+    return 'junior'
+  return 'mid'
 }
 
 // ── Internal helpers ──────────────────────────────────────────────────────────
@@ -158,7 +173,17 @@ function buildTools(
         query: string
         maxResults?: number
       }) => {
+        roiLog('tool:web_search', `query: "${query}"`, {
+          maxResults: maxResults ?? 3,
+        })
         const response = await webSearch(query, maxResults ?? 3)
+        roiLog(
+          'tool:web_search',
+          `→ ${response.results?.length ?? 0} results, answer=${
+            response.answer ? 'yes' : 'no'
+          }`,
+          (response.results ?? []).slice(0, 3).map((r) => r.url),
+        )
 
         if (response.answer) {
           addEvidence(state, {
@@ -193,7 +218,12 @@ function buildTools(
         url: z.string().describe('The URL to fetch'),
       }),
       execute: async ({ url }: { url: string }) => {
+        roiLog('tool:fetch_page', `fetching: ${url}`)
         const content = await fetchPage(url)
+        roiLog(
+          'tool:fetch_page',
+          `→ ${content.length} chars from ${url.slice(0, 80)}`,
+        )
         addEvidence(state, {
           kind: 'page_content',
           url,
@@ -266,12 +296,87 @@ function buildTools(
           .describe(
             'Minimum 3 workflows required. Infer from industry benchmarks if not found online.',
           ),
+        salary_evidence: z
+          .array(
+            z.object({
+              workflowName: z
+                .string()
+                .describe(
+                  'Must exactly match a workflow.name above so the modeler can join.',
+                ),
+              roleQueried: z
+                .string()
+                .describe(
+                  'The role + region you searched for, e.g. "Senior sales executive in UAE"',
+                ),
+              sourceUrls: z
+                .array(z.string())
+                .describe(
+                  'URLs of the salary search results you used (Glassdoor, Bayt, Gulf Talent, Robert Half, Levels.fyi, Payscale, etc.)',
+                ),
+              rawSnippets: z
+                .array(z.string())
+                .describe(
+                  'Verbatim snippets from search results that contain the actual salary numbers.',
+                ),
+              parsedAnnualLow: z
+                .number()
+                .nullable()
+                .describe(
+                  'Best-effort lower bound of annual salary parsed from snippets. Null if you could not parse a number.',
+                ),
+              parsedAnnualHigh: z
+                .number()
+                .nullable()
+                .describe(
+                  'Best-effort upper bound of annual salary parsed from snippets. Null if you could not parse a number.',
+                ),
+              evidenceCurrency: z
+                .string()
+                .nullable()
+                .describe(
+                  'ISO currency code of the parsed numbers (e.g. "USD", "AED", "EGP"). Null if unknown.',
+                ),
+            }),
+          )
+          .optional()
+          .describe(
+            'One entry per workflow. Required whenever web research is enabled — the modeler uses these to set rates from real sources instead of guessing. Skip only in estimates-only mode.',
+          ),
         researchSummary: z.string().optional(),
         confidenceLevel: z.enum(['high', 'low']),
         coreThesis: z.string(),
       }),
       execute: async (input) => {
         const cp = input.company_profile
+        roiLog('tool:set_research', `locking research for ${cp.company}`, {
+          industry: cp.industry,
+          country: cp.country,
+          employees: cp.employees,
+          revenueM: cp.revenueEstimateM,
+          confidence: input.confidenceLevel,
+          workflowCount: input.workflows.length,
+          painPointCount: input.pain_points.length,
+          salaryEvidenceCount: input.salary_evidence?.length ?? 0,
+        })
+        if (
+          !input.salary_evidence ||
+          input.salary_evidence.length === 0
+        ) {
+          roiWarn(
+            'tool:set_research',
+            'no salary_evidence provided — modeler will fall back to regional benchmark table for ALL workflows',
+          )
+        } else {
+          input.salary_evidence.forEach((ev) => {
+            roiLog(
+              'tool:set_research',
+              `  evidence[${ev.workflowName}]: role="${ev.roleQueried}" urls=${ev.sourceUrls.length} parsed=${
+                ev.parsedAnnualLow ?? '?'
+              }–${ev.parsedAnnualHigh ?? '?'} ${ev.evidenceCurrency ?? ''}`,
+            )
+          })
+        }
         state.company = {
           company: cp.company,
           industry: cp.industry,
@@ -303,12 +408,31 @@ function buildTools(
           exceptionRate: 0.08,
           exceptionMinutes: 12,
           rateOverride: null,
+          seniorityLevel: null,
+          rateSource: null,
+          rateSourceUrl: null,
           rationale: w.volumeRationale ?? '',
         }))
         state.painPoints = input.pain_points
         state.researchSummary = input.researchSummary ?? null
         state.confidenceLevel = input.confidenceLevel
         state.coreThesis = input.coreThesis
+        state.salaryEvidence = input.salary_evidence ?? []
+
+        // Surface salary evidence in the evidence panel so it shows up in the UI
+        ;(input.salary_evidence ?? []).forEach((ev) => {
+          ev.sourceUrls.forEach((url, idx) => {
+            addEvidence(state, {
+              kind: 'search_result',
+              query: `salary: ${ev.roleQueried}`,
+              url,
+              title: `Salary evidence for ${ev.workflowName}`,
+              snippet: ev.rawSnippets[idx] ?? ev.rawSnippets[0] ?? '',
+              sourceType: 'scraped',
+              usedInSections: ['research', 'financials'],
+            })
+          })
+        })
 
         if (input.researchSummary) {
           addEvidence(state, {
@@ -386,11 +510,15 @@ function buildTools(
           workflows: state.workflows.map((w) => ({
             name: w.name,
             function: w.function,
+            owner: w.owner,
             monthlyVolume: w.monthlyVolume,
             minutesPerItemBefore: w.minutesPerItemBefore,
             minutesPerItemAfter: w.minutesPerItemAfter,
             volumeRationale: w.rationale,
           })),
+          // Salary evidence collected during research — modeler MUST use this to set
+          // fullyLoadedHourlyCostOverride per workflow instead of guessing.
+          salary_evidence: state.salaryEvidence ?? [],
           processes: state.normInput.processes,
           selectedCurrency: state.normInput.selectedCurrency,
           country: state.normInput.country,
@@ -402,11 +530,24 @@ function buildTools(
         let updatedWorkflows: WorkflowInput[] | null = null
         let lastError = ''
 
+        roiLog('modeler', 'starting financial model', {
+          workflowCount: state.workflows.length,
+          salaryEvidenceCount: state.salaryEvidence?.length ?? 0,
+          country: state.normInput.country,
+          revenueRangeFromForm: state.normInput.revenueRange,
+          revenueEstimateM: state.company?.revenueEstimateM,
+        })
+
         for (let attempt = 0; attempt < 3; attempt++) {
           const retryHint =
             attempt > 0
               ? `\n\nPREVIOUS ATTEMPT FAILED: ${lastError}. Adjust assumptions accordingly.`
               : ''
+
+          roiLog(
+            'modeler',
+            `attempt ${attempt + 1}/3${attempt > 0 ? ' (retry)' : ''}`,
+          )
 
           const result = await generateObject({
             model: fastModel,
@@ -466,7 +607,28 @@ function buildTools(
             const assump = modelerOut.workflowAssumptions.find(
               (a) => a.workflowName.toLowerCase() === wf.name.toLowerCase(),
             )
-            if (!assump) return wf
+            if (!assump) {
+              roiWarn(
+                'modeler',
+                `no assumption found for workflow "${wf.name}" — keeping defaults`,
+              )
+              return wf
+            }
+            const seniority = classifySeniority(assump.seniorityLevel)
+            const rateSource = assump.rateSource ?? null
+            const rateSourceUrl = assump.rateSourceUrl ?? null
+            roiLog(
+              'modeler',
+              `  ${wf.name}: rate=${assump.fullyLoadedHourlyCostOverride}/hr seniority=${seniority} source="${
+                rateSource ?? 'NULL'
+              }" url=${rateSourceUrl ? rateSourceUrl.slice(0, 60) + '…' : 'null'}`,
+            )
+            if (rateSource === 'benchmark_fallback' || !rateSource) {
+              roiWarn(
+                'modeler',
+                `  ↳ workflow "${wf.name}" used FALLBACK rate (no salary evidence consumed)`,
+              )
+            }
             return {
               ...wf,
               monthlyVolume:
@@ -485,6 +647,9 @@ function buildTools(
               exceptionRate: assump.exceptionRate,
               exceptionMinutes: assump.exceptionMinutes,
               rateOverride: assump.fullyLoadedHourlyCostOverride,
+              seniorityLevel: seniority,
+              rateSource,
+              rateSourceUrl,
               rationale: assump.rationale,
             }
           })
@@ -497,26 +662,16 @@ function buildTools(
           const s = calcOut.summary
           const od = s.operationalDividend12mo
           const pu = s.profitUplift12mo
-          const tf = s.totalFinancialGain12mo
-          const revenueM = state.company!.revenueEstimateM
 
-          // Rule 6B: 5–20% revenue band
-          if (revenueM && revenueM > 0) {
-            const revenueU = revenueM * 1e6
-            const ratio = tf / revenueU
-            if (ratio < 0.05) {
-              lastError = `Rule 6B: TFG (${tf}) is only ${(ratio * 100).toFixed(
-                1,
-              )}% of revenue (${revenueU}). Need ≥5%. Increase workflow volumes.`
-              continue
-            }
-            if (ratio > 0.2) {
-              lastError = `Rule 6B: TFG (${tf}) is ${(ratio * 100).toFixed(
-                1,
-              )}% of revenue. Need ≤20%. Reduce impact percentages.`
-              continue
-            }
-          }
+          // Rule 6B: 5–20% revenue band — enforced mechanically inside roiCalculator
+          // via proportional scaling (silent), so no LLM retry needed here.
+
+          roiLog(
+            'modeler',
+            `attempt ${attempt + 1} calc result: OD=${od} PU=${pu} TFG=${
+              s.totalFinancialGain12mo
+            } hrs/yr=${s.totalAnnualHours}`,
+          )
 
           // Rule 6E: OD/PU ratio 0.8–3×
           if (od > 0) {
@@ -525,12 +680,14 @@ function buildTools(
               lastError = `Rule 6E: Profit uplift (${pu}) is ${puRatio.toFixed(
                 1,
               )}× the OD (${od}). Cap at 3×.`
+              roiWarn('modeler', `retrying: ${lastError}`)
               continue
             }
             if (puRatio < 0.8) {
               lastError = `Rule 6E: Profit uplift (${pu}) is only ${puRatio.toFixed(
                 1,
               )}× the OD (${od}). Need ≥0.8×.`
+              roiWarn('modeler', `retrying: ${lastError}`)
               continue
             }
           }
@@ -539,6 +696,7 @@ function buildTools(
           state.workflows = updatedWorkflows
           state.globals = globals
           state.calcOutput = calcOut
+          roiLog('modeler', `✅ accepted on attempt ${attempt + 1}`)
           break
         }
 
@@ -942,6 +1100,9 @@ function buildTools(
           exceptionRate: 0.08,
           exceptionMinutes: 12,
           rateOverride: Math.round(avgRate),
+          seniorityLevel: null,
+          rateSource: null,
+          rateSourceUrl: null,
           rationale:
             'Added via chat — defaults applied. Use update_workflow to refine.',
         }
@@ -1187,8 +1348,16 @@ PHASE 3 — Confidence Assessment: declare "high" (most data scraped) or "low" (
 
 PHASE 4 — Critical Thinking Nexus: produce ONE Core Operational Thesis: "[Main bottleneck] + [Highest-value automation opportunity]"
 
-PHASE 5 — Thesis-Driven Workflow Prioritization: select 4 workflows. Rule 6A: assign per-workflow rates from named benchmarks (Gulf Talent, Bayt.com, Robert Half, LinkedIn Salary Insights, Glassdoor).
+PHASE 5 — Thesis-Driven Workflow Prioritization: select 4 workflows.
 At least 2 workflows MUST be research-derived whenever public company signals are available. Avoid generic back-office workflows unless they are clearly tied to observed company operations.
+
+PHASE 5B — SALARY EVIDENCE GATHERING (MANDATORY — Rule 6A):
+For EACH of the 4 workflows, before calling set_research_output, run a targeted web_search to find the actual annual salary for the role that performs that workflow. Use a SIMPLE query — chained site: operators tend to return zero hits. Recommended pattern:
+  web_search('"{owner role}" salary {country}', maxResults=4)
+If the first attempt returns no usable salary numbers, retry ONCE with a single named source, e.g.:
+  web_search('"{owner role}" salary {country} glassdoor', maxResults=4)
+Pick the source domain (glassdoor / payscale / levels.fyi / bayt / gulftalent / roberthalf / linkedin / indeed) most appropriate for the country.
+Capture the snippets that contain salary numbers verbatim. You will pass them into set_research_output as salary_evidence[] — one entry per workflow with workflowName, roleQueried, sourceUrls, rawSnippets, and a best-effort parsed annual range. The ROI Modeler uses this evidence (not its own training data) to set the per-workflow hourly rate. If both searches return nothing for a role, still emit an evidence entry with empty arrays and null parsed values so the modeler knows to fall back to the regional benchmark table.
 
 PHASE 6 — Quantitative Dossier: baseline + automation impact + source type for each workflow.
 
@@ -1408,6 +1577,20 @@ export async function runReportAgent(params: {
   } = params
 
   const company = state.normInput?.companyName ?? 'unknown'
+  roiLog('agent', `▶ runReportAgent mode=${mode} company="${company}"`, {
+    estimatesOnly,
+    country: state.normInput?.country,
+    industry: state.normInput?.industry,
+    teamSize: state.normInput?.teamSize,
+    revenueRange: state.normInput?.revenueRange,
+    selectedCurrency: state.normInput?.selectedCurrency,
+  })
+  if (estimatesOnly) {
+    roiWarn(
+      'agent',
+      '⚠️  ESTIMATES-ONLY MODE — web research is DISABLED. No salary searches, no company website, no LinkedIn. Modeler will use regional benchmark fallbacks for ALL workflow rates. If you want real evidence-backed rates, do NOT click "Use Estimates"; let normal research run.',
+    )
+  }
   const tracker = new UsageTracker({ company, mode })
   const tools = buildTools(
     state,
@@ -1471,7 +1654,7 @@ ${
     system,
     messages,
     tools,
-    stopWhen: stepCountIs(mode === 'generate' ? 20 : 8),
+    stopWhen: stepCountIs(mode === 'generate' ? 24 : 8),
   })
 
   for await (const part of result.fullStream) {

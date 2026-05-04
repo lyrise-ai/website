@@ -64,6 +64,9 @@ function buildWorkflows(company: CompanyProfile): WorkflowInput[] {
       exceptionRate: 0.08,
       exceptionMinutes: 12,
       rateOverride: 42,
+      seniorityLevel: 'mid',
+      rateSource: 'LinkedIn Salary Insights',
+      rateSourceUrl: 'https://www.linkedin.com/salary/',
       rationale: `Assumes a healthy inbound mix for a growing AI services firm. Source: LinkedIn Salary Insights blended RevOps benchmark.`,
     },
     {
@@ -83,6 +86,9 @@ function buildWorkflows(company: CompanyProfile): WorkflowInput[] {
       exceptionRate: 0.08,
       exceptionMinutes: 20,
       rateOverride: 68,
+      seniorityLevel: 'senior',
+      rateSource: 'Robert Half',
+      rateSourceUrl: 'https://www.roberthalf.com/us/en/insights/salary-guide',
       rationale: `Assumes a mid-market deal flow where custom proposals still require leadership review. Source: Robert Half US solutions consultant benchmark.`,
     },
     {
@@ -102,6 +108,9 @@ function buildWorkflows(company: CompanyProfile): WorkflowInput[] {
       exceptionRate: 0.08,
       exceptionMinutes: 12,
       rateOverride: 48,
+      seniorityLevel: 'mid',
+      rateSource: 'LinkedIn Salary Insights',
+      rateSourceUrl: 'https://www.linkedin.com/salary/',
       rationale: `Assumes multiple discovery and check-in calls per week across pipeline and active prospects. Source: LinkedIn Salary Insights mid-market AE benchmark.`,
     },
     {
@@ -121,6 +130,9 @@ function buildWorkflows(company: CompanyProfile): WorkflowInput[] {
       exceptionRate: 0.08,
       exceptionMinutes: 12,
       rateOverride: 34,
+      seniorityLevel: 'junior',
+      rateSource: 'Glassdoor',
+      rateSourceUrl: 'https://www.glassdoor.com/Salaries/index.htm',
       rationale: `Assumes a high count of touchpoints across leads, opportunities, and delivery stakeholders. Source: Glassdoor operations coordinator benchmark.`,
     },
   ]
