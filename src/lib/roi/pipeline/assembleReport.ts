@@ -108,18 +108,49 @@ function buildCompanySnapshotTableBody(
   state: ReportState,
   sym: string,
 ): string {
-  const { company, copy } = state
+  const { company, copy, normInput } = state
   const rows: string[] = []
+  // Headcount: if the form supplied a team size, show "Provided" — otherwise
+  // it came from LinkedIn/Apollo research.
+  const teamSizeFromForm = (normInput?.teamSize ?? '').trim()
   if (company?.employees) {
+    const sourceBadge = teamSizeFromForm
+      ? `<span class="badge-scraped">Provided</span>`
+      : `<span class="badge-scraped">Scraped — LinkedIn</span>`
     rows.push(
       `<tr><td>${addCommas(
         company.employees,
-      )} employees</td><td><span class="badge-scraped">Scraped — LinkedIn</span></td></tr>`,
+      )} employees</td><td>${sourceBadge}</td></tr>`,
     )
   }
-  if (company?.revenueEstimateM) {
+  // Revenue: if the form supplied a range, surface that range verbatim with
+  // a "Provided" badge — research-derived $M estimates only show when the
+  // form was empty.
+  const revenueRangeFromForm = (normInput?.revenueRange ?? '').trim()
+  if (revenueRangeFromForm) {
+    rows.push(
+      `<tr><td>Annual revenue ${esc(
+        revenueRangeFromForm,
+      )}</td><td><span class="badge-scraped">Provided</span></td></tr>`,
+    )
+  } else if (company?.revenueEstimateM) {
     rows.push(
       `<tr><td>Revenue estimated ${sym}${company.revenueEstimateM}M annually</td><td><span class="badge-benchmarked">Benchmarked</span></td></tr>`,
+    )
+  }
+  // Country: form-supplied wins; otherwise show research-derived country.
+  const countryFromForm = (normInput?.country ?? '').trim()
+  if (countryFromForm) {
+    rows.push(
+      `<tr><td>Country: ${esc(
+        countryFromForm,
+      )}</td><td><span class="badge-scraped">Provided</span></td></tr>`,
+    )
+  } else if (company?.country) {
+    rows.push(
+      `<tr><td>Country: ${esc(
+        company.country,
+      )}</td><td><span class="badge-scraped">Scraped</span></td></tr>`,
     )
   }
   ;(copy?.company_snapshot ?? []).forEach((item) => {
@@ -294,7 +325,7 @@ function buildProvenanceTableBody(
   sym: string,
   profitLevers: ReportState['copy']['profit_levers'],
 ): string {
-  const { company, workflows, globals, calcOutput } = state
+  const { company, workflows, globals, calcOutput, normInput } = state
   // `sourceIsHtml: true` means `source` is pre-escaped HTML and should be
   // injected verbatim (used to embed real <a> hyperlinks for evidence URLs).
   const rows: {
@@ -305,7 +336,20 @@ function buildProvenanceTableBody(
     status: string
   }[] = []
 
-  if (company?.revenueEstimateM) {
+  // Form-provided data is the highest-confidence source — short-circuit
+  // research-derived values when the user typed it in themselves.
+  const revenueRangeFromForm = (normInput?.revenueRange ?? '').trim()
+  const teamSizeFromForm = (normInput?.teamSize ?? '').trim()
+  const countryFromForm = (normInput?.country ?? '').trim()
+
+  if (revenueRangeFromForm) {
+    rows.push({
+      input: 'Annual revenue anchor',
+      detail: revenueRangeFromForm,
+      source: 'Provided',
+      status: 'Validated',
+    })
+  } else if (company?.revenueEstimateM) {
     rows.push({
       input: 'Annual revenue anchor',
       detail: `${sym}${company.revenueEstimateM}M estimated`,
@@ -317,7 +361,22 @@ function buildProvenanceTableBody(
     rows.push({
       input: 'Headcount',
       detail: `${company.employees.toLocaleString()} employees`,
-      source: 'Scraped — LinkedIn / Apollo',
+      source: teamSizeFromForm ? 'Provided' : 'Scraped — LinkedIn / Apollo',
+      status: 'Validated',
+    })
+  }
+  if (countryFromForm) {
+    rows.push({
+      input: 'Country',
+      detail: countryFromForm,
+      source: 'Provided',
+      status: 'Validated',
+    })
+  } else if (company?.country) {
+    rows.push({
+      input: 'Country',
+      detail: company.country,
+      source: 'Scraped',
       status: 'Validated',
     })
   }
