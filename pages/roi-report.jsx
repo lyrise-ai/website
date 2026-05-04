@@ -39,6 +39,39 @@ const CURRENCIES = [
   'NGN – Nigerian Naira (NGN)',
   'ZAR – South African Rand (ZAR)',
 ]
+// Aligned with the regions handled in roiCalculator.ts → toRegion(): UAE,
+// Saudi, Qatar/Kuwait/Bahrain/Oman (GCC peers), US, UK, Egypt. Anything else
+// falls through to the DEFAULT band.
+const COUNTRY_OPTS = [
+  'Egypt',
+  'United Arab Emirates',
+  'Saudi Arabia',
+  'Qatar',
+  'Kuwait',
+  'Bahrain',
+  'Oman',
+  'United States',
+  'United Kingdom',
+  'Other',
+]
+const TEAM_SIZE_OPTS = [
+  '1–10',
+  '11–50',
+  '51–200',
+  '201–500',
+  '501–1,000',
+  '1,001–5,000',
+  '5,000+',
+]
+const REVENUE_OPTS = [
+  'Under $1M',
+  '$1M – $5M',
+  '$5M – $20M',
+  '$20M – $50M',
+  '$50M – $200M',
+  '$200M+',
+  'Prefer not to say',
+]
 const TOTAL_STEPS = 2
 const IS_DEV = process.env.NODE_ENV === 'development'
 const DEV_STEP1_PRESET = {
@@ -46,6 +79,9 @@ const DEV_STEP1_PRESET = {
   website: 'lyrise.ai',
   whatYouDo: 'selling ai solutions for businesses',
   industry: 'Technology / SaaS',
+  country: 'Egypt',
+  teamSize: '11–50',
+  revenueRange: '$1M – $5M',
 }
 const DEV_STEP2_PRESET = {
   email: 'yousef@lyrise.ai',
@@ -204,6 +240,45 @@ function Step1({ data, onChange, errors }) {
           options={INDUSTRY_OPTS}
           value={data.industry}
           onChange={(v) => onChange('industry', v)}
+        />
+      </div>
+      <div className="space-y-2">
+        <label className="text-[12.5px] font-semibold text-gray-800">
+          Country{' '}
+          <span className="font-normal text-gray-400">
+            — anchors regional salary benchmarks
+          </span>
+        </label>
+        <PillGroup
+          options={COUNTRY_OPTS}
+          value={data.country}
+          onChange={(v) => onChange('country', v)}
+        />
+      </div>
+      <div className="space-y-2">
+        <label className="text-[12.5px] font-semibold text-gray-800">
+          Team size{' '}
+          <span className="font-normal text-gray-400">
+            — drives realistic workflow volumes
+          </span>
+        </label>
+        <PillGroup
+          options={TEAM_SIZE_OPTS}
+          value={data.teamSize}
+          onChange={(v) => onChange('teamSize', v)}
+        />
+      </div>
+      <div className="space-y-2">
+        <label className="text-[12.5px] font-semibold text-gray-800">
+          Estimated annual revenue{' '}
+          <span className="font-normal text-gray-400">
+            — sets the 5–20% Total Financial Gain band
+          </span>
+        </label>
+        <PillGroup
+          options={REVENUE_OPTS}
+          value={data.revenueRange}
+          onChange={(v) => onChange('revenueRange', v)}
         />
       </div>
     </div>
@@ -617,7 +692,15 @@ export default function ROIReport({ isEmployee }) {
   const [s1, setS1] = useState(
     IS_DEV
       ? DEV_STEP1_PRESET
-      : { companyName: '', website: '', whatYouDo: '', industry: '' },
+      : {
+          companyName: '',
+          website: '',
+          whatYouDo: '',
+          industry: '',
+          country: '',
+          teamSize: '',
+          revenueRange: '',
+        },
   )
   const [s2, setS2] = useState(
     IS_DEV
@@ -648,13 +731,14 @@ export default function ROIReport({ isEmployee }) {
         'Company Website URL': s1.website.trim(),
         'What does your company do?': s1.whatYouDo.trim(),
         Industry: s1.industry || '',
-        'Number of Employees': '',
-        'Estimated Annual Revenue': '',
+        Country: s1.country === 'Other' ? '' : s1.country || '',
+        'Number of Employees': s1.teamSize || '',
+        'Estimated Annual Revenue':
+          s1.revenueRange === 'Prefer not to say' ? '' : s1.revenueRange || '',
         'Operating Currency': s2.currency ? s2.currency.split(' – ')[0] : '',
         Email: s2.email.trim(),
         'Recipient Name': s2.recipientName.trim(),
         'Recipient Title': s2.recipientTitle.trim(),
-        Country: '',
         'Key Priorities': [],
         processes: [],
       }
