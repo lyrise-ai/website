@@ -677,7 +677,7 @@ function buildTools(
           const callLabel = attempt > 0 ? `modeler_retry${attempt}` : 'modeler'
           tracker?.record({
             call: callLabel,
-            model: 'gpt-4o',
+            model: 'gpt-4o-mini',
             ...result.usage,
           })
 
@@ -1920,7 +1920,7 @@ ${
   // Track main agent loop usage and flush summary
   try {
     const usage = await result.usage
-    tracker.record({ call: 'main_agent', model: 'o4-mini', ...usage })
+    tracker.record({ call: 'main_agent', model: 'gpt-4o', ...usage })
   } catch {
     /* usage not available — skip */
   }
