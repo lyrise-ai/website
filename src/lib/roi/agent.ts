@@ -765,8 +765,6 @@ function buildTools(
               rateSource,
               rateSourceUrl,
               rationale: assump.rationale,
-              rateSource: assump.rateSource,
-              seniorityLevel: assump.seniorityLevel,
             }
           })
 
