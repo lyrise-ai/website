@@ -311,7 +311,7 @@
         </div>
       </div>
 
-      <table class="stat-table">
+      <table class="stat-table" data-section="financials">
         <tr>
           <td>
             <span class="stat-label">Hours Returned / Year</span>
@@ -373,33 +373,35 @@
         <p>{{$json.display.unifiedPatternThesis}}</p>
       </div>
 
-      <h2>Where the Operational Dividend Comes From</h2>
-      <div class="insight-panel">
-        <div class="stripe"></div>
-        <div class="panel-content">
-          <span class="panel-label">What is Operational Dividend?</span>
-          The dollar value of hours recaptured each month when AI takes over
-          high-volume, rules-based work currently consuming your team. The
-          table below contrasts hours spent today vs. after AI, then prices
-          the freed time at fully-loaded labor rates. Total Operational
-          Dividend: <strong>{{$json.display.statOD}} / yr</strong>
+      <div data-section="workflows">
+        <h2>Where the Operational Dividend Comes From</h2>
+        <div class="insight-panel">
+          <div class="stripe"></div>
+          <div class="panel-content">
+            <span class="panel-label">What is Operational Dividend?</span>
+            The dollar value of hours recaptured each month when AI takes over
+            high-volume, rules-based work currently consuming your team. The
+            table below contrasts hours spent today vs. after AI, then prices
+            the freed time at fully-loaded labor rates. Total Operational
+            Dividend: <strong>{{$json.display.statOD}} / yr</strong>
+          </div>
         </div>
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Workflow</th>
+              <th>Hrs/mo Now</th>
+              <th>Hrs/mo After AI</th>
+              <th>Hrs Saved/mo</th>
+              <th>Value/mo</th>
+              <th>AI Agent Deployed</th>
+            </tr>
+          </thead>
+          <tbody>
+            {{$json.display.bvaTableBodyCompact}}
+          </tbody>
+        </table>
       </div>
-      <table class="data-table">
-        <thead>
-          <tr>
-            <th>Workflow</th>
-            <th>Hrs/mo Now</th>
-            <th>Hrs/mo After AI</th>
-            <th>Hrs Saved/mo</th>
-            <th>Value/mo</th>
-            <th>AI Agent Deployed</th>
-          </tr>
-        </thead>
-        <tbody>
-          {{$json.display.bvaTableBodyCompact}}
-        </tbody>
-      </table>
 
       <div data-section="profit_levers">
         <h2>Where the Profit Uplift Comes From</h2>

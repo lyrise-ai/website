@@ -69,16 +69,38 @@ const TOOL_LABELS = {
   remove_workflow: 'Removing workflow…',
 }
 
-const SECTION_LABELS = {
-  financials: 'KPI Bar',
-  thesis: 'The Pattern Underneath',
-  workflows: 'Before vs. After AI',
-  profit_levers: 'Profit Uplift',
-  cost_of_delay: 'Cost of Delay',
-  cta: 'What Happens Next',
-  resilience_rows: 'Resilience Table',
-  risks: 'Risks & Mitigations',
-  pilot: 'Pilot Recommendation',
+// Per-tab heading shown to the user. Each entry mirrors the actual <h2> text
+// in the corresponding template; a missing key for a tab means the section
+// doesn't exist there (clicking the chip auto-switches to the other tab).
+const SECTION_INFO = {
+  financials: { exec: 'KPI Bar', full: 'Executive Summary' },
+  thesis: { exec: 'The Pattern Underneath', full: 'The Pattern Underneath' },
+  workflows: {
+    exec: 'Where the Operational Dividend Comes From',
+    full: 'Proposed AI Workflows',
+  },
+  profit_levers: {
+    exec: 'Where the Profit Uplift Comes From',
+    full: 'Profit Uplift Analysis',
+  },
+  cost_of_delay: { exec: 'Cost of Delay', full: 'Cost of Delay' },
+  cta: { exec: 'What Happens Next', full: 'Next Steps' },
+  resilience_rows: { full: 'Resilience Positioning' },
+  risks: { full: 'Risks & Mitigations' },
+  pilot: { full: 'Recommended Starting Point' },
+}
+
+function getSectionLabel(key, activeTab) {
+  const info = SECTION_INFO[key]
+  if (!info) return key
+  return info[activeTab] ?? info.exec ?? info.full ?? key
+}
+
+function getTargetTab(key, activeTab) {
+  const info = SECTION_INFO[key]
+  if (!info) return activeTab
+  if (info[activeTab]) return activeTab
+  return info.exec ? 'exec' : 'full'
 }
 
 // Render **bold** markdown from agent responses
@@ -191,14 +213,57 @@ export default function ReportViewer({
     return true
   }, [])
 
-  // Fallback: if srcDoc didn't change, onLoad won't fire — apply highlights directly.
-  useEffect(() => {
-    const sections = pendingHighlightsRef.current
-    if (!sections.length) return
+  // Scrolls the iframe to the first element matching the given data-section,
+  // applies the highlight class, and pulses focus. Returns true if the target
+  // was found in the current iframe document.
+  const scrollIframeToSection = useCallback((section) => {
     const doc = iframeRef.current?.contentDocument
-    if (!applySectionHighlights(doc, sections)) return
-    pendingHighlightsRef.current = []
-  }, [reportState, applySectionHighlights])
+    const el = doc?.querySelector(`[data-section="${section}"]`)
+    if (!el) return false
+    el.classList.add('section-highlighted')
+    el.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    return true
+  }, [])
+
+  const pendingScrollRef = useRef(null)
+
+  // Drains queued highlights and a queued scroll target. Called from both
+  // the iframe onLoad event (when srcDoc actually changes) and from a
+  // post-render effect (fallback when the same srcDoc is reused).
+  const drainPendingActions = useCallback(() => {
+    const sections = pendingHighlightsRef.current
+    if (sections.length) {
+      const doc = iframeRef.current?.contentDocument
+      if (applySectionHighlights(doc, sections)) {
+        pendingHighlightsRef.current = []
+      }
+    }
+    const pendingScroll = pendingScrollRef.current
+    if (pendingScroll && scrollIframeToSection(pendingScroll)) {
+      pendingScrollRef.current = null
+    }
+  }, [applySectionHighlights, scrollIframeToSection])
+
+  useEffect(() => {
+    drainPendingActions()
+  }, [reportState, activeTab, drainPendingActions])
+
+  const handleSectionChipClick = useCallback(
+    (section) => {
+      const targetTab = getTargetTab(section, activeTab)
+      if (targetTab !== activeTab) {
+        pendingScrollRef.current = section
+        setActiveTab(targetTab)
+        return
+      }
+      // Same tab — scroll immediately. Fall back to queueing if the iframe
+      // hasn't rendered the new srcDoc yet.
+      if (!scrollIframeToSection(section)) {
+        pendingScrollRef.current = section
+      }
+    },
+    [activeTab, scrollIframeToSection],
+  )
 
   useEffect(() => {
     if (tourStep < 0 || tourStep >= TOUR_STEPS.length) {
@@ -352,13 +417,8 @@ export default function ReportViewer({
   )
 
   const handleIframeLoad = useCallback(() => {
-    const sections = pendingHighlightsRef.current
-    if (!sections.length) return
-    const doc = iframeRef.current?.contentDocument
-    if (applySectionHighlights(doc, sections)) {
-      pendingHighlightsRef.current = []
-    }
-  }, [applySectionHighlights])
+    drainPendingActions()
+  }, [drainPendingActions])
 
   const handleDownload = useCallback(async () => {
     if (!reportId || downloadStatus === 'downloading') return
@@ -909,22 +969,42 @@ export default function ReportViewer({
                 <span style={{ fontSize: 11, color: '#8a8aaa', flexShrink: 0 }}>
                   Sections updated:
                 </span>
-                {[...new Set(lastChangedSections)].map((s) => (
-                  <span
-                    key={s}
-                    style={{
-                      fontSize: 11,
-                      fontWeight: 500,
-                      background: '#eef2ff',
-                      color: '#2957ff',
-                      border: '1px solid #c7d2fe',
-                      borderRadius: 4,
-                      padding: '2px 7px',
-                    }}
-                  >
-                    {SECTION_LABELS[s] ?? s}
-                  </span>
-                ))}
+                {[...new Set(lastChangedSections)]
+                  .filter((s) => SECTION_INFO[s])
+                  .map((s) => {
+                    const targetTab = getTargetTab(s, activeTab)
+                    const label = getSectionLabel(s, targetTab)
+                    const willSwitchTab = targetTab !== activeTab
+                    return (
+                      <button
+                        key={s}
+                        type="button"
+                        onClick={() => handleSectionChipClick(s)}
+                        title={
+                          willSwitchTab
+                            ? `Switches to ${
+                                targetTab === 'exec'
+                                  ? 'Executive Summary'
+                                  : 'Full Report'
+                              } and scrolls to "${label}"`
+                            : `Scroll to "${label}"`
+                        }
+                        style={{
+                          fontSize: 11,
+                          fontWeight: 500,
+                          background: '#eef2ff',
+                          color: '#2957ff',
+                          border: '1px solid #c7d2fe',
+                          borderRadius: 4,
+                          padding: '2px 7px',
+                          cursor: 'pointer',
+                          fontFamily: 'inherit',
+                        }}
+                      >
+                        {label}
+                      </button>
+                    )
+                  })}
               </div>
             )}
 

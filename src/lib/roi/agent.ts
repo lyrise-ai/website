@@ -25,6 +25,7 @@ import { fetchPage } from '@/src/lib/roi/tools/fetchPage'
 import { roiCalculator } from '@/src/lib/roi/pipeline/roiCalculator'
 import { assembleReport } from '@/src/lib/roi/pipeline/assembleReport'
 import { renderTemplate } from '@/src/lib/roi/pipeline/renderTemplate'
+import { roiLog, roiWarn } from '@/src/lib/roi/debug'
 import {
   ROI_MODELER_SYSTEM_PROMPT,
   ROI_MODELER_SCHEMA,
@@ -60,9 +61,58 @@ interface ModelerResult {
     adoption_base: number
     rationale: string
     fullyLoadedHourlyCostOverride: number
-    rateSource: string
-    seniorityLevel: string
+    seniorityLevel?: string
+    rateSource?: string
+    rateSourceUrl?: string | null
   }>
+}
+
+// Map a salary-source URL hostname to a clean display label. We trust the URL
+// over the modeler's free-text rateSource — if the URL is real, derive the
+// label from it so the Provenance table never says "Bayt" for a glassdoor.com
+// link or "Glassdoor" for a generic linkedin.com link.
+function deriveRateSourceFromUrl(url: string | null | undefined): string | null {
+  if (!url) return null
+  let host: string
+  try {
+    host = new URL(url).hostname.toLowerCase().replace(/^www\./, '')
+  } catch {
+    return null
+  }
+  const KNOWN: Array<[RegExp, string]> = [
+    [/(^|\.)glassdoor\./, 'Glassdoor'],
+    [/(^|\.)bayt\./, 'Bayt.com'],
+    [/(^|\.)gulftalent\./, 'Gulf Talent'],
+    [/(^|\.)roberthalf\./, 'Robert Half'],
+    [/(^|\.)levels\.fyi$/, 'Levels.fyi'],
+    [/(^|\.)payscale\./, 'PayScale'],
+    [/(^|\.)indeed\./, 'Indeed'],
+    [/(^|\.)linkedin\./, 'LinkedIn Salary Insights'],
+    [/(^|\.)salary\.com$/, 'Salary.com'],
+    [/(^|\.)salaryexpert\./, 'SalaryExpert'],
+    [/(^|\.)talent\.com$/, 'Talent.com'],
+    [/(^|\.)naukrigulf\./, 'NaukriGulf'],
+    [/(^|\.)wuzzuf\./, 'Wuzzuf'],
+    [/(^|\.)comparably\./, 'Comparably'],
+    [/(^|\.)builtin\./, 'Built In'],
+  ]
+  for (const [re, label] of KNOWN) {
+    if (re.test(host)) return label
+  }
+  // Fall back to a tidied hostname (drop trailing TLD, capitalise).
+  const stem = host.split('.').slice(0, -1).join('.') || host
+  return stem.charAt(0).toUpperCase() + stem.slice(1)
+}
+
+// Map free-text seniority strings (from modeler) to the three calculator tiers.
+function classifySeniority(s?: string | null): 'junior' | 'mid' | 'senior' {
+  if (!s) return 'mid'
+  const l = s.toLowerCase()
+  if (/(senior|director|manager|partner|head|chief|vp|principal|lead)/.test(l))
+    return 'senior'
+  if (/(junior|admin|assistant|entry|coordinator|clerk|intern)/.test(l))
+    return 'junior'
+  return 'mid'
 }
 
 // ── Internal helpers ──────────────────────────────────────────────────────────
@@ -159,7 +209,17 @@ function buildTools(
         query: string
         maxResults?: number
       }) => {
-        const response = await webSearch(query, maxResults ?? 5)
+        roiLog('tool:web_search', `query: "${query}"`, {
+          maxResults: maxResults ?? 3,
+        })
+        const response = await webSearch(query, maxResults ?? 3)
+        roiLog(
+          'tool:web_search',
+          `→ ${response.results?.length ?? 0} results, answer=${
+            response.answer ? 'yes' : 'no'
+          }`,
+          (response.results ?? []).slice(0, 3).map((r) => r.url),
+        )
 
         if (response.answer) {
           addEvidence(state, {
@@ -194,7 +254,12 @@ function buildTools(
         url: z.string().describe('The URL to fetch'),
       }),
       execute: async ({ url }: { url: string }) => {
+        roiLog('tool:fetch_page', `fetching: ${url}`)
         const content = await fetchPage(url)
+        roiLog(
+          'tool:fetch_page',
+          `→ ${content.length} chars from ${url.slice(0, 80)}`,
+        )
         addEvidence(state, {
           kind: 'page_content',
           url,
@@ -306,9 +371,56 @@ function buildTools(
               volumeRationale: z.string().optional(),
             }),
           )
-          .min(4)
+          .length(4)
           .describe(
-            'Exactly 4 workflows required. Infer from industry benchmarks if not found online.',
+            'Exactly 4 workflows required (template instructions v3.2 — Phase 5). Infer from industry benchmarks if not found online.',
+          ),
+        salary_evidence: z
+          .array(
+            z.object({
+              workflowName: z
+                .string()
+                .describe(
+                  'Must exactly match a workflow.name above so the modeler can join.',
+                ),
+              roleQueried: z
+                .string()
+                .describe(
+                  'The role + region you searched for, e.g. "Senior sales executive in UAE"',
+                ),
+              sourceUrls: z
+                .array(z.string())
+                .describe(
+                  'URLs of the salary search results you used (Glassdoor, Bayt, Gulf Talent, Robert Half, Levels.fyi, Payscale, etc.)',
+                ),
+              rawSnippets: z
+                .array(z.string())
+                .describe(
+                  'Verbatim snippets from search results that contain the actual salary numbers.',
+                ),
+              parsedAnnualLow: z
+                .number()
+                .nullable()
+                .describe(
+                  'Best-effort lower bound of annual salary parsed from snippets. Null if you could not parse a number.',
+                ),
+              parsedAnnualHigh: z
+                .number()
+                .nullable()
+                .describe(
+                  'Best-effort upper bound of annual salary parsed from snippets. Null if you could not parse a number.',
+                ),
+              evidenceCurrency: z
+                .string()
+                .nullable()
+                .describe(
+                  'ISO currency code of the parsed numbers (e.g. "USD", "AED", "EGP"). Null if unknown.',
+                ),
+            }),
+          )
+          .optional()
+          .describe(
+            'One entry per workflow. Required whenever web research is enabled — the modeler uses these to set rates from real sources instead of guessing. Skip only in estimates-only mode.',
           ),
         researchSummary: z.string().optional(),
         confidenceLevel: z.enum(['high', 'low']),
@@ -316,6 +428,34 @@ function buildTools(
       }),
       execute: async (input) => {
         const cp = input.company_profile
+        roiLog('tool:set_research', `locking research for ${cp.company}`, {
+          industry: cp.industry,
+          country: cp.country,
+          employees: cp.employees,
+          revenueM: cp.revenueEstimateM,
+          confidence: input.confidenceLevel,
+          workflowCount: input.workflows.length,
+          painPointCount: input.pain_points.length,
+          salaryEvidenceCount: input.salary_evidence?.length ?? 0,
+        })
+        if (
+          !input.salary_evidence ||
+          input.salary_evidence.length === 0
+        ) {
+          roiWarn(
+            'tool:set_research',
+            'no salary_evidence provided — modeler will fall back to regional benchmark table for ALL workflows',
+          )
+        } else {
+          input.salary_evidence.forEach((ev) => {
+            roiLog(
+              'tool:set_research',
+              `  evidence[${ev.workflowName}]: role="${ev.roleQueried}" urls=${ev.sourceUrls.length} parsed=${
+                ev.parsedAnnualLow ?? '?'
+              }–${ev.parsedAnnualHigh ?? '?'} ${ev.evidenceCurrency ?? ''}`,
+            )
+          })
+        }
         state.company = {
           company: cp.company,
           industry: cp.industry,
@@ -347,12 +487,31 @@ function buildTools(
           exceptionRate: 0.08,
           exceptionMinutes: 12,
           rateOverride: null,
+          seniorityLevel: null,
+          rateSource: null,
+          rateSourceUrl: null,
           rationale: w.volumeRationale ?? '',
         }))
         state.painPoints = input.pain_points
         state.researchSummary = input.researchSummary ?? null
         state.confidenceLevel = input.confidenceLevel
         state.coreThesis = input.coreThesis
+        state.salaryEvidence = input.salary_evidence ?? []
+
+        // Surface salary evidence in the evidence panel so it shows up in the UI
+        ;(input.salary_evidence ?? []).forEach((ev) => {
+          ev.sourceUrls.forEach((url, idx) => {
+            addEvidence(state, {
+              kind: 'search_result',
+              query: `salary: ${ev.roleQueried}`,
+              url,
+              title: `Salary evidence for ${ev.workflowName}`,
+              snippet: ev.rawSnippets[idx] ?? ev.rawSnippets[0] ?? '',
+              sourceType: 'scraped',
+              usedInSections: ['research', 'financials'],
+            })
+          })
+        })
 
         if (input.researchSummary) {
           addEvidence(state, {
@@ -465,6 +624,9 @@ function buildTools(
             minutesPerItemAfter: w.minutesPerItemAfter,
             volumeRationale: w.rationale,
           })),
+          // Salary evidence collected during research — modeler MUST use this to set
+          // fullyLoadedHourlyCostOverride per workflow instead of guessing.
+          salary_evidence: state.salaryEvidence ?? [],
           processes: state.normInput.processes,
           selectedCurrency: state.normInput.selectedCurrency,
           country: state.normInput.country,
@@ -478,6 +640,14 @@ function buildTools(
         let globals: GlobalInputs | null = null
         let updatedWorkflows: WorkflowInput[] | null = null
         let lastError = ''
+
+        roiLog('modeler', 'starting financial model', {
+          workflowCount: state.workflows.length,
+          salaryEvidenceCount: state.salaryEvidence?.length ?? 0,
+          country: state.normInput.country,
+          revenueRangeFromForm: state.normInput.revenueRange,
+          revenueEstimateM: state.company?.revenueEstimateM,
+        })
 
         for (let attempt = 0; attempt < 3; attempt++) {
           let retryHint = ''
@@ -493,8 +663,11 @@ function buildTools(
             retryHint = `\n\nPREVIOUS ATTEMPT FAILED: ${lastError}.${prescription}`
           }
 
-          // System prompt is stable across all attempts to enable OpenAI prefix caching;
-          // retry hint goes into the user prompt instead
+          roiLog(
+            'modeler',
+            `attempt ${attempt + 1}/3${attempt > 0 ? ' (retry)' : ''}`,
+          )
+
           const result = await generateObject({
             model: fastModel,
             schema: jsonSchema(ROI_MODELER_SCHEMA as object),
@@ -538,16 +711,38 @@ function buildTools(
           // (e.g. "Proposal Drafting" vs "Proposal Drafting and Tailoring") still
           // gets the right assumptions instead of silently falling back to defaults.
           updatedWorkflows = state.workflows!.map((wf) => {
-            const wfLow = wf.name.toLowerCase()
-            const assump =
-              modelerOut.workflowAssumptions.find(
-                (a) => a.workflowName.toLowerCase() === wfLow,
-              ) ??
-              modelerOut.workflowAssumptions.find((a) => {
-                const aLow = a.workflowName.toLowerCase()
-                return aLow.includes(wfLow) || wfLow.includes(aLow)
-              })
-            if (!assump) return wf
+            const assump = modelerOut.workflowAssumptions.find(
+              (a) => a.workflowName.toLowerCase() === wf.name.toLowerCase(),
+            )
+            if (!assump) {
+              roiWarn(
+                'modeler',
+                `no assumption found for workflow "${wf.name}" — keeping defaults`,
+              )
+              return wf
+            }
+            const seniority = classifySeniority(assump.seniorityLevel)
+            const rawRateSource = assump.rateSource ?? null
+            const rateSourceUrl = assump.rateSourceUrl ?? null
+            // Trust the URL over the modeler's free-text label. If a real URL
+            // is present, derive the source name from its hostname so the
+            // Provenance table never disagrees with the link it points to.
+            const urlDerived = deriveRateSourceFromUrl(rateSourceUrl)
+            const rateSource =
+              urlDerived ??
+              (rawRateSource === 'benchmark_fallback' ? 'benchmark_fallback' : rawRateSource)
+            roiLog(
+              'modeler',
+              `  ${wf.name}: rate=${assump.fullyLoadedHourlyCostOverride}/hr seniority=${seniority} source="${
+                rateSource ?? 'NULL'
+              }" url=${rateSourceUrl ? rateSourceUrl.slice(0, 60) + '…' : 'null'}`,
+            )
+            if (rateSource === 'benchmark_fallback' || !rateSource) {
+              roiWarn(
+                'modeler',
+                `  ↳ workflow "${wf.name}" used FALLBACK rate (no salary evidence consumed)`,
+              )
+            }
             return {
               ...wf,
               monthlyVolume:
@@ -566,6 +761,9 @@ function buildTools(
               exceptionRate: assump.exceptionRate,
               exceptionMinutes: assump.exceptionMinutes,
               rateOverride: assump.fullyLoadedHourlyCostOverride,
+              seniorityLevel: seniority,
+              rateSource,
+              rateSourceUrl,
               rationale: assump.rationale,
               rateSource: assump.rateSource,
               seniorityLevel: assump.seniorityLevel,
@@ -580,25 +778,16 @@ function buildTools(
           const s = calcOut.summary
           const od = s.operationalDividend12mo
           const pu = s.profitUplift12mo
-          const tf = s.totalFinancialGain12mo
-          // Rule 6B: 5–20% revenue band.
-          // Skip when confidence is low — revenueEstimateM is an LLM guess and
-          // an uncertain estimate makes the band an impossible constraint to hit.
-          if (revenueU > 0 && state.confidenceLevel !== 'low') {
-            const ratio = tf / revenueU
-            if (ratio < 0.05) {
-              lastError = `Rule 6B: TFG (${tf}) is only ${(ratio * 100).toFixed(
-                1,
-              )}% of revenue (${revenueU}). Need ≥5%. Increase workflow volumes.`
-              continue
-            }
-            if (ratio > 0.2) {
-              lastError = `Rule 6B: TFG (${tf}) is ${(ratio * 100).toFixed(
-                1,
-              )}% of revenue. Need ≤20%. Reduce impact percentages.`
-              continue
-            }
-          }
+
+          // Rule 6B: 5–20% revenue band — enforced mechanically inside roiCalculator
+          // via proportional scaling (silent), so no LLM retry needed here.
+
+          roiLog(
+            'modeler',
+            `attempt ${attempt + 1} calc result: OD=${od} PU=${pu} TFG=${
+              s.totalFinancialGain12mo
+            } hrs/yr=${s.totalAnnualHours}`,
+          )
 
           // Rule 6E: OD/PU ratio 0.8–3×
           if (od > 0) {
@@ -607,12 +796,14 @@ function buildTools(
               lastError = `Rule 6E: Profit uplift (${pu}) is ${puRatio.toFixed(
                 1,
               )}× the OD (${od}). Cap at 3×.`
+              roiWarn('modeler', `retrying: ${lastError}`)
               continue
             }
             if (puRatio < 0.8) {
               lastError = `Rule 6E: Profit uplift (${pu}) is only ${puRatio.toFixed(
                 1,
               )}× the OD (${od}). Need ≥0.8×.`
+              roiWarn('modeler', `retrying: ${lastError}`)
               continue
             }
           }
@@ -621,6 +812,7 @@ function buildTools(
           state.workflows = updatedWorkflows
           state.globals = globals
           state.calcOutput = calcOut
+          roiLog('modeler', `✅ accepted on attempt ${attempt + 1}`)
           break
         }
 
@@ -675,15 +867,15 @@ function buildTools(
               rationale: z.string(),
               rationale_with_arithmetic: z
                 .string()
+                .optional()
                 .describe(
-                  'Monthly arithmetic only, e.g. "120 hrs/mo freed × $45/hr × 0.35 redirected = $1,890/mo". Total Profit Uplift is computed by the calculator — do not invent a separate per-lever annual total.',
+                  'OPTIONAL — leave empty. The arithmetic chain (hrs × rate × redirect %) is built deterministically by assembleReport from the calculator output, so anything written here is overwritten.',
                 ),
             }),
           )
-          .min(3)
-          .max(3)
+          .length(4)
           .describe(
-            'Exactly 3 levers. Each must name the specific AI agent action and show monthly arithmetic.',
+            'Exactly 4 levers — one per workflow, in the same order as the workflow list. Author the prose fields (lever_name, rationale) only; the per-lever arithmetic is generated by the pipeline.',
           ),
         cost_of_delay: z.object({
           narrative: z
@@ -762,15 +954,17 @@ function buildTools(
               rationale: z.string(),
               rationale_with_arithmetic: z
                 .string()
+                .optional()
                 .describe(
-                  'Monthly arithmetic only. Total Profit Uplift is computed by the calculator — do not add a per-lever annual total.',
+                  'OPTIONAL — leave empty. Per-lever arithmetic is regenerated deterministically by assembleReport from current workflow figures.',
                 ),
             }),
           )
-          .min(3)
-          .max(3)
+          .length(4)
           .optional()
-          .describe('Exactly 3 levers with named AI agent action and monthly arithmetic.'),
+          .describe(
+            'Exactly 4 levers — one per workflow, in workflow order. Author prose only; arithmetic is pipeline-generated.',
+          ),
         resilience_rows: z
           .array(
             z.object({
@@ -1007,6 +1201,9 @@ function buildTools(
           exceptionRate: 0.08,
           exceptionMinutes: 12,
           rateOverride: Math.round(avgRate),
+          seniorityLevel: null,
+          rateSource: null,
+          rateSourceUrl: null,
           rationale:
             'Added via chat — defaults applied. Use update_workflow to refine.',
         }
@@ -1249,9 +1446,10 @@ Do not write any text before calling set_research_output. Act immediately.
 
 MANDATORY for set_report_copy:
 • unified_pattern_thesis (KR-16): 2-3 sentences naming SINGLE operating pattern
-• profit_levers: exactly 3 levers. For each lever:
-  - ai_agent_action: the specific named action the AI agent takes (e.g. "AI auto-drafts contract renewal notices and routes for partner sign-off"). No vague efficiency language.
-  - rationale_with_arithmetic: monthly arithmetic only, e.g. "120 hrs/mo freed × $45/hr × 0.35 redirected = $1,890/mo". Use the hourly rate from run_financial_model figures, NOT FTE count. Do NOT include a per-lever annual total — the calculator owns that.
+• profit_levers: exactly 4 levers — ONE PER WORKFLOW, in the same order as the workflow list. For each lever:
+  - Set derived_from to the workflow name (verbatim) the lever maps to
+  - Author lever_name, baseline_data, assumption, and rationale (the mechanism in plain English — "Faster triage → higher member retention")
+  - Do NOT write rationale_with_arithmetic — leave it empty. The per-lever arithmetic chain (hrs × rate × redirect % = $/mo) is regenerated deterministically by the pipeline from the post-floor, post-scaling calculator output, so anything you write here gets overwritten
 • derived_from: workflow name(s) each lever originates from
 • cost_of_delay (KR-18): narrative only — company-specific urgency prose, no dollar figures, MUST end with "Delay is not neutral — it carries a monthly price."
 • resilience_rows (KR-17): exactly 4 rows; dimensions: Cost per unit, Delivery speed, Error rate, Strategic capacity
@@ -1262,6 +1460,9 @@ TERMINOLOGY: "Operational Dividend" · "Total Financial Gain" · "Hours Returned
   }
 
   return `You are the LyRise ROI Report Agent. Your job is to produce a high-quality, credible AI ROI report for ${companyName}.
+
+GROUND TRUTH FROM THE QUESTIONNAIRE (never override these):
+The user's submitted form values for industry, country, currency, team size, and revenue range are authoritative. Do not contradict them in company_profile, report copy, or any narrative — even if a website or third-party listing suggests a different value. Use research only to enrich (e.g. specific practice area, geography within country, products) without overwriting form fields. If research disagrees with the form, treat the form as correct and silently drop the conflicting research signal.
 
 COGNITIVE WORKFLOW (silent internal reasoning — never show phase names to user):
 
@@ -1285,21 +1486,41 @@ PHASE 3 — Confidence Assessment: declare "high" (most data scraped) or "low" (
 
 PHASE 4 — Critical Thinking Nexus: produce ONE Core Operational Thesis: "[Main bottleneck] + [Highest-value automation opportunity]"
 
-PHASE 5 — Thesis-Driven Workflow Prioritization: select 4 workflows. Rule 6A: assign per-workflow rates from named benchmarks (Gulf Talent, Bayt.com, Robert Half, LinkedIn Salary Insights, Glassdoor).
+PHASE 5 — Thesis-Driven Workflow Prioritization: select 4 workflows.
 At least 2 workflows MUST be research-derived whenever public company signals are available. Avoid generic back-office workflows unless they are clearly tied to observed company operations.
+
+PHASE 5B — SALARY EVIDENCE GATHERING (MANDATORY — Rule 6A):
+For EACH of the 4 workflows, before calling set_research_output, run a targeted web_search to find the actual annual salary for the role that performs that workflow. Use a SIMPLE query — chained site: operators tend to return zero hits. Recommended pattern:
+  web_search('"{owner role}" salary {country}', maxResults=4)
+If the first attempt returns no usable salary numbers, retry ONCE with a single named source, e.g.:
+  web_search('"{owner role}" salary {country} glassdoor', maxResults=4)
+Pick the source domain (glassdoor / payscale / levels.fyi / bayt / gulftalent / roberthalf / linkedin / indeed) most appropriate for the country.
+Capture the snippets that contain salary numbers verbatim. You will pass them into set_research_output as salary_evidence[] — one entry per workflow with workflowName, roleQueried, sourceUrls, rawSnippets, and a best-effort parsed annual range. The ROI Modeler uses this evidence (not its own training data) to set the per-workflow hourly rate. If both searches return nothing for a role, still emit an evidence entry with empty arrays and null parsed values so the modeler knows to fall back to the regional benchmark table.
 
 PHASE 6 — Quantitative Dossier: baseline + automation impact + source type for each workflow.
 
 In set_research_output, every workflow's whyItMatters must mention a concrete company or industry signal, and every workflow's volumeRationale must explain where the volume came from.
+
+NO BOILERPLATE — REJECT FILLER PROSE:
+Every text field you emit (whyItMatters, volumeRationale, expectedOutcome, researchSummary, coreThesis, pain_points.description) must be specific to this company. The following phrases (or close paraphrases) are BANNED — re-write any sentence that contains them:
+  • "leverage AI to streamline operations"
+  • "improve operational efficiency"
+  • "enhance productivity across the organization"
+  • "drive digital transformation"
+  • "unlock value through automation"
+  • "[Company] is a leading provider of …" (generic vendor description)
+  • Any sentence that would read identically with the company name swapped out
+Each sentence must reference at least one of: the company's actual product/service, its industry sub-vertical, its country/region, an observed tool/system, a stated client type, a regulatory or competitive context surfaced from research, or a numeric signal (headcount, transaction volume, geographic footprint). If you cannot tie a sentence to a concrete signal, delete it rather than pad.
 
 After phases 1–6, call tools in order:
   set_research_output(…) → run_financial_model() → set_report_copy(…)
 
 MANDATORY for set_report_copy:
 • unified_pattern_thesis (KR-16): 2-3 sentences naming SINGLE operating pattern, no workflow lists
-• profit_levers: exactly 3 levers. For each lever:
-  - ai_agent_action: the specific named action the AI agent takes (e.g. "AI auto-drafts contract renewal notices and routes for partner sign-off"). No vague efficiency language.
-  - rationale_with_arithmetic: monthly arithmetic only, e.g. "120 hrs/mo freed × $45/hr × 0.35 redirected = $1,890/mo". Use the hourly rate from run_financial_model figures, NOT FTE count. Do NOT include a per-lever annual total — the calculator owns that.
+• profit_levers: exactly 4 levers — ONE PER WORKFLOW, in the same order as the workflow list. For each lever:
+  - Set derived_from to the workflow name (verbatim) the lever maps to
+  - Author lever_name, baseline_data, assumption, and rationale (the mechanism in plain English — "Faster triage → higher member retention")
+  - Do NOT write rationale_with_arithmetic — leave it empty. The per-lever arithmetic chain (hrs × rate × redirect % = $/mo) is regenerated deterministically by the pipeline from the post-floor, post-scaling calculator output, so anything you write here gets overwritten
 • derived_from: workflow name(s) each lever originates from
 • cost_of_delay (KR-18): narrative only — company-specific urgency prose, no dollar figures, MUST end with "Delay is not neutral — it carries a monthly price."
 • resilience_rows (KR-17): exactly 4 rows; dimensions: Cost per unit, Delivery speed, Error rate, Strategic capacity
@@ -1317,7 +1538,7 @@ If all web searches fail or return no useful data: STOP researching and call set
 NEVER end generation with only text. NEVER explain why you couldn't research. If stuck: call set_research_output NOW.
 
 WORKFLOWS REQUIREMENT (critical):
-• set_research_output.workflows MUST contain 3–4 workflows
+• set_research_output.workflows MUST contain EXACTLY 4 workflows — not 3, not 5
 • Every workflow MUST have monthlyVolume > 0 (use industry benchmarks if unknown — e.g. 200/mo for a 50-person firm)
 • Every workflow MUST have minutesPerItemBefore > 0 and minutesPerItemAfter > 0
 • Infer realistic volumes from team size and industry — do NOT submit 0 or omit these fields`
@@ -1348,37 +1569,47 @@ function buildChatSystemPrompt(state: ReportState): string {
         (w.monthlyVolume * w.minutesPerItemBefore) / 60,
       )
       const hrsAfter = Math.round(hrsBefore - w.monthlyHours)
-      const rateLabel =
-        w.rateOverride != null
-          ? `${sym}${w.rateOverride}/hr (workflow override)`
-          : `${sym}${globals.laborRate}/hr (global)`
-      const rateSource = (w as WorkflowInput & { rateSource?: string })
-        .rateSource
-      const seniorityLevel = (w as WorkflowInput & { seniorityLevel?: string })
-        .seniorityLevel
-      const rateDetail = [
-        rateSource ? `source: ${rateSource}` : null,
-        seniorityLevel ? `seniority: ${seniorityLevel}` : null,
-      ]
-        .filter(Boolean)
-        .join(' | ')
+      const rawRate = w.rateOverride ?? globals.laborRate
+      const flooredNote =
+        w.effectiveRate !== rawRate
+          ? ` (auto-lifted from ${sym}${rawRate} by regional floor)`
+          : ''
+      const sourceNote = w.rateSource
+        ? ` · source=${w.rateSource}${
+            w.rateSource === 'benchmark_fallback' ? ' (no live evidence)' : ''
+          }`
+        : ''
       return `[${w.name}]
-  Displayed: ${hrsBefore}→${hrsAfter} hrs/mo | ${w.monthlyHours} hrs saved | ${sym}${w.monthlyValue}/mo
-  Raw inputs (update_workflow): volume=${w.monthlyVolume}/mo | before=${w.minutesPerItemBefore}min | after=${w.minutesPerItemAfter}min | rate=${rateLabel}${rateDetail ? ' | ' + rateDetail : ''} | adoption=${w.adoptionRate}
-  Owner: ${w.owner} | Type: ${w.sourceType}
-  Why it matters: ${w.whyItMatters}
-  Volume rationale: ${w.rationale || '(none recorded)'}`
+  Displayed: ${hrsBefore}→${hrsAfter} hrs/mo | ${w.monthlyHours} hrs saved | ${sym}${w.monthlyValue}/mo recaptured | ${sym}${w.monthlyProfitUplift}/mo profit uplift
+  Raw inputs (update_workflow): volume=${w.monthlyVolume}/mo | before=${
+        w.minutesPerItemBefore
+      }min | after=${w.minutesPerItemAfter}min | rate=${sym}${
+        w.effectiveRate
+      }/hr [${w.seniorityLevel ?? 'mid'}]${flooredNote}${sourceNote} | adoption=${w.adoptionRate}`
     })
     .join('\n\n')
 
+  // Show the deterministic per-lever arithmetic the renderer actually
+  // displays — NOT the empty rationale_with_arithmetic field, which is
+  // overwritten in assembleReport. Otherwise the chat agent may "fix"
+  // arithmetic that isn't actually shown.
+  const redirectionPct = Math.max(0, globals.profitMultiplier - 1)
   const leverLines = (copy.profit_levers ?? [])
-    .map(
-      (l, i) =>
-        `  [${i + 1}] lever_name="${l.lever_name}" | derived_from="${l.derived_from}"
-       baseline_data="${l.baseline_data}"
-       ai_agent_action="${l.ai_agent_action}"
-       rationale_with_arithmetic="${l.rationale_with_arithmetic ?? l.rationale}"`,
-    )
+    .map((l, i) => {
+      const wf =
+        merged.find(
+          (w) =>
+            w.name.toLowerCase() === (l.derived_from ?? '').toLowerCase(),
+        ) ?? merged[i]
+      const rendered = wf
+        ? `${wf.monthlyHours} hrs/mo × ${sym}${wf.effectiveRate}/hr × ${redirectionPct.toFixed(
+            2,
+          )} redirected = ${sym}${wf.monthlyProfitUplift}/mo`
+        : '(no matching workflow)'
+      return `  [${i + 1}] lever_name="${l.lever_name}" | derived_from="${
+        l.derived_from
+      }"\n       rendered_arithmetic="${rendered}"  (auto-generated; not editable via update_copy)`
+    })
     .join('\n')
 
   const resilienceLines = (copy.resilience_rows ?? [])
@@ -1441,10 +1672,51 @@ ${workflowSection}
 TOTALS (displayed): ${calc.figures.totalAnnualHours} hrs/yr | OD ${sym}${s.operationalDividend12mo} | PU ${sym}${s.profitUplift12mo} | TFG ${sym}${s.totalFinancialGain12mo}
 
 ═══ GLOBAL INPUTS ═══════════════════════════════════════
-Edit with update_globals. laborRate is the fallback/default rate.
-If workflows above already show overrides, changing only laborRate will not move their displayed rates unless applyToWorkflowOverrides is true.
-  laborRate=${sym}${globals.laborRate}/hr | implCost=${sym}${globals.implementationCost} | toolingCostMonthly=${sym}${globals.monthlyToolingCost}/mo
-  profitMultiplier=${globals.profitMultiplier} | realizationFactor=${globals.realizationFactor} | workWeeksPerYear=${globals.workWeeksPerYear}
+Edit with update_globals. NOTE: globals.laborRate is a FALLBACK only — every workflow above already has its own rate (set by the modeler from real salary evidence + regional floor). Editing globals.laborRate alone WILL NOT change any displayed number. To change rates, edit per-workflow rateOverride instead, or use scale_rates for proportional shifts.
+  laborRate=${sym}${globals.laborRate}/hr (fallback — unused while overrides exist)
+  implCost=${sym}${globals.implementationCost} | toolingCostMonthly=${sym}${
+    globals.monthlyToolingCost
+  }/mo
+  profitMultiplier=${globals.profitMultiplier} (drives Profit Uplift = OD × (multiplier − 1))
+  realizationFactor=${globals.realizationFactor} (fraction of theoretical hours actually recovered)
+
+═══ AUTOMATIC GUARDRAILS (silent — calculator does these on every edit) ═══
+1) REGIONAL RATE FLOOR — country=${
+    company.country ?? 'unknown'
+  }. Each workflow's rate is silently lifted to the regional minimum for its seniority tier (e.g. mid-tier Egypt floor ≈ ${sym}32/hr USD). Setting rateOverride below the floor has no effect — the calculator clamps it. Tell the user this if their requested rate is below the floor.
+2) REVENUE BAND — Total Financial Gain is constrained to 5–20% of estimated annual revenue (${
+    company.revenueEstimateM
+      ? sym + company.revenueEstimateM + 'M'
+      : 'unknown'
+  }). If a rate or volume edit pushes TFG outside the band, ALL workflows are scaled proportionally so the totals reconcile but per-workflow numbers may shift slightly even for workflows you didn't touch. Mention this when relevant.
+
+═══ SECTION MAP — what the user sees → what to edit ═════
+The rendered report has these visible section headings. Use this to translate user requests:
+
+EXEC ONE-PAGER:
+  "The Pattern Underneath"                         → update_copy({ thesis })
+  "Where the Operational Dividend Comes From"      → update_workflow(...) [the workflow table]
+  "Where the Profit Uplift Comes From"             → update_workflow(...) [arithmetic auto-regenerates]
+  "Cost of Delay"                                  → update_copy({ cost_of_delay })
+  "What Happens Next"                              → update_copy({ cta })
+
+FULL REPORT:
+  "Executive Summary" / KPI bar                    → recalculated automatically when workflows change
+  "Company Snapshot"                               → update_company / update_copy({ company_snapshot })
+  "Proposed AI Workflows"                          → update_workflow(...)  [unified workflow table — replaces the old Before/After AI table]
+  "Profit Uplift Analysis"                         → update_workflow(...) — arithmetic is auto-generated, not editable via update_copy
+  "Cost of Delay"                                  → update_copy({ cost_of_delay })
+  "Resilience Positioning"                         → update_copy({ resilience_rows })
+  "Recommended Starting Point"                     → update_copy({ pilot })
+  "Data Provenance"                                → driven by workflows + company; no direct edit
+  "Risks & Mitigations"                            → update_copy({ risks })
+  "Implementation Roadmap"                         → not editable from chat
+  "Next Steps"                                     → update_copy({ cta, next_steps })
+
+LEGACY NAMES the user might use (don't exist anymore):
+  "Before AI vs After AI table" / "before/after table" → it's now part of "Proposed AI Workflows" / "Where the Operational Dividend Comes From". Edit via update_workflow.
+  "global hourly rate" / "the rate"                → there's no single rate — every workflow has its own. Ask which workflow, or use scale_rates for a bulk shift.
+  "Function Roll-Up"                               → removed; do not try to edit.
 
 ═══ COPY SECTIONS ═══════════════════════════════════════
 Edit with update_copy(patches). Field names shown after →.
@@ -1458,7 +1730,7 @@ WHAT HAPPENS NEXT (CTA) → cta
 PILOT RECOMMENDATION → pilot
 "${copy.pilot_recommendation ?? ''}"
 
-WHERE PROFIT UPLIFT COMES FROM → profit_levers (exactly 3)
+WHERE PROFIT UPLIFT COMES FROM → profit_levers (exactly 4 — one per workflow; arithmetic is pipeline-generated)
 ${leverLines}
 
 COST OF DELAY → cost_of_delay
@@ -1488,15 +1760,26 @@ RESEARCH  search_evidence(query)        — look up sources for any figure alrea
   Convert to fully-loaded hourly: annual ÷ (${globals.workWeeksPerYear} × 40) × 1.30
   Then call update_workflow(name, { rateOverride: <computed> }) or update_globals({ laborRate: <blended>, applyToWorkflowOverrides: true }) if the user means one rate across the whole report.
 
-COMPOSITION EXAMPLES:
-  "Convert to AED at 3.67"          → set_currency("AED")  then  scale_rates(3.67)
-  "Change the hourly rate to ${sym}200/hr" → update_globals({ laborRate: 200, applyToWorkflowOverrides: true })
-  "Proposal rate is ${sym}80/hr"    → update_workflow("Proposal drafting and tailoring", { rateOverride: 80 })
-  "Inbound volume is 200/mo"        → update_workflow("Inbound lead qualification", { monthlyVolume: 200 })
-  "Rewrite the thesis"              → update_copy({ thesis: "..." })
-  "Fix profit lever arithmetic"     → update_copy({ profit_levers: [...] })
-  "Rate change + update lever math" → update_workflow(...) then update_copy({ profit_levers: [...] })
-  "Where did $45/hr come from?"     → search_evidence("labor rate") → explain results + workflow rationale
+COMPOSITION EXAMPLES (use the real workflow names from the WORKFLOWS section above):
+  "Convert to AED at 3.67"                  → set_currency("AED") then scale_rates(3.67)
+  "${
+    merged[0]?.name ?? 'Workflow A'
+  } rate should be ${sym}80/hr" → update_workflow("${
+    merged[0]?.name ?? 'Workflow A'
+  }", { rateOverride: 80 })
+  "${
+    merged[1]?.name ?? 'Workflow B'
+  } volume is 200/mo"            → update_workflow("${
+    merged[1]?.name ?? 'Workflow B'
+  }", { monthlyVolume: 200 })
+  "Bump every rate by 10%"                  → scale_rates(1.10)
+  "Rewrite the thesis"                      → update_copy({ thesis: "..." })
+  "Update the Cost of Delay paragraph"      → update_copy({ cost_of_delay: { narrative: "..." } })
+
+DO NOT DO:
+  ✗ "Fix the profit lever arithmetic"       — arithmetic is auto-regenerated from workflow rate × hours; just edit the workflow.
+  ✗ "Change the global hourly rate to $50"  — no single rate exists; ask which workflow, or call scale_rates.
+  ✗ "Update the Before vs After AI table"   — that table no longer exists; edit workflows directly.
 
 STRICT RULES:
 - NEVER describe a change without calling the tool that makes it.
@@ -1506,6 +1789,9 @@ STRICT RULES:
 - NEVER call add_workflow for a workflow already listed above — the tool will reject it.
 - set_report_copy: only call if the user explicitly asks to regenerate the full report copy.
 - For a single-section edit, use a targeted update_* tool — never set_report_copy.
+- profit_levers.rationale_with_arithmetic is regenerated by the pipeline on every recalculation. Never patch it via update_copy — it gets overwritten. To change a lever's arithmetic, edit the underlying workflow's rate or hours.
+- If a user requests a rate below the regional floor, make the edit but warn them the calculator will auto-lift it back to the floor.
+- If asked about a section that no longer exists (Before/After AI table, global rate, Function Roll-Up), translate to the correct current name using the SECTION MAP above before acting.
 - KR-18: cost_of_delay narrative MUST end with "Delay is not neutral — it carries a monthly price."
 - KR-17: resilience_rows always exactly 4 rows.
 - Narrate what you're doing before calling tools.
@@ -1536,6 +1822,20 @@ export async function runReportAgent(params: {
   } = params
 
   const company = state.normInput?.companyName ?? 'unknown'
+  roiLog('agent', `▶ runReportAgent mode=${mode} company="${company}"`, {
+    estimatesOnly,
+    country: state.normInput?.country,
+    industry: state.normInput?.industry,
+    teamSize: state.normInput?.teamSize,
+    revenueRange: state.normInput?.revenueRange,
+    selectedCurrency: state.normInput?.selectedCurrency,
+  })
+  if (estimatesOnly) {
+    roiWarn(
+      'agent',
+      '⚠️  ESTIMATES-ONLY MODE — web research is DISABLED. No salary searches, no company website, no LinkedIn. Modeler will use regional benchmark fallbacks for ALL workflow rates. If you want real evidence-backed rates, do NOT click "Use Estimates"; let normal research run.',
+    )
+  }
   const tracker = new UsageTracker({ company, mode })
   const tools = buildTools(
     state,
@@ -1599,7 +1899,7 @@ ${
     system,
     messages,
     tools,
-    stopWhen: stepCountIs(mode === 'generate' ? 25 : 14),
+    stopWhen: stepCountIs(mode === 'generate' ? 24 : 8),
   })
 
   for await (const part of result.fullStream) {

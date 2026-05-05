@@ -103,9 +103,31 @@ export interface WorkflowInput {
   exceptionRate: number // 0–1
   exceptionMinutes: number
   rateOverride: number | null // per-workflow hourly rate; null = use GlobalInputs.laborRate
+  // Seniority tier of the role performing this workflow — drives the regional
+  // rate-floor band enforced by roiCalculator (Rule 6A).
+  seniorityLevel: 'junior' | 'mid' | 'senior' | null
+  // Provenance of the rate (Rule 6A) — surfaced in the report's Data Provenance
+  // table. "benchmark_fallback" means no salary evidence was found and the
+  // regional floor was applied. A real domain like "Glassdoor" / "Bayt.com"
+  // means the rate was derived from a salary_evidence entry.
+  rateSource: string | null
+  rateSourceUrl: string | null
   rationale: string
   rateSource?: string // benchmark name from modeler (e.g. "Gulf Talent", "Robert Half")
   seniorityLevel?: string // role seniority description from modeler (e.g. "Senior sales executive")
+}
+
+// ── Salary evidence collected during research (per workflow) ─────────────────
+// One entry per workflow. Modeler reads this to set fullyLoadedHourlyCostOverride
+// from a real source instead of hallucinating from training data.
+export interface SalaryEvidence {
+  workflowName: string // join key — must match a WorkflowInput.name
+  roleQueried: string // e.g. "Senior sales executive in UAE"
+  sourceUrls: string[] // URLs where salary numbers were found
+  rawSnippets: string[] // verbatim snippets containing pay figures
+  parsedAnnualLow?: number | null // best-effort lower bound, in evidenceCurrency
+  parsedAnnualHigh?: number | null // best-effort upper bound, in evidenceCurrency
+  evidenceCurrency?: string | null // ISO code of the parsed numbers (e.g. "USD", "AED")
 }
 
 // ── Single source of truth: global financial inputs ──────────────────────────
@@ -133,6 +155,15 @@ export interface WorkflowCalc {
   monthlyValue: number
   annualHours: number
   annualValue: number
+  // Back-derived volume that makes the simple formula reconcile:
+  //   effectiveMonthlyVolume × hrsSavedPerItem × effectiveRate ≈ monthlyValue
+  // Reflects adoption/realization damping AND any revenue-band scaling — so the
+  // renderer can show one self-consistent number on the page.
+  effectiveMonthlyVolume: number
+  // Per-workflow profit uplift = monthlyValue × (profitMultiplier - 1).
+  // Used to render deterministic per-lever arithmetic in the Profit Uplift table
+  // instead of trusting the modeler's authored rationale strings.
+  monthlyProfitUplift: number
 }
 
 export interface RoiSummary {
@@ -238,7 +269,10 @@ export interface ProfitLever {
   baseline_data: string
   ai_agent_action: string
   rationale: string
-  rationale_with_arithmetic: string
+  // Authored by the LLM but overwritten in assembleReport with arithmetic
+  // derived from WorkflowCalc — so it always reconciles with the calculator
+  // PU total even when the writer model used stale rates.
+  rationale_with_arithmetic?: string
   derived_from: string
 }
 
@@ -346,6 +380,7 @@ export interface ReportState {
   researchSummary?: string | null
   evidenceItems?: ReportEvidenceItem[]
   specificityAssessment?: SpecificityAssessment | null
+  salaryEvidence?: SalaryEvidence[]
 }
 
 export interface AgentCallbacks {

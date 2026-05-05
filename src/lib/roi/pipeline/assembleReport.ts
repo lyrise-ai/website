@@ -4,6 +4,8 @@
 // Single input: ReportState (reads company, globals, workflows, copy, calcOutput)
 // ─────────────────────────────────────────────────────────────────────────────
 
+import { roiLog } from '@/src/lib/roi/debug'
+
 import type {
   ReportState,
   AssembleReportOutput,
@@ -106,21 +108,69 @@ function buildCompanySnapshotTableBody(
   state: ReportState,
   sym: string,
 ): string {
-  const { company, copy } = state
+  const { company, copy, normInput } = state
   const rows: string[] = []
+  // Headcount: if the form supplied a team size, show "Provided" — otherwise
+  // it came from LinkedIn/Apollo research.
+  const teamSizeFromForm = (normInput?.teamSize ?? '').trim()
   if (company?.employees) {
+    const sourceBadge = teamSizeFromForm
+      ? `<span class="badge-scraped">Provided</span>`
+      : `<span class="badge-scraped">Scraped — LinkedIn</span>`
     rows.push(
       `<tr><td>${addCommas(
         company.employees,
-      )} employees</td><td><span class="badge-scraped">Scraped — LinkedIn</span></td></tr>`,
+      )} employees</td><td>${sourceBadge}</td></tr>`,
     )
   }
-  if (company?.revenueEstimateM) {
+  // Revenue: if the form supplied a range, surface that range verbatim with
+  // a "Provided" badge — research-derived $M estimates only show when the
+  // form was empty.
+  const revenueRangeFromForm = (normInput?.revenueRange ?? '').trim()
+  if (revenueRangeFromForm) {
+    rows.push(
+      `<tr><td>Annual revenue ${esc(
+        revenueRangeFromForm,
+      )}</td><td><span class="badge-scraped">Provided</span></td></tr>`,
+    )
+  } else if (company?.revenueEstimateM) {
     rows.push(
       `<tr><td>Revenue estimated ${sym}${company.revenueEstimateM}M annually</td><td><span class="badge-benchmarked">Benchmarked</span></td></tr>`,
     )
   }
+  // Country: form-supplied wins; otherwise show research-derived country.
+  const countryFromForm = (normInput?.country ?? '').trim()
+  if (countryFromForm) {
+    rows.push(
+      `<tr><td>Country: ${esc(
+        countryFromForm,
+      )}</td><td><span class="badge-scraped">Provided</span></td></tr>`,
+    )
+  } else if (company?.country) {
+    rows.push(
+      `<tr><td>Country: ${esc(
+        company.country,
+      )}</td><td><span class="badge-scraped">Scraped</span></td></tr>`,
+    )
+  }
+  // Safety net — drop LLM-authored snapshot items that would duplicate the
+  // form-provided rows above. The writer prompt asks the model to skip these
+  // facts, but it doesn't always comply, so we filter at render time too.
+  const isRedundant = (text: string): boolean => {
+    const t = text.toLowerCase()
+    if (teamSizeFromForm && /\b\d[\d,]*\s*(employees?|people|staff)\b/.test(t)) {
+      return true
+    }
+    if (
+      revenueRangeFromForm &&
+      /\b(annual\s+)?revenue\b|\bgenerates?\b.*\$|\bannually\b/.test(t)
+    ) {
+      return true
+    }
+    return false
+  }
   ;(copy?.company_snapshot ?? []).forEach((item) => {
+    if (isRedundant(item.text ?? '')) return
     const cls =
       item.sourceType === 'scraped'
         ? 'badge-scraped'
@@ -241,17 +291,14 @@ function buildCalculationPanelHTML(
   annualOD: number,
 ): string {
   const topWf = wfs[0]
-  // Real formula used by roiCalculator:
-  //   netSaved = (minutesBefore − minutesAfter) − (exceptionRate × exceptionMinutes)
-  //   monthlyHours = volume × adoptionRate × (netSaved / 60) × realizationFactor × (workWeeks/52)
-  const netSavedMin = Math.max(
-    0,
-    topWf.minutesPerItemBefore -
-      topWf.minutesPerItemAfter -
-      topWf.exceptionRate * topWf.exceptionMinutes,
-  )
-  const workingMonthFactor = globals.workWeeksPerYear / 52
+  const savedHrs = (topWf.timeSaved / 60).toFixed(2)
+  // Damping/alignment factor: bundles adoption rate, realization factor, work-
+  // month factor, and any revenue-band scaling into a single multiplier so the
+  // simple formula on the page reconciles to the displayed monthly value.
+  // Shown to the reader so they can sanity-check the math line by line.
+  const baselineMonthly = topWf.monthlyVolume * (topWf.timeSaved / 60) * topWf.effectiveRate
   const monthlyValue = Math.round(topWf.monthlyHours * topWf.effectiveRate)
+  const adoptionFactor = baselineMonthly > 0 ? monthlyValue / baselineMonthly : 1
   const totalMonthlyValue = wfs.reduce(
     (a, w) => a + Math.round(w.monthlyHours * w.effectiveRate),
     0,
@@ -278,8 +325,15 @@ function buildCalculationPanelHTML(
     `<div class="insight-stripe"></div>` +
     `<div class="insight-content" style="font-size:8.5pt">` +
     `<div style="font-size:7pt;text-transform:uppercase;letter-spacing:0.8px;color:#003f87;font-weight:bold;margin-bottom:6px">How This Is Calculated</div>` +
-    `<div style="margin-bottom:4px"><strong>Formula:</strong> <span style="font-family:monospace;font-size:8pt">${formulaLine}</span></div>` +
-    `<div style="margin-bottom:4px"><strong>Worked example — ${esc(topWf.name)}:</strong> <span style="font-family:monospace">${exampleLine}</span></div>` +
+    `<div style="margin-bottom:4px"><strong>Formula:</strong> Value recaptured/mo = Volume × (Before AI hrs − After AI hrs) × Rate (${sym}/hr) × Adoption ramp factor</div>` +
+    `<div style="margin-bottom:4px"><strong>Worked example — ${esc(
+      topWf.name,
+    )}:</strong> <span style="font-family:monospace">${addCommas(
+      topWf.monthlyVolume,
+    )} × ${savedHrs} hrs × ${sym}${addCommas(
+      topWf.effectiveRate,
+    )}/hr × ${adoptionFactor.toFixed(2)} = ${sym}${addCommas(monthlyValue)}/mo</span></div>` +
+    `<div style="margin-bottom:4px;font-size:8pt;color:#64748b"><em>Adoption ramp factor combines realistic adoption (rarely 100% on day one), realization, and revenue-band alignment into one multiplier.</em></div>` +
     `<div style="margin-bottom:4px"><strong>Monthly total:</strong> <span style="font-family:monospace">${sumLine}</span></div>` +
     `<div style="margin-bottom:2px"><strong>Annual hours returned:</strong> <span style="font-family:monospace">${addCommas(
       totalMonthlyHours,
@@ -296,15 +350,31 @@ function buildProvenanceTableBody(
   sym: string,
   profitLevers: ReportState['copy']['profit_levers'],
 ): string {
-  const { company, workflows, globals, calcOutput } = state
+  const { company, workflows, globals, calcOutput, normInput } = state
+  // `sourceIsHtml: true` means `source` is pre-escaped HTML and should be
+  // injected verbatim (used to embed real <a> hyperlinks for evidence URLs).
   const rows: {
     input: string
     detail: string
     source: string
+    sourceIsHtml?: boolean
     status: string
   }[] = []
 
-  if (company?.revenueEstimateM) {
+  // Form-provided data is the highest-confidence source — short-circuit
+  // research-derived values when the user typed it in themselves.
+  const revenueRangeFromForm = (normInput?.revenueRange ?? '').trim()
+  const teamSizeFromForm = (normInput?.teamSize ?? '').trim()
+  const countryFromForm = (normInput?.country ?? '').trim()
+
+  if (revenueRangeFromForm) {
+    rows.push({
+      input: 'Annual revenue anchor',
+      detail: revenueRangeFromForm,
+      source: 'Provided',
+      status: 'Validated',
+    })
+  } else if (company?.revenueEstimateM) {
     rows.push({
       input: 'Annual revenue anchor',
       detail: `${sym}${company.revenueEstimateM}M estimated`,
@@ -316,22 +386,51 @@ function buildProvenanceTableBody(
     rows.push({
       input: 'Headcount',
       detail: `${company.employees.toLocaleString()} employees`,
-      source: 'Scraped — LinkedIn / Apollo',
+      source: teamSizeFromForm ? 'Provided' : 'Scraped — LinkedIn / Apollo',
+      status: 'Validated',
+    })
+  }
+  if (countryFromForm) {
+    rows.push({
+      input: 'Country',
+      detail: countryFromForm,
+      source: 'Provided',
+      status: 'Validated',
+    })
+  } else if (company?.country) {
+    rows.push({
+      input: 'Country',
+      detail: company.country,
+      source: 'Scraped',
       status: 'Validated',
     })
   }
 
   ;(workflows ?? []).forEach((wf) => {
     const calc = calcOutput?.workflows.find((c) => c.name === wf.name)
-    const rateSourceLabel = wf.rateSource ? wf.rateSource : 'Benchmarked'
-    const seniorityNote = wf.seniorityLevel ? ` — ${wf.seniorityLevel}` : ''
+    // Rule 6A — surface rateSource + URL when the modeler grounded the rate in
+    // real salary evidence; fall back to "Benchmarked" only when the modeler
+    // signaled benchmark_fallback or supplied no source.
+    const isFallback =
+      !wf.rateSource ||
+      wf.rateSource === 'benchmark_fallback' ||
+      wf.rateSource === 'assumed'
+    const rateSourceLabel = isFallback
+      ? 'Benchmarked'
+      : wf.rateSourceUrl
+      ? `Scraped — <a href="${esc(wf.rateSourceUrl)}" style="color:#003f87">${esc(
+          wf.rateSource ?? '',
+        )}</a>`
+      : `Scraped — ${esc(wf.rateSource ?? '')}`
+    const rateStatus = isFallback ? 'Needs validation' : 'Validated'
     rows.push({
       input: `${wf.name} — blended rate`,
-      detail: `${sym}${
-        calc?.effectiveRate ?? globals?.laborRate ?? '—'
-      }/hr${seniorityNote}`,
+      detail: `${sym}${calc?.effectiveRate ?? globals?.laborRate ?? '—'}/hr${
+        wf.seniorityLevel ? ` (${wf.seniorityLevel})` : ''
+      }`,
       source: rateSourceLabel,
-      status: 'Needs validation',
+      sourceIsHtml: true,
+      status: rateStatus,
     })
     rows.push({
       input: `${wf.name} — monthly volume`,
@@ -380,7 +479,9 @@ function buildProvenanceTableBody(
         `<tr>` +
         `<td><strong>${esc(r.input)}</strong></td>` +
         `<td>${esc(r.detail)}</td>` +
-        `<td style="font-size:8.5pt;color:#64748b">${esc(r.source)}</td>` +
+        `<td style="font-size:8.5pt;color:#64748b">${
+          r.sourceIsHtml ? r.source : esc(r.source)
+        }</td>` +
         `<td style="font-size:8pt;${statusStyle(r.status)}">${esc(
           r.status,
         )}</td>` +
@@ -443,6 +544,26 @@ export function assembleReport(state: ReportState): AssembleReportOutput {
   if (!calcOutput || !copy || !workflows || !globals || !company) {
     throw new Error('assembleReport: missing required state fields')
   }
+
+  // Per-workflow rate provenance summary — confirms whether the renderer is
+  // about to show evidence-backed sources or the "Benchmarked" fallback label.
+  const evidenceCount = workflows.filter(
+    (w) =>
+      w.rateSource &&
+      w.rateSource !== 'benchmark_fallback' &&
+      w.rateSource !== 'assumed',
+  ).length
+  roiLog(
+    'assemble',
+    `building report — ${workflows.length} workflows | ${evidenceCount}/${workflows.length} have evidence-backed rate citation`,
+    workflows.map((w) => ({
+      name: w.name,
+      rate: w.rateOverride,
+      seniority: w.seniorityLevel,
+      source: w.rateSource ?? 'NULL',
+      url: w.rateSourceUrl,
+    })),
+  )
 
   // Currencies whose official symbols are non-Latin script — always use the ISO code instead
   const SCRIPT_SYMBOL_CODES = new Set([
@@ -530,22 +651,43 @@ export function assembleReport(state: ReportState): AssembleReportOutput {
   const scopeListHTML = merged.map((w) => `<li>${esc(w.name)}</li>`).join('')
 
   const levers = copy.profit_levers ?? []
+  // Per-lever arithmetic is computed deterministically from WorkflowCalc so
+  // every rendered "X hrs × $Y × Z redirected = $W/mo" line reconciles with
+  // the calculator's PU total — the modeler is told to omit
+  // rationale_with_arithmetic (it's overwritten below). Join by derived_from
+  // first, then fall back to positional index (the prompt mandates lever
+  // ordering matches workflow ordering); only fall back to the LLM's text
+  // if both lookups fail.
+  const redirectionPct = Math.max(0, globals.profitMultiplier - 1)
+  const leverArithmetic: string[] = levers.map((l, i) => {
+    const wf =
+      merged.find(
+        (w) => w.name.toLowerCase() === (l.derived_from ?? '').toLowerCase(),
+      ) ?? merged[i]
+    if (wf) {
+      return `${addCommas(wf.monthlyHours)} hrs/mo freed × ${sym}${addCommas(
+        wf.effectiveRate,
+      )}/hr × ${redirectionPct.toFixed(
+        2,
+      )} redirected = ${sym}${addCommas(wf.monthlyProfitUplift)}/mo`
+    }
+    return esc(l.rationale_with_arithmetic ?? l.rationale ?? '')
+  })
   const profitLeversBody =
     levers
-      .map(
-        (l) =>
+      .map((l, i) => {
+        return (
           `<tr>` +
           `<td><strong>${esc(l.lever_name ?? '')}</strong></td>` +
           `<td style="color:#64748b;font-size:8.5pt">${esc(
             l.derived_from ?? '',
           )}</td>` +
           `<td>${esc(l.baseline_data ?? '')}</td>` +
-          `<td>${esc(l.ai_agent_action ?? '')}</td>` +
-          `<td style="font-size:8pt;color:#2d2d2d;font-family:monospace">${esc(
-            l.rationale_with_arithmetic ?? l.rationale ?? '',
-          )}</td>` +
-          `</tr>`,
-      )
+          `<td>${esc(l.assumption ?? '')}</td>` +
+          `<td style="font-size:8pt;color:#2d2d2d;font-family:monospace">${leverArithmetic[i]}</td>` +
+          `</tr>`
+        )
+      })
       .join('') +
     `<tr class="total-row"><td colspan="4"><strong>Annual incremental profit (per year)</strong></td><td class="accent"><strong>${sym}${fmt(
       s.profitUplift12mo,
@@ -759,11 +901,13 @@ export function assembleReport(state: ReportState): AssembleReportOutput {
     )} / yr · value of hours recaptured</td>` +
     `</tr>`
 
-  // Profit uplift logic table (exec template)
+  // Profit uplift logic table (exec template) — arithmetic comes from the
+  // shared deterministic helper above so this table stays reconciled with the
+  // calculator's PU total even when the writer LLM authored stale numbers.
   const profitUpliftLogicBody =
     levers
       .map(
-        (l) =>
+        (l, i) =>
           `<tr>` +
           `<td style="color:#003f87;font-weight:bold;vertical-align:top;width:22%">${esc(
             l.derived_from,
@@ -771,9 +915,7 @@ export function assembleReport(state: ReportState): AssembleReportOutput {
           `<td style="font-style:italic;vertical-align:top;width:22%;font-size:8.5pt">${esc(
             l.lever_name,
           )}</td>` +
-          `<td style="color:#5a5a6e;vertical-align:top;width:56%;font-size:8pt">${esc(
-            l.rationale_with_arithmetic,
-          )}</td>` +
+          `<td style="color:#5a5a6e;vertical-align:top;width:56%;font-size:8pt">${leverArithmetic[i]}</td>` +
           `</tr>`,
       )
       .join('') +
