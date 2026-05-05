@@ -153,7 +153,24 @@ function buildCompanySnapshotTableBody(
       )}</td><td><span class="badge-scraped">Scraped</span></td></tr>`,
     )
   }
+  // Safety net — drop LLM-authored snapshot items that would duplicate the
+  // form-provided rows above. The writer prompt asks the model to skip these
+  // facts, but it doesn't always comply, so we filter at render time too.
+  const isRedundant = (text: string): boolean => {
+    const t = text.toLowerCase()
+    if (teamSizeFromForm && /\b\d[\d,]*\s*(employees?|people|staff)\b/.test(t)) {
+      return true
+    }
+    if (
+      revenueRangeFromForm &&
+      /\b(annual\s+)?revenue\b|\bgenerates?\b.*\$|\bannually\b/.test(t)
+    ) {
+      return true
+    }
+    return false
+  }
   ;(copy?.company_snapshot ?? []).forEach((item) => {
+    if (isRedundant(item.text ?? '')) return
     const cls =
       item.sourceType === 'scraped'
         ? 'badge-scraped'

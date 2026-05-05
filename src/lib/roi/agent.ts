@@ -1481,27 +1481,47 @@ function buildChatSystemPrompt(state: ReportState): string {
         (w.monthlyVolume * w.minutesPerItemBefore) / 60,
       )
       const hrsAfter = Math.round(hrsBefore - w.monthlyHours)
+      const rawRate = w.rateOverride ?? globals.laborRate
+      const flooredNote =
+        w.effectiveRate !== rawRate
+          ? ` (auto-lifted from ${sym}${rawRate} by regional floor)`
+          : ''
+      const sourceNote = w.rateSource
+        ? ` · source=${w.rateSource}${
+            w.rateSource === 'benchmark_fallback' ? ' (no live evidence)' : ''
+          }`
+        : ''
       return `[${w.name}]
-  Displayed: ${hrsBefore}→${hrsAfter} hrs/mo | ${
-        w.monthlyHours
-      } saved | ${sym}${w.monthlyValue}/mo
+  Displayed: ${hrsBefore}→${hrsAfter} hrs/mo | ${w.monthlyHours} hrs saved | ${sym}${w.monthlyValue}/mo recaptured | ${sym}${w.monthlyProfitUplift}/mo profit uplift
   Raw inputs (update_workflow): volume=${w.monthlyVolume}/mo | before=${
         w.minutesPerItemBefore
       }min | after=${w.minutesPerItemAfter}min | rate=${sym}${
-        w.rateOverride ?? globals.laborRate
-      }/hr | adoption=${w.adoptionRate}`
+        w.effectiveRate
+      }/hr [${w.seniorityLevel ?? 'mid'}]${flooredNote}${sourceNote} | adoption=${w.adoptionRate}`
     })
     .join('\n\n')
 
+  // Show the deterministic per-lever arithmetic the renderer actually
+  // displays — NOT the empty rationale_with_arithmetic field, which is
+  // overwritten in assembleReport. Otherwise the chat agent may "fix"
+  // arithmetic that isn't actually shown.
+  const redirectionPct = Math.max(0, globals.profitMultiplier - 1)
   const leverLines = (copy.profit_levers ?? [])
-    .map(
-      (l, i) =>
-        `  [${i + 1}] lever_name="${l.lever_name}" | derived_from="${
-          l.derived_from
-        }"\n       rationale_with_arithmetic="${
-          l.rationale_with_arithmetic ?? l.rationale
-        }"`,
-    )
+    .map((l, i) => {
+      const wf =
+        merged.find(
+          (w) =>
+            w.name.toLowerCase() === (l.derived_from ?? '').toLowerCase(),
+        ) ?? merged[i]
+      const rendered = wf
+        ? `${wf.monthlyHours} hrs/mo × ${sym}${wf.effectiveRate}/hr × ${redirectionPct.toFixed(
+            2,
+          )} redirected = ${sym}${wf.monthlyProfitUplift}/mo`
+        : '(no matching workflow)'
+      return `  [${i + 1}] lever_name="${l.lever_name}" | derived_from="${
+        l.derived_from
+      }"\n       rendered_arithmetic="${rendered}"  (auto-generated; not editable via update_copy)`
+    })
     .join('\n')
 
   const resilienceLines = (copy.resilience_rows ?? [])
@@ -1544,13 +1564,51 @@ TOTALS (displayed): ${calc.figures.totalAnnualHours} hrs/yr | OD ${sym}${
   } | PU ${sym}${s.profitUplift12mo} | TFG ${sym}${s.totalFinancialGain12mo}
 
 ═══ GLOBAL INPUTS ═══════════════════════════════════════
-Edit with update_globals. Applied to all workflows unless a workflow has its own rate override above.
-  laborRate=${sym}${globals.laborRate}/hr | implCost=${sym}${
-    globals.implementationCost
-  } | toolingCostMonthly=${sym}${globals.monthlyToolingCost}/mo
-  profitMultiplier=${globals.profitMultiplier} | realizationFactor=${
-    globals.realizationFactor
-  }
+Edit with update_globals. NOTE: globals.laborRate is a FALLBACK only — every workflow above already has its own rate (set by the modeler from real salary evidence + regional floor). Editing globals.laborRate alone WILL NOT change any displayed number. To change rates, edit per-workflow rateOverride instead, or use scale_rates for proportional shifts.
+  laborRate=${sym}${globals.laborRate}/hr (fallback — unused while overrides exist)
+  implCost=${sym}${globals.implementationCost} | toolingCostMonthly=${sym}${
+    globals.monthlyToolingCost
+  }/mo
+  profitMultiplier=${globals.profitMultiplier} (drives Profit Uplift = OD × (multiplier − 1))
+  realizationFactor=${globals.realizationFactor} (fraction of theoretical hours actually recovered)
+
+═══ AUTOMATIC GUARDRAILS (silent — calculator does these on every edit) ═══
+1) REGIONAL RATE FLOOR — country=${
+    company.country ?? 'unknown'
+  }. Each workflow's rate is silently lifted to the regional minimum for its seniority tier (e.g. mid-tier Egypt floor ≈ ${sym}32/hr USD). Setting rateOverride below the floor has no effect — the calculator clamps it. Tell the user this if their requested rate is below the floor.
+2) REVENUE BAND — Total Financial Gain is constrained to 5–20% of estimated annual revenue (${
+    company.revenueEstimateM
+      ? sym + company.revenueEstimateM + 'M'
+      : 'unknown'
+  }). If a rate or volume edit pushes TFG outside the band, ALL workflows are scaled proportionally so the totals reconcile but per-workflow numbers may shift slightly even for workflows you didn't touch. Mention this when relevant.
+
+═══ SECTION MAP — what the user sees → what to edit ═════
+The rendered report has these visible section headings. Use this to translate user requests:
+
+EXEC ONE-PAGER:
+  "The Pattern Underneath"                         → update_copy({ thesis })
+  "Where the Operational Dividend Comes From"      → update_workflow(...) [the workflow table]
+  "Where the Profit Uplift Comes From"             → update_workflow(...) [arithmetic auto-regenerates]
+  "Cost of Delay"                                  → update_copy({ cost_of_delay })
+  "What Happens Next"                              → update_copy({ cta })
+
+FULL REPORT:
+  "Executive Summary" / KPI bar                    → recalculated automatically when workflows change
+  "Company Snapshot"                               → update_company / update_copy({ company_snapshot })
+  "Proposed AI Workflows"                          → update_workflow(...)  [unified workflow table — replaces the old Before/After AI table]
+  "Profit Uplift Analysis"                         → update_workflow(...) — arithmetic is auto-generated, not editable via update_copy
+  "Cost of Delay"                                  → update_copy({ cost_of_delay })
+  "Resilience Positioning"                         → update_copy({ resilience_rows })
+  "Recommended Starting Point"                     → update_copy({ pilot })
+  "Data Provenance"                                → driven by workflows + company; no direct edit
+  "Risks & Mitigations"                            → update_copy({ risks })
+  "Implementation Roadmap"                         → not editable from chat
+  "Next Steps"                                     → update_copy({ cta, next_steps })
+
+LEGACY NAMES the user might use (don't exist anymore):
+  "Before AI vs After AI table" / "before/after table" → it's now part of "Proposed AI Workflows" / "Where the Operational Dividend Comes From". Edit via update_workflow.
+  "global hourly rate" / "the rate"                → there's no single rate — every workflow has its own. Ask which workflow, or use scale_rates for a bulk shift.
+  "Function Roll-Up"                               → removed; do not try to edit.
 
 ═══ COPY SECTIONS ═══════════════════════════════════════
 Edit with update_copy(patches). Field names shown after →.
@@ -1591,13 +1649,26 @@ COPY      update_copy(patches)            — update any combination of copy sec
 STRUCTURE add_workflow | remove_workflow
 RESEARCH  web_search | fetch_page
 
-COMPOSITION EXAMPLES:
-  "Convert to AED at 3.67"          → set_currency("AED")  then  scale_rates(3.67)
-  "Proposal rate is ${sym}80/hr"   → update_workflow("Proposal drafting and tailoring", { rateOverride: 80 })
-  "Inbound volume is 200/mo"        → update_workflow("Inbound lead qualification", { monthlyVolume: 200 })
-  "Rewrite the thesis"              → update_copy({ thesis: "..." })
-  "Fix profit lever arithmetic"     → update_copy({ profit_levers: [...] })
-  "Rate change + update lever math" → update_workflow(...) then update_copy({ profit_levers: [...] })
+COMPOSITION EXAMPLES (use the real workflow names from the WORKFLOWS section above):
+  "Convert to AED at 3.67"                  → set_currency("AED") then scale_rates(3.67)
+  "${
+    merged[0]?.name ?? 'Workflow A'
+  } rate should be ${sym}80/hr" → update_workflow("${
+    merged[0]?.name ?? 'Workflow A'
+  }", { rateOverride: 80 })
+  "${
+    merged[1]?.name ?? 'Workflow B'
+  } volume is 200/mo"            → update_workflow("${
+    merged[1]?.name ?? 'Workflow B'
+  }", { monthlyVolume: 200 })
+  "Bump every rate by 10%"                  → scale_rates(1.10)
+  "Rewrite the thesis"                      → update_copy({ thesis: "..." })
+  "Update the Cost of Delay paragraph"      → update_copy({ cost_of_delay: { narrative: "..." } })
+
+DO NOT DO:
+  ✗ "Fix the profit lever arithmetic"       — arithmetic is auto-regenerated from workflow rate × hours; just edit the workflow.
+  ✗ "Change the global hourly rate to $50"  — no single rate exists; ask which workflow, or call scale_rates.
+  ✗ "Update the Before vs After AI table"   — that table no longer exists; edit workflows directly.
 
 STRICT RULES:
 - NEVER describe a change without calling the tool that makes it.
@@ -1606,6 +1677,9 @@ STRICT RULES:
 - NEVER call add_workflow for a workflow already listed above — the tool will reject it.
 - set_report_copy: only call if the user explicitly asks to regenerate the full report copy.
 - For a single-section edit, use a targeted update_* tool — never set_report_copy.
+- profit_levers.rationale_with_arithmetic is regenerated by the pipeline on every recalculation. Never patch it via update_copy — it gets overwritten. To change a lever's arithmetic, edit the underlying workflow's rate or hours.
+- If a user requests a rate below the regional floor, make the edit but warn them the calculator will auto-lift it back to the floor.
+- If asked about a section that no longer exists (Before/After AI table, global rate, Function Roll-Up), translate to the correct current name using the SECTION MAP above before acting.
 - KR-18: cost_of_delay narrative MUST end with "Delay is not neutral — it carries a monthly price."
 - KR-17: resilience_rows always exactly 4 rows.
 - NS-2: next_steps always exactly 6 items.

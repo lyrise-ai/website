@@ -35,6 +35,8 @@ Short factual bullets about the company. Tag each with how you obtained it:
   assumed = inferred from context
 Example: { text: "~120 employees across 3 regional offices", sourceType: "scraped" }
 
+DO NOT REPEAT facts that the assemble step already auto-injects as "Provided" rows above your items: headcount/employee count, annual revenue / revenue range, and country. The renderer prepends those rows automatically when the user supplied them in the form. Items like "The company has ~25 employees and generates $1M–$5M revenue" duplicate the Provided rows and clutter the table — write OTHER company facts instead (practice areas, geographic footprint beyond country, product lines, client types, tool stack, regulatory context, named partnerships).
+
 3. cta_paragraph (NS-1)
 2-3 sentences. Criteria-based — NOT marketing language.
 Pattern: "If [3 specific observable conditions] describe your situation,
