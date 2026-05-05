@@ -75,6 +75,7 @@ export default function Dashboard({
   const [reports, setReports] = useState(initialReports)
   const [confirmingId, setConfirmingId] = useState(null)
   const [deletingId, setDeletingId] = useState(null)
+  const [navigatingId, setNavigatingId] = useState(null)
 
   const handleSignOut = async () => {
     const supabase = createBrowserClient()
@@ -97,6 +98,7 @@ export default function Dashboard({
 
   return (
     <div className="rebranding-landing-page min-h-screen -mt-[12px]">
+      <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
       <MainHeader />
       <Head>
         <title>{isEmployee ? 'All Reports' : 'My Reports'} | LyRise</title>
@@ -169,13 +171,17 @@ export default function Dashboard({
                   return (
                     <tr
                       key={r.id}
-                      onClick={() =>
-                        clickable && router.push(`/report/${r.id}`)
-                      }
+                      onClick={() => {
+                        if (!clickable || navigatingId) return
+                        setNavigatingId(r.id)
+                        router.push(`/report/${r.id}`)
+                      }}
                       className={`${
                         i < reports.length - 1 ? 'border-b border-gray-50' : ''
                       } hover:bg-gray-50 transition-colors ${
-                        clickable ? 'cursor-pointer' : 'cursor-default'
+                        clickable && !navigatingId
+                          ? 'cursor-pointer'
+                          : 'cursor-default'
                       }`}
                     >
                       <td className="font-outfit font-medium text-[#2C2C2C] px-6 py-4">
@@ -196,9 +202,24 @@ export default function Dashboard({
                       >
                         <div className="flex items-center justify-end gap-3">
                           {clickable && (
-                            <span className="font-outfit text-xs font-semibold text-[#2957FF]">
-                              View →
-                            </span>
+                            navigatingId === r.id ? (
+                              <span
+                                style={{
+                                  display: 'inline-block',
+                                  width: 14,
+                                  height: 14,
+                                  border: '2px solid #e2e8f0',
+                                  borderTopColor: '#2957FF',
+                                  borderRadius: '50%',
+                                  animation: 'spin 0.75s linear infinite',
+                                  flexShrink: 0,
+                                }}
+                              />
+                            ) : (
+                              <span className="font-outfit text-xs font-semibold text-[#2957FF]">
+                                View →
+                              </span>
+                            )
                           )}
                           {isEmployee &&
                             (confirmingId === r.id ? (

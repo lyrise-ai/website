@@ -56,6 +56,7 @@ function buildInitialMessage(state) {
 const TOOL_LABELS = {
   web_search: 'Searching the web…',
   fetch_page: 'Reading page…',
+  search_evidence: 'Looking up sources…',
   set_research_output: 'Processing research findings…',
   run_financial_model: 'Running financial model…',
   set_report_copy: 'Writing report copy…',
@@ -121,10 +122,14 @@ export default function ReportViewer({
   reportId,
   isEmployee,
   initialMessagesUsed = 0,
+  initialChatHistory = [],
   backHref,
 }) {
   const [reportState, setReportState] = useState(initialState)
-  const [chatHistory, setChatHistory] = useState([])
+  const [htmlLoading, setHtmlLoading] = useState(
+    !initialState?.renderedHtml && !initialState?.renderedFullHtml,
+  )
+  const [chatHistory, setChatHistory] = useState(initialChatHistory)
   const [initialMessage] = useState(() => buildInitialMessage(initialState))
   const [streamingText, setStreamingText] = useState('')
   const [activeTool, setActiveTool] = useState(null)
@@ -137,7 +142,7 @@ export default function ReportViewer({
   const [userSentCount, setUserSentCount] = useState(initialMessagesUsed)
   const [showCallPrompt, setShowCallPrompt] = useState(false)
   const [downloadStatus, setDownloadStatus] = useState('idle')
-  const [tourStep, setTourStep] = useState(0)
+  const [tourStep, setTourStep] = useState(-1)
   const [tourRect, setTourRect] = useState(null)
 
   const iframeRef = useRef(null)
@@ -176,6 +181,23 @@ export default function ReportViewer({
       placement: 'left',
     },
   ]
+
+  useEffect(() => {
+    if (!htmlLoading) return
+    fetch(`/api/reports/${reportId}`)
+      .then((r) => r.json())
+      .then(({ renderedHtml, renderedFullHtml }) => {
+        setReportState((prev) => ({ ...prev, renderedHtml, renderedFullHtml }))
+        setHtmlLoading(false)
+      })
+      .catch(() => setHtmlLoading(false))
+  }, [reportId, htmlLoading])
+
+  useEffect(() => {
+    try {
+      if (!localStorage.getItem('lyrise_tour_seen')) setTourStep(0)
+    } catch {}
+  }, [])
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
@@ -276,11 +298,20 @@ export default function ReportViewer({
   }, [tourStep])
 
   const advanceTour = useCallback(() => {
-    setTourStep((s) => (s + 1 >= TOUR_STEPS.length ? -1 : s + 1))
+    setTourStep((s) => {
+      const next = s + 1 >= TOUR_STEPS.length ? -1 : s + 1
+      if (next === -1) {
+        try { localStorage.setItem('lyrise_tour_seen', '1') } catch {}
+      }
+      return next
+    })
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  const closeTour = useCallback(() => setTourStep(-1), [])
+  const closeTour = useCallback(() => {
+    try { localStorage.setItem('lyrise_tour_seen', '1') } catch {}
+    setTourStep(-1)
+  }, [])
 
   const handleTabSelect = useCallback((tab) => {
     setActiveTab(tab)
@@ -638,6 +669,25 @@ export default function ReportViewer({
               : 'Download PDF'}
           </button>
           <button
+            type="button"
+            onClick={() => setTourStep(0)}
+            title="Take a tour"
+            style={{
+              width: 32,
+              height: 32,
+              borderRadius: '50%',
+              border: '1px solid #e2e8f0',
+              background: '#fff',
+              color: '#6b7280',
+              fontSize: 14,
+              fontWeight: 700,
+              cursor: 'pointer',
+              flexShrink: 0,
+            }}
+          >
+            ?
+          </button>
+          <button
             ref={resendEmailRef}
             type="button"
             onClick={handleResendEmail}
@@ -687,13 +737,48 @@ export default function ReportViewer({
             overflow: 'hidden',
             borderRight: '1px solid #e2e8f0',
             background: '#f1f5f9',
+            position: 'relative',
           }}
         >
+          {htmlLoading && (
+            <div
+              style={{
+                position: 'absolute',
+                inset: 0,
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: 16,
+                background: '#f1f5f9',
+                zIndex: 2,
+              }}
+            >
+              <div
+                style={{
+                  width: 36,
+                  height: 36,
+                  border: '3px solid #e2e8f0',
+                  borderTopColor: '#2957FF',
+                  borderRadius: '50%',
+                  animation: 'spin 0.75s linear infinite',
+                }}
+              />
+              <span style={{ fontSize: 13, color: '#6b7280', fontWeight: 500 }}>
+                Loading report…
+              </span>
+            </div>
+          )}
           <iframe
             ref={iframeRef}
             srcDoc={activeHtml ?? ''}
             onLoad={handleIframeLoad}
-            style={{ width: '100%', height: '100%', border: 'none' }}
+            style={{
+              width: '100%',
+              height: '100%',
+              border: 'none',
+              opacity: htmlLoading ? 0 : 1,
+            }}
             title="ROI Report Preview"
           />
         </div>
@@ -1240,6 +1325,9 @@ export default function ReportViewer({
         @keyframes pulse {
           0%, 100% { opacity: 1; }
           50% { opacity: 0.3; }
+        }
+        @keyframes spin {
+          to { transform: rotate(360deg); }
         }
       `}</style>
     </div>

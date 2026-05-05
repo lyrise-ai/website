@@ -16,6 +16,43 @@ CURRENCY: Parse from selectedCurrency (format "CODE – Name (symbol)").
 Always use English/Latin symbols only — never Arabic script. GCC currencies: SAR→"SAR", AED→"AED", QAR→"QAR", KWD→"KWD", BHD→"BHD", OMR→"OMR".
 If blank, infer from country.
 
+RATE EVIDENCE — USE FIRST WHEN AVAILABLE:
+If researchEvidence is provided, scan every snippet for salary, rate, or compensation
+figures (e.g. "AED 70/hr", "$65,000/year", "£55,000 per annum", "SAR 25,000/month").
+Scraped figures take priority over the regional ranges below.
+Convert annual → hourly: annual ÷ (workWeeksPerYear × 40) × 1.30 (fully-loaded overhead multiplier).
+Convert monthly → hourly: monthly × 12 ÷ (workWeeksPerYear × 40) × 1.30.
+
+RULE 6A — PER-WORKFLOW SENIORITY-DIFFERENTIATED RATES (MANDATORY):
+You MUST set fullyLoadedHourlyCostOverride for EACH workflow individually.
+Do NOT use the same rate for all workflows.
+
+Use the workflow's \`owner\` field to determine seniority tier:
+  - "Analyst", "Coordinator", "Associate", "Assistant", "Clerk", "Admin" → junior tier
+  - "Manager", "Specialist", "Consultant", "Account Executive", "Officer" → mid tier
+  - "Director", "VP", "Partner", "Head of", "C-Level", "Principal", "Senior Manager" → senior tier
+
+Source your rates from a named benchmark. Cite it in rateSource. Use the currency
+that matches the company's operating currency (AED for UAE, SAR for Saudi, EGP for Egypt, etc.):
+
+  UAE / GCC (AED): Gulf Talent
+    junior/ops: AED 55–75/hr | mid-level: AED 75–100/hr | senior: AED 95–135/hr
+  Saudi Arabia (SAR): Bayt.com
+    junior/ops: SAR 55–75/hr | mid-level: SAR 75–105/hr | senior: SAR 100–140/hr
+  Qatar / Kuwait / Bahrain / Oman (local currency): Gulf Talent
+    ops: local equiv of AED 55–75/hr | senior: local equiv of AED 95–135/hr
+  Egypt (EGP): Glassdoor MENA
+    ops/admin: EGP 650–1,400/hr | mid: EGP 1,400–2,200/hr | senior: EGP 2,200–4,000/hr
+  Turkey: Glassdoor regional — $10–18/hr (USD equivalent)
+  US: Robert Half or LinkedIn Salary Insights
+    ops/marketing: $50–70/hr | compliance/legal-ops: $65–90/hr | senior: $80–115/hr
+  EU: Robert Half EU
+    ops: €40–65/hr | mid: €55–85/hr | senior: €75–115/hr
+  UK: Robert Half UK
+    ops: £40–60/hr | mid: £55–82/hr | senior: £75–110/hr
+
+Set seniorityLevel to describe the role (e.g. "Junior operations analyst", "Senior sales executive").
+
 VOLUME & TIME ANCHORING:
 The Research Agent has already derived monthlyVolume and minutesPerItemBefore
 for each workflow from company research. Use these as your primary anchors.
@@ -70,9 +107,9 @@ LABOR (global fallback — used if a workflow has no rateOverride):
 - workWeeksPerYear: 48 for GCC/Egypt, 50 for US/EU/UK.
 
 realizationFactor: 0.70–0.85.
-profitMultiplier: 1.5–4.0. Cap at 3.5 for companies under 500 employees.
+profitMultiplier: 1.8–4.0. Cap at 3.5 for companies under 500 employees.
 
-workflowAssumptions (exactly 4, names must match workflows input):
+workflowAssumptions (one entry per workflow in the input — names must match exactly):
 - exceptionRate: 0.05–0.20
 - adoption_low/base/high
 - rationale: 1 sentence citing company scale and why volume is realistic.
@@ -129,11 +166,11 @@ export const ROI_MODELER_SCHEMA = {
       },
     },
     realizationFactor: { type: 'number', minimum: 0.5, maximum: 0.95 },
-    profitMultiplier: { type: 'number', minimum: 1.5, maximum: 4.0 },
+    profitMultiplier: { type: 'number', minimum: 1.8, maximum: 4.0 },
     workflowAssumptions: {
       type: 'array',
-      minItems: 4,
-      maxItems: 4,
+      minItems: 3,
+      maxItems: 6,
       items: {
         type: 'object',
         additionalProperties: false,

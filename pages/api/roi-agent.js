@@ -41,8 +41,15 @@ function mapFormToPayload(body) {
     ...body,
     'Company Name': body.companyName ?? body['Company Name'] ?? '',
     'Company Website URL': body.website ?? body['Company Website URL'] ?? '',
+    'What does your company do?':
+      body.businessDescription ?? body['What does your company do?'] ?? '',
     Email: body.email ?? body.Email ?? '',
     Industry: body.industry ?? body.Industry ?? '',
+    Country: body.country ?? body.Country ?? '',
+    'Number of Employees': body.teamSize ?? body['Number of Employees'] ?? '',
+    'Estimated Annual Revenue':
+      body.revenueRange ?? body['Estimated Annual Revenue'] ?? '',
+    'Key Priorities': body.keyPriorities ?? body['Key Priorities'] ?? [],
     'Company LinkedIn URL': body.linkedin ?? body['Company LinkedIn URL'] ?? '',
     'Recipient Name': body.recipientName ?? body['Recipient Name'] ?? '',
     'Recipient Title': body.recipientTitle ?? body['Recipient Title'] ?? '',
@@ -129,27 +136,29 @@ export default async function handler(req, res) {
       return
     }
 
-    const [{ data: userData }, { data: report }, { data: messages }] =
-      await Promise.all([
-        adminSupabase.from('users').select('role').eq('id', user.id).single(),
-        adminSupabase
-          .from('reports')
-          .select(
-            'id, user_id, email, status, input_data, state_data, rendered_html, rendered_full_html',
-          )
-          .eq('id', reportId)
-          .single(),
-        adminSupabase
-          .from('chat_messages')
-          .select('role, content')
-          .eq('report_id', reportId)
-          .eq('user_id', user.id)
-          .order('created_at', { ascending: true })
-          .limit(20),
-      ])
+    const [{ data: userData }, { data: report }] = await Promise.all([
+      adminSupabase.from('users').select('role').eq('id', user.id).single(),
+      adminSupabase
+        .from('reports')
+        .select(
+          'id, user_id, email, status, input_data, state_data, rendered_html, rendered_full_html',
+        )
+        .eq('id', reportId)
+        .single(),
+    ])
     const isEmployeeChat =
       userData?.role === 'EMPLOYEE' ||
       user.email?.endsWith('@lyrise.ai') === true
+
+    // Employees see all messages on the report; clients see only their own
+    let msgQuery = adminSupabase
+      .from('chat_messages')
+      .select('role, content')
+      .eq('report_id', reportId)
+      .order('created_at', { ascending: true })
+      .limit(20)
+    if (!isEmployeeChat) msgQuery = msgQuery.eq('user_id', user.id)
+    const { data: messages } = await msgQuery
     chatUserRole = isEmployeeChat ? 'EMPLOYEE' : userData?.role ?? 'CLIENT'
 
     if (!report || (report.user_id !== user.id && !isEmployeeChat)) {
@@ -312,8 +321,17 @@ export default async function handler(req, res) {
 
       const assistantText = capturedMessages
         .filter((m) => m.role === 'assistant')
-        .map((m) => (typeof m.content === 'string' ? m.content : ''))
-        .join('')
+        .map((m) => {
+          if (typeof m.content === 'string') return m.content
+          if (Array.isArray(m.content))
+            return m.content
+              .filter((p) => p.type === 'text')
+              .map((p) => p.text)
+              .join('')
+          return ''
+        })
+        .join('\n')
+        .trim()
 
       if (assistantText) {
         await supabase.from('chat_messages').insert({

@@ -198,7 +198,7 @@ function buildCopy(state: ReportState): ReportCopy {
         lever_name: 'More proposals shipped without founder bottlenecks',
         derived_from: wf2?.name ?? '',
         baseline_data: `${wf2?.name} currently returns ${wf2?.monthlyHours} hrs/mo according to the calculator output.`,
-        assumption:
+        ai_agent_action:
           'Redirect 35% of those recovered commercial hours into additional proposal capacity and pipeline progression.',
         rationale:
           'Proposal throughput improves because leadership can review and send more qualified opportunities each month.',
@@ -214,7 +214,7 @@ function buildCopy(state: ReportState): ReportCopy {
         lever_name: 'Faster follow-up lifts conversion efficiency',
         derived_from: `${wf1?.name ?? ''}, ${wf3?.name ?? ''}`,
         baseline_data: `${wf1?.name} and ${wf3?.name} together remove delay from qualification and post-call follow-up.`,
-        assumption:
+        ai_agent_action:
           'Convert 25% of recovered customer-facing hours into faster response and reduced drop-off across active deals.',
         rationale:
           'Deals advance more consistently because prospects get qualification decisions and next steps while intent is still high.',
@@ -240,7 +240,7 @@ function buildCopy(state: ReportState): ReportCopy {
           wf4?.name ?? ''
         }`,
         baseline_data: `${company.company} can redeploy operational and sales coordination time into client conversations, partnerships, and delivery oversight.`,
-        assumption:
+        ai_agent_action:
           'Apply the residual recovered capacity to strategic selling, stakeholder management, and expansion work.',
         rationale:
           'Profit rises because senior time moves from admin orchestration into revenue-bearing and client-retention activity.',
@@ -306,46 +306,6 @@ function buildCopy(state: ReportState): ReportCopy {
         detail: `${recipient} and the broader team will only realize value if AI-generated drafts actually replace manual work. Partial adoption would slow the payback profile materially.`,
         mitigation:
           'Choose one high-volume workflow first, instrument usage weekly, and tie rollout to explicit process ownership.',
-      },
-    ],
-    next_steps_checklist: [
-      {
-        action:
-          'Share this report with a key internal stakeholder for commercial process validation.',
-        owner: recipient,
-        due: 'Within 2 business days',
-      },
-      {
-        action: `Confirm current monthly volume and handling time for ${
-          wf2?.name ?? 'proposal drafting'
-        }.`,
-        owner: recipientTitle,
-        due: 'Within 5 business days',
-      },
-      {
-        action: `Export 20 recent examples from ${
-          wf1?.name ?? 'lead qualification'
-        } and ${wf3?.name ?? 'follow-up'} for workflow design.`,
-        owner: 'Revenue Ops Lead',
-        due: 'Week 1',
-      },
-      {
-        action:
-          'Agree a human-review policy for outbound drafts, proposals, and CRM write-backs.',
-        owner: 'Commercial Lead',
-        due: 'Week 1',
-      },
-      {
-        action:
-          'Select a Phase 1 pilot workflow and define success metrics for hours returned and turnaround time.',
-        owner: recipient,
-        due: 'Week 2',
-      },
-      {
-        action:
-          'Book a LyRise validation session to pressure-test assumptions and scope implementation.',
-        owner: recipient,
-        due: 'Week 2',
       },
     ],
   }

@@ -6,6 +6,7 @@ import * as React from 'react'
 import PropTypes from 'prop-types'
 import Head from 'next/head'
 import Script from 'next/script'
+import { useRouter } from 'next/router'
 import { ThemeProvider } from '@mui/material/styles'
 import CssBaseline from '@mui/material/CssBaseline'
 import { CacheProvider } from '@emotion/react'
@@ -20,6 +21,59 @@ import LenisProvider from '../src/components/LenisProvider'
 
 import { SessionProvider } from 'next-auth/react'
 import useSectionsContent from '../src/hooks/useSectionsContent'
+
+function NavigationProgress() {
+  const router = useRouter()
+  const [progress, setProgress] = React.useState(0)
+  const [visible, setVisible] = React.useState(false)
+  const timerRef = React.useRef(null)
+
+  React.useEffect(() => {
+    const start = () => {
+      setVisible(true)
+      setProgress(15)
+      timerRef.current = setInterval(() => {
+        setProgress((p) => (p >= 85 ? 85 : p + Math.random() * 12))
+      }, 400)
+    }
+    const done = () => {
+      clearInterval(timerRef.current)
+      setProgress(100)
+      setTimeout(() => {
+        setVisible(false)
+        setProgress(0)
+      }, 300)
+    }
+
+    router.events.on('routeChangeStart', start)
+    router.events.on('routeChangeComplete', done)
+    router.events.on('routeChangeError', done)
+    return () => {
+      clearInterval(timerRef.current)
+      router.events.off('routeChangeStart', start)
+      router.events.off('routeChangeComplete', done)
+      router.events.off('routeChangeError', done)
+    }
+  }, [router])
+
+  if (!visible) return null
+  return (
+    <div
+      style={{
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        width: `${progress}%`,
+        height: 3,
+        background: '#2957FF',
+        zIndex: 9999,
+        transition: 'width 0.3s ease, opacity 0.3s ease',
+        opacity: progress === 100 ? 0 : 1,
+        boxShadow: '0 0 8px rgba(41, 87, 255, 0.6)',
+      }}
+    />
+  )
+}
 
 // Client-side cache, shared for the whole session of the user in the browser.
 const clientSideEmotionCache = createEmotionCache()
@@ -189,6 +243,7 @@ export default function MyApp(props) {
         <ThemeProvider theme={theme}>
           {/* CssBaseline kickstart an elegant, consistent, and simple baseline to build upon. */}
           <CssBaseline />
+          <NavigationProgress />
           <Component {...pageProps} />
           <noscript>
             <iframe

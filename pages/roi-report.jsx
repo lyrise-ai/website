@@ -87,7 +87,7 @@ const DEV_STEP2_PRESET = {
   email: 'yousef@lyrise.ai',
   recipientName: 'Yousef',
   recipientTitle: 'COO',
-  currency: 'USD – US Dollar (USD)',
+  currency: 'SAR – Saudi Riyal (SAR)',
 }
 
 // ── Helpers ───────────────────────────────────────────────────────────────────

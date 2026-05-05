@@ -228,12 +228,26 @@ export function roiCalculator(
   company: CompanyProfile,
 ): RoiCalculatorOutput {
   // Currencies whose official symbols are non-Latin script — always use the ISO code instead
-  const SCRIPT_SYMBOL_CODES = new Set(['SAR', 'AED', 'QAR', 'KWD', 'BHD', 'OMR', 'EGP', 'JOD', 'IQD', 'LBP', 'IRR', 'YER'])
+  const SCRIPT_SYMBOL_CODES = new Set([
+    'SAR',
+    'AED',
+    'QAR',
+    'KWD',
+    'BHD',
+    'OMR',
+    'EGP',
+    'JOD',
+    'IQD',
+    'LBP',
+    'IRR',
+    'YER',
+  ])
   // eslint-disable-next-line no-control-regex
   const hasNonAscii = /[^\x00-\x7F]/.test(globals.currency.symbol)
-  const rawSym = SCRIPT_SYMBOL_CODES.has(globals.currency.code) || hasNonAscii
-    ? globals.currency.code
-    : globals.currency.symbol
+  const rawSym =
+    SCRIPT_SYMBOL_CODES.has(globals.currency.code) || hasNonAscii
+      ? globals.currency.code
+      : globals.currency.symbol
   const sym = rawSym.length > 1 && !rawSym.endsWith(' ') ? rawSym + ' ' : rawSym
   const workingMonthFactor = globals.workWeeksPerYear / 52
 
@@ -417,7 +431,7 @@ export function roiCalculator(
     figures: {
       totalMonthlyHours: addCommas(Math.round(totalMonthlyHours)),
       totalAnnualHours: addCommas(Math.round(totalAnnualHours)),
-      statFTE: (totalAnnualHours / 2000).toFixed(1),
+      statFTE: (totalAnnualHours / 2080).toFixed(1),
       operationalDividend12mo: fmtCur(od12),
       profitUplift12mo: fmtCur(pu12),
       totalFinancialGain12mo: fmtCur(tf12),
