@@ -158,16 +158,12 @@ function buildCompanySnapshotTableBody(
   // facts, but it doesn't always comply, so we filter at render time too.
   const isRedundant = (text: string): boolean => {
     const t = text.toLowerCase()
-    if (teamSizeFromForm && /\b\d[\d,]*\s*(employees?|people|staff)\b/.test(t)) {
-      return true
-    }
-    if (
-      revenueRangeFromForm &&
-      /\b(annual\s+)?revenue\b|\bgenerates?\b.*\$|\bannually\b/.test(t)
-    ) {
-      return true
-    }
-    return false
+    return (
+      (teamSizeFromForm &&
+        /\b\d[\d,]*\s*(employees?|people|staff)\b/.test(t)) ||
+      (revenueRangeFromForm &&
+        /\b(annual\s+)?revenue\b|\bgenerates?\b.*\$|\bannually\b/.test(t))
+    )
   }
   ;(copy?.company_snapshot ?? []).forEach((item) => {
     if (isRedundant(item.text ?? '')) return
@@ -312,14 +308,6 @@ function buildCalculationPanelHTML(
       )
       .join(' + ') + ` = ${sym}${addCommas(totalMonthlyValue)}/mo`
 
-  const formulaLine =
-    `hrs/mo = volume × adoptionRate × (netSavedMin ÷ 60) × realizationFactor × (workWeeks ÷ 52)`
-  const exampleLine =
-    `${addCommas(topWf.monthlyVolume)} × ${(topWf.adoptionRate * 100).toFixed(0)}% × ` +
-    `(${netSavedMin.toFixed(1)}min ÷ 60) × ${globals.realizationFactor} × ` +
-    `(${globals.workWeeksPerYear}÷52) = ${addCommas(topWf.monthlyHours)} hrs → ` +
-    `${addCommas(topWf.monthlyHours)} × ${sym}${addCommas(topWf.effectiveRate)}/hr = ${sym}${addCommas(monthlyValue)}/mo`
-
   return (
     `<div class="insight-panel" style="margin-top:6px">` +
     `<div class="insight-stripe"></div>` +
@@ -415,10 +403,14 @@ function buildProvenanceTableBody(
       !wf.rateSource ||
       wf.rateSource === 'benchmark_fallback' ||
       wf.rateSource === 'assumed'
+    const safeUrl =
+      wf.rateSourceUrl && /^https?:\/\//i.test(wf.rateSourceUrl)
+        ? wf.rateSourceUrl
+        : null
     const rateSourceLabel = isFallback
       ? 'Benchmarked'
-      : wf.rateSourceUrl
-      ? `Scraped — <a href="${esc(wf.rateSourceUrl)}" style="color:#003f87">${esc(
+      : safeUrl
+      ? `Scraped — <a href="${esc(safeUrl)}" style="color:#003f87">${esc(
           wf.rateSource ?? '',
         )}</a>`
       : `Scraped — ${esc(wf.rateSource ?? '')}`

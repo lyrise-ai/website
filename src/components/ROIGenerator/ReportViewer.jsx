@@ -196,7 +196,7 @@ export default function ReportViewer({
   useEffect(() => {
     try {
       if (!localStorage.getItem('lyrise_tour_seen')) setTourStep(0)
-    } catch {}
+    } catch { /* private browsing */ }
   }, [])
 
   useEffect(() => {
@@ -301,7 +301,7 @@ export default function ReportViewer({
     setTourStep((s) => {
       const next = s + 1 >= TOUR_STEPS.length ? -1 : s + 1
       if (next === -1) {
-        try { localStorage.setItem('lyrise_tour_seen', '1') } catch {}
+        try { localStorage.setItem('lyrise_tour_seen', '1') } catch { /* private browsing */ }
       }
       return next
     })
@@ -309,7 +309,7 @@ export default function ReportViewer({
   }, [])
 
   const closeTour = useCallback(() => {
-    try { localStorage.setItem('lyrise_tour_seen', '1') } catch {}
+    try { localStorage.setItem('lyrise_tour_seen', '1') } catch { /* private browsing */ }
     setTourStep(-1)
   }, [])
 

@@ -113,8 +113,6 @@ export interface WorkflowInput {
   rateSource: string | null
   rateSourceUrl: string | null
   rationale: string
-  rateSource?: string // benchmark name from modeler (e.g. "Gulf Talent", "Robert Half")
-  seniorityLevel?: string // role seniority description from modeler (e.g. "Senior sales executive")
 }
 
 // ── Salary evidence collected during research (per workflow) ─────────────────
