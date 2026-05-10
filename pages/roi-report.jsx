@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react'
+import React, { useState, useCallback, useEffect, useRef } from 'react'
 import Head from 'next/head'
 import { motion, AnimatePresence } from 'framer-motion'
 import { FaCheckCircle } from 'react-icons/fa'
@@ -6,27 +6,10 @@ import clsx from 'clsx'
 import MainHeader from '../src/layout/MainHeader'
 import LogosMarquee from '../src/components/MainLandingPage/LogosMarquee'
 import LastSection from '../src/components/MainLandingPage/LastSection'
+import ReportViewer from '../src/components/ROIGenerator/ReportViewer'
+import { drainSSE } from '../src/lib/drainSSE'
 
 // ── Constants ─────────────────────────────────────────────────────────────────
-
-const SUGGESTIONS = [
-  { icon: '📄', name: 'Writing proposals or quotes', dept: 'Sales' },
-  { icon: '📊', name: 'Updating CRM after calls', dept: 'Sales' },
-  { icon: '📧', name: 'Email follow-ups & outreach', dept: 'Sales' },
-  { icon: '🤝', name: 'Onboarding new clients', dept: 'Operations' },
-  { icon: '📋', name: 'Project status reporting', dept: 'Operations' },
-  { icon: '📅', name: 'Scheduling meetings & calls', dept: 'Operations' },
-  { icon: '💬', name: 'Customer support & ticket triage', dept: 'Operations' },
-  { icon: '📦', name: 'Order processing & fulfilment', dept: 'Operations' },
-  { icon: '🧾', name: 'Processing invoices & billing', dept: 'Finance' },
-  { icon: '📈', name: 'Building management reports', dept: 'Finance' },
-  { icon: '📉', name: 'Financial reconciliation', dept: 'Finance' },
-  { icon: '📝', name: 'Creating contracts', dept: 'Legal' },
-  { icon: '🗂️', name: 'Compliance & regulatory filings', dept: 'Legal' },
-  { icon: '🧑‍💼', name: 'Recruiting & screening candidates', dept: 'HR' },
-  { icon: '🏁', name: 'Employee onboarding & offboarding', dept: 'HR' },
-  { icon: '🔍', name: 'Data entry & data cleaning', dept: 'Operations' },
-]
 
 const INDUSTRY_OPTS = [
   'Technology / SaaS',
@@ -42,120 +25,88 @@ const INDUSTRY_OPTS = [
   'Government & Public Sector',
   'Other',
 ]
-const EMPLOYEE_OPTS = ['1–10', '11–50', '51–200', '201–500', '500+']
-const REVENUE_OPTS = [
-  'Under $1M',
-  '$1M–$5M',
-  '$5M–$20M',
-  '$20M–$100M',
-  '$100M+',
+const CURRENCIES = [
+  'USD – US Dollar (USD)',
+  'EUR – Euro (EUR)',
+  'GBP – British Pound (GBP)',
+  'SAR – Saudi Riyal (SAR)',
+  'AED – UAE Dirham (AED)',
+  'QAR – Qatari Riyal (QAR)',
+  'KWD – Kuwaiti Dinar (KWD)',
+  'BHD – Bahraini Dinar (BHD)',
+  'OMR – Omani Rial (OMR)',
+  'EGP – Egyptian Pound (EGP)',
+  'NGN – Nigerian Naira (NGN)',
+  'ZAR – South African Rand (ZAR)',
 ]
+// Aligned with the regions handled in roiCalculator.ts → toRegion(): UAE,
+// Saudi, Qatar/Kuwait/Bahrain/Oman (GCC peers), US, UK, Egypt. Anything else
+// falls through to the DEFAULT band.
 const COUNTRY_OPTS = [
+  'Egypt',
+  'United Arab Emirates',
   'Saudi Arabia',
-  'UAE',
   'Qatar',
   'Kuwait',
-  'Bahrain / Oman',
-  'Egypt',
-  'Europe',
-  'North America',
+  'Bahrain',
+  'Oman',
+  'United States',
+  'United Kingdom',
   'Other',
 ]
-const PRIORITY_OPTS = [
-  'Cut operating costs',
-  'Scale without hiring',
-  'Faster turnaround',
-  'Better client experience',
-  'Fewer errors & rework',
-  'Free up leadership time',
-  'Win more deals',
-  'Improve compliance',
+const TEAM_SIZE_OPTS = [
+  '1–10',
+  '11–50',
+  '51–200',
+  '201–500',
+  '501–1,000',
+  '1,001–5,000',
+  '5,000+',
 ]
-const VOLS = [
-  { label: 'Fewer than 30/mo', value: 'Under 30 per month' },
-  { label: '30–100/mo', value: '30–100 per month' },
-  { label: '100–300/mo', value: '100–300 per month' },
-  { label: 'Over 300/mo', value: 'Over 300 per month' },
+const REVENUE_OPTS = [
+  'Under $1M',
+  '$1M – $5M',
+  '$5M – $20M',
+  '$20M – $50M',
+  '$50M – $200M',
+  '$200M+',
+  'Prefer not to say',
 ]
-const TIMES = [
-  { label: 'Under 30 min', value: 'Under 30 minutes' },
-  { label: '30–60 min', value: '30–60 minutes' },
-  { label: '1–2 hours', value: '1–2 hours' },
-  { label: 'Over 2 hours', value: 'Over 2 hours' },
-]
-const ROLES = [
-  'Operations / Admin',
-  'Sales',
-  'Finance',
-  'HR / People',
-  'Legal',
-  'Leadership',
-]
-const CURRENCIES = [
-  'USD – US Dollar ($)',
-  'EUR – Euro (€)',
-  'GBP – British Pound (£)',
-  'SAR – Saudi Riyal (ر.س)',
-  'AED – UAE Dirham (د.إ)',
-  'QAR – Qatari Riyal (ر.ق)',
-  'KWD – Kuwaiti Dinar (د.ك)',
-  'BHD – Bahraini Dinar (BD)',
-  'OMR – Omani Rial (ر.ع.)',
-  'EGP – Egyptian Pound (E£)',
-  'NGN – Nigerian Naira (₦)',
-  'ZAR – South African Rand (R)',
-]
-const STAGE_LABELS = {
-  research: 'Researching your company…',
-  modeler: 'Modelling financial assumptions…',
-  calculator: 'Calculating ROI…',
-  writer: 'Writing report copy…',
-  assemble: 'Assembling report…',
-  render: 'Finalising report…',
+const TOTAL_STEPS = 2
+const IS_DEV = process.env.NODE_ENV === 'development'
+const DEV_STEP1_PRESET = {
+  companyName: 'LyRise',
+  website: 'lyrise.ai',
+  whatYouDo: 'selling ai solutions for businesses',
+  industry: 'Technology / SaaS',
+  country: 'Egypt',
+  teamSize: '11–50',
+  revenueRange: '$1M – $5M',
 }
-const TOTAL_STEPS = 4
+const DEV_STEP2_PRESET = {
+  email: 'yousef@lyrise.ai',
+  recipientName: 'Yousef',
+  recipientTitle: 'COO',
+  currency: 'SAR – Saudi Riyal (SAR)',
+}
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
-function inferDept(name) {
-  if (/proposal|quote|lead|sales|crm|prospect/i.test(name)) return 'Sales'
-  if (/invoice|billing|finance|payroll|reconcil/i.test(name)) return 'Finance'
-  if (/contract|legal|complian|regulat/i.test(name)) return 'Legal'
-  if (/recruit|hiring|hr|onboard.*employee|talent/i.test(name)) return 'HR'
-  return 'Operations'
-}
-
-function deptToRole(dept) {
-  const map = {
-    Sales: 'Sales',
-    Finance: 'Finance',
-    Legal: 'Legal',
-    HR: 'HR / People',
-    Operations: 'Operations / Admin',
+function validateStep(step, s1, s2) {
+  const errors = {}
+  if (
+    step === 1 &&
+    (!s1.companyName.trim() || s1.companyName.trim().length < 2)
+  ) {
+    errors.companyName = 'Please enter your company name'
   }
-  return map[dept] || ''
-}
-
-async function drainSSE(reader, decoder, onEvent, buffer = '') {
-  const { done, value } = await reader.read()
-  if (done) return
-  const chunk = buffer + decoder.decode(value, { stream: true })
-  const lines = chunk.split('\n')
-  const remaining = lines.pop()
-  // Parse valid JSON lines first (skip malformed), then dispatch without wrapping in try/catch
-  // so errors thrown by onEvent propagate up to the caller's try/catch
-  lines
-    .filter((l) => l.startsWith('data: '))
-    .reduce((acc, line) => {
-      try {
-        acc.push(JSON.parse(line.slice(6)))
-      } catch {
-        /* skip malformed */
-      }
-      return acc
-    }, [])
-    .forEach((event) => onEvent(event))
-  await drainSSE(reader, decoder, onEvent, remaining)
+  if (step === 2) {
+    if (!s2.email.trim() || !/\S+@\S+\.\S+/.test(s2.email)) {
+      errors.email = 'Please enter a valid work email'
+    }
+    if (!s2.currency) errors.currency = 'Please select a currency'
+  }
+  return errors
 }
 
 // ── Shared UI ─────────────────────────────────────────────────────────────────
@@ -194,36 +145,6 @@ function PillGroup({ options, value, onChange, error }) {
         ))}
       </div>
       {error && <p className="mt-1.5 text-xs text-red-500">{error}</p>}
-    </div>
-  )
-}
-
-function MultiPillGroup({ options, value, onChange, max }) {
-  const atCap = value.length >= max
-  return (
-    <div>
-      <div className="flex flex-wrap gap-1.5">
-        {options.map((opt) => {
-          const active = value.includes(opt)
-          return (
-            <Pill
-              key={opt}
-              label={opt}
-              active={active}
-              dimmed={atCap && !active}
-              onClick={() => {
-                if (active) onChange(value.filter((v) => v !== opt))
-                else if (!atCap) onChange([...value, opt])
-              }}
-            />
-          )
-        })}
-      </div>
-      {atCap && (
-        <p className="mt-1.5 text-xs text-gray-400">
-          {max} selected — deselect one to pick another
-        </p>
-      )}
     </div>
   )
 }
@@ -279,10 +200,9 @@ function Step1({ data, onChange, errors }) {
           Let&apos;s start with the basics
         </h2>
         <p className="text-sm text-gray-500">
-          Context that shapes the whole analysis — takes under a minute.
+          Takes under a minute — we research the rest automatically.
         </p>
       </div>
-
       <TextInput
         id="companyName"
         label="Company name"
@@ -292,19 +212,15 @@ function Step1({ data, onChange, errors }) {
         autoComplete="organization"
         error={errors.companyName}
       />
-
-      <div className="space-y-2">
-        <label className="text-[12.5px] font-semibold text-gray-800">
-          Industry
-        </label>
-        <PillGroup
-          options={INDUSTRY_OPTS}
-          value={data.industry}
-          onChange={(v) => onChange('industry', v)}
-          error={errors.industry}
-        />
-      </div>
-
+      <TextInput
+        id="website"
+        label="Company website"
+        value={data.website}
+        onChange={(v) => onChange('website', v)}
+        placeholder="e.g. acmecorp.com"
+        optional
+        autoComplete="url"
+      />
       <TextInput
         id="whatYouDo"
         label="What does your company sell or deliver?"
@@ -313,37 +229,24 @@ function Step1({ data, onChange, errors }) {
         placeholder="e.g. B2B management consulting for operations and strategy"
         optional
       />
-
-      <div className="grid grid-cols-2 gap-4">
-        <div className="space-y-2">
-          <label className="text-[12.5px] font-semibold text-gray-800">
-            How many people work here?
-          </label>
-          <PillGroup
-            options={EMPLOYEE_OPTS}
-            value={data.employees}
-            onChange={(v) => onChange('employees', v)}
-            error={errors.employees}
-          />
-        </div>
-        <div className="space-y-2">
-          <label className="text-[12.5px] font-semibold text-gray-800">
-            Approximate annual revenue
-          </label>
-          <PillGroup
-            options={REVENUE_OPTS}
-            value={data.revenue}
-            onChange={(v) => onChange('revenue', v)}
-            error={errors.revenue}
-          />
-        </div>
-      </div>
-
       <div className="space-y-2">
         <label className="text-[12.5px] font-semibold text-gray-800">
-          Country / Region{' '}
+          Industry{' '}
           <span className="font-normal text-gray-400">
-            — optional, sets rate benchmarks
+            — helps us benchmark faster
+          </span>
+        </label>
+        <PillGroup
+          options={INDUSTRY_OPTS}
+          value={data.industry}
+          onChange={(v) => onChange('industry', v)}
+        />
+      </div>
+      <div className="space-y-2">
+        <label className="text-[12.5px] font-semibold text-gray-800">
+          Country{' '}
+          <span className="font-normal text-gray-400">
+            — anchors regional salary benchmarks
           </span>
         </label>
         <PillGroup
@@ -352,19 +255,30 @@ function Step1({ data, onChange, errors }) {
           onChange={(v) => onChange('country', v)}
         />
       </div>
-
       <div className="space-y-2">
         <label className="text-[12.5px] font-semibold text-gray-800">
-          Top priorities right now{' '}
+          Team size{' '}
           <span className="font-normal text-gray-400">
-            — optional, pick up to 3
+            — drives realistic workflow volumes
           </span>
         </label>
-        <MultiPillGroup
-          options={PRIORITY_OPTS}
-          value={data.priorities}
-          onChange={(v) => onChange('priorities', v)}
-          max={3}
+        <PillGroup
+          options={TEAM_SIZE_OPTS}
+          value={data.teamSize}
+          onChange={(v) => onChange('teamSize', v)}
+        />
+      </div>
+      <div className="space-y-2">
+        <label className="text-[12.5px] font-semibold text-gray-800">
+          Estimated annual revenue{' '}
+          <span className="font-normal text-gray-400">
+            — sets the 5–20% Total Financial Gain band
+          </span>
+        </label>
+        <PillGroup
+          options={REVENUE_OPTS}
+          value={data.revenueRange}
+          onChange={(v) => onChange('revenueRange', v)}
         />
       </div>
     </div>
@@ -373,258 +287,26 @@ function Step1({ data, onChange, errors }) {
 
 // ── Step 2 ────────────────────────────────────────────────────────────────────
 
-function Step2({
-  procs,
-  procInput,
-  onInputChange,
-  onAdd,
-  onRemove,
-  onSugClick,
-  suggestions,
-  sugIndex,
-  onKeyDown,
-  error,
-}) {
+function Step2({ data, onChange, errors, isDev }) {
   return (
     <div className="space-y-5">
       <div>
         <p className="text-[11px] font-semibold uppercase tracking-wider text-gray-400 mb-1">
-          Your operations
-        </p>
-        <h2 className="text-xl font-bold text-gray-900 mb-1">
-          What work eats the most time?
-        </h2>
-        <p className="text-sm text-gray-500">
-          Name every task your team does repeatedly that feels slow or manual.
-          Add one at a time.
-        </p>
-      </div>
-
-      <div className="flex gap-2">
-        <div className="flex-1 relative">
-          <input
-            type="text"
-            value={procInput}
-            onChange={(e) => onInputChange(e.target.value)}
-            onKeyDown={onKeyDown}
-            onBlur={() => setTimeout(() => onInputChange(''), 150)}
-            placeholder="e.g. Writing proposals, updating the CRM…"
-            autoComplete="off"
-            className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm text-gray-900 placeholder-gray-400 outline-none hover:border-gray-300 focus:border-gray-500 transition-colors"
-          />
-          {suggestions.length > 0 && (
-            <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-lg shadow-lg z-50 max-h-56 overflow-y-auto">
-              {suggestions.map((s, i) => (
-                <button
-                  key={s.name}
-                  type="button"
-                  onMouseDown={(e) => {
-                    e.preventDefault()
-                    onSugClick(s)
-                  }}
-                  className={clsx(
-                    'w-full flex items-center gap-2.5 px-3 py-2.5 text-left text-sm transition-colors',
-                    i === sugIndex ? 'bg-gray-50' : 'hover:bg-gray-50',
-                  )}
-                >
-                  <span className="text-base w-5 text-center flex-shrink-0">
-                    {s.icon}
-                  </span>
-                  <span className="flex-1 text-gray-800">{s.name}</span>
-                  <span className="text-[11px] text-gray-400 flex-shrink-0">
-                    {s.dept || 'custom'}
-                  </span>
-                </button>
-              ))}
-            </div>
-          )}
-        </div>
-        <button
-          type="button"
-          onClick={onAdd}
-          disabled={procInput.trim().length < 2}
-          className="flex-shrink-0 px-4 py-2.5 bg-gray-900 text-white text-sm font-semibold rounded-lg disabled:opacity-35 disabled:cursor-not-allowed hover:bg-gray-700 transition-colors"
-        >
-          Add
-        </button>
-      </div>
-
-      {procs.length === 0 ? (
-        <p className="text-sm text-center text-gray-400 py-6 leading-relaxed">
-          Start typing a process name above, or pick from the suggestions.
-          <br />
-          Add at least one — the more you add, the better the report.
-        </p>
-      ) : (
-        <div className="flex flex-col gap-2">
-          {procs.map((p, i) => (
-            <div
-              key={p.name}
-              className="flex items-center gap-2.5 border border-gray-200 rounded-lg px-3 py-2.5"
-            >
-              <span className="w-5 h-5 rounded-full bg-gray-100 text-[11px] font-semibold text-gray-500 flex items-center justify-center flex-shrink-0">
-                {i + 1}
-              </span>
-              <span className="text-base flex-shrink-0">{p.icon}</span>
-              <span className="flex-1 text-sm font-medium text-gray-800">
-                {p.name}
-              </span>
-              <span className="text-[11px] font-medium text-gray-500 bg-gray-100 rounded px-2 py-0.5 flex-shrink-0">
-                {p.dept}
-              </span>
-              <button
-                type="button"
-                onClick={() => onRemove(i)}
-                className="flex-shrink-0 w-5 h-5 rounded-full flex items-center justify-center text-gray-400 hover:bg-red-50 hover:text-red-500 transition-colors"
-              >
-                <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
-                  <path
-                    d="M1 1l8 8M9 1L1 9"
-                    stroke="currentColor"
-                    strokeWidth="1.5"
-                    strokeLinecap="round"
-                  />
-                </svg>
-              </button>
-            </div>
-          ))}
-        </div>
-      )}
-      {error && <p className="text-xs text-red-500">{error}</p>}
-    </div>
-  )
-}
-
-// ── Step 3 ────────────────────────────────────────────────────────────────────
-
-function ScalePills({ options, value, onChange }) {
-  return (
-    <div className="flex flex-wrap gap-1.5">
-      {options.map((opt) => {
-        const v = opt.value !== undefined ? opt.value : opt
-        const label = opt.label !== undefined ? opt.label : opt
-        return (
-          <button
-            key={v}
-            type="button"
-            onClick={() => onChange(v)}
-            className={clsx(
-              'px-3 py-1.5 rounded-full border text-xs font-medium transition-all cursor-pointer',
-              value === v
-                ? 'bg-gray-900 border-gray-900 text-white'
-                : 'border-gray-200 text-gray-500 hover:border-gray-400 hover:text-gray-900',
-            )}
-          >
-            {label}
-          </button>
-        )
-      })}
-      <button
-        type="button"
-        onClick={() => onChange('')}
-        className={clsx(
-          'px-3 py-1.5 rounded-full border text-xs font-medium transition-all cursor-pointer',
-          value === ''
-            ? 'bg-gray-900 border-gray-900 text-white'
-            : 'border-gray-200 text-gray-500 hover:border-gray-400 hover:text-gray-900',
-        )}
-      >
-        Not sure
-      </button>
-    </div>
-  )
-}
-
-function Step3({ procs, onUpdate }) {
-  return (
-    <div className="space-y-5">
-      <div>
-        <p className="text-[11px] font-semibold uppercase tracking-wider text-gray-400 mb-1">
-          Scale & effort
-        </p>
-        <h2 className="text-xl font-bold text-gray-900 mb-1">
-          Give us a sense of the workload
-        </h2>
-        <p className="text-sm text-gray-500">
-          For each process: how often it happens and how long one takes. Order
-          of magnitude is fine.
-        </p>
-      </div>
-      <div className="space-y-6">
-        {procs.map((p, i) => (
-          <div
-            key={p.name}
-            className={clsx(
-              'pb-6',
-              i < procs.length - 1 && 'border-b border-gray-100',
-            )}
-          >
-            <div className="flex items-center gap-2 mb-4">
-              <span>{p.icon}</span>
-              <span className="text-sm font-semibold text-gray-800">
-                {p.name}
-              </span>
-              <span className="text-[11px] font-medium text-gray-400 bg-gray-100 rounded px-2 py-0.5">
-                {p.dept}
-              </span>
-            </div>
-            <div className="space-y-3">
-              <div>
-                <p className="text-xs font-medium text-gray-500 mb-2">
-                  How often does this happen?
-                </p>
-                <ScalePills
-                  options={VOLS}
-                  value={p.volume}
-                  onChange={(v) => onUpdate(i, 'volume', v)}
-                />
-              </div>
-              <div>
-                <p className="text-xs font-medium text-gray-500 mb-2">
-                  How long does one take today?
-                </p>
-                <ScalePills
-                  options={TIMES}
-                  value={p.timePerItem}
-                  onChange={(v) => onUpdate(i, 'timePerItem', v)}
-                />
-              </div>
-              <div>
-                <p className="text-xs font-medium text-gray-500 mb-2">
-                  Who mainly does this?{' '}
-                  <span className="text-gray-400">(optional)</span>
-                </p>
-                <ScalePills
-                  options={ROLES}
-                  value={p.ownerRole}
-                  onChange={(v) => onUpdate(i, 'ownerRole', v)}
-                />
-              </div>
-            </div>
-          </div>
-        ))}
-      </div>
-    </div>
-  )
-}
-
-// ── Step 4 ────────────────────────────────────────────────────────────────────
-
-function Step4({ data, onChange, errors }) {
-  return (
-    <div className="space-y-5">
-      <div>
-        <p className="text-[11px] font-semibold uppercase tracking-wider text-gray-400 mb-1">
-          Almost done
+          Delivery
         </p>
         <h2 className="text-xl font-bold text-gray-900 mb-1">
           Where should we send your report?
         </h2>
         <p className="text-sm text-gray-500">
-          Your personalised AI ROI analysis will be ready in a few minutes.
+          Your report is generated and emailed — usually ready in 60 seconds.
         </p>
+        {isDev && (
+          <p className="text-xs text-amber-600 mt-2">
+            Dev mode is on: the form is prefilled, email/PDF are skipped, and
+            you can use a fast mock preview.
+          </p>
+        )}
       </div>
-
       <TextInput
         id="email"
         label="Work email"
@@ -640,360 +322,505 @@ function Step4({ data, onChange, errors }) {
         label="Your name"
         value={data.recipientName}
         onChange={(v) => onChange('recipientName', v)}
-        placeholder="e.g. Sarah Al-Mansoori"
-        autoComplete="name"
+        placeholder="e.g. Sarah Al-Rashid"
         optional
+        autoComplete="name"
       />
       <TextInput
         id="recipientTitle"
         label="Your title"
         value={data.recipientTitle}
         onChange={(v) => onChange('recipientTitle', v)}
-        placeholder="e.g. COO"
-        autoComplete="organization-title"
+        placeholder="e.g. COO, Head of Operations"
         optional
       />
-
-      <div className="flex flex-col gap-1">
-        <label
-          htmlFor="currency"
-          className="text-[12.5px] font-semibold text-gray-800"
-        >
-          Currency for the report
+      <div className="space-y-2">
+        <label className="text-[12.5px] font-semibold text-gray-800">
+          Operating currency <span className="text-red-500">*</span>
         </label>
-        <select
-          id="currency"
+        <PillGroup
+          options={CURRENCIES}
           value={data.currency}
-          onChange={(e) => onChange('currency', e.target.value)}
-          className={clsx(
-            'w-full border rounded-lg px-3 py-2.5 text-sm text-gray-900 outline-none transition-colors appearance-none bg-white',
-            errors.currency
-              ? 'border-red-400 bg-red-50'
-              : 'border-gray-200 hover:border-gray-300 focus:border-gray-500',
-          )}
-        >
-          <option value="">Select your currency…</option>
-          {CURRENCIES.map((c) => (
-            <option key={c} value={c}>
-              {c}
-            </option>
-          ))}
-        </select>
-        {errors.currency && (
-          <p className="text-xs text-red-500 mt-1">{errors.currency}</p>
-        )}
+          onChange={(v) => onChange('currency', v)}
+          error={errors.currency}
+        />
       </div>
-
-      <TextInput
-        id="website"
-        label="Website"
-        value={data.website}
-        onChange={(v) => onChange('website', v)}
-        placeholder="yourcompany.com"
-        optional
-      />
     </div>
   )
 }
 
 // ── Generating & Success views ────────────────────────────────────────────────
 
-function GeneratingView({ currentStage }) {
+function ErrorView({ message, onRetry, onUseEstimates }) {
+  const isResearchFailure =
+    message?.includes('Stages done: none') ||
+    message?.includes('no assembled report') ||
+    message?.includes("couldn't research") ||
+    message?.includes('retrieve specific web pages')
   return (
-    <div className="text-center py-16">
+    <div className="text-center py-10 px-8">
       <div
-        className="text-5xl mb-8 inline-block"
+        className="w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-5 border"
+        style={{ background: '#fff7ed', borderColor: '#fed7aa' }}
+      >
+        <span style={{ fontSize: 22 }}>⚠</span>
+      </div>
+      <h2 className="text-xl font-bold text-gray-900 mb-2">
+        {isResearchFailure
+          ? "Couldn't gather company data online"
+          : 'Generation incomplete'}
+      </h2>
+      {isResearchFailure ? (
+        <>
+          <p className="text-sm text-gray-500 mb-6 max-w-sm mx-auto leading-relaxed">
+            The agent had trouble finding public data for this company. You can
+            retry with web search, or generate a report instantly using your
+            questionnaire inputs and industry benchmarks.
+          </p>
+          <div className="flex flex-col gap-3 max-w-xs mx-auto">
+            <button
+              type="button"
+              onClick={onUseEstimates}
+              className="w-full px-5 py-2.5 bg-gray-900 text-white text-sm font-semibold rounded-lg hover:bg-gray-700 transition-colors"
+            >
+              Use industry benchmarks (instant) →
+            </button>
+            <button
+              type="button"
+              onClick={onRetry}
+              className="w-full px-5 py-2.5 text-gray-700 text-sm font-medium rounded-lg border border-gray-200 hover:border-gray-400 transition-colors"
+            >
+              Retry with web search
+            </button>
+          </div>
+        </>
+      ) : (
+        <>
+          <p className="text-sm text-gray-500 mb-6 max-w-sm mx-auto">
+            {message || 'Something went wrong. Please try again.'}
+          </p>
+          <div className="flex flex-col gap-3 max-w-xs mx-auto">
+            <button
+              type="button"
+              onClick={onRetry}
+              className="w-full px-5 py-2.5 bg-gray-900 text-white text-sm font-semibold rounded-lg hover:bg-gray-700 transition-colors"
+            >
+              Try again
+            </button>
+            <button
+              type="button"
+              onClick={onUseEstimates}
+              className="w-full px-5 py-2.5 text-gray-700 text-sm font-medium rounded-lg border border-gray-200 hover:border-gray-400 transition-colors"
+            >
+              Use industry benchmarks instead
+            </button>
+          </div>
+        </>
+      )}
+    </div>
+  )
+}
+
+function GeneratingView({ generationLog }) {
+  return (
+    <div className="text-center py-12 px-8">
+      <div
+        className="text-5xl mb-6 inline-block"
         style={{ animation: 'spin 1.2s linear infinite' }}
       >
         ⟳
       </div>
       <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
       <h2 className="text-xl font-bold text-gray-900 mb-2">
-        {STAGE_LABELS[currentStage] || 'Preparing your report…'}
+        Building your ROI report…
       </h2>
-      <p className="text-sm text-gray-500">
-        This takes about 30–60 seconds. Please don&apos;t close this tab.
+      <p className="text-sm text-gray-500 mb-6">
+        Our AI is researching your company and modelling your automation
+        potential. This takes about 45–90 seconds.
       </p>
+      <div className="font-mono text-xs text-gray-600 bg-gray-50 rounded-lg p-4 h-32 overflow-y-auto text-left whitespace-pre-wrap border border-gray-100">
+        {generationLog || 'Starting…'}
+      </div>
     </div>
   )
 }
 
-function SuccessView({ email }) {
+function SuccessView({ email, reportId, isEmployee }) {
+  const [messages, setMessages] = useState([])
+  const [inputValue, setInputValue] = useState('')
+  const [isSending, setIsSending] = useState(false)
+  const [limitReached, setLimitReached] = useState(false)
+  const bottomRef = useRef(null)
+
+  const userSentCount = messages.filter((m) => m.role === 'user').length
+
+  // Load existing conversation from DB when reportId is set
+  useEffect(() => {
+    if (!reportId) return
+    fetch(`/api/chat?reportId=${reportId}`)
+      .then((r) => r.json())
+      .then((data) => {
+        if (Array.isArray(data.messages) && data.messages.length > 0) {
+          setMessages(data.messages)
+        }
+      })
+      .catch(() => {})
+  }, [reportId])
+
+  useEffect(() => {
+    bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
+  }, [messages, isSending])
+
+  const sendMessage = async () => {
+    const trimmed = inputValue.trim()
+    if (!trimmed || isSending || limitReached || !reportId) return
+
+    const updated = [...messages, { role: 'user', content: trimmed }]
+    setMessages(updated)
+    setInputValue('')
+    setIsSending(true)
+
+    try {
+      const res = await fetch('/api/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ reportId, message: trimmed }),
+      })
+
+      if (res.status === 403) {
+        setLimitReached(true)
+        return
+      }
+      if (res.status === 429) {
+        // Remove the optimistic user message we added
+        setMessages((prev) => prev.slice(0, -1))
+        setInputValue(trimmed)
+        return
+      }
+
+      const data = await res.json()
+      setMessages((prev) => [
+        ...prev,
+        { role: 'assistant', content: data.reply },
+      ])
+    } catch {
+      setMessages((prev) => [
+        ...prev,
+        {
+          role: 'assistant',
+          content: 'Something went wrong. Please try again.',
+        },
+      ])
+    } finally {
+      setIsSending(false)
+    }
+  }
+
   return (
-    <div className="text-center py-14">
-      <div className="mx-auto w-14 h-14 bg-green-50 rounded-full flex items-center justify-center mb-6 border border-green-100">
-        <FaCheckCircle className="text-3xl text-green-500" />
+    <div className="p-8">
+      {/* ── Success header ── */}
+      <div className="text-center pb-8 border-b border-gray-100">
+        <div className="mx-auto w-14 h-14 bg-green-50 rounded-full flex items-center justify-center mb-6 border border-green-100">
+          <FaCheckCircle className="text-3xl text-green-500" />
+        </div>
+        <h2 className="text-2xl font-bold text-gray-900 mb-3">
+          Report on its way
+        </h2>
+        <p className="text-gray-600 mb-4 max-w-sm mx-auto text-sm leading-relaxed">
+          Your personalised AI ROI analysis has been generated and is being
+          emailed to:
+        </p>
+        <div className="inline-block text-sm font-semibold bg-gray-100 rounded-lg px-4 py-2 mb-6">
+          {email}
+        </div>
+        <p className="text-gray-500 text-sm mb-6 max-w-sm mx-auto">
+          Want to walk through the findings with our team? Book a free 30-min
+          call.
+        </p>
+        <a
+          href="https://calendly.com/elena-lyrise/30min"
+          className="inline-flex items-center gap-2 px-5 py-2.5 bg-gray-900 text-white text-sm font-semibold rounded-lg hover:bg-gray-700 transition-colors"
+        >
+          Book a 30-min call →
+        </a>
       </div>
-      <h2 className="text-2xl font-bold text-gray-900 mb-3">
-        Report on its way
-      </h2>
-      <p className="text-gray-600 mb-4 max-w-sm mx-auto text-sm leading-relaxed">
-        Your personalised AI ROI analysis has been generated and is being
-        emailed to:
-      </p>
-      <div className="inline-block text-sm font-semibold bg-gray-100 rounded-lg px-4 py-2 mb-6">
-        {email}
+
+      {/* ── Chat ── */}
+      <div className="pt-6">
+        <div className="flex items-center justify-between mb-3">
+          <h3 className="font-semibold text-gray-900 text-sm">
+            Ask about your report
+          </h3>
+          {!isEmployee && (
+            <span
+              className={`text-xs font-mono ${
+                limitReached ? 'text-amber-500 font-semibold' : 'text-gray-400'
+              }`}
+            >
+              {Math.min(userSentCount, 5)} / 5 messages used
+            </span>
+          )}
+        </div>
+
+        {/* Message history */}
+        {messages.length > 0 && (
+          <div className="max-h-72 overflow-y-auto mb-4 space-y-3 pr-1">
+            {messages.map((msg, i) => (
+              <div
+                key={i}
+                className={`flex ${
+                  msg.role === 'user' ? 'justify-end' : 'justify-start'
+                }`}
+              >
+                <div
+                  className={`max-w-[82%] rounded-2xl px-4 py-2.5 text-sm leading-relaxed ${
+                    msg.role === 'user'
+                      ? 'bg-[#2957FF] text-white'
+                      : 'bg-gray-100 text-gray-800'
+                  }`}
+                >
+                  {msg.content}
+                </div>
+              </div>
+            ))}
+            {isSending && (
+              <div className="flex justify-start">
+                <div className="bg-gray-100 rounded-2xl px-4 py-3">
+                  <div className="flex gap-1 items-center">
+                    {[0, 150, 300].map((delay) => (
+                      <span
+                        key={delay}
+                        className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce"
+                        style={{ animationDelay: `${delay}ms` }}
+                      />
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
+            <div ref={bottomRef} />
+          </div>
+        )}
+
+        {/* Limit reached banner */}
+        {limitReached ? (
+          <div className="bg-amber-50 border border-amber-200 rounded-xl p-5 text-center">
+            <p className="text-xs font-mono font-semibold text-amber-500 mb-2">
+              5 / 5 messages used
+            </p>
+            <p className="text-sm font-semibold text-amber-800 mb-1">
+              You&apos;ve used your 5 free messages.
+            </p>
+            <p className="text-xs text-amber-600 mb-4">
+              Want unlimited edits? Contact LyRise to refine your ROI strategy.
+            </p>
+            <a
+              href="https://calendly.com/elena-lyrise/30min"
+              className="inline-flex items-center gap-2 px-4 py-2 bg-amber-600 text-white text-xs font-semibold rounded-lg hover:bg-amber-700 transition-colors"
+            >
+              Contact Sales →
+            </a>
+          </div>
+        ) : (
+          <div className="flex gap-2">
+            <input
+              type="text"
+              value={inputValue}
+              onChange={(e) => setInputValue(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                  e.preventDefault()
+                  sendMessage()
+                }
+              }}
+              disabled={isSending}
+              placeholder="Ask a question about your ROI report…"
+              className="flex-1 text-sm border border-gray-200 rounded-xl px-3.5 py-2.5 outline-none focus:border-[#2957FF] transition-colors bg-white"
+            />
+            <button
+              type="button"
+              onClick={sendMessage}
+              disabled={!inputValue.trim() || isSending}
+              className="px-4 py-2.5 bg-[#2957FF] text-white text-sm font-semibold rounded-xl hover:bg-blue-700 transition-colors disabled:opacity-50"
+            >
+              Send
+            </button>
+          </div>
+        )}
       </div>
-      <p className="text-gray-500 text-sm mb-6 max-w-sm mx-auto">
-        Want to walk through the findings with our team? Book a free 30-min
-        call.
-      </p>
-      <a
-        href="https://calendly.com/elena-lyrise/30min"
-        className="inline-flex items-center gap-2 px-5 py-2.5 bg-gray-900 text-white text-sm font-semibold rounded-lg hover:bg-gray-700 transition-colors"
-      >
-        Book a 30-min call →
-      </a>
     </div>
   )
 }
 
 // ── Main ──────────────────────────────────────────────────────────────────────
 
-export default function ROIReport() {
+export async function getServerSideProps({ req, res }) {
+  const { createClient, createAdminClient } = await import(
+    '../src/lib/supabase-server'
+  )
+  const supabase = createClient(req, res)
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+
+  if (!user) {
+    return { redirect: { destination: '/login', permanent: false } }
+  }
+
+  const admin = createAdminClient()
+  const { data: userData } = await admin
+    .from('users')
+    .select('role')
+    .eq('id', user.id)
+    .single()
+
+  const isEmployee =
+    userData?.role === 'EMPLOYEE' || user.email?.endsWith('@lyrise.ai')
+
+  return { props: { isEmployee } }
+}
+
+export default function ROIReport({ isEmployee }) {
   const [step, setStep] = useState(1)
   const [viewState, setViewState] = useState('form')
-  const [currentStage, setCurrentStage] = useState(null)
+  const [generationLog, setGenerationLog] = useState('')
+  const [reportState, setReportState] = useState(null)
   const [errorMessage, setErrorMessage] = useState('')
+  const [reportId, setReportId] = useState(null)
+  const [initialMessagesUsed, setInitialMessagesUsed] = useState(0)
 
-  // Step 1
-  const [s1, setS1] = useState({
-    companyName: '',
-    industry: '',
-    whatYouDo: '',
-    employees: '',
-    revenue: '',
-    country: '',
-    priorities: [],
-  })
-
-  // Step 2
-  const [procs, setProcs] = useState([])
-  const [procInput, setProcInput] = useState('')
-  const [sugIndex, setSugIndex] = useState(-1)
-
-  // Step 4
-  const [s4, setS4] = useState({
-    email: '',
-    recipientName: '',
-    recipientTitle: '',
-    currency: '',
-    website: '',
-  })
-
+  const [s1, setS1] = useState(
+    IS_DEV
+      ? DEV_STEP1_PRESET
+      : {
+          companyName: '',
+          website: '',
+          whatYouDo: '',
+          industry: '',
+          country: '',
+          teamSize: '',
+          revenueRange: '',
+        },
+  )
+  const [s2, setS2] = useState(
+    IS_DEV
+      ? DEV_STEP2_PRESET
+      : { email: '', recipientName: '', recipientTitle: '', currency: '' },
+  )
   const [errors, setErrors] = useState({})
-
-  // Derived suggestions
-  const suggestions =
-    procInput.trim().length >= 1
-      ? (() => {
-          const low = procInput.toLowerCase()
-          const existing = new Set(procs.map((p) => p.name))
-          const hits = SUGGESTIONS.filter(
-            (s) => !existing.has(s.name) && s.name.toLowerCase().includes(low),
-          )
-          const isNew = !SUGGESTIONS.some((s) => s.name.toLowerCase() === low)
-          if (isNew && procInput.trim().length >= 2) {
-            return [
-              ...hits.slice(0, 6),
-              {
-                icon: '✏️',
-                name: `Add "${procInput.trim()}"`,
-                custom: procInput.trim(),
-                dept: '',
-              },
-            ]
-          }
-          return hits.slice(0, 6)
-        })()
-      : []
 
   const changeS1 = useCallback((key, val) => {
     setS1((prev) => ({ ...prev, [key]: val }))
     setErrors((prev) => ({ ...prev, [key]: '' }))
   }, [])
 
-  const changeS4 = useCallback((key, val) => {
-    setS4((prev) => ({ ...prev, [key]: val }))
+  const changeS2 = useCallback((key, val) => {
+    setS2((prev) => ({ ...prev, [key]: val }))
     setErrors((prev) => ({ ...prev, [key]: '' }))
   }, [])
 
-  const addProc = useCallback((proc) => {
-    setProcs((prev) => {
-      if (prev.find((p) => p.name === proc.name)) return prev
-      return [
-        ...prev,
-        {
-          ...proc,
-          volume: '',
-          timePerItem: '',
-          ownerRole: deptToRole(proc.dept),
-        },
-      ]
-    })
-    setProcInput('')
-    setSugIndex(-1)
-    setErrors((prev) => ({ ...prev, procs: '' }))
-  }, [])
+  const runGeneration = useCallback(
+    async ({ skipLLM = false, estimatesOnly = false } = {}) => {
+      setViewState('generating')
+      setGenerationLog('')
+      setReportState(null)
+      setErrorMessage('')
 
-  const addFromInput = useCallback(() => {
-    const val = procInput.trim()
-    if (val.length < 2) return
-    const match = SUGGESTIONS.find(
-      (s) => s.name.toLowerCase() === val.toLowerCase(),
-    )
-    if (match) addProc(match)
-    else addProc({ name: val, dept: inferDept(val), icon: '🔧' })
-  }, [procInput, addProc])
-
-  const removeProc = useCallback((i) => {
-    setProcs((prev) => prev.filter((_, idx) => idx !== i))
-  }, [])
-
-  const updateProc = useCallback((i, field, val) => {
-    setProcs((prev) =>
-      prev.map((p, idx) => (idx === i ? { ...p, [field]: val } : p)),
-    )
-  }, [])
-
-  const handleSugClick = useCallback(
-    (s) => {
-      if (s.custom)
-        addProc({ name: s.custom, dept: inferDept(s.custom), icon: '🔧' })
-      else addProc(s)
-    },
-    [addProc],
-  )
-
-  const handleSugKey = useCallback(
-    (e) => {
-      if (e.key === 'ArrowDown') {
-        e.preventDefault()
-        setSugIndex((prev) => Math.min(prev + 1, suggestions.length - 1))
-      } else if (e.key === 'ArrowUp') {
-        e.preventDefault()
-        setSugIndex((prev) => Math.max(prev - 1, 0))
-      } else if (e.key === 'Enter') {
-        e.preventDefault()
-        if (sugIndex >= 0 && suggestions[sugIndex]) {
-          handleSugClick(suggestions[sugIndex])
-        } else {
-          addFromInput()
-        }
-      } else if (e.key === 'Escape') {
-        setProcInput('')
-        setSugIndex(-1)
+      const payload = {
+        'Company Name': s1.companyName.trim(),
+        'Company Website URL': s1.website.trim(),
+        'What does your company do?': s1.whatYouDo.trim(),
+        Industry: s1.industry || '',
+        Country: s1.country === 'Other' ? '' : s1.country || '',
+        'Number of Employees': s1.teamSize || '',
+        'Estimated Annual Revenue':
+          s1.revenueRange === 'Prefer not to say' ? '' : s1.revenueRange || '',
+        'Operating Currency': s2.currency ? s2.currency.split(' – ')[0] : '',
+        Email: s2.email.trim(),
+        'Recipient Name': s2.recipientName.trim(),
+        'Recipient Title': s2.recipientTitle.trim(),
+        'Key Priorities': [],
+        processes: [],
       }
-    },
-    [suggestions, sugIndex, handleSugClick, addFromInput],
-  )
 
-  const handleInputChange = useCallback((val) => {
-    setProcInput(val)
-    setSugIndex(-1)
-  }, [])
-
-  const validate = useCallback(
-    (s) => {
-      const errs = {}
-      if (s === 1) {
-        if (!s1.companyName.trim()) errs.companyName = 'Required'
-        if (!s1.industry) errs.industry = 'Please select your industry'
-        if (!s1.employees) errs.employees = 'Required'
-        if (!s1.revenue) errs.revenue = 'Required'
-      }
-      if (s === 2) {
-        if (!procs.length) errs.procs = 'Add at least one process to continue'
-      }
-      if (s === 4) {
-        const em = s4.email.trim()
-        if (!em || !em.includes('@') || em.indexOf('.', em.indexOf('@')) < 0) {
-          errs.email = 'Please enter a valid email address'
-        }
-        if (!s4.currency) errs.currency = 'Required'
-      }
-      setErrors(errs)
-      return Object.keys(errs).length === 0
-    },
-    [s1, procs, s4],
-  )
-
-  const next = useCallback(async () => {
-    if (!validate(step)) return
-    if (step < TOTAL_STEPS) {
-      setStep((prev) => prev + 1)
-      return
-    }
-
-    setViewState('generating')
-    setCurrentStage(null)
-
-    const processRegistry = procs.map((p) => ({
-      name: p.name,
-      department: p.dept,
-      icon: p.icon,
-      volume_per_month: p.volume || null,
-      time_per_item: p.timePerItem || null,
-      owner_role: p.ownerRole || null,
-      systems_used: [],
-      decision_points: [],
-      handoffs: [],
-      steps: [],
-    }))
-
-    const rawSite = s4.website.trim()
-    const website = rawSite
-      ? rawSite.startsWith('http')
-        ? rawSite
-        : `https://${rawSite}`
-      : ''
-
-    const payload = {
-      'Company Name': s1.companyName,
-      'Company Website URL': website,
-      'What does your company do?': s1.whatYouDo,
-      'Number of Employees': s1.employees,
-      'Estimated Annual Revenue': s1.revenue,
-      Email: s4.email,
-      'Recipient Name': s4.recipientName,
-      'Recipient Title': s4.recipientTitle,
-      'Operating Currency': s4.currency,
-      Industry: s1.industry,
-      Country: s1.country,
-      'Key Priorities': s1.priorities,
-      processes: processRegistry,
-      'Biggest time drain on your team': procs[0]?.name || '',
-      'Monthly volume of this process (approx.)':
-        procs[0]?.volume || 'Not sure',
-      'Primary process time per item': procs[0]?.timePerItem || '',
-      'Any other bottlenecks to mention? (optional)': procs
-        .slice(1)
-        .map((p) => {
-          let txt = p.name
-          if (p.volume) txt += ` (~${p.volume})`
-          if (p.timePerItem) txt += ` (~${p.timePerItem})`
-          return txt
+      try {
+        const response = await fetch('/api/roi-agent', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            mode: 'generate',
+            formData: payload,
+            devOptions: { skipLLM, estimatesOnly },
+          }),
         })
-        .join('; '),
-    }
 
-    try {
-      const response = await fetch('/api/roi-report', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-      })
+        if (response.status === 401) {
+          window.location.href = '/login'
+          return
+        }
 
-      await drainSSE(response.body.getReader(), new TextDecoder(), (event) => {
-        if (event.type === 'progress') setCurrentStage(event.stage)
-        else if (event.type === 'done') setViewState('success')
-        else if (event.type === 'error') throw new Error(event.message)
-      })
-    } catch (err) {
-      setErrorMessage(err.message || 'Something went wrong. Please try again.')
-      setViewState('error')
-    }
-  }, [step, validate, s1, s4, procs])
+        if (response.status === 409) {
+          const data = await response.json()
+          if (data.report_id) {
+            window.location.href = `/report/${data.report_id}`
+          }
+          return
+        }
+
+        let latestState = null
+        await drainSSE(
+          response.body.getReader(),
+          new TextDecoder(),
+          (event) => {
+            if (event.type === 'text_delta') {
+              setGenerationLog((prev) => (prev + event.delta).slice(-2000))
+            } else if (event.type === 'tool_start') {
+              setGenerationLog((prev) => `${prev}\n[${event.tool}]`)
+            } else if (event.type === 'report_update') {
+              latestState = event.state
+              setReportState(event.state)
+            } else if (event.type === 'report_saved') {
+              setReportId(event.report_id)
+            } else if (event.type === 'done') {
+              if (
+                (event.assembled || latestState?.assembled) &&
+                latestState?.renderedHtml
+              ) {
+                setViewState('preview')
+              } else {
+                setErrorMessage(
+                  'Report generation finished without a complete report.',
+                )
+                setViewState('error')
+              }
+            } else if (event.type === 'error') {
+              throw new Error(event.message)
+            }
+          },
+        )
+      } catch (err) {
+        setErrorMessage(
+          err.message || 'Something went wrong. Please try again.',
+        )
+        setViewState('error')
+      }
+    },
+    [s1, s2],
+  )
+
+  const next = useCallback(
+    async ({ skipLLM = false } = {}) => {
+      const currentErrors = validateStep(step, s1, s2)
+      setErrors(currentErrors)
+      if (Object.keys(currentErrors).length) return
+      if (step < TOTAL_STEPS) {
+        setStep((prev) => prev + 1)
+        return
+      }
+      await runGeneration({ skipLLM })
+    },
+    [step, s1, s2, runGeneration],
+  )
 
   const back = useCallback(() => {
     setStep((prev) => Math.max(prev - 1, 1))
@@ -1001,16 +828,40 @@ export default function ROIReport() {
   }, [])
 
   // Non-form views
+  if (viewState === 'loading') {
+    return (
+      <div className="rebranding-landing-page -mt-[12px]">
+        <MainHeader />
+        <div className="min-h-screen flex items-center justify-center">
+          <div className="w-8 h-8 border-4 border-gray-200 border-t-gray-900 rounded-full animate-spin" />
+        </div>
+      </div>
+    )
+  }
+
   if (viewState === 'generating') {
     return (
       <div className="rebranding-landing-page -mt-[12px]">
         <MainHeader />
         <div className="min-h-screen flex items-center justify-center p-4">
           <div className="w-full max-w-xl bg-white rounded-2xl shadow-xl border border-gray-100">
-            <GeneratingView currentStage={currentStage} />
+            <GeneratingView generationLog={generationLog} />
           </div>
         </div>
       </div>
+    )
+  }
+
+  if (viewState === 'preview' && reportState) {
+    return (
+      <ReportViewer
+        initialState={reportState}
+        email={s2.email}
+        reportId={reportId}
+        isEmployee={isEmployee}
+        initialMessagesUsed={initialMessagesUsed}
+        backHref={isEmployee ? '/dashboard' : undefined}
+      />
     )
   }
 
@@ -1020,7 +871,11 @@ export default function ROIReport() {
         <MainHeader />
         <div className="min-h-screen flex flex-col items-center justify-center p-4">
           <div className="w-full max-w-xl bg-white rounded-2xl shadow-xl border border-gray-100">
-            <SuccessView email={s4.email} />
+            <SuccessView
+              email={s2.email}
+              reportId={reportId}
+              isEmployee={isEmployee}
+            />
           </div>
           <div className="md:w-1/2 w-full mt-12">
             <LogosMarquee />
@@ -1036,21 +891,12 @@ export default function ROIReport() {
       <div className="rebranding-landing-page -mt-[12px]">
         <MainHeader />
         <div className="min-h-screen flex items-center justify-center p-4">
-          <div className="w-full max-w-xl bg-white rounded-2xl shadow-xl border border-gray-100 p-10 text-center">
-            <h2 className="text-xl font-bold text-gray-900 mb-2">
-              Something went wrong
-            </h2>
-            <p className="text-sm text-gray-500 mb-6">{errorMessage}</p>
-            <button
-              type="button"
-              onClick={() => {
-                setViewState('form')
-                setStep(1)
-              }}
-              className="px-5 py-2.5 bg-gray-900 text-white text-sm font-semibold rounded-lg hover:bg-gray-700 transition-colors"
-            >
-              Try again
-            </button>
+          <div className="w-full max-w-xl bg-white rounded-2xl shadow-xl border border-gray-100">
+            <ErrorView
+              message={errorMessage}
+              onRetry={() => runGeneration()}
+              onUseEstimates={() => runGeneration({ estimatesOnly: true })}
+            />
           </div>
         </div>
       </div>
@@ -1114,21 +960,11 @@ export default function ROIReport() {
                   )}
                   {step === 2 && (
                     <Step2
-                      procs={procs}
-                      procInput={procInput}
-                      onInputChange={handleInputChange}
-                      onAdd={addFromInput}
-                      onRemove={removeProc}
-                      onSugClick={handleSugClick}
-                      suggestions={suggestions}
-                      sugIndex={sugIndex}
-                      onKeyDown={handleSugKey}
-                      error={errors.procs}
+                      data={s2}
+                      onChange={changeS2}
+                      errors={errors}
+                      isDev={IS_DEV}
                     />
-                  )}
-                  {step === 3 && <Step3 procs={procs} onUpdate={updateProc} />}
-                  {step === 4 && (
-                    <Step4 data={s4} onChange={changeS4} errors={errors} />
                   )}
                 </motion.div>
               </AnimatePresence>
@@ -1148,7 +984,7 @@ export default function ROIReport() {
               </button>
 
               <div className="flex gap-1.5 items-center">
-                {[1, 2, 3, 4].map((s) => (
+                {[1, 2].map((s) => (
                   <div
                     key={s}
                     className={clsx(
@@ -1159,13 +995,24 @@ export default function ROIReport() {
                 ))}
               </div>
 
-              <button
-                type="button"
-                onClick={next}
-                className="text-sm font-semibold text-white bg-gray-900 rounded-lg px-5 py-2 hover:bg-gray-700 transition-colors shadow-sm"
-              >
-                {step === TOTAL_STEPS ? 'Generate my report →' : 'Continue →'}
-              </button>
+              <div className="flex items-center gap-2">
+                {IS_DEV && step === TOTAL_STEPS && (
+                  <button
+                    type="button"
+                    onClick={() => next({ skipLLM: true })}
+                    className="text-sm font-semibold text-gray-700 bg-gray-100 rounded-lg px-5 py-2 hover:bg-gray-200 transition-colors"
+                  >
+                    Fast mock preview
+                  </button>
+                )}
+                <button
+                  type="button"
+                  onClick={() => next()}
+                  className="text-sm font-semibold text-white bg-gray-900 rounded-lg px-5 py-2 hover:bg-gray-700 transition-colors shadow-sm"
+                >
+                  {step === TOTAL_STEPS ? 'Generate my report →' : 'Continue →'}
+                </button>
+              </div>
             </div>
           </motion.div>
         </div>

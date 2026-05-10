@@ -122,6 +122,12 @@ module.exports = {
     'jsx-a11y/click-events-have-key-events': 'off',
     'jsx-a11y/no-static-element-interactions': 'off',
     'import/order': 'off',
+    'import/no-extraneous-dependencies': [
+      'error',
+      {
+        packageDir: [__dirname],
+      },
+    ],
     'no-unused-vars': 'off',
     'no-shadow': 'off',
     'import/no-absolute-path': 'off',

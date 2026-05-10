@@ -1,0 +1,33 @@
+{
+  "id": "sample-redacted",
+  "title": "Redacted legal ops company reference case",
+  "companyName": "Northstar Legal Ops",
+  "recipientNames": ["Maya Chen"],
+  "requiredSections": [
+    "Executive Summary",
+    "Company Snapshot",
+    "Before AI vs. After AI",
+    "Profit Uplift",
+    "Risks & Mitigations",
+    "Next Steps"
+  ],
+  "positiveAnchors": [
+    "Dubai",
+    "managed legal services",
+    "cross-border matters",
+    "Salesforce",
+    "intake backlog",
+    "compliance reviews"
+  ],
+  "workflowAnchors": [
+    "Contract intake triage",
+    "Matter status reporting",
+    "Client onboarding packs",
+    "Compliance review summaries"
+  ],
+  "riskAnchors": ["privilege", "jurisdictional", "hallucination"],
+  "notes": [
+    "Synthetic scaffold case used to bootstrap the eval harness.",
+    "Replace or expand with real redacted gold reports."
+  ]
+}

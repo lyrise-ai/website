@@ -12,7 +12,7 @@ export interface PdfResult {
 
 export async function generatePdf(
   html: string,
-  filename = 'ROI_Report.pdf'
+  filename = 'ROI_Report.pdf',
 ): Promise<PdfResult> {
   const puppeteer = await import('puppeteer-core')
 
@@ -28,16 +28,16 @@ export async function generatePdf(
     // Local development — use the system Chrome / Chromium
     const localPaths = [
       '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome', // macOS
-      '/usr/bin/google-chrome',                                         // Linux
-      '/usr/bin/chromium-browser',                                      // Linux alt
-      'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe',    // Windows
+      '/usr/bin/google-chrome', // Linux
+      '/usr/bin/chromium-browser', // Linux alt
+      'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe', // Windows
     ]
     const fs = await import('fs')
-    const found = localPaths.find(p => fs.existsSync(p))
+    const found = localPaths.find((p) => fs.existsSync(p))
     if (!found) {
       throw new Error(
         'PDF generation: no Chrome/Chromium found locally. ' +
-        'Install Google Chrome or set VERCEL=1 to use the bundled binary.'
+          'Install Google Chrome or set VERCEL=1 to use the bundled binary.',
       )
     }
     executablePath = found
@@ -55,6 +55,11 @@ export async function generatePdf(
 
     // Load the HTML directly — base64 encode to avoid any URL length limits
     await page.setContent(html, { waitUntil: 'networkidle0' })
+
+    // Ensure web fonts (Inter via Google Fonts) are fully loaded before
+    // rendering, so the PDF matches the browser preview byte-for-byte
+    // instead of falling back to a generic sans-serif mid-render.
+    await page.evaluate(() => document.fonts.ready)
 
     const pdfBuffer = await page.pdf({
       format: 'A4',

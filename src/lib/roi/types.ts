@@ -24,11 +24,11 @@ export interface QuestionnairePayload {
   'Number of Employees': string
   'Estimated Annual Revenue': string
   'Operating Currency': string
-  'Email': string
+  Email: string
   'Recipient Name'?: string
   'Recipient Title'?: string
-  'Industry': string
-  'Country': string
+  Industry: string
+  Country: string
   'Key Priorities': string[]
   processes: ProcessInput[]
   // Legacy flat fields (backward compat)
@@ -61,7 +61,15 @@ export interface NormalizedInput {
   workContext: string
 }
 
-// ── Research Agent output ────────────────────────────────────────────────────
+// ── Currency ─────────────────────────────────────────────────────────────────
+
+export interface Currency {
+  code: string
+  symbol: string
+  name: string
+}
+
+// ── Single source of truth: company profile ──────────────────────────────────
 
 export interface CompanyProfile {
   company: string
@@ -70,95 +78,74 @@ export interface CompanyProfile {
   primaryFocus: string | null
   keyPriorities: string[]
   employees: number | null
-  revenueEstimateM: number | null
+  revenueEstimateM: number | null // estimated annual revenue in millions
 }
 
-export interface PainPoint {
-  title: string
-  description: string
-  confidence: 'high' | 'medium' | 'low'
-  source: 'user_stated' | 'inferred' | 'research_derived'
-}
+// ── Single source of truth: per-workflow inputs ──────────────────────────────
+// Identity fields come from research; numeric fields are set by the modeler
+// and are directly editable via update_workflow in chat mode.
 
-export interface WorkflowPlan {
+export interface WorkflowInput {
+  // Identity (from research phase)
   name: string
+  agentName: string
   function: string
   owner: string
   whyItMatters: string
-  agentName: string
   expectedOutcome: string
   sourceType: 'user_stated' | 'inferred' | 'research_derived'
-  // Research-derived volume estimates (new — not in n8n version)
-  monthlyVolume?: number
-  minutesPerItemBefore?: number
-  minutesPerItemAfter?: number
-  volumeRationale?: string
-}
 
-export interface ResearchAgentOutput {
-  company_profile: CompanyProfile
-  pain_points: PainPoint[]
-  workflows: WorkflowPlan[]
-  researchSummary?: string  // What was found during research
-}
-
-// ── ROI Modeler output ───────────────────────────────────────────────────────
-
-export interface Currency {
-  code: string
-  symbol: string
-  name: string
-}
-
-export interface WorkflowAssumption {
-  workflowName: string
+  // Numeric inputs (set by modeler, editable in chat)
   monthlyVolume: number
   minutesPerItemBefore: number
   minutesPerItemAfter: number
-  exceptionRate: number
+  adoptionRate: number // 0–1
+  exceptionRate: number // 0–1
   exceptionMinutes: number
-  adoption_low: number
-  adoption_base: number
-  adoption_high: number
+  rateOverride: number | null // per-workflow hourly rate; null = use GlobalInputs.laborRate
+  // Seniority tier of the role performing this workflow — drives the regional
+  // rate-floor band enforced by roiCalculator (Rule 6A).
+  seniorityLevel: 'junior' | 'mid' | 'senior' | null
+  // Provenance of the rate (Rule 6A) — surfaced in the report's Data Provenance
+  // table. "benchmark_fallback" means no salary evidence was found and the
+  // regional floor was applied. A real domain like "Glassdoor" / "Bayt.com"
+  // means the rate was derived from a salary_evidence entry.
+  rateSource: string | null
+  rateSourceUrl: string | null
   rationale: string
 }
 
-export interface RoiModelerOutput {
-  currency: Currency
-  costs: {
-    implementationCost: number
-    monthlyToolingCost: number
-  }
-  labor: {
-    fullyLoadedHourlyCost: number
-    workWeeksPerYear: number
-  }
-  realizationFactor: number
-  profitMultiplier: number
-  workflowAssumptions: WorkflowAssumption[]
-  rollout: {
-    timeToDeployWeeks: number
-    rampUpWeeks: number
-  }
-  notes: {
-    assumptions: string[]
-  }
+// ── Salary evidence collected during research (per workflow) ─────────────────
+// One entry per workflow. Modeler reads this to set fullyLoadedHourlyCostOverride
+// from a real source instead of hallucinating from training data.
+export interface SalaryEvidence {
+  workflowName: string // join key — must match a WorkflowInput.name
+  roleQueried: string // e.g. "Senior sales executive in UAE"
+  sourceUrls: string[] // URLs where salary numbers were found
+  rawSnippets: string[] // verbatim snippets containing pay figures
+  parsedAnnualLow?: number | null // best-effort lower bound, in evidenceCurrency
+  parsedAnnualHigh?: number | null // best-effort upper bound, in evidenceCurrency
+  evidenceCurrency?: string | null // ISO code of the parsed numbers (e.g. "USD", "AED")
 }
 
-// ── ROI Calculator output ────────────────────────────────────────────────────
+// ── Single source of truth: global financial inputs ──────────────────────────
 
-export interface WorkflowResult {
-  name: string
-  function: string
-  owner: string
-  agentName: string
-  whyItMatters: string
-  expectedOutcome: string
-  source: 'user_stated' | 'inferred' | 'research_derived'
-  volume: number
-  timeBefore: number
-  timeAfter: number
-  timeSaved: number
+export interface GlobalInputs {
+  laborRate: number // fully-loaded hourly cost (global fallback)
+  implementationCost: number
+  monthlyToolingCost: number
+  profitMultiplier: number
+  realizationFactor: number
+  workWeeksPerYear: number
+  currency: Currency
+}
+
+// ── ROI Calculator output — derived values only ──────────────────────────────
+
+export interface WorkflowCalc {
+  name: string // mirrors WorkflowInput.name for lookup
+  effectiveRate: number // rateOverride if set, else GlobalInputs.laborRate
+  timeSaved: number // minutesPerItemBefore - minutesPerItemAfter (minutes)
   savingsPct: number
   costPerRun: number
   monthlyCost: number
@@ -166,8 +153,15 @@ export interface WorkflowResult {
   monthlyValue: number
   annualHours: number
   annualValue: number
-  rate: number
-  rationale: string
+  // Back-derived volume that makes the simple formula reconcile:
+  //   effectiveMonthlyVolume × hrsSavedPerItem × effectiveRate ≈ monthlyValue
+  // Reflects adoption/realization damping AND any revenue-band scaling — so the
+  // renderer can show one self-consistent number on the page.
+  effectiveMonthlyVolume: number
+  // Per-workflow profit uplift = monthlyValue × (profitMultiplier - 1).
+  // Used to render deterministic per-lever arithmetic in the Profit Uplift table
+  // instead of trusting the modeler's authored rationale strings.
+  monthlyProfitUplift: number
 }
 
 export interface RoiSummary {
@@ -186,24 +180,6 @@ export interface RoiSummary {
   paybackMonths: number | null
 }
 
-export interface RoiData {
-  company: string
-  industry: string
-  country: string | null
-  primaryFocus: string | null
-  keyPriorities: string[]
-  employees: number | null
-  revenue: number | null
-  currency: Currency
-  workflows: WorkflowResult[]
-  totalMonthlyHours: number
-  totalAnnualHours: number
-  profitMultiplier: number
-  realizationFactor: number
-  workWeeksPerYear: number
-  summary: RoiSummary
-}
-
 export interface Figures {
   totalMonthlyHours: string
   totalAnnualHours: string
@@ -216,25 +192,97 @@ export interface Figures {
 }
 
 export interface RoiCalculatorOutput {
-  roi_data: RoiData
+  workflows: WorkflowCalc[]
+  totalMonthlyHours: number
+  totalAnnualHours: number
+  summary: RoiSummary
   figures: Figures
-  analystData: ResearchAgentOutput
-  modelerNotes: string[]
 }
 
-// ── Report Writer output ─────────────────────────────────────────────────────
+// ── Report copy (formerly ReportWriterOutput) ─────────────────────────────────
+
+export interface CompanySnapshotItem {
+  text: string
+  sourceType: 'scraped' | 'benchmarked' | 'assumed'
+}
+
+export interface PainPoint {
+  title: string
+  description: string
+  confidence: 'high' | 'medium' | 'low'
+  source: 'user_stated' | 'inferred' | 'research_derived'
+}
+
+export interface ReportEvidenceItem {
+  kind:
+    | 'search_result'
+    | 'search_answer'
+    | 'page_content'
+    | 'research_summary'
+    | 'workflow_signal'
+    | 'company_fact'
+    | 'unknown'
+  url?: string | null
+  title?: string | null
+  query?: string | null
+  snippet?: string | null
+  content?: string | null
+  sourceType?: 'scraped' | 'benchmarked' | 'assumed' | null
+  confidence?: 'high' | 'medium' | 'low' | null
+  facts?: Record<string, unknown>
+  usedInSections?: string[]
+  createdAt?: string
+}
+
+export interface SpecificityAssessment {
+  score: number
+  level: 'strong' | 'moderate' | 'weak'
+  evidenceCount: number
+  researchDerivedWorkflowCount: number
+  inferredWorkflowCount: number
+  scrapedSnapshotCount: number
+  companySignalCount: number
+  warnings: string[]
+}
+
+export interface CostOfDelayData {
+  monthly_cost?: number // computed by calculator; LLM no longer outputs this
+  narrative: string
+}
+
+export interface ResilienceRow {
+  dimension: string
+  act_now: string
+  defer: string
+}
+
+export interface RiskRow {
+  risk: string
+  detail: string
+  mitigation: string
+}
 
 export interface ProfitLever {
   lever_name: string
   baseline_data: string
-  assumption: string
+  ai_agent_action: string
   rationale: string
-  profit: string  // raw integer as string, no symbols
+  // Authored by the LLM but overwritten in assembleReport with arithmetic
+  // derived from WorkflowCalc — so it always reconciles with the calculator
+  // PU total even when the writer model used stale rates.
+  rationale_with_arithmetic?: string
+  derived_from: string
 }
 
-export interface ReportWriterOutput {
+export interface ReportCopy {
   cta_paragraph: string
   profit_levers: ProfitLever[]
+  unified_pattern_thesis: string
+  company_snapshot: CompanySnapshotItem[]
+  cost_of_delay: CostOfDelayData
+  resilience_rows: ResilienceRow[]
+  pilot_recommendation: string
+  risks: RiskRow[]
 }
 
 // ── Assemble Report output (display object) ──────────────────────────────────
@@ -249,8 +297,8 @@ export interface DisplayObject {
   statOD: string
   statTF: string
   statFTE: string
+  statPU: string
   totalAnnualHours: string
-  totalMonthlyHours: string
   od12: string
   pu12: string
   tf12: string
@@ -262,30 +310,90 @@ export interface DisplayObject {
   od36: string
   pu36: string
   tf36: string
-  employeesDisplay: string
-  revenueDisplay: string
   recipientDisplay: string
   caseStudiesHTML: string
   scopeListHTML: string
-  asisTableBody: string
-  bvaTableBody: string
   profitLeversBody: string
-  deployTableBody: string
+  workflowMasterTableBody: string
   provenanceTableHTML: string
-  cta: string
+  revenueContextStatement: string
+  companySnapshotTableBody: string
+  confidenceBadge: string
+  unifiedPatternThesis: string
+  costOfDelayHTML: string
+  resilienceTableHTML: string
+  pilotRecommendation: string
+  risksTableBody: string
+  nextStepsHTML: string
+  odVsPuPanelHTML: string
+  calculationPanelHTML: string
+  roadmapTableBody: string
+  blufParagraph: string
+  bvaTableBodyCompact: string
+  profitUpliftLogicBody: string
+}
+
+// roi_data is a thin display-info object for template placeholders
+export interface RoiDisplayData {
+  company: string
+  industry: string | null
+  country: string | null
+  employees: number | null
+  revenue: number | null // millions
+  currency: Currency
+  summary: RoiSummary
+  totalMonthlyHours: number
+  totalAnnualHours: number
 }
 
 export interface AssembleReportOutput {
-  roi_data: RoiData
-  copy: ReportWriterOutput
+  roi_data: RoiDisplayData
+  copy: ReportCopy
   display: DisplayObject
   current_date: string
   recipient_email: string
 }
 
+// ── Unified Agent state ───────────────────────────────────────────────────────
+
+export interface ReportState {
+  normInput: NormalizedInput | null
+
+  // Single sources of truth — everything editable by tools
+  company: CompanyProfile | null
+  globals: GlobalInputs | null
+  workflows: WorkflowInput[] | null
+  copy: ReportCopy | null
+
+  // Derived — recomputed by reAssemble() on every mutation
+  calcOutput: RoiCalculatorOutput | null
+  assembled: AssembleReportOutput | null
+  renderedHtml: string | null
+  renderedFullHtml: string | null
+
+  // Metadata
+  confidenceLevel: 'high' | 'low' | null
+  coreThesis: string | null
+  painPoints?: PainPoint[]
+  researchSummary?: string | null
+  evidenceItems?: ReportEvidenceItem[]
+  specificityAssessment?: SpecificityAssessment | null
+  salaryEvidence?: SalaryEvidence[]
+}
+
+export interface AgentCallbacks {
+  onTextDelta(delta: string): void
+  onToolStart(toolName: string): void
+  onReportUpdate(state: ReportState, changedSections?: string[]): void
+  onDone(newMessages: import('ai').ModelMessage[]): void
+  onError(err: Error): void
+}
+
 // ── SSE event types ──────────────────────────────────────────────────────────
 
-export type PipelineEvent =
-  | { type: 'progress'; step: string; message: string }
-  | { type: 'complete'; reportHtml: string; company: string; email: string }
+export type AgentEvent =
+  | { type: 'text_delta'; delta: string }
+  | { type: 'tool_start'; tool: string }
+  | { type: 'report_update'; state: ReportState }
+  | { type: 'done'; messages?: import('ai').ModelMessage[] }
   | { type: 'error'; message: string }

@@ -16,6 +16,9 @@ import { createOpenAI } from '@ai-sdk/openai'
 const openai = createOpenAI({ apiKey: process.env.OPENAI_API_KEY })
 
 // Used for: Research Agent (tool use + synthesis) and Report Writer (prose)
+// gpt-4o: calls web_search / fetch_page more aggressively than o4-mini — keeps
+// rate/salary evidence flowing into the modeler so per-workflow rates are
+// scraped rather than falling back to benchmark ranges.
 export const researchModel = openai('gpt-4o')
 
 // Used for: ROI Modeler (structured JSON, no complex reasoning needed)

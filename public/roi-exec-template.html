@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Carlito:wght@400;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      /* ── Reset ── */
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+      }
+      @page {
+        size: A4;
+        margin: 0;
+      }
+      body {
+        font-family: Calibri, 'Carlito', 'Segoe UI', 'Helvetica Neue', Arial,
+          sans-serif;
+        font-size: 9.5pt;
+        line-height: 1.4;
+        color: #1a1a1a;
+      }
+
+      /* ── Page layout ── */
+      .page {
+        width: 100%;
+        max-width: 794px;
+        margin: 0 auto;
+        padding: 10mm 15mm 18mm;
+        page-break-after: always;
+        background: #fff;
+        min-height: 297mm;
+        display: flex;
+        flex-direction: column;
+      }
+      .page.last {
+        page-break-after: auto;
+      }
+      .page-footer,
+      .footer {
+        margin-top: auto;
+      }
+      @media screen {
+        body {
+          background: #f1f5f9;
+        }
+        .page {
+          margin: 12px auto;
+          box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+        }
+      }
+
+      /* ── Header / Footer ── */
+      .page-header {
+        display: flex;
+        justify-content: space-between;
+        font-size: 8pt;
+        color: #5a5a6e;
+        border-bottom: 1px solid #d0d0d0;
+        padding-bottom: 2mm;
+        margin-bottom: 4mm;
+      }
+      .page-footer {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: 8pt;
+        color: #5a5a6e;
+        border-top: 1px solid #d0d0d0;
+        padding-top: 2mm;
+      }
+      .page-footer a {
+        color: #003f87;
+        text-decoration: none;
+        font-weight: bold;
+      }
+      .footer {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: 7.5pt;
+        color: #94a3b8;
+        border-top: 1px solid #e2e8f0;
+        padding-top: 6px;
+      }
+      .footer a {
+        color: #003f87;
+        text-decoration: none;
+        font-weight: bold;
+      }
+
+      /* ── Cover ── */
+      .cover-panel {
+        background: #0a1628;
+        padding: 12mm 12mm 10mm;
+        margin-bottom: 5mm;
+      }
+      .cover-eyebrow {
+        font-size: 8pt;
+        font-weight: bold;
+        color: #4a90d9;
+        letter-spacing: 1.5px;
+        text-transform: uppercase;
+        margin-bottom: 4mm;
+      }
+      .cover-rule {
+        border: none;
+        border-top: 1px solid #2a4a6a;
+        margin: 3mm 0;
+      }
+      .cover-headline {
+        font-size: 22pt;
+        font-weight: bold;
+        color: #fff;
+        line-height: 1.15;
+        margin: 3mm 0;
+      }
+      .cover-meta {
+        display: flex;
+        gap: 12mm;
+        margin-top: 1mm;
+        flex-wrap: wrap;
+      }
+      .cover-meta-item {
+      }
+      .cover-meta-label {
+        font-size: 8pt;
+        font-weight: bold;
+        color: #4a90d9;
+        letter-spacing: 1px;
+        text-transform: uppercase;
+        margin-bottom: 1mm;
+      }
+      .cover-meta-value {
+        font-size: 11pt;
+        font-weight: bold;
+        color: #fff;
+      }
+      .cover-meta-value.muted {
+        color: #b0c0d0;
+        font-weight: normal;
+        font-size: 10pt;
+      }
+
+      /* ── KPI stat cards (matches Full Report cover) ── */
+      .stat-table {
+        width: 100%;
+        margin-bottom: 3mm;
+        border-collapse: separate;
+        border-spacing: 5px;
+      }
+      .stat-table td {
+        background: #fff;
+        border: none;
+        border-top: 3px solid #003f87;
+        padding: 9px 11px;
+        width: 25%;
+        vertical-align: top;
+      }
+      .stat-label {
+        font-size: 8pt;
+        text-transform: uppercase;
+        letter-spacing: 0.8px;
+        color: #94a3b8;
+        font-weight: bold;
+        margin-bottom: 3px;
+        display: block;
+      }
+      .stat-value {
+        font-size: 19pt;
+        font-weight: bold;
+        color: #1a1a1a;
+        line-height: 1.1;
+        display: block;
+      }
+      .stat-sub {
+        font-size: 8.5pt;
+        color: #5a5a6e;
+        margin-top: 2px;
+        display: block;
+      }
+      .accent {
+        color: #003f87;
+        font-weight: bold;
+      }
+
+      /* ── Panels ── */
+      .insight-panel {
+        display: flex;
+        margin: 1.5mm 0 2mm;
+        background: #f5f5f5;
+        page-break-inside: avoid;
+        break-inside: avoid;
+      }
+      .stripe {
+        width: 4px;
+        background: #003f87;
+        flex-shrink: 0;
+      }
+      .panel-content {
+        padding: 2.5mm 3mm;
+        font-size: 9pt;
+        color: #1a1a1a;
+        flex: 1;
+      }
+      .panel-label {
+        font-weight: bold;
+        color: #003f87;
+      }
+
+      /* ── Section headings ── */
+      h2 {
+        font-size: 10pt;
+        font-weight: bold;
+        color: #003f87;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        border-bottom: 2.5px solid #003f87;
+        padding-bottom: 0.8mm;
+        margin: 3.5mm 0 1.5mm;
+        page-break-after: avoid;
+        break-after: avoid;
+      }
+      p {
+        margin-bottom: 1.5mm;
+      }
+
+      /* ── Data tables ── */
+      .data-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-bottom: 2mm;
+        font-size: 9pt;
+      }
+      .data-table thead tr {
+        background: #2d2d2d;
+        color: #fff;
+      }
+      .data-table th {
+        padding: 1.6mm 2.5mm;
+        font-weight: bold;
+        text-align: left;
+        font-size: 8.5pt;
+      }
+      .data-table td {
+        padding: 1.2mm 2.5mm;
+        border-bottom: 1px solid #d0d0d0;
+        vertical-align: top;
+      }
+      .data-table tr:nth-child(even) td {
+        background: #ebf0f8;
+      }
+      .total-row td {
+        background: #2d2d2d !important;
+        color: #fff !important;
+        font-weight: bold;
+      }
+
+      /* ── Chat section highlight ── */
+      [data-section].section-highlighted {
+        outline: 2px solid #2957ff;
+        outline-offset: 3px;
+        border-radius: 2px;
+        background-color: rgba(41, 87, 255, 0.06);
+      }
+    </style>
+  </head>
+  <body>
+    <!-- ═══════════════════════════════════════════ PAGE 1 — COVER ═══════════════════════════════════════════ -->
+    <div class="page">
+      <div class="page-header">
+        <span
+          >{{$json.roi_data.company}} | AI Profit &amp; Productivity
+          Report</span
+        >
+        <span>LyRise AI | Confidential | {{$json.current_date}}</span>
+      </div>
+
+      <div class="cover-panel">
+        <div class="cover-eyebrow">Confidential — Prepared by LyRise AI</div>
+        <hr class="cover-rule" />
+        <div class="cover-headline">{{$json.display.coverHeadline}}</div>
+        <hr class="cover-rule" />
+        <div class="cover-meta">
+          <div class="cover-meta-item">
+            <div class="cover-meta-label">Prepared For</div>
+            <div class="cover-meta-value">
+              {{$json.display.recipientDisplay}}
+            </div>
+          </div>
+          <div class="cover-meta-item">
+            <div class="cover-meta-label">Date &amp; Currency</div>
+            <div class="cover-meta-value muted">
+              {{$json.current_date}} | {{$json.display.currencyCode}}
+            </div>
+          </div>
+          <div class="cover-meta-item">
+            <div class="cover-meta-label">Confidence</div>
+            <div class="cover-meta-value muted">
+              {{$json.display.confidenceBadge}}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <table class="stat-table" data-section="financials">
+        <tr>
+          <td>
+            <span class="stat-label">Hours Returned / Year</span>
+            <span class="stat-value">{{$json.display.statHours}}</span>
+            <span class="stat-sub"
+              >{{$json.display.statHoursSub}} hrs/month ·
+              {{$json.display.statFTE}} FTE equiv.</span
+            >
+          </td>
+          <td>
+            <span class="stat-label">Operational Dividend (per year)</span>
+            <span class="stat-value">{{$json.display.statOD}}</span>
+            <span class="stat-sub">Labor value recaptured</span>
+          </td>
+          <td>
+            <span class="stat-label">Profit Uplift (per year)</span>
+            <span class="stat-value">{{$json.display.statPU}}</span>
+            <span class="stat-sub">Redirected capacity gains</span>
+          </td>
+          <td>
+            <span class="stat-label">Total Financial Gain (per year)</span>
+            <span class="stat-value accent">{{$json.display.statTF}}</span>
+            <span class="stat-sub">OD + Profit Uplift</span>
+          </td>
+        </tr>
+      </table>
+
+      <div class="insight-panel">
+        <div class="stripe"></div>
+        <div class="panel-content">
+          <span class="panel-label">{{$json.display.confidenceBadge}}</span> —
+          based on public intelligence and industry benchmarks.
+          {{$json.display.revenueContextStatement}} All figures require
+          stakeholder validation before decisions are made.
+        </div>
+      </div>
+
+      <!-- Case studies (same format as Full Report) -->
+      <h2>Results We've Delivered for Similar Companies</h2>
+      {{$json.display.caseStudiesHTML}}
+
+      <div class="page-footer">
+        <span>LyRise AI · AI Automation for Enterprise Growth</span>
+        <a href="https://lyrise.ai">lyrise.ai</a>
+      </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════ PAGE 2 — ANALYSIS ═══════════════════════════════════════════ -->
+    <div class="page">
+      <div class="page-header">
+        <span>{{$json.roi_data.company}} | Executive Summary</span>
+        <span>LyRise AI | Confidential | {{$json.current_date}}</span>
+      </div>
+
+      <p>{{$json.display.blufParagraph}}</p>
+
+      <div data-section="thesis">
+        <h2>The Pattern Underneath</h2>
+        <p>{{$json.display.unifiedPatternThesis}}</p>
+      </div>
+
+      <div data-section="workflows">
+        <h2>Where the Operational Dividend Comes From</h2>
+        <div class="insight-panel">
+          <div class="stripe"></div>
+          <div class="panel-content">
+            <span class="panel-label">What is Operational Dividend?</span>
+            The dollar value of hours recaptured each month when AI takes over
+            high-volume, rules-based work currently consuming your team. The
+            table below contrasts hours spent today vs. after AI, then prices
+            the freed time at fully-loaded labor rates. Total Operational
+            Dividend: <strong>{{$json.display.statOD}} / yr</strong>
+          </div>
+        </div>
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Workflow</th>
+              <th>Hrs/mo Now</th>
+              <th>Hrs/mo After AI</th>
+              <th>Hrs Saved/mo</th>
+              <th>Value/mo</th>
+              <th>AI Agent Deployed</th>
+            </tr>
+          </thead>
+          <tbody>
+            {{$json.display.bvaTableBodyCompact}}
+          </tbody>
+        </table>
+      </div>
+
+      <div data-section="profit_levers">
+        <h2>Where the Profit Uplift Comes From</h2>
+        <div class="insight-panel">
+          <div class="stripe"></div>
+          <div class="panel-content">
+            <span class="panel-label">What is Profit Uplift?</span>
+            Operational Dividend = the value of hours freed from manual work.
+            Profit Uplift = what those freed hours produce when redirected to
+            higher-value activity. These are sequential effects of the same
+            improvement — not the same hours counted twice. Total Profit Uplift:
+            <strong>{{$json.display.statPU}} / yr</strong>
+          </div>
+        </div>
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th style="width: 22%">Workflow</th>
+              <th style="width: 22%">Uplift Lever</th>
+              <th style="width: 56%">How It Works — Full Logic</th>
+            </tr>
+          </thead>
+          <tbody>
+            {{$json.display.profitUpliftLogicBody}}
+          </tbody>
+        </table>
+      </div>
+
+      <div class="page-footer">
+        <span
+          >LyRise AI | elena@lyrise.ai | calendly.com/elena-lyrise/30min
+          </span>
+        <span>2</span>
+      </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════ PAGE 3 — DELAY & CTA ═══════════════════════════════════════════ -->
+    <div class="page last">
+      <div class="page-header">
+        <span>{{$json.roi_data.company}} | Executive Summary</span>
+        <span>LyRise AI | Confidential | {{$json.current_date}}</span>
+      </div>
+
+      <div data-section="cost_of_delay">
+        <h2>Cost of Delay</h2>
+        {{$json.display.costOfDelayHTML}}
+      </div>
+
+      <div data-section="cta">
+        <h2>What Happens Next</h2>
+        {{$json.display.nextStepsHTML}}
+      </div>
+
+      <div class="page-footer">
+        <span
+          >LyRise AI | elena@lyrise.ai | calendly.com/elena-lyrise/30min
+          </span>
+        <span>3</span>
+      </div>
+    </div>
+  </body>
+</html>

@@ -1,9 +1,10 @@
 // ─────────────────────────────────────────────────────────────────────────────
 // webSearch — searches the web for company intelligence
 //
-// Primary:  Tavily API (TAVILY_API_KEY env var) — best quality
-// Fallback: Jina AI Search (s.jina.ai) — free, no API key required
-//           Same provider already used by fetchPage (r.jina.ai)
+// Priority (use whichever API key is set):
+//   1. Tavily    (TAVILY_API_KEY)    — best quality, 1 000 free/month
+//   2. Brave     (BRAVE_API_KEY)     — excellent quality, 2 000 free/month
+//   3. Jina      (no key needed)     — free, last resort
 // ─────────────────────────────────────────────────────────────────────────────
 
 export interface SearchResult {
@@ -17,7 +18,12 @@ export interface SearchResponse {
   results: SearchResult[]
 }
 
-async function tavilySearch(query: string, maxResults: number): Promise<SearchResponse> {
+// ── Tavily ────────────────────────────────────────────────────────────────────
+
+async function tavilySearch(
+  query: string,
+  maxResults: number,
+): Promise<SearchResponse> {
   try {
     const res = await fetch('https://api.tavily.com/search', {
       method: 'POST',
@@ -26,24 +32,91 @@ async function tavilySearch(query: string, maxResults: number): Promise<SearchRe
         api_key: process.env.TAVILY_API_KEY,
         query,
         search_depth: 'basic',
-        max_results: maxResults,
+        max_results: Math.min(maxResults, 5),
         include_answer: true,
         include_raw_content: false,
       }),
       signal: AbortSignal.timeout(15_000),
     })
-
     if (!res.ok) {
+      // Sanity log: surface non-2xx responses (rate-limit, auth, etc.) so we can
+      // tell empty-result runs apart from upstream API failures.
+      let bodyPreview = ''
+      try {
+        bodyPreview = (await res.text()).slice(0, 300)
+      } catch {
+        // ignore
+      }
+      console.warn(
+        `[ROI:webSearch:tavily] HTTP ${res.status} for query="${query.slice(
+          0,
+          120,
+        )}" body=${bodyPreview}`,
+      )
       return { answer: null, results: [] }
     }
-
     const data = await res.json()
+    // Sanity log: dump Tavily's raw response shape so we can distinguish
+    // "Tavily returned []" from "downstream filtering dropped results".
+    console.log(
+      `[ROI:webSearch:tavily] query="${query.slice(0, 120)}" → raw_results=${
+        (data.results ?? []).length
+      } answer=${data.answer ? 'yes' : 'no'} firstUrl=${
+        data.results?.[0]?.url ?? 'none'
+      }`,
+    )
     return {
       answer: data.answer ?? null,
-      results: (data.results ?? []).slice(0, maxResults).map((r: SearchResult) => ({
-        title: r.title,
-        url: r.url,
-        content: r.content?.slice(0, 500) ?? '',
+      results: (data.results ?? [])
+        .slice(0, maxResults)
+        .map((r: { title?: string; url?: string; content?: string }) => ({
+          title: r.title ?? '',
+          url: r.url ?? '',
+          content: (r.content ?? '').slice(0, 600),
+        })),
+    }
+  } catch (err) {
+    console.warn(
+      `[ROI:webSearch:tavily] exception for query="${query.slice(0, 120)}": ${
+        (err as Error)?.message ?? err
+      }`,
+    )
+    return { answer: null, results: [] }
+  }
+}
+
+// ── Brave Search ──────────────────────────────────────────────────────────────
+
+async function braveSearch(
+  query: string,
+  maxResults: number,
+): Promise<SearchResponse> {
+  try {
+    const url = `https://api.search.brave.com/res/v1/web/search?q=${encodeURIComponent(
+      query,
+    )}&count=${Math.min(maxResults, 5)}`
+    const res = await fetch(url, {
+      headers: {
+        Accept: 'application/json',
+        'Accept-Encoding': 'gzip',
+        'X-Subscription-Token': process.env.BRAVE_API_KEY!,
+      },
+      signal: AbortSignal.timeout(15_000),
+    })
+    if (!res.ok) return { answer: null, results: [] }
+    const data = await res.json()
+    const items: Array<{
+      title?: string
+      url?: string
+      description?: string
+      extra_snippets?: string[]
+    }> = data.web?.results ?? []
+    return {
+      answer: (data.infobox?.description as string | undefined) ?? null,
+      results: items.slice(0, maxResults).map((r) => ({
+        title: r.title ?? '',
+        url: r.url ?? '',
+        content: (r.description ?? r.extra_snippets?.[0] ?? '').slice(0, 600),
       })),
     }
   } catch {
@@ -51,48 +124,56 @@ async function tavilySearch(query: string, maxResults: number): Promise<SearchRe
   }
 }
 
-async function jinaSearch(query: string, maxResults: number): Promise<SearchResponse> {
+// ── Jina Search (free, no key) ────────────────────────────────────────────────
+
+async function jinaSearch(
+  query: string,
+  maxResults: number,
+): Promise<SearchResponse> {
   try {
     const res = await fetch(`https://s.jina.ai/${encodeURIComponent(query)}`, {
       headers: { Accept: 'application/json' },
-      signal: AbortSignal.timeout(15_000),
+      signal: AbortSignal.timeout(20_000),
     })
-
-    if (!res.ok) {
-      return { answer: null, results: [] }
-    }
-
+    if (!res.ok) return { answer: null, results: [] }
     const data = await res.json()
-    const items: Array<{ title?: string; url?: string; description?: string; content?: string }> =
-      data.data ?? []
-
+    const items: Array<{
+      title?: string
+      url?: string
+      description?: string
+      content?: string
+    }> = data.data ?? []
     return {
       answer: null,
-      results: items.slice(0, maxResults).map(r => ({
+      results: items.slice(0, maxResults).map((r) => ({
         title: r.title ?? '',
         url: r.url ?? '',
-        content: (r.description ?? r.content ?? '').slice(0, 500),
+        content: (r.description ?? r.content ?? '').slice(0, 600),
       })),
     }
   } catch {
     // Return a graceful no-results so the agent can still run on questionnaire data alone
     return {
       answer: null,
-      results: [{
-        title: 'Search unavailable',
-        url: '',
-        content: 'Web search is currently unavailable. Use questionnaire data and industry benchmarks.',
-      }],
+      results: [
+        {
+          title: 'Search unavailable',
+          url: '',
+          content:
+            'Web search is currently unavailable. Proceed with questionnaire data and industry benchmarks.',
+        },
+      ],
     }
   }
 }
 
+// ── Main export ───────────────────────────────────────────────────────────────
+
 export async function webSearch(
   query: string,
-  maxResults = 5
+  maxResults = 3,
 ): Promise<SearchResponse> {
-  if (process.env.TAVILY_API_KEY) {
-    return tavilySearch(query, maxResults)
-  }
+  if (process.env.TAVILY_API_KEY) return tavilySearch(query, maxResults)
+  if (process.env.BRAVE_API_KEY) return braveSearch(query, maxResults)
   return jinaSearch(query, maxResults)
 }

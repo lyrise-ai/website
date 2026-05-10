@@ -1,0 +1,47 @@
+{
+  "version": 1,
+  "weights": {
+    "structure": 25,
+    "terminology": 10,
+    "specificity": 25,
+    "provenance": 15,
+    "workflowQuality": 15,
+    "risksAndNextSteps": 10
+  },
+  "requiredSectionHeadings": [
+    "Executive Summary",
+    "Disclaimer",
+    "Company Snapshot",
+    "As-Is Baseline",
+    "Before AI vs. After AI",
+    "Profit Uplift",
+    "Total Financial Case",
+    "Cost of Delay",
+    "Resilience Positioning",
+    "What We'd Deploy",
+    "Data Provenance",
+    "Risks & Mitigations",
+    "Roadmap",
+    "Next Steps"
+  ],
+  "forbiddenTerms": [
+    "cost savings",
+    "time saved",
+    "schedule a call to learn more"
+  ],
+  "discouragedTerms": [
+    "generic workflow",
+    "businesses like yours",
+    "across industries"
+  ],
+  "provenanceMarkers": [
+    "scraped",
+    "benchmarked",
+    "assumed",
+    "validated",
+    "needs validation",
+    "industry standard",
+    "source",
+    "status"
+  ]
+}

@@ -19,7 +19,8 @@ export default function HeroSection() {
           Unlock $300K-$1M Hidden in Your Legal &amp; Finance Operations
         </h1>
         <h3 className="pr-5 text-neutral-600 font-secondary text-lg md:text-xl lg:text-2xl lg:font-primary max-md:mb-2">
-          We map your processes in 14 days and deploy AI only when ROI ≥ $30K/month.
+          We map your processes in 14 days and deploy AI only when ROI ≥
+          $30K/month.
         </h3>
         <div className="flex gap-5 max-md:flex-col max-md:w-full">
           <Link href={LYRISEAI_PRODUCT_URL + 'signup'} legacyBehavior>
