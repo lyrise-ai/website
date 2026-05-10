@@ -185,11 +185,9 @@ function enforceRegionalRateFloors(
     }
     roiLog(
       'calc:floor',
-      `  ${wf.name} [${seniority}] band=${floor.toFixed(
-        0,
-      )}–${(ceiling * 1.5).toFixed(0)} ${ccy} | current=${current.toFixed(
-        0,
-      )} → ${action}`,
+      `  ${wf.name} [${seniority}] band=${floor.toFixed(0)}–${(
+        ceiling * 1.5
+      ).toFixed(0)} ${ccy} | current=${current.toFixed(0)} → ${action}`,
     )
     if (clamped === current) return wf
     return { ...wf, rateOverride: Math.round(clamped) }
@@ -297,11 +295,9 @@ export function roiCalculator(
     const ratioPct = ((rawTF / revenueU) * 100).toFixed(1)
     roiLog(
       'calc:revcap',
-      `revenue=${revenueM}M (${revenueU.toFixed(
+      `revenue=${revenueM}M (${revenueU.toFixed(0)}) | rawOD=${rawOD.toFixed(
         0,
-      )}) | rawOD=${rawOD.toFixed(0)} rawTF=${rawTF.toFixed(
-        0,
-      )} | TF/revenue=${ratioPct}% (band: 5–20%)`,
+      )} rawTF=${rawTF.toFixed(0)} | TF/revenue=${ratioPct}% (band: 5–20%)`,
     )
 
     const applyScale = (scale: number) => {
@@ -343,7 +339,9 @@ export function roiCalculator(
   } else {
     roiLog(
       'calc:revcap',
-      `no revenue anchor available (revenueM=${revenueM ?? 'null'}) — skipping 5–20% guardrail`,
+      `no revenue anchor available (revenueM=${
+        revenueM ?? 'null'
+      }) — skipping 5–20% guardrail`,
     )
   }
 
@@ -357,7 +355,8 @@ export function roiCalculator(
   const profitUpliftMultiplier = Math.max(0, globals.profitMultiplier - 1)
   workflowCalcs.forEach((w, idx) => {
     const wf = workflows[idx]
-    const hrsSavedPerItem = Math.max(0.01, wf.minutesPerItemBefore - wf.minutesPerItemAfter) / 60
+    const hrsSavedPerItem =
+      Math.max(0.01, wf.minutesPerItemBefore - wf.minutesPerItemAfter) / 60
     w.effectiveMonthlyVolume = Math.max(
       0,
       Math.round(w.monthlyHours / hrsSavedPerItem),

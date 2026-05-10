@@ -71,7 +71,9 @@ interface ModelerResult {
 // over the modeler's free-text rateSource — if the URL is real, derive the
 // label from it so the Provenance table never says "Bayt" for a glassdoor.com
 // link or "Glassdoor" for a generic linkedin.com link.
-function deriveRateSourceFromUrl(url: string | null | undefined): string | null {
+function deriveRateSourceFromUrl(
+  url: string | null | undefined,
+): string | null {
   if (!url) return null
   let host: string
   try {
@@ -438,10 +440,7 @@ function buildTools(
           painPointCount: input.pain_points.length,
           salaryEvidenceCount: input.salary_evidence?.length ?? 0,
         })
-        if (
-          !input.salary_evidence ||
-          input.salary_evidence.length === 0
-        ) {
+        if (!input.salary_evidence || input.salary_evidence.length === 0) {
           roiWarn(
             'tool:set_research',
             'no salary_evidence provided — modeler will fall back to regional benchmark table for ALL workflows',
@@ -450,9 +449,11 @@ function buildTools(
           input.salary_evidence.forEach((ev) => {
             roiLog(
               'tool:set_research',
-              `  evidence[${ev.workflowName}]: role="${ev.roleQueried}" urls=${ev.sourceUrls.length} parsed=${
-                ev.parsedAnnualLow ?? '?'
-              }–${ev.parsedAnnualHigh ?? '?'} ${ev.evidenceCurrency ?? ''}`,
+              `  evidence[${ev.workflowName}]: role="${ev.roleQueried}" urls=${
+                ev.sourceUrls.length
+              } parsed=${ev.parsedAnnualLow ?? '?'}–${
+                ev.parsedAnnualHigh ?? '?'
+              } ${ev.evidenceCurrency ?? ''}`,
             )
           })
         }
@@ -603,13 +604,26 @@ function buildTools(
         const revenueU = (state.company.revenueEstimateM ?? 0) * 1e6
         const tfgTargetRange =
           revenueU > 0 && state.confidenceLevel !== 'low'
-            ? { min: Math.round(revenueU * 0.05), max: Math.round(revenueU * 0.2) }
+            ? {
+                min: Math.round(revenueU * 0.05),
+                max: Math.round(revenueU * 0.2),
+              }
             : null
 
         // Currencies whose official symbols are non-Latin script — built once outside the loop
         const SCRIPT_SYMBOL_CODES = new Set([
-          'SAR', 'AED', 'QAR', 'KWD', 'BHD', 'OMR',
-          'EGP', 'JOD', 'IQD', 'LBP', 'IRR', 'YER',
+          'SAR',
+          'AED',
+          'QAR',
+          'KWD',
+          'BHD',
+          'OMR',
+          'EGP',
+          'JOD',
+          'IQD',
+          'LBP',
+          'IRR',
+          'YER',
         ])
 
         const modelerUserContent = JSON.stringify({
@@ -672,7 +686,9 @@ function buildTools(
             model: fastModel,
             schema: jsonSchema(ROI_MODELER_SCHEMA as object),
             system: ROI_MODELER_SYSTEM_PROMPT,
-            prompt: retryHint ? modelerUserContent + retryHint : modelerUserContent,
+            prompt: retryHint
+              ? modelerUserContent + retryHint
+              : modelerUserContent,
           })
           const callLabel = attempt > 0 ? `modeler_retry${attempt}` : 'modeler'
           tracker?.record({
@@ -694,7 +710,10 @@ function buildTools(
             laborRate: modelerOut.labor.fullyLoadedHourlyCost,
             implementationCost: modelerOut.costs.implementationCost,
             monthlyToolingCost: modelerOut.costs.monthlyToolingCost,
-            profitMultiplier: Math.max(1.8, Math.min(4.0, modelerOut.profitMultiplier)),
+            profitMultiplier: Math.max(
+              1.8,
+              Math.min(4.0, modelerOut.profitMultiplier),
+            ),
             realizationFactor: modelerOut.realizationFactor,
             workWeeksPerYear: modelerOut.labor.workWeeksPerYear,
             currency: {
@@ -730,12 +749,18 @@ function buildTools(
             const urlDerived = deriveRateSourceFromUrl(rateSourceUrl)
             const rateSource =
               urlDerived ??
-              (rawRateSource === 'benchmark_fallback' ? 'benchmark_fallback' : rawRateSource)
+              (rawRateSource === 'benchmark_fallback'
+                ? 'benchmark_fallback'
+                : rawRateSource)
             roiLog(
               'modeler',
-              `  ${wf.name}: rate=${assump.fullyLoadedHourlyCostOverride}/hr seniority=${seniority} source="${
+              `  ${wf.name}: rate=${
+                assump.fullyLoadedHourlyCostOverride
+              }/hr seniority=${seniority} source="${
                 rateSource ?? 'NULL'
-              }" url=${rateSourceUrl ? rateSourceUrl.slice(0, 60) + '…' : 'null'}`,
+              }" url=${
+                rateSourceUrl ? rateSourceUrl.slice(0, 60) + '…' : 'null'
+              }`,
             )
             if (rateSource === 'benchmark_fallback' || !rateSource) {
               roiWarn(
@@ -1402,7 +1427,9 @@ function buildTools(
           execTemplateHtml,
           fullTemplateHtml,
           callbacks,
-          shouldSyncWorkflowRates ? ['workflows', 'financials'] : ['financials'],
+          shouldSyncWorkflowRates
+            ? ['workflows', 'financials']
+            : ['financials'],
         )
         const s = state.calcOutput?.summary
         return {
@@ -1578,12 +1605,18 @@ function buildChatSystemPrompt(state: ReportState): string {
           }`
         : ''
       return `[${w.name}]
-  Displayed: ${hrsBefore}→${hrsAfter} hrs/mo | ${w.monthlyHours} hrs saved | ${sym}${w.monthlyValue}/mo recaptured | ${sym}${w.monthlyProfitUplift}/mo profit uplift
+  Displayed: ${hrsBefore}→${hrsAfter} hrs/mo | ${
+        w.monthlyHours
+      } hrs saved | ${sym}${w.monthlyValue}/mo recaptured | ${sym}${
+        w.monthlyProfitUplift
+      }/mo profit uplift
   Raw inputs (update_workflow): volume=${w.monthlyVolume}/mo | before=${
         w.minutesPerItemBefore
       }min | after=${w.minutesPerItemAfter}min | rate=${sym}${
         w.effectiveRate
-      }/hr [${w.seniorityLevel ?? 'mid'}]${flooredNote}${sourceNote} | adoption=${w.adoptionRate}`
+      }/hr [${
+        w.seniorityLevel ?? 'mid'
+      }]${flooredNote}${sourceNote} | adoption=${w.adoptionRate}`
     })
     .join('\n\n')
 
@@ -1596,13 +1629,14 @@ function buildChatSystemPrompt(state: ReportState): string {
     .map((l, i) => {
       const wf =
         merged.find(
-          (w) =>
-            w.name.toLowerCase() === (l.derived_from ?? '').toLowerCase(),
+          (w) => w.name.toLowerCase() === (l.derived_from ?? '').toLowerCase(),
         ) ?? merged[i]
       const rendered = wf
-        ? `${wf.monthlyHours} hrs/mo × ${sym}${wf.effectiveRate}/hr × ${redirectionPct.toFixed(
-            2,
-          )} redirected = ${sym}${wf.monthlyProfitUplift}/mo`
+        ? `${wf.monthlyHours} hrs/mo × ${sym}${
+            wf.effectiveRate
+          }/hr × ${redirectionPct.toFixed(2)} redirected = ${sym}${
+            wf.monthlyProfitUplift
+          }/mo`
         : '(no matching workflow)'
       return `  [${i + 1}] lever_name="${l.lever_name}" | derived_from="${
         l.derived_from
@@ -1619,7 +1653,9 @@ function buildChatSystemPrompt(state: ReportState): string {
   const riskLines = (copy.risks ?? [])
     .map(
       (r, i) =>
-        `  [${i + 1}] "${r.risk}"\n       Detail: ${r.detail}\n       Mitigation: ${r.mitigation}`,
+        `  [${i + 1}] "${r.risk}"\n       Detail: ${
+          r.detail
+        }\n       Mitigation: ${r.mitigation}`,
     )
     .join('\n')
 
@@ -1629,8 +1665,7 @@ function buildChatSystemPrompt(state: ReportState): string {
 
   const painPointLines = (state.painPoints ?? [])
     .map(
-      (p) =>
-        `  • ${p.title} (${p.confidence}, ${p.source}): ${p.description}`,
+      (p) => `  • ${p.title} (${p.confidence}, ${p.source}): ${p.description}`,
     )
     .join('\n')
 
@@ -1653,8 +1688,12 @@ INTENT INFERENCE — resolve the user's goal before acting:
 • Before re-searching for a rate or benchmark, check RESEARCH EVIDENCE — it may already be there
 
 ═══ COMPANY ════════════════════════════════════════════
-${company.company} | ${company.industry} | ${company.country ?? 'unknown'} | ${company.employees ?? '?'} employees
-Revenue: ${company.revenueEstimateM ? sym + company.revenueEstimateM + 'M' : 'unknown'} | Confidence: ${state.confidenceLevel ?? 'low'}
+${company.company} | ${company.industry} | ${company.country ?? 'unknown'} | ${
+    company.employees ?? '?'
+  } employees
+Revenue: ${
+    company.revenueEstimateM ? sym + company.revenueEstimateM + 'M' : 'unknown'
+  } | Confidence: ${state.confidenceLevel ?? 'low'}
 Thesis: ${state.coreThesis ?? ''}
 Research summary: ${state.researchSummary ?? '(none)'}
 
@@ -1667,25 +1706,31 @@ ${painPointLines || '  (none)'}
 ═══ WORKFLOWS ══════════════════════════════════════════
 ${workflowSection}
 
-TOTALS (displayed): ${calc.figures.totalAnnualHours} hrs/yr | OD ${sym}${s.operationalDividend12mo} | PU ${sym}${s.profitUplift12mo} | TFG ${sym}${s.totalFinancialGain12mo}
+TOTALS (displayed): ${calc.figures.totalAnnualHours} hrs/yr | OD ${sym}${
+    s.operationalDividend12mo
+  } | PU ${sym}${s.profitUplift12mo} | TFG ${sym}${s.totalFinancialGain12mo}
 
 ═══ GLOBAL INPUTS ═══════════════════════════════════════
 Edit with update_globals. NOTE: globals.laborRate is a FALLBACK only — every workflow above already has its own rate (set by the modeler from real salary evidence + regional floor). Editing globals.laborRate alone WILL NOT change any displayed number. To change rates, edit per-workflow rateOverride instead, or use scale_rates for proportional shifts.
-  laborRate=${sym}${globals.laborRate}/hr (fallback — unused while overrides exist)
+  laborRate=${sym}${
+    globals.laborRate
+  }/hr (fallback — unused while overrides exist)
   implCost=${sym}${globals.implementationCost} | toolingCostMonthly=${sym}${
     globals.monthlyToolingCost
   }/mo
-  profitMultiplier=${globals.profitMultiplier} (drives Profit Uplift = OD × (multiplier − 1))
-  realizationFactor=${globals.realizationFactor} (fraction of theoretical hours actually recovered)
+  profitMultiplier=${
+    globals.profitMultiplier
+  } (drives Profit Uplift = OD × (multiplier − 1))
+  realizationFactor=${
+    globals.realizationFactor
+  } (fraction of theoretical hours actually recovered)
 
 ═══ AUTOMATIC GUARDRAILS (silent — calculator does these on every edit) ═══
 1) REGIONAL RATE FLOOR — country=${
     company.country ?? 'unknown'
   }. Each workflow's rate is silently lifted to the regional minimum for its seniority tier (e.g. mid-tier Egypt floor ≈ ${sym}32/hr USD). Setting rateOverride below the floor has no effect — the calculator clamps it. Tell the user this if their requested rate is below the floor.
 2) REVENUE BAND — Total Financial Gain is constrained to 5–20% of estimated annual revenue (${
-    company.revenueEstimateM
-      ? sym + company.revenueEstimateM + 'M'
-      : 'unknown'
+    company.revenueEstimateM ? sym + company.revenueEstimateM + 'M' : 'unknown'
   }). If a rate or volume edit pushes TFG outside the band, ALL workflows are scaled proportionally so the totals reconcile but per-workflow numbers may shift slightly even for workflows you didn't touch. Mention this when relevant.
 
 ═══ SECTION MAP — what the user sees → what to edit ═════
@@ -1732,7 +1777,9 @@ WHERE PROFIT UPLIFT COMES FROM → profit_levers (exactly 4 — one per workflow
 ${leverLines}
 
 COST OF DELAY → cost_of_delay
-  monthly_cost is computed by the calculator (tf12/12 = ${sym}${Math.round(s.totalFinancialGain12mo / 12).toLocaleString()}) — do not set this
+  monthly_cost is computed by the calculator (tf12/12 = ${sym}${Math.round(
+    s.totalFinancialGain12mo / 12,
+  ).toLocaleString()}) — do not set this
   narrative="${copy.cost_of_delay?.narrative ?? ''}"
 
 RESILIENCE TABLE → resilience_rows (exactly 4)
@@ -1755,7 +1802,9 @@ RESEARCH  search_evidence(query)        — look up sources for any figure alrea
     • "{industry} {country} {role} hourly rate site:gulftalent.com OR site:bayt.com"
     • "{industry} {country} average salary {role} {year} glassdoor OR linkedin"
     • "Robert Half salary guide {year} {industry} {country}"
-  Convert to fully-loaded hourly: annual ÷ (${globals.workWeeksPerYear} × 40) × 1.30
+  Convert to fully-loaded hourly: annual ÷ (${
+    globals.workWeeksPerYear
+  } × 40) × 1.30
   Then call update_workflow(name, { rateOverride: <computed> }) or update_globals({ laborRate: <blended>, applyToWorkflowOverrides: true }) if the user means one rate across the whole report.
 
 COMPOSITION EXAMPLES (use the real workflow names from the WORKFLOWS section above):

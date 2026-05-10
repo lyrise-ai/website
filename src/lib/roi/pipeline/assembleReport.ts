@@ -292,9 +292,11 @@ function buildCalculationPanelHTML(
   // month factor, and any revenue-band scaling into a single multiplier so the
   // simple formula on the page reconciles to the displayed monthly value.
   // Shown to the reader so they can sanity-check the math line by line.
-  const baselineMonthly = topWf.monthlyVolume * (topWf.timeSaved / 60) * topWf.effectiveRate
+  const baselineMonthly =
+    topWf.monthlyVolume * (topWf.timeSaved / 60) * topWf.effectiveRate
   const monthlyValue = Math.round(topWf.monthlyHours * topWf.effectiveRate)
-  const adoptionFactor = baselineMonthly > 0 ? monthlyValue / baselineMonthly : 1
+  const adoptionFactor =
+    baselineMonthly > 0 ? monthlyValue / baselineMonthly : 1
   const totalMonthlyValue = wfs.reduce(
     (a, w) => a + Math.round(w.monthlyHours * w.effectiveRate),
     0,
@@ -320,12 +322,16 @@ function buildCalculationPanelHTML(
       topWf.monthlyVolume,
     )} × ${savedHrs} hrs × ${sym}${addCommas(
       topWf.effectiveRate,
-    )}/hr × ${adoptionFactor.toFixed(2)} = ${sym}${addCommas(monthlyValue)}/mo</span></div>` +
+    )}/hr × ${adoptionFactor.toFixed(2)} = ${sym}${addCommas(
+      monthlyValue,
+    )}/mo</span></div>` +
     `<div style="margin-bottom:4px;font-size:8pt;color:#64748b"><em>Adoption ramp factor combines realistic adoption (rarely 100% on day one), realization, and revenue-band alignment into one multiplier.</em></div>` +
     `<div style="margin-bottom:4px"><strong>Monthly total:</strong> <span style="font-family:monospace">${sumLine}</span></div>` +
     `<div style="margin-bottom:2px"><strong>Annual hours returned:</strong> <span style="font-family:monospace">${addCommas(
       totalMonthlyHours,
-    )} × 12 = ${addCommas(totalMonthlyHours * 12)} hrs (~${ftes} FTEs at 2,080 hrs/yr)</span></div>` +
+    )} × 12 = ${addCommas(
+      totalMonthlyHours * 12,
+    )} hrs (~${ftes} FTEs at 2,080 hrs/yr)</span></div>` +
     `<div><strong>Annual Operational Dividend:</strong> <span style="font-family:monospace">${sym}${addCommas(
       totalMonthlyValue,
     )}/mo × 12 = ${sym}${addCommas(annualOD)}</span></div>` +
@@ -659,9 +665,9 @@ export function assembleReport(state: ReportState): AssembleReportOutput {
     if (wf) {
       return `${addCommas(wf.monthlyHours)} hrs/mo freed × ${sym}${addCommas(
         wf.effectiveRate,
-      )}/hr × ${redirectionPct.toFixed(
-        2,
-      )} redirected = ${sym}${addCommas(wf.monthlyProfitUplift)}/mo`
+      )}/hr × ${redirectionPct.toFixed(2)} redirected = ${sym}${addCommas(
+        wf.monthlyProfitUplift,
+      )}/mo`
     }
     return esc(l.rationale_with_arithmetic ?? l.rationale ?? '')
   })

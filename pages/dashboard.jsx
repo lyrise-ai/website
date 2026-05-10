@@ -201,8 +201,8 @@ export default function Dashboard({
                         onClick={(e) => e.stopPropagation()}
                       >
                         <div className="flex items-center justify-end gap-3">
-                          {clickable && (
-                            navigatingId === r.id ? (
+                          {clickable &&
+                            (navigatingId === r.id ? (
                               <span
                                 style={{
                                   display: 'inline-block',
@@ -219,8 +219,7 @@ export default function Dashboard({
                               <span className="font-outfit text-xs font-semibold text-[#2957FF]">
                                 View →
                               </span>
-                            )
-                          )}
+                            ))}
                           {isEmployee &&
                             (confirmingId === r.id ? (
                               <span className="flex items-center gap-2">
