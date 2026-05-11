@@ -1,12 +1,13 @@
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import Image from 'next/legacy/image'
 import Link from 'next/link'
 import Logo from '../../assets/rebranding/logo_black.svg'
 import { scrollToSection } from '../../utilities/helpers'
 import MainHeaderMobile from './MainHeaderMobile'
-import { useRouter } from 'next/navigation'
+import { useRouter, usePathname } from 'next/navigation'
 import styles from './styles.module.css'
 import { WaitlistModal } from '../../components/MainLandingPage/OurGuarantee/WaitlistModal'
+import { createClient } from '../../lib/supabase-browser'
 
 const BUTTONS = [
   {
@@ -49,6 +50,19 @@ export default function MainHeader() {
   const navigate = (path) => {
     router.push(path)
   }
+  const pathname = usePathname()
+  const isRoiPage =
+    pathname === '/roi-report' || pathname?.startsWith('/report/')
+  const [isClient, setIsClient] = useState(false)
+  const [isEmployee, setIsEmployee] = useState(false)
+  useEffect(() => {
+    const supabase = createClient()
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      const employee = user?.email?.endsWith('@lyrise.ai') ?? false
+      setIsClient(!!user && !employee)
+      setIsEmployee(employee)
+    })
+  }, [])
   return (
     <header className="py-4 mt-3 px-2 sm:px-10  mb-10 lg:mb-0">
       <div
@@ -87,7 +101,23 @@ export default function MainHeader() {
           ))}
         </ul>
 
-        <div className="hidden lg:block">
+        <div className="hidden lg:flex items-center gap-4">
+          {isClient && isRoiPage && (
+            <Link
+              href="/dashboard"
+              className="font-outfit text-[16px] font-[600] text-new-black hover:opacity-70 transition-opacity"
+            >
+              My Reports
+            </Link>
+          )}
+          {isEmployee && isRoiPage && (
+            <Link
+              href="/dashboard"
+              className="font-outfit text-[16px] font-[600] text-new-black hover:opacity-70 transition-opacity"
+            >
+              ← Dashboard
+            </Link>
+          )}
           {BUTTONS.map(({ label, path }) => (
             <WaitlistModal>
               <div

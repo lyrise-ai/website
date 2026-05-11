@@ -33,6 +33,11 @@ export default async function handler(req, res) {
     if (!isEmployee && report.user_id !== user.id)
       return res.status(403).json({ error: 'Forbidden' })
 
+    admin
+      .from('events')
+      .insert({ user_id: user.id, report_id: id, type: 'report_viewed' })
+      .then(() => {})
+
     return res.status(200).json({
       renderedHtml: report.rendered_html,
       renderedFullHtml: report.rendered_full_html,

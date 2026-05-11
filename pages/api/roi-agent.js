@@ -355,6 +355,15 @@ export default async function handler(req, res) {
 
       await persistReportEvidence(adminSupabase, reportId, state.evidenceItems)
 
+      adminSupabase
+        .from('events')
+        .insert({
+          user_id: user.id,
+          report_id: reportId,
+          type: 'chat_message_sent',
+        })
+        .then(() => {})
+
       if (userRole !== 'EMPLOYEE') {
         const { data: usage, error: usageReadErr } = await adminSupabase
           .from('chat_usage')
@@ -428,6 +437,14 @@ export default async function handler(req, res) {
           savedReport.id,
           state.evidenceItems,
         )
+        adminSupabase
+          .from('events')
+          .insert({
+            user_id: user.id,
+            report_id: savedReport.id,
+            type: 'report_created',
+          })
+          .then(() => {})
         send(res, { type: 'report_saved', report_id: savedReport.id })
       }
     }
