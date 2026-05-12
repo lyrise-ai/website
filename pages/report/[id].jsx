@@ -1,6 +1,6 @@
 import Head from 'next/head'
 import { createClient, createAdminClient } from '../../src/lib/supabase-server'
-import ReportViewer from '../../src/components/ROIGenerator/ReportViewer'
+import ReportViewerWithBatch from '../../src/components/ROIGenerator/BulkUpload/ReportViewerWithBatch'
 import { buildStateFromReportRow } from '@/src/lib/roi/reportState'
 
 export async function getServerSideProps({ req, res, params }) {
@@ -92,7 +92,7 @@ export default function ReportPage({
       <Head>
         <title>ROI Report | LyRise</title>
       </Head>
-      <ReportViewer
+      <ReportViewerWithBatch
         initialState={initialState}
         email={email}
         reportId={reportId}
