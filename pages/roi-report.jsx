@@ -6,8 +6,9 @@ import clsx from 'clsx'
 import MainHeader from '../src/layout/MainHeader'
 import LogosMarquee from '../src/components/MainLandingPage/LogosMarquee'
 import LastSection from '../src/components/MainLandingPage/LastSection'
-import ReportViewer from '../src/components/ROIGenerator/ReportViewer'
+import ReportLoadingScreen from '../src/components/ROIGenerator/ReportLoadingScreen'
 import { drainSSE } from '../src/lib/drainSSE'
+import { useRouter } from 'next/router'
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 
@@ -74,6 +75,16 @@ const REVENUE_OPTS = [
 ]
 const TOTAL_STEPS = 2
 const IS_DEV = process.env.NODE_ENV === 'development'
+const MIN_VISIBLE_DURATION = 8000
+const VIEW_STATES = {
+  FORM: 'form',
+  LOADING: 'loading',
+  GENERATING: 'generating',
+  FINALISING: 'finalising',
+  COMPLETE: 'complete',
+  SUCCESS: 'success',
+  ERROR: 'error',
+}
 const DEV_STEP1_PRESET = {
   companyName: 'LyRise',
   website: 'lyrise.ai',
@@ -421,30 +432,6 @@ function ErrorView({ message, onRetry, onUseEstimates }) {
   )
 }
 
-function GeneratingView({ generationLog }) {
-  return (
-    <div className="text-center py-12 px-8">
-      <div
-        className="text-5xl mb-6 inline-block"
-        style={{ animation: 'spin 1.2s linear infinite' }}
-      >
-        ⟳
-      </div>
-      <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
-      <h2 className="text-xl font-bold text-gray-900 mb-2">
-        Building your ROI report…
-      </h2>
-      <p className="text-sm text-gray-500 mb-6">
-        Our AI is researching your company and modelling your automation
-        potential. This takes about 45–90 seconds.
-      </p>
-      <div className="font-mono text-xs text-gray-600 bg-gray-50 rounded-lg p-4 h-32 overflow-y-auto text-left whitespace-pre-wrap border border-gray-100">
-        {generationLog || 'Starting…'}
-      </div>
-    </div>
-  )
-}
-
 function SuccessView({ email, reportId, isEmployee }) {
   const [messages, setMessages] = useState([])
   const [inputValue, setInputValue] = useState('')
@@ -681,8 +668,12 @@ export async function getServerSideProps({ req, res }) {
 }
 
 export default function ROIReport({ isEmployee }) {
+  const router = useRouter()
   const [step, setStep] = useState(1)
-  const [viewState, setViewState] = useState('form')
+  const [viewState, setViewState] = useState(VIEW_STATES.FORM)
+
+  const [isGenerationComplete, setIsGenerationComplete] = useState(false)
+  const generationStartedAt = useRef(Date.now())
   const [generationLog, setGenerationLog] = useState('')
   const [reportState, setReportState] = useState(null)
   const [errorMessage, setErrorMessage] = useState('')
@@ -721,7 +712,9 @@ export default function ROIReport({ isEmployee }) {
 
   const runGeneration = useCallback(
     async ({ skipLLM = false, estimatesOnly = false } = {}) => {
-      setViewState('generating')
+      generationStartedAt.current = Date.now()
+      setIsGenerationComplete(false)
+      setViewState(VIEW_STATES.GENERATING)
       setGenerationLog('')
       setReportState(null)
       setErrorMessage('')
@@ -762,6 +755,23 @@ export default function ROIReport({ isEmployee }) {
         if (response.status === 409) {
           const data = await response.json()
           if (data.report_id) {
+            try {
+              const existing = await fetch('/api/roi-agent')
+              const existingData = await existing.json()
+              if (existingData?.report?.rendered_html) {
+                const { buildStateFromReportRow } = await import(
+                  '../src/lib/roi/reportState'
+                )
+                const builtState = buildStateFromReportRow(existingData.report)
+                setReportId(data.report_id)
+                setReportState(builtState)
+                setIsGenerationComplete(true)
+                setViewState(VIEW_STATES.FINALISING)
+                return
+              }
+            } catch (_) {
+              // fallback: navigate to the persisted report page
+            }
             window.location.href = `/report/${data.report_id}`
           }
           return
@@ -786,12 +796,13 @@ export default function ROIReport({ isEmployee }) {
                 (event.assembled || latestState?.assembled) &&
                 latestState?.renderedHtml
               ) {
-                setViewState('preview')
+                setIsGenerationComplete(true)
+                setViewState(VIEW_STATES.FINALISING)
               } else {
                 setErrorMessage(
                   'Report generation finished without a complete report.',
                 )
-                setViewState('error')
+                setViewState(VIEW_STATES.ERROR)
               }
             } else if (event.type === 'error') {
               throw new Error(event.message)
@@ -802,11 +813,42 @@ export default function ROIReport({ isEmployee }) {
         setErrorMessage(
           err.message || 'Something went wrong. Please try again.',
         )
-        setViewState('error')
+        setViewState(VIEW_STATES.ERROR)
       }
     },
     [s1, s2],
   )
+
+  // Finalisation lifecycle: enforce minimum visible loader duration, then
+  // transition to preview once both the state is FINALISING and renderedHtml
+  // is available.
+  useEffect(() => {
+    if (viewState !== VIEW_STATES.FINALISING) return () => {}
+    if (!reportState?.renderedHtml) return () => {}
+
+    let timeout
+
+    const elapsed = Date.now() - generationStartedAt.current
+    const remaining = Math.max(0, MIN_VISIBLE_DURATION - elapsed)
+
+    // Force a paint cycle so the FINALISING state visually mounts
+    requestAnimationFrame(() => {
+      timeout = setTimeout(() => {
+        setViewState(VIEW_STATES.COMPLETE)
+      }, remaining + 500)
+    })
+
+    return () => clearTimeout(timeout)
+  }, [viewState, reportState])
+
+  // COMPLETE lifecycle: Wait a brief moment, then navigate to the report
+  useEffect(() => {
+    if (viewState !== VIEW_STATES.COMPLETE || !reportId) return () => {}
+    const timeout = setTimeout(() => {
+      router.push(`/report/${reportId}`)
+    }, 800)
+    return () => clearTimeout(timeout)
+  }, [viewState, reportId, router])
 
   const next = useCallback(
     async ({ skipLLM = false } = {}) => {
@@ -828,7 +870,7 @@ export default function ROIReport({ isEmployee }) {
   }, [])
 
   // Non-form views
-  if (viewState === 'loading') {
+  if (viewState === VIEW_STATES.LOADING) {
     return (
       <div className="rebranding-landing-page -mt-[12px]">
         <MainHeader />
@@ -839,33 +881,31 @@ export default function ROIReport({ isEmployee }) {
     )
   }
 
-  if (viewState === 'generating') {
+  // Loader state animates out smoothly on completion, before navigation
+  if (
+    viewState === VIEW_STATES.GENERATING ||
+    viewState === VIEW_STATES.FINALISING ||
+    viewState === VIEW_STATES.COMPLETE
+  ) {
     return (
-      <div className="rebranding-landing-page -mt-[12px]">
-        <MainHeader />
-        <div className="min-h-screen flex items-center justify-center p-4">
-          <div className="w-full max-w-xl bg-white rounded-2xl shadow-xl border border-gray-100">
-            <GeneratingView generationLog={generationLog} />
-          </div>
-        </div>
-      </div>
+      <AnimatePresence mode="wait">
+        <motion.div
+          key="loader"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0, y: -4 }}
+          transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
+        >
+          <ReportLoadingScreen
+            generationLog={generationLog}
+            viewState={viewState}
+          />
+        </motion.div>
+      </AnimatePresence>
     )
   }
 
-  if (viewState === 'preview' && reportState) {
-    return (
-      <ReportViewer
-        initialState={reportState}
-        email={s2.email}
-        reportId={reportId}
-        isEmployee={isEmployee}
-        initialMessagesUsed={initialMessagesUsed}
-        backHref={isEmployee ? '/dashboard' : undefined}
-      />
-    )
-  }
-
-  if (viewState === 'success') {
+  if (viewState === VIEW_STATES.SUCCESS) {
     return (
       <div className="rebranding-landing-page -mt-[12px]">
         <MainHeader />
@@ -886,7 +926,7 @@ export default function ROIReport({ isEmployee }) {
     )
   }
 
-  if (viewState === 'error') {
+  if (viewState === VIEW_STATES.ERROR) {
     return (
       <div className="rebranding-landing-page -mt-[12px]">
         <MainHeader />

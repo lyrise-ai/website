@@ -2,6 +2,7 @@ import Head from 'next/head'
 import { createClient, createAdminClient } from '../../src/lib/supabase-server'
 import ReportViewer from '../../src/components/ROIGenerator/ReportViewer'
 import { buildStateFromReportRow } from '@/src/lib/roi/reportState'
+import { motion } from 'framer-motion'
 
 export async function getServerSideProps({ req, res, params }) {
   const supabase = createClient(req, res)
@@ -92,15 +93,21 @@ export default function ReportPage({
       <Head>
         <title>ROI Report | LyRise</title>
       </Head>
-      <ReportViewer
-        initialState={initialState}
-        email={email}
-        reportId={reportId}
-        isEmployee={isEmployee}
-        initialMessagesUsed={initialMessagesUsed}
-        initialChatHistory={initialChatHistory}
-        backHref="/dashboard"
-      />
+      <motion.div
+        initial={{ opacity: 0, y: 4 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.3 }}
+      >
+        <ReportViewer
+          initialState={initialState}
+          email={email}
+          reportId={reportId}
+          isEmployee={isEmployee}
+          initialMessagesUsed={initialMessagesUsed}
+          initialChatHistory={initialChatHistory}
+          backHref="/dashboard"
+        />
+      </motion.div>
     </>
   )
 }
