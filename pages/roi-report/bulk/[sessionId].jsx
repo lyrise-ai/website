@@ -26,34 +26,65 @@ export async function getServerSideProps({ req, res }) {
 }
 
 function StatusStrip({ rows, cursor }) {
+  const counts = rows.reduce(
+    (acc, r) => {
+      acc[r.status] = (acc[r.status] ?? 0) + 1
+      return acc
+    },
+    { PENDING: 0, GENERATING: 0, DONE: 0, FAILED: 0 },
+  )
+
   return (
-    <div className="flex flex-wrap items-center gap-1.5 text-[10px] font-outfit">
-      {rows.map((row, i) => {
-        const isCurrent = i === cursor
-        const colour =
-          row.status === 'DONE'
-            ? 'bg-green-100 text-green-700'
-            : row.status === 'GENERATING'
-            ? 'bg-blue-100 text-blue-700'
-            : row.status === 'FAILED'
-            ? 'bg-red-100 text-red-700'
-            : 'bg-gray-100 text-gray-500'
-        return (
-          <span
-            key={i}
-            className={`inline-flex items-center px-2 py-0.5 rounded-full font-medium ${colour} ${
-              isCurrent ? 'ring-2 ring-offset-1 ring-[#2C2C2C]' : ''
-            }`}
-            title={
-              row.payload?.companyName
-                ? `${row.payload.companyName} — ${row.status}`
-                : row.status
-            }
-          >
-            {i + 1}
-          </span>
-        )
-      })}
+    <div className="flex flex-col items-end gap-2">
+      <div className="flex items-center gap-2 text-[10px] font-outfit font-semibold uppercase tracking-wider text-gray-500">
+        <span>{counts.DONE} done</span>
+        <span>·</span>
+        <span className="text-[#2957FF]">{counts.GENERATING} generating</span>
+        <span>·</span>
+        <span>{counts.PENDING} waiting</span>
+        {counts.FAILED > 0 && (
+          <>
+            <span>·</span>
+            <span className="text-red-600">{counts.FAILED} failed</span>
+          </>
+        )}
+      </div>
+      <style>{`@keyframes bulkPulse { 0%,100% { opacity: 1 } 50% { opacity: 0.55 } }`}</style>
+      <div className="flex flex-wrap items-center gap-1 max-w-[520px] justify-end">
+        {rows.map((row, i) => {
+          const isCurrent = i === cursor
+          let cls = ''
+          if (row.status === 'DONE') {
+            cls = 'bg-green-500 text-white'
+          } else if (row.status === 'GENERATING') {
+            cls = 'bg-[#2957FF] text-white'
+          } else if (row.status === 'FAILED') {
+            cls = 'bg-red-500 text-white'
+          } else {
+            cls = 'bg-white text-gray-400 border border-gray-200'
+          }
+          return (
+            <span
+              key={i}
+              className={`inline-flex items-center justify-center w-6 h-6 rounded-full text-[10px] font-semibold ${cls} ${
+                isCurrent ? 'ring-2 ring-offset-1 ring-[#2C2C2C]' : ''
+              }`}
+              style={
+                row.status === 'GENERATING'
+                  ? { animation: 'bulkPulse 1.4s ease-in-out infinite' }
+                  : undefined
+              }
+              title={
+                row.payload?.companyName
+                  ? `${i + 1}. ${row.payload.companyName} — ${row.status}`
+                  : `${i + 1} — ${row.status}`
+              }
+            >
+              {i + 1}
+            </span>
+          )
+        })}
+      </div>
     </div>
   )
 }

@@ -119,9 +119,14 @@ export default function Dashboard({
             {isEmployee && (
               <Link
                 href="/roi-report/bulk"
-                className="font-outfit text-sm font-semibold text-[#2C2C2C] hover:bg-gray-50 transition-colors border border-gray-300 rounded-full px-5 py-2.5"
+                className="font-outfit text-[#2C2C2C] hover:bg-gray-50 transition-colors border border-gray-300 rounded-full px-5 py-1.5 flex flex-col items-center leading-tight"
               >
-                Bulk Upload
+                <span className="text-sm font-semibold">
+                  Create multiple reports
+                </span>
+                <span className="text-[10px] font-medium text-gray-500">
+                  Upload CSV file
+                </span>
               </Link>
             )}
             <Link
