@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState, useCallback } from 'react'
 import { useRouter } from 'next/router'
 import ReportViewer from '../ReportViewer'
+import { cancelBulkSession } from '@/src/hooks/useBulkSession'
 
 const STORAGE_PREFIX = 'lyrise_bulk_'
 
@@ -51,8 +52,26 @@ export default function ReportViewerWithBatch(props) {
     router.push('/dashboard')
   }, [router])
 
+  const onCancel = useCallback(() => {
+    if (!sessionId) return
+    const remaining = (session?.rows ?? []).filter(
+      (r) => r.status !== 'DONE',
+    ).length
+    const msg =
+      remaining > 0
+        ? `Cancel the bulk batch? ${remaining} report${
+            remaining === 1 ? '' : 's'
+          } still pending or generating will be stopped. Already-generated reports stay in your dashboard.`
+        : 'Cancel the bulk batch and return to the dashboard?'
+    // eslint-disable-next-line no-alert
+    if (!window.confirm(msg)) return
+    cancelBulkSession(sessionId)
+    router.push('/dashboard')
+  }, [router, sessionId, session])
+
   const batchContext = useMemo(() => {
     if (!sessionId || !session) return null
+    if (session.cancelled) return null
     const total = session.rows?.length ?? 0
     if (!total) return null
     const nextRow = session.rows[cursor + 1]
@@ -65,8 +84,9 @@ export default function ReportViewerWithBatch(props) {
       isNextFailed,
       onNext,
       onFinish,
+      onCancel,
     }
-  }, [sessionId, session, cursor, onNext, onFinish])
+  }, [sessionId, session, cursor, onNext, onFinish, onCancel])
 
   return <ReportViewer {...props} batchContext={batchContext} />
 }

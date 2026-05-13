@@ -12,6 +12,8 @@ const STORAGE_PREFIX = 'lyrise_bulk_'
 
 const scheduledTimers = new Map() // key -> setTimeout handle
 const inFlight = new Set() // key
+const controllers = new Map() // key -> AbortController
+const cancelled = new Set() // sessionId (so an in-flight fetch knows not to mark itself FAILED)
 const logBuffers = new Map() // key -> string
 const logSubs = new Map() // key -> Set<fn>
 const sessionSubs = new Map() // sessionId -> Set<fn>
@@ -123,6 +125,8 @@ async function generateRow(sessionId, index) {
   if (!row || row.status === 'DONE' || row.status === 'GENERATING') return
 
   inFlight.add(key)
+  const controller = new AbortController()
+  controllers.set(key, controller)
   updateRowInStorage(sessionId, index, { status: 'GENERATING', error: null })
   appendRowLog(
     sessionId,
@@ -139,6 +143,7 @@ async function generateRow(sessionId, index) {
         formData: row.payload,
         emailOverride: session.emailOverride || undefined,
       }),
+      signal: controller.signal,
     })
 
     if (response.status === 401) {
@@ -192,12 +197,17 @@ async function generateRow(sessionId, index) {
       })
     }
   } catch (err) {
+    if (err?.name === 'AbortError' || cancelled.has(sessionId)) {
+      // Cancelled by user — leave the row as CANCELLED (set by cancelBulkSession).
+      return
+    }
     updateRowInStorage(sessionId, index, {
       status: 'FAILED',
       error: err?.message ?? 'Unknown error',
     })
   } finally {
     inFlight.delete(key)
+    controllers.delete(key)
   }
 }
 
@@ -260,6 +270,36 @@ export function createBulkSession(payloads, options = {}) {
   writeSession(fresh)
   scheduleAll(fresh.id)
   return fresh.id
+}
+
+/**
+ * Stops a bulk session: cancels pending timers, aborts in-flight fetches,
+ * and marks every non-DONE row as CANCELLED. Already-saved reports remain
+ * untouched in Supabase and are still accessible from the dashboard.
+ */
+export function cancelBulkSession(sessionId) {
+  if (!sessionId) return
+  cancelled.add(sessionId)
+  const prefix = `${sessionId}-`
+  scheduledTimers.forEach((handle, key) => {
+    if (key.startsWith(prefix)) {
+      clearTimeout(handle)
+      scheduledTimers.delete(key)
+    }
+  })
+  controllers.forEach((controller, key) => {
+    if (key.startsWith(prefix)) {
+      controller.abort()
+      controllers.delete(key)
+    }
+  })
+  updateSessionInStorage(sessionId, (session) => ({
+    ...session,
+    cancelled: true,
+    rows: session.rows.map((r) =>
+      r.status === 'DONE' ? r : { ...r, status: 'CANCELLED' },
+    ),
+  }))
 }
 
 export default function useBulkSession(sessionId) {

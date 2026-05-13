@@ -5,7 +5,9 @@ import { useRouter } from 'next/router'
 import { createClient as createServerClient } from '../../../src/lib/supabase-server'
 import MainHeader from '../../../src/layout/MainHeader'
 import GeneratingView from '../../../src/components/ROIGenerator/GeneratingView'
-import useBulkSession from '../../../src/hooks/useBulkSession'
+import useBulkSession, {
+  cancelBulkSession,
+} from '../../../src/hooks/useBulkSession'
 
 export async function getServerSideProps({ req, res }) {
   const supabase = createServerClient(req, res)
@@ -31,7 +33,7 @@ function StatusStrip({ rows, cursor }) {
       acc[r.status] = (acc[r.status] ?? 0) + 1
       return acc
     },
-    { PENDING: 0, GENERATING: 0, DONE: 0, FAILED: 0 },
+    { PENDING: 0, GENERATING: 0, DONE: 0, FAILED: 0, CANCELLED: 0 },
   )
 
   return (
@@ -48,6 +50,12 @@ function StatusStrip({ rows, cursor }) {
             <span className="text-red-600">{counts.FAILED} failed</span>
           </>
         )}
+        {counts.CANCELLED > 0 && (
+          <>
+            <span>·</span>
+            <span className="text-gray-500">{counts.CANCELLED} cancelled</span>
+          </>
+        )}
       </div>
       <style>{`@keyframes bulkPulse { 0%,100% { opacity: 1 } 50% { opacity: 0.55 } }`}</style>
       <div className="flex flex-wrap items-center gap-1 max-w-[520px] justify-end">
@@ -60,6 +68,8 @@ function StatusStrip({ rows, cursor }) {
             cls = 'bg-[#2957FF] text-white'
           } else if (row.status === 'FAILED') {
             cls = 'bg-red-500 text-white'
+          } else if (row.status === 'CANCELLED') {
+            cls = 'bg-gray-300 text-white line-through'
           } else {
             cls = 'bg-white text-gray-400 border border-gray-200'
           }
@@ -167,6 +177,21 @@ export default function BulkReviewPage() {
   const total = session.rows.length
   const isGenerating = row.status === 'PENDING' || row.status === 'GENERATING'
   const isFailed = row.status === 'FAILED'
+  const isCancelled = row.status === 'CANCELLED' || session.cancelled
+
+  const handleCancelBatch = () => {
+    const remaining = session.rows.filter((r) => r.status !== 'DONE').length
+    const msg =
+      remaining > 0
+        ? `Cancel the bulk batch? ${remaining} report${
+            remaining === 1 ? '' : 's'
+          } still pending or generating will be stopped. Already-generated reports stay in your dashboard.`
+        : 'Cancel the bulk batch and return to the dashboard?'
+    // eslint-disable-next-line no-alert
+    if (!window.confirm(msg)) return
+    cancelBulkSession(session.id)
+    router.push('/dashboard')
+  }
 
   return (
     <div className="rebranding-landing-page min-h-screen -mt-[12px]">
@@ -193,15 +218,44 @@ export default function BulkReviewPage() {
                 : ''}
             </p>
           </div>
-          <StatusStrip rows={session.rows} cursor={cursor} />
+          <div className="flex flex-col items-end gap-3">
+            <StatusStrip rows={session.rows} cursor={cursor} />
+            {!isCancelled && (
+              <button
+                type="button"
+                onClick={handleCancelBatch}
+                title="Stop the bulk batch — already-generated reports stay in your dashboard"
+                className="font-outfit text-xs font-medium text-red-600 hover:bg-red-50 border border-red-200 rounded-full px-3 py-1.5"
+              >
+                Cancel batch
+              </button>
+            )}
+          </div>
         </div>
 
         <div className="bg-white rounded-2xl border border-gray-100 shadow-sm">
-          {isGenerating && (
+          {isCancelled && (
+            <div className="p-10 text-center">
+              <h2 className="font-outfit text-lg font-bold text-[#2C2C2C] mb-2">
+                Bulk batch cancelled
+              </h2>
+              <p className="font-outfit text-sm text-gray-600 mb-6 max-w-md mx-auto">
+                Already-generated reports are still available on your dashboard.
+              </p>
+              <Link
+                href="/dashboard"
+                className="inline-block font-outfit text-sm font-semibold text-white bg-[#2C2C2C] hover:bg-black transition-colors rounded-full px-5 py-2.5"
+              >
+                Back to dashboard
+              </Link>
+            </div>
+          )}
+
+          {!isCancelled && isGenerating && (
             <GeneratingView generationLog={activeLogs[cursor]} />
           )}
 
-          {isFailed && (
+          {!isCancelled && isFailed && (
             <div className="p-10 text-center">
               <h2 className="font-outfit text-lg font-bold text-red-600 mb-2">
                 Generation failed

@@ -797,6 +797,25 @@ export default function ReportViewer({
                 Finish
               </button>
             ))}
+          {batchContext && batchContext.onCancel && (
+            <button
+              type="button"
+              onClick={batchContext.onCancel}
+              title="Stop the bulk batch — already-generated reports stay in your dashboard"
+              style={{
+                padding: '6px 14px',
+                fontSize: 13,
+                fontWeight: 500,
+                border: '1px solid #dc2626',
+                borderRadius: 6,
+                background: '#fff',
+                color: '#dc2626',
+                cursor: 'pointer',
+              }}
+            >
+              Cancel batch
+            </button>
+          )}
         </div>
       </div>
 
