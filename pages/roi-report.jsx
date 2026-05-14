@@ -7,6 +7,8 @@ import MainHeader from '../src/layout/MainHeader'
 import LogosMarquee from '../src/components/MainLandingPage/LogosMarquee'
 import LastSection from '../src/components/MainLandingPage/LastSection'
 import ReportLoadingScreen from '../src/components/ROIGenerator/ReportLoadingScreen'
+import ReportViewer from '../src/components/ROIGenerator/ReportViewer'
+import GeneratingView from '../src/components/ROIGenerator/GeneratingView'
 import { drainSSE } from '../src/lib/drainSSE'
 import { useRouter } from 'next/router'
 

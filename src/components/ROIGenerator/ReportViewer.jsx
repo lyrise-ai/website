@@ -124,6 +124,7 @@ export default function ReportViewer({
   initialMessagesUsed = 0,
   initialChatHistory = [],
   backHref,
+  batchContext,
 }) {
   const [reportState, setReportState] = useState(initialState)
   const [htmlLoading, setHtmlLoading] = useState(
@@ -606,6 +607,21 @@ export default function ReportViewer({
           <div style={{ fontWeight: 600, fontSize: 14, color: '#1a1a1a' }}>
             {company} — AI ROI Report
           </div>
+          {batchContext && (
+            <span
+              style={{
+                fontSize: 11,
+                fontWeight: 600,
+                color: '#2957FF',
+                background: '#EBF0F8',
+                borderRadius: 999,
+                padding: '3px 10px',
+                letterSpacing: '0.02em',
+              }}
+            >
+              BULK · {batchContext.currentIndex + 1} of {batchContext.total}
+            </span>
+          )}
         </div>
         <div style={{ display: 'flex', gap: 8 }}>
           <div style={{ position: 'relative' }}>
@@ -735,6 +751,71 @@ export default function ReportViewer({
               ? 'Send Failed'
               : 'Re-send Email'}
           </button>
+          {batchContext &&
+            (batchContext.currentIndex + 1 < batchContext.total ? (
+              <button
+                type="button"
+                onClick={batchContext.onNext}
+                disabled={!batchContext.isNextReady}
+                title={
+                  batchContext.isNextReady
+                    ? 'Open the next report'
+                    : 'Next report is still generating…'
+                }
+                style={{
+                  padding: '6px 14px',
+                  fontSize: 13,
+                  fontWeight: 600,
+                  border: '1px solid #2C2C2C',
+                  borderRadius: 6,
+                  background: batchContext.isNextReady ? '#2C2C2C' : '#f3f4f6',
+                  color: batchContext.isNextReady ? '#fff' : '#9ca3af',
+                  cursor: batchContext.isNextReady ? 'pointer' : 'not-allowed',
+                }}
+              >
+                {batchContext.isNextReady
+                  ? 'Next file →'
+                  : batchContext.isNextFailed
+                  ? 'Review next (failed)'
+                  : 'Next generating…'}
+              </button>
+            ) : (
+              <button
+                type="button"
+                onClick={batchContext.onFinish}
+                style={{
+                  padding: '6px 14px',
+                  fontSize: 13,
+                  fontWeight: 600,
+                  border: '1px solid #2C2C2C',
+                  borderRadius: 6,
+                  background: '#2C2C2C',
+                  color: '#fff',
+                  cursor: 'pointer',
+                }}
+              >
+                Finish
+              </button>
+            ))}
+          {batchContext && batchContext.onCancel && (
+            <button
+              type="button"
+              onClick={batchContext.onCancel}
+              title="Stop the bulk batch — already-generated reports stay in your dashboard"
+              style={{
+                padding: '6px 14px',
+                fontSize: 13,
+                fontWeight: 500,
+                border: '1px solid #dc2626',
+                borderRadius: 6,
+                background: '#fff',
+                color: '#dc2626',
+                cursor: 'pointer',
+              }}
+            >
+              Cancel batch
+            </button>
+          )}
         </div>
       </div>
 
