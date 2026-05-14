@@ -71,13 +71,13 @@ function HowItWorksSection() {
               className="hidden lg:flex flex-col gap-10 items-end relative left-[80px] z-10 px-[10vw]  "
             >
               {steps?.map((step) => (
-                <HowItWorksCard step={step} />
+                <HowItWorksCard key={step.title} step={step} />
               ))}
             </motion.div>
 
             <div className="lg:hidden flex flex-col gap-10">
               {steps?.map((step) => (
-                <HowItWorksCard step={step} />
+                <HowItWorksCard key={step.title} step={step} />
               ))}
             </div>
           </div>

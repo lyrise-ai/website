@@ -73,7 +73,7 @@ function MediaEvents() {
           )
           return imageModule.default
         } catch (error) {
-          console.error(`Failed to load image ${card.image.src}:`, error)
+          console.warn(`Failed to load image ${card.image.src}:`, error)
           return null
         }
       })
@@ -119,13 +119,15 @@ function MediaEvents() {
                 onMouseEnter={() => setIsHovered(true)}
                 onMouseLeave={() => setIsHovered(false)}
               >
-                <Image
-                  src={images[card.index]}
-                  alt={card.image.alt}
-                  className="rounded-lg object-contain overflow-hidden"
-                  height={200}
-                  width={200}
-                />
+                {images[card.index] && (
+                  <Image
+                    src={images[card.index]}
+                    alt={card.image.alt}
+                    className="rounded-lg object-contain overflow-hidden"
+                    height={200}
+                    width={200}
+                  />
+                )}
 
                 <div className="flex flex-col items-center justify-center gap-2 p-2 text-center">
                   <h3 className="text-[20px] font-[700] font-outfit leading-[120%] ">

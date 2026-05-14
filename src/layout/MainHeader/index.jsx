@@ -89,11 +89,8 @@ export default function MainHeader() {
 
         <div className="hidden lg:block">
           {BUTTONS.map(({ label, path }) => (
-            <WaitlistModal>
-              <div
-                key={path}
-                className="cursor-pointer group relative text-[22px] font-[400] flex items-center justify-center gap-2 p-2 px-5 leading-[24px]  rounded-[30px] text-white bg-new-black transition-colors hover:bg-new-black/85 font-outfit"
-              >
+            <WaitlistModal key={path}>
+              <div className="cursor-pointer group relative text-[22px] font-[400] flex items-center justify-center gap-2 p-2 px-5 leading-[24px]  rounded-[30px] text-white bg-new-black transition-colors hover:bg-new-black/85 font-outfit">
                 {label}
               </div>
             </WaitlistModal>
