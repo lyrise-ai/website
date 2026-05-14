@@ -16,7 +16,10 @@ import { loadTemplate } from '@/src/lib/roi/pipeline/renderTemplate'
 import { runReportAgent } from '@/src/lib/roi/agent'
 import { buildDevMockReportState } from '@/src/lib/roi/devMockReport'
 import { generatePdf } from '@/src/lib/roi/services/pdf'
-import { sendReportEmail } from '@/src/lib/roi/services/email'
+import {
+  sendReportEmail,
+  DEFAULT_REPORT_BCC,
+} from '@/src/lib/roi/services/email'
 import { createClient, createAdminClient } from '../../src/lib/supabase-server'
 import {
   buildStateFromReportRow,
@@ -114,8 +117,15 @@ export default async function handler(req, res) {
     return
   }
 
-  const { mode, formData, message, chatHistory, devOptions, reportId } =
-    req.body
+  const {
+    mode,
+    formData,
+    message,
+    chatHistory,
+    devOptions,
+    reportId,
+    emailOverride,
+  } = req.body
 
   if (!mode || !['generate', 'chat'].includes(mode)) {
     res
@@ -448,12 +458,17 @@ export default async function handler(req, res) {
           .replace(/^-|-$/g, '')
         const filename = `LyRise_ROI_${slug}.pdf`
         const pdf = await generatePdf(state.renderedHtml, filename)
-        await sendReportEmail(
-          state.normInput.email,
-          company,
-          pdf.base64,
-          pdf.filename,
-        )
+        const overrideAddr =
+          typeof emailOverride === 'string' && emailOverride.trim()
+            ? emailOverride.trim().toLowerCase()
+            : null
+        const recipient = overrideAddr ?? state.normInput.email
+        const bcc = overrideAddr
+          ? DEFAULT_REPORT_BCC.filter(
+              (addr) => addr.toLowerCase() !== overrideAddr,
+            )
+          : DEFAULT_REPORT_BCC
+        await sendReportEmail(recipient, company, pdf.base64, pdf.filename, bcc)
         send(res, { type: 'email_sent' })
       } catch (bgErr) {
         console.error('[roi-agent] PDF/email failed:', bgErr)

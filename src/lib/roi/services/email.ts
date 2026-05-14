@@ -4,11 +4,14 @@
 // Resend is simpler: no OAuth dance, just an API key
 // ─────────────────────────────────────────────────────────────────────────────
 
+export const DEFAULT_REPORT_BCC = ['elena@lyrise.ai', 'mbanoub@lyrise.ai']
+
 export async function sendReportEmail(
   recipientEmail: string,
   companyName: string,
   pdfBase64: string,
   filename: string,
+  bcc: string[] = DEFAULT_REPORT_BCC,
 ): Promise<void> {
   const apiKey = process.env.RESEND_API_KEY
   const fromEmail = process.env.EMAIL_FROM ?? 'reports@roi.lyrise.ai'
@@ -26,7 +29,7 @@ export async function sendReportEmail(
     body: JSON.stringify({
       from: `LyRise AI <${fromEmail}>`,
       to: [recipientEmail],
-      bcc: ['elena@lyrise.ai', 'mbanoub@lyrise.ai'], // always BCC sender for CRM tracking
+      bcc, // CRM-tracking copy; filtered to avoid duplicates with `to`
       subject: `Your AI Automation ROI Report — ${companyName}`,
       html: `
         <p>Hi,</p>
