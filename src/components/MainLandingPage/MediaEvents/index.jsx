@@ -72,7 +72,8 @@ function MediaEvents() {
             `../../../assets/rebranding/mediaEvents/${card.image.src}`
           )
           return imageModule.default
-        } catch {
+        } catch (error) {
+          console.warn(`Failed to load image ${card.image.src}:`, error)
           return null
         }
       })
