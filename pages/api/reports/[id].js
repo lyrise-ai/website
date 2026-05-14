@@ -36,7 +36,9 @@ export default async function handler(req, res) {
     admin
       .from('events')
       .insert({ user_id: user.id, report_id: id, type: 'report_viewed' })
-      .then(() => {})
+      .then(({ error }) => {
+        if (error) console.error('event insert failed (report_viewed)', error)
+      })
 
     return res.status(200).json({
       renderedHtml: report.rendered_html,

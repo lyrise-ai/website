@@ -182,7 +182,10 @@ export default async function handler(req, res) {
             report_id: reportId,
             type: 'chat_limit_reached',
           })
-          .then(() => {})
+          .then(({ error }) => {
+            if (error)
+              console.error('event insert failed (chat_limit_reached)', error)
+          })
         res.status(403).json({ error: 'limit_reached' })
         return
       }
@@ -362,7 +365,10 @@ export default async function handler(req, res) {
           report_id: reportId,
           type: 'chat_message_sent',
         })
-        .then(() => {})
+        .then(({ error }) => {
+          if (error)
+            console.error('event insert failed (chat_message_sent)', error)
+        })
 
       if (userRole !== 'EMPLOYEE') {
         const { data: usage, error: usageReadErr } = await adminSupabase
@@ -444,7 +450,10 @@ export default async function handler(req, res) {
             report_id: savedReport.id,
             type: 'report_created',
           })
-          .then(() => {})
+          .then(({ error }) => {
+            if (error)
+              console.error('event insert failed (report_created)', error)
+          })
         send(res, { type: 'report_saved', report_id: savedReport.id })
       }
     }

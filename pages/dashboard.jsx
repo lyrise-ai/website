@@ -99,6 +99,13 @@ export async function getServerSideProps({ req, res }) {
 
   const { data: reports } = await query
 
+  const oneWeekAgoIso = new Date(
+    Date.now() - 7 * 24 * 60 * 60 * 1000,
+  ).toISOString()
+  const reportsThisWeek = (reports ?? []).filter(
+    (r) => r.created_at >= oneWeekAgoIso,
+  ).length
+
   if (!isEmployee) {
     return {
       props: {
@@ -108,6 +115,7 @@ export async function getServerSideProps({ req, res }) {
         },
         isEmployee,
         reports: reports ?? [],
+        reportsThisWeek,
         users: [],
         recentEvents: [],
       },
@@ -160,6 +168,7 @@ export async function getServerSideProps({ req, res }) {
       isEmployee,
       userId: user.id,
       reports: reports ?? [],
+      reportsThisWeek,
       users: usersWithStats,
       recentEvents,
     },
@@ -171,6 +180,7 @@ export default function Dashboard({
   reports: initialReports,
   isEmployee,
   userId,
+  reportsThisWeek,
   users,
   recentEvents,
 }) {
@@ -206,13 +216,6 @@ export default function Dashboard({
       setConfirmingId(null)
     }
   }
-
-  const oneWeekAgo = new Date(
-    Date.now() - 7 * 24 * 60 * 60 * 1000,
-  ).toISOString()
-  const reportsThisWeek = reports.filter(
-    (r) => r.created_at >= oneWeekAgo,
-  ).length
 
   return (
     <div className="rebranding-landing-page min-h-screen -mt-[12px]">
@@ -436,7 +439,7 @@ export default function Dashboard({
                     Joined
                   </th>
                   <th className="font-outfit font-semibold text-[11px] uppercase tracking-wider text-gray-400 text-left px-6 py-3.5">
-                    Last Active
+                    Recent Activity
                   </th>
                 </tr>
               </thead>
@@ -498,8 +501,11 @@ export default function Dashboard({
               </p>
             ) : (
               <ul className="divide-y divide-gray-50">
-                {recentEvents.map((e, i) => (
-                  <li key={i} className="flex items-center gap-4 px-6 py-3.5">
+                {recentEvents.map((e) => (
+                  <li
+                    key={`${e.user_id}-${e.created_at}-${e.type}`}
+                    className="flex items-center gap-4 px-6 py-3.5"
+                  >
                     <span
                       className={`w-2 h-2 rounded-full flex-shrink-0 ${
                         EVENT_COLORS[e.type] ?? 'bg-gray-300'
