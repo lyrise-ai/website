@@ -192,7 +192,10 @@ export default async function handler(req, res) {
             report_id: reportId,
             type: 'chat_limit_reached',
           })
-          .then(() => {})
+          .then(({ error }) => {
+            if (error)
+              console.error('event insert failed (chat_limit_reached)', error)
+          })
         res.status(403).json({ error: 'limit_reached' })
         return
       }
@@ -365,6 +368,18 @@ export default async function handler(req, res) {
 
       await persistReportEvidence(adminSupabase, reportId, state.evidenceItems)
 
+      adminSupabase
+        .from('events')
+        .insert({
+          user_id: user.id,
+          report_id: reportId,
+          type: 'chat_message_sent',
+        })
+        .then(({ error }) => {
+          if (error)
+            console.error('event insert failed (chat_message_sent)', error)
+        })
+
       if (userRole !== 'EMPLOYEE') {
         const { data: usage, error: usageReadErr } = await adminSupabase
           .from('chat_usage')
@@ -438,6 +453,17 @@ export default async function handler(req, res) {
           savedReport.id,
           state.evidenceItems,
         )
+        adminSupabase
+          .from('events')
+          .insert({
+            user_id: user.id,
+            report_id: savedReport.id,
+            type: 'report_created',
+          })
+          .then(({ error }) => {
+            if (error)
+              console.error('event insert failed (report_created)', error)
+          })
         send(res, { type: 'report_saved', report_id: savedReport.id })
       }
     }
