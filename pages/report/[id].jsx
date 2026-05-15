@@ -98,7 +98,7 @@ export default function ReportPage({
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.3 }}
       >
-        <ReportViewer
+        <ReportViewerWithBatch
           initialState={initialState}
           email={email}
           reportId={reportId}

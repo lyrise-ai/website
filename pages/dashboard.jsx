@@ -319,7 +319,7 @@ export default function Dashboard({
                       Company
                     </th>
                     <th className="font-outfit font-semibold text-[11px] uppercase tracking-wider text-gray-400 text-left px-6 py-3.5">
-                      Email
+                      Requested By
                     </th>
                     <th className="font-outfit font-semibold text-[11px] uppercase tracking-wider text-gray-400 text-left px-6 py-3.5">
                       Status
@@ -387,7 +387,14 @@ export default function Dashboard({
                                     }}
                                   />
                                 ) : (
-                                  <span className="font-outfit text-xs font-semibold text-[#2957FF]">
+                                  <span
+                                    className="font-outfit text-xs font-semibold text-[#2957FF]"
+                                    onClick={() => {
+                                      if (navigatingId) return
+                                      setNavigatingId(r.id)
+                                      router.push(`/report/${r.id}`)
+                                    }}
+                                  >
                                     View →
                                   </span>
                                 ))}
