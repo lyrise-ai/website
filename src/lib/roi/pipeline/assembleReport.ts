@@ -253,7 +253,7 @@ function buildNextStepsHTML(cta: string): string {
     `<div class="stripe"></div>` +
     `<div class="panel-content" style="font-size:9pt">` +
     `<p style="margin:0 0 6px">${esc(cta)}</p>` +
-    `<div style="font-size:8.5pt;color:#003f87;font-weight:bold">Book: calendly.com/elena-lyrise/30min &nbsp;|&nbsp; elena@lyrise.ai</div>` +
+    `<div style="font-size:8.5pt;color:#003f87;font-weight:bold">Book: <a href="https://api.leadconnectorhq.com/widget/bookings/strategy-call-with-lyrisesivto9" style="color:inherit;text-decoration:none">lyrise.ai/book-meeting</a> &nbsp;|&nbsp; elena@lyrise.ai</div>` +
     `</div></div>`
   )
 }

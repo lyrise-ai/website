@@ -35,7 +35,7 @@ export async function sendReportEmail(
         <p>This report models the financial impact of deploying targeted AI workflows across your operations.
         All figures are conservative estimates and should be validated with your actual volumes and rates.</p>
         <p>Ready to explore next steps?
-        <a href="https://calendly.com/elena-lyrise/30min">Book a 30-minute discovery call</a>.</p>
+        <a href="https://api.leadconnectorhq.com/widget/bookings/strategy-call-with-lyrisesivto9">Book a 30-minute discovery call</a>.</p>
         <br>
         <p>Best,<br>Elena<br>LyRise AI — <a href="https://lyrise.ai">lyrise.ai</a></p>
       `.trim(),

@@ -538,7 +538,7 @@ function SuccessView({ email, reportId, isEmployee }) {
           call.
         </p>
         <a
-          href="https://calendly.com/elena-lyrise/30min"
+          href="https://api.leadconnectorhq.com/widget/bookings/strategy-call-with-lyrisesivto9"
           className="inline-flex items-center gap-2 px-5 py-2.5 bg-gray-900 text-white text-sm font-semibold rounded-lg hover:bg-gray-700 transition-colors"
         >
           Book a 30-min call →
@@ -615,7 +615,7 @@ function SuccessView({ email, reportId, isEmployee }) {
               Want unlimited edits? Contact LyRise to refine your ROI strategy.
             </p>
             <a
-              href="https://calendly.com/elena-lyrise/30min"
+              href="https://api.leadconnectorhq.com/widget/bookings/strategy-call-with-lyrisesivto9"
               className="inline-flex items-center gap-2 px-4 py-2 bg-amber-600 text-white text-xs font-semibold rounded-lg hover:bg-amber-700 transition-colors"
             >
               Contact Sales →
