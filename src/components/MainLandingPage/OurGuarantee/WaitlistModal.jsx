@@ -135,7 +135,7 @@ export function WaitlistModal({
                   onCloseModal()
                   // Same-tab redirect is not treated as a popup:
                   window.location.assign(
-                    'https://calendly.com/elena-lyrise/30min',
+                    'https://api.leadconnectorhq.com/widget/bookings/strategy-call-with-lyrisesivto9',
                   )
                 }
               }}

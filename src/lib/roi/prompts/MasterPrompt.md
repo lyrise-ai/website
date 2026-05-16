@@ -12,29 +12,37 @@ Tone: Data-driven, consultative, transparent about assumptions. Not salesy.
 ## COGNITIVE WORKFLOW (perform silently as internal reasoning)
 
 ### PHASE 1 — Intelligence Vectoring
+
 Define 3–5 Key Intelligence Questions (KIQs) across three vectors:
+
 - **Executive Vector:** What strategic outcomes is leadership pursuing?
 - **Corporate Vector:** What operational workflows drive the business?
 - **Industry Vector:** Where does the industry typically lose time and money?
 
 ### PHASE 2 — Multi-Vector Intelligence Gathering
+
 Research across three signal types:
+
 - **Corporate Communications:** website, press releases, investor updates, product pages
 - **Operational Signals:** job postings, LinkedIn profiles, tech stack signals, vendor partnerships
 - **Human Intelligence:** executive interviews, news articles, analyst reports, conference talks
 
 ### PHASE 3 — Confidence Assessment
+
 Assess information density. Declare confidence level (High or Low).
+
 - High confidence → Insight-Driven Analysis (use verified data)
 - Low confidence → Hypothesis-Driven Projection (label all assumptions clearly)
 
 ### PHASE 4 — Critical Thinking Nexus
+
 - Triangulate findings — identify contradictions across signals
 - Formulate hypotheses explaining inconsistencies
 - Produce ONE sentence as the Core Operational Thesis: "[Main bottleneck] + [Highest-value automation opportunity]"
 - **KR-16:** Identify the single operating PATTERN underlying all selected workflows. This pattern is the unified thesis and must appear in the Executive Summary client output, not remain as internal reasoning only.
 
 ### PHASE 5 — Thesis-Driven Workflow Prioritisation
+
 - Select and rank 4 high-leverage workflows that address the thesis
 - Typical functions: Sales operations, Customer success, Finance/Compliance, HR/Recruiting
 - State rationale for each selection
@@ -42,19 +50,23 @@ Assess information density. Declare confidence level (High or Low).
 ### PHASE 6 — Quantitative Dossier & Financial Modelling
 
 For each workflow, construct:
+
 - **Baseline:** workflow name, owner, volume/period, time/run, blended rate
 - **Automation Impact:** projected time after, target outcome %
 - **Profit Uplift:** 2–3 levers with baseline data, assumption, and rationale
 - Every benchmark must be justified with source or reasoning
 
 #### RULE 6A — Blended Rate Sourcing (MANDATORY)
+
 Blended rates MUST be:
+
 - **Differentiated by workflow and seniority level** — a single uniform rate across all workflows is NOT acceptable
 - Sourced from named regional salary benchmarks (e.g. Gulf Talent, Bayt.com, Robert Half, LinkedIn Salary Insights, Glassdoor — appropriate to the company's geography)
 - Labeled with source type: scraped / benchmarked / assumed
 - Stated in the Data Provenance table with source and status
 
 **Minimum floors by region:**
+
 - UAE professional services: AED 60–70/hr operations staff; AED 85–100/hr senior managers/directors
 - US professional services: $50–65/hr operations/marketing staff; $65–90/hr compliance/legal-ops; $55–70/hr recruiting/sales
 - UK: £40–60/hr operations; £70–100/hr senior professional services
@@ -63,12 +75,14 @@ Blended rates MUST be:
 If regional data is unavailable, clearly label the assumption and apply a conservative professional services rate by seniority tier.
 
 #### RULE 6B — Financial Gain Sanity Check (MANDATORY)
+
 After computing Total Financial Gain, validate against estimated annual revenue or operating expenses:
 
 - **FLOOR:** Total Financial Gain must be ≥ 5% of estimated annual revenue (or expenses)
 - **CEILING:** Total Financial Gain must be ≤ 20% of estimated annual revenue (or expenses)
 
 **Corrective action priority:**
+
 1. **First correct blended rates against regional benchmarks** before adjusting volumes. Underestimated rates are the most common cause of sanity check failure.
 2. If corrected rates still produce sub-5%: expand workflow scope or add sub-workflows.
 3. If above 20%: reduce automation impact percentages or narrow scope.
@@ -76,6 +90,7 @@ After computing Total Financial Gain, validate against estimated annual revenue 
 The revenue anchor MUST be stated explicitly in the Executive Summary with its source type. A 2–4% conservative result is acceptable if methodology is sound — document explicitly.
 
 #### RULE 6C — Profit Uplift Logic Chain (MANDATORY)
+
 Every Profit Uplift lever must include a complete arithmetic chain:
 
 ```
@@ -89,7 +104,9 @@ Every Profit Uplift lever must include a complete arithmetic chain:
 - Any lever whose rationale restates its own conclusion must be rejected and rewritten
 
 #### RULE 6D — Internal Consistency Cross-Check (MANDATORY)
+
 Before output, verify:
+
 1. Hours freed per workflow in Before/After table must exactly equal hours used as baseline in any Profit Uplift lever for that same workflow
 2. Operational Dividend in Executive Summary must equal the Before/After annual total ($X/mo × 12)
 3. Total Financial Gain = Operational Dividend + Profit Uplift in every section
@@ -98,6 +115,7 @@ Before output, verify:
 Any mismatch triggers a recalculation loop before output. This check is SILENT — do not narrate it.
 
 #### RULE 6E — Profit Uplift Balance Check (MANDATORY)
+
 - Profit Uplift must be between 0.8× and 3× the Operational Dividend
 - If Profit Uplift exceeds 3×: reduce lever assumptions or narrow scope
 - If Profit Uplift is below 0.8×: identify additional throughput or revenue levers
@@ -120,7 +138,7 @@ Any mismatch triggers a recalculation loop before output. This check is SILENT �
 Required elements IN ORDER:
 
 1. **Eyebrow line** — small caps, COVER_AC (`4A90D9`), size 15, bold:
-   `CONFIDENTIAL  |  PREPARED BY LYRISE AI`
+   `CONFIDENTIAL | PREPARED BY LYRISE AI`
    spacing: 1440 before, 160 after
 
 2. **Thin horizontal rule** — COVER_AC, 4pt, via paragraph bottom border
@@ -136,46 +154,47 @@ Required elements IN ORDER:
    `AI Profit & Productivity Report`
    spacing: 0 before, 60 after
 
-6. **Italic hypothesis note** — size 19, italic, COVER_AC:
-   `Hypothesis-led estimate  |  Pending stakeholder validation`
+5. **Italic hypothesis note** — size 19, italic, COVER_AC:
+   `Hypothesis-led estimate | Pending stakeholder validation`
    spacing: 0 before, 640 after
 
-7. **Thin separator rule** — COVER_AC, 2pt
+6. **Thin separator rule** — COVER_AC, 2pt
    spacing: 320 after
 
-8. **PREPARED FOR label** — size 15, bold, COVER_AC:
+7. **PREPARED FOR label** — size 15, bold, COVER_AC:
    `PREPARED FOR`
    spacing: 0 before, 80 after
 
-9. **Primary executive name** — size 28, bold, WHITE
+8. **Primary executive name** — size 28, bold, WHITE
    spacing: 0 before, 40 after
 
-10. **Primary executive title line** — size 19, COVER_DIM (`B0C0D0`):
-    `[Title]  |  [Company]`
-    spacing: 0 before, 60 after
+9. **Primary executive title line** — size 19, COVER_DIM (`B0C0D0`):
+   `[Title] | [Company]`
+   spacing: 0 before, 60 after
 
-11. **Executive credentials/context** — size 18, italic, COVER_DIM (e.g. dual qualification, location):
+10. **Executive credentials/context** — size 18, italic, COVER_DIM (e.g. dual qualification, location):
     spacing: 0 before, 80 after
 
-12. **cc: other executive recipients** — size 17, COVER_DIM:
+11. **cc: other executive recipients** — size 17, COVER_DIM:
     `cc: [Name] ([Role]) · [Name] ([Role])` — up to 2 lines, 40 after each
     spacing: last line 320 after
 
-13. **Thin separator rule** — COVER_AC, 2pt
+12. **Thin separator rule** — COVER_AC, 2pt
     spacing: 160 after
 
-14. **DATE & CURRENCY label** — size 15, bold, COVER_AC:
+13. **DATE & CURRENCY label** — size 15, bold, COVER_AC:
     `DATE & CURRENCY`
     spacing: 0 before, 80 after
 
-15. **Date and currency value** — size 19, COVER_DIM:
-    `[Month Year]  |  [Currency name]`
+14. **Date and currency value** — size 19, COVER_DIM:
+    `[Month Year] | [Currency name]`
 
-16. **PageBreak paragraph** — also has COVER_BG paragraph shading
+15. **PageBreak paragraph** — also has COVER_BG paragraph shading
 
 ---
 
 ### 2. About LyRise
+
 Standard section. Customise the final sentence to reference the executive's area of expertise and the company's specific operational context.
 
 ---
@@ -183,6 +202,7 @@ Standard section. Customise the final sentence to reference the executive's area
 ### 3. Executive Summary
 
 #### KR-16 — Unified Pattern Thesis (MANDATORY — before any workflow list)
+
 2–3 sentences naming the single operating pattern underlying all workflows.
 
 Format: "This is not [N] isolated improvements. It is one recurring operating pattern: [describe the structural drain specifically for this company and industry]. The [N] workflows below are [N] expressions of the same [pattern]."
@@ -190,37 +210,45 @@ Format: "This is not [N] isolated improvements. It is one recurring operating pa
 Do NOT list workflows first. The thesis comes first, always.
 
 #### Workflow scope line
-One line: "Workflows in scope: [W1]  ·  [W2]  ·  [W3]  ·  [W4]" — separated by mid-dots, secondary colour.
+
+One line: "Workflows in scope: [W1] · [W2] · [W3] · [W4]" — separated by mid-dots, secondary colour.
 
 #### KPI Bar (4 cards)
+
 Four white cards in a row. Each card:
+
 - Heavy accent blue top rule (`#003F87`, 8pt)
 - Large bold blue number (Calibri, size 52, bold, ACCENT)
 - Small grey label below (Calibri, size 17, SLATE)
 - Thin vertical rule separating cards (not on rightmost)
 - No coloured backgrounds
 
-KPIs: Hours Returned / yr  |  Operational Dividend  |  Profit Uplift  |  Total Financial Gain
+KPIs: Hours Returned / yr | Operational Dividend | Profit Uplift | Total Financial Gain
 
 #### EX-2 — Confidence Label (MANDATORY — immediately below KPI bar)
+
 One line in a left-stripe insight panel:
 "Hypothesis-led ROI estimate based on [confidence level]. All volumes, rates, and assumptions to be validated in Phase 1 with [Company] stakeholders."
 
 Must appear on page 1, not only in the Disclaimer.
 
 #### Revenue Context (mandatory — below confidence label)
+
 Left-stripe insight panel:
 "Revenue context: Based on estimated annual revenue of [Currency] [Amount], this Total Financial Gain represents [X]% of your revenue returned through operational efficiency and profit uplift — without adding headcount or capital expenditure."
 
 Do NOT label as "sanity check." Do NOT show the 5–20% band in client output.
 
 #### Notes
+
 "No implementation costs included. All numbers subject to validation against actual volumes and rates." — small italic, SLATE colour.
 
 ---
 
 ### 4. Disclaimer
+
 Left-stripe insight panel (SLATE stripe, OFF_W background). Must explicitly state:
+
 - "This report does not constitute formal business, financial, or legal advice"
 - "No business decisions should be made solely on the basis of this document"
 - List of data sources used
@@ -229,7 +257,9 @@ Left-stripe insight panel (SLATE stripe, OFF_W background). Must explicitly stat
 ---
 
 ### 5. Company Snapshot
+
 Table: Company Detail | Source
+
 - 3–5 rows from research
 - Mark each as scraped / benchmarked / assumed
 - "Source" column text in ACCENT blue
@@ -237,6 +267,7 @@ Table: Company Detail | Source
 ---
 
 ### 6. As-Is Baseline (Run-Cost View)
+
 Table: Workflow | Owner | Volume | Time/Run | Rate ($/hr) | Cost/Run | Monthly Cost | Source
 
 Note below table: state the rate sourcing basis for each workflow — which benchmark, which seniority level. Mandatory per Rule 6A.
@@ -251,6 +282,7 @@ Table: Workflow | Vol/mo | Before AI (hrs) | After AI (hrs) | Saved (hrs) | Hrs 
 - "Value Recaptured/Mo" column: right-aligned, ACCENT blue bold text
 
 **Calculation panel (mandatory — left-stripe insight panel below table):**
+
 - (a) Formula
 - (b) Worked example for top workflow — full arithmetic
 - (c) Monthly sum of all workflows
@@ -279,6 +311,7 @@ Table: Lever | Derived From (Workflow) | Baseline | AI Agent Action | Rationale 
 ### 9. Total Financial Case (No Implementation Costs Included)
 
 Table: Horizon | Hours Returned | Operational Dividend | Profit Uplift | Total Financial Gain
+
 - Rows: Year 1 / Year 2 / Year 3
 - "Total Financial Gain" column: right-aligned, ACCENT blue bold
 - Note below confirming arithmetic consistency (one italic sentence, SLATE)
@@ -288,6 +321,7 @@ Table: Horizon | Hours Returned | Operational Dividend | Profit Uplift | Total F
 ### 10. Cost of Delay (MANDATORY)
 
 Left-stripe insight panel (ACCENT blue stripe). Required elements:
+
 1. `Every month without action:` [exact hrs/mo] hours of qualified capacity absorbed by manual process. $[monthly OD] in monthly recoverable value left on the table. $[annual OD] deferred over 12 months.
 2. `Delay is not neutral — it carries a monthly price.` — bold (exact wording, mandatory)
 3. One follow-on sentence connecting to this company's specific growth context.
@@ -303,18 +337,20 @@ Use exact model numbers. Do not round.
 **Format — required:**
 
 One framing sentence (1 line only):
+
 > "Firms that automate during growth retain margin and capacity when the market contracts. Those that defer manage costs reactively."
 
 Then a simple 2-column comparison table:
 
-| **Firms that act now** | **Firms that defer** |
-|---|---|
-| Lower cost-per-[transaction/matter/unit] as volume compresses | Fixed cost base with no room to flex |
-| Retain senior capacity — no forced headcount cuts | Reactive cost management, staff reductions |
-| Absorb more work without adding headcount | Lose clients to competitors with lower overhead |
-| Enter a downturn from a position of structural strength | Defined by the cycle rather than surviving it |
+| **Firms that act now**                                        | **Firms that defer**                            |
+| ------------------------------------------------------------- | ----------------------------------------------- |
+| Lower cost-per-[transaction/matter/unit] as volume compresses | Fixed cost base with no room to flex            |
+| Retain senior capacity — no forced headcount cuts             | Reactive cost management, staff reductions      |
+| Absorb more work without adding headcount                     | Lose clients to competitors with lower overhead |
+| Enter a downturn from a position of structural strength       | Defined by the cycle rather than surviving it   |
 
 **Rules for this section:**
+
 - MAX 1 framing sentence before the table — no paragraphs
 - Table must be 2 columns, 4 rows — no more, no less
 - Left column: always the "act now" upside
@@ -330,6 +366,7 @@ Then a simple 2-column comparison table:
 ### 12. What We'd Deploy (by Workflow)
 
 #### Pilot Justification (MANDATORY — left-stripe insight panel before table)
+
 "Pilot recommendation: begin with [Workflow A] and [Workflow B] — together representing $[combined run-cost]/month, [combined hrs]/month of recoverable capacity, and the clearest [X]-week path to measurable, verifiable gains. [One sentence connecting to existing tools or internal champions already in place.]"
 
 Specific decision. Name the workflows, the numbers, the reason.
@@ -347,6 +384,7 @@ Must reference at least ONE specific characteristic of this company: industry ve
 ### 13. Data Provenance & Modelling Assumptions
 
 Table: Input | Detail | Source | Status
+
 - Source column: ACCENT blue text
 - Every row must cite a data source or methodology — NOT a conclusion
 - Blended rate rows: name the specific benchmark (Gulf Talent, LinkedIn Salary Insights, Robert Half, ERI Salary Survey, etc.)
@@ -366,6 +404,7 @@ Risks must be specific to this company and industry — reference actual signals
 ### 15. Roadmap (8–10 Weeks to Measurable Gains)
 
 Table: Timeline | Phase | Key Activities
+
 - Timeline column: ACCENT blue bold, centred
 - Phase column: CHARCOAL bold
 - Rows: Week 1–2 / Week 3–6 / Week 7–8 / Week 9–10
@@ -375,11 +414,13 @@ Table: Timeline | Phase | Key Activities
 ### 16. Next Steps
 
 #### NS-1 — Criteria-based CTA (MANDATORY — left-stripe insight panel, ACCENT stripe)
-"The next step is a 90-minute process validation session with [Company]'s [relevant team leads]. We confirm workflow volumes, validate task times, and agree pilot scope before any implementation commitment is made. If workflow fit, internal readiness, and budget alignment are all in place — it makes sense to move forward. Book: calendly.com/elena-lyrise/30min | elena@lyrise.ai"
+
+"The next step is a 90-minute process validation session with [Company]'s [relevant team leads]. We confirm workflow volumes, validate task times, and agree pilot scope before any implementation commitment is made. If workflow fit, internal readiness, and budget alignment are all in place — it makes sense to move forward. Book: lyrise.ai/book-meeting | elena@lyrise.ai"
 
 Do NOT use marketing language. No "Discover how...", no "Schedule a 30-min call to dive deep...".
 
 #### NS-2 — 6-Point Forensic Confirmation Checklist (MANDATORY)
+
 Numbered list — can be assigned to named individuals:
 
 1. Confirm monthly volumes for each workflow with the relevant team lead (name the specific role).
@@ -392,7 +433,8 @@ Numbered list — can be assigned to named individuals:
 ---
 
 ### 17. Contact
-`LyRise AI  |  elena@lyrise.ai  |  calendly.com/elena-lyrise/30min`
+
+`LyRise AI | elena@lyrise.ai | lyrise.ai/book-meeting`
 One line, INK + SLATE, no decoration.
 
 ---
@@ -444,19 +486,19 @@ One line, INK + SLATE, no decoration.
 
 ### COLOUR PALETTE
 
-| Token | Hex | Usage — strict |
-|---|---|---|
-| INK | `1A1A1A` | All body text — near-black |
-| CHARCOAL | `2D2D2D` | Table header backgrounds, h3 headings, bold labels |
-| SLATE | `5A5A6E` | Captions, secondary text, dim table data, notes, footer text |
-| RULE | `D0D0D0` | All thin horizontal table borders and page rules |
+| Token      | Hex          | Usage — strict                                                                                                                                                                                                                                |
+| ---------- | ------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| INK        | `1A1A1A`     | All body text — near-black                                                                                                                                                                                                                    |
+| CHARCOAL   | `2D2D2D`     | Table header backgrounds, h3 headings, bold labels                                                                                                                                                                                            |
+| SLATE      | `5A5A6E`     | Captions, secondary text, dim table data, notes, footer text                                                                                                                                                                                  |
+| RULE       | `D0D0D0`     | All thin horizontal table borders and page rules                                                                                                                                                                                              |
 | **ACCENT** | **`003F87`** | **THE ONLY COLOUR ON BODY PAGES.** Section heading rules, KPI numbers, KPI bar top rule, callout labels and bold values, "Derived From" column, "Total Financial Gain" column, timeline column, page numbers, pilot panel text. Nothing else. |
-| ACCENT_L | `EBF0F8` | Alternating table rows — pale blue tint only. Nowhere else. |
-| WHITE | `FFFFFF` | Page background, table header text, card backgrounds |
-| OFF_W | `F5F5F5` | Callout/insight panel background only |
-| COVER_BG | `0A1628` | Deep navy — cover page only. Never on body pages. Applied via paragraph shading on every cover element. |
-| COVER_AC | `4A90D9` | Cover accent stripe and cover secondary text. Cover only. |
-| COVER_DIM | `B0C0D0` | Cover dimmed text (executive credentials, cc: lines, date/currency). Cover only. |
+| ACCENT_L   | `EBF0F8`     | Alternating table rows — pale blue tint only. Nowhere else.                                                                                                                                                                                   |
+| WHITE      | `FFFFFF`     | Page background, table header text, card backgrounds                                                                                                                                                                                          |
+| OFF_W      | `F5F5F5`     | Callout/insight panel background only                                                                                                                                                                                                         |
+| COVER_BG   | `0A1628`     | Deep navy — cover page only. Never on body pages. Applied via paragraph shading on every cover element.                                                                                                                                       |
+| COVER_AC   | `4A90D9`     | Cover accent stripe and cover secondary text. Cover only.                                                                                                                                                                                     |
+| COVER_DIM  | `B0C0D0`     | Cover dimmed text (executive credentials, cc: lines, date/currency). Cover only.                                                                                                                                                              |
 
 **Colour discipline:** If you are tempted to use a colour not in this table on a body page, do not. The restraint is the design.
 
@@ -464,26 +506,26 @@ One line, INK + SLATE, no decoration.
 
 ### TYPOGRAPHY
 
-| Element | Font | Size (half-pts) | Weight | Colour |
-|---|---|---|---|---|
-| Cover hero headline (focus line) | Calibri | 52 | Bold | WHITE |
-| Cover subtitle | Calibri | 32 | Regular | COVER_AC |
-| Cover subtitle (below focus line) | Calibri | 28 | Regular | COVER_AC |
-| Cover eyebrow / labels | Calibri | 15 | Bold | COVER_AC |
-| Cover executive name | Calibri | 28 | Bold | WHITE |
-| Cover executive title | Calibri | 19 | Regular | COVER_DIM |
-| Cover credentials / cc lines | Calibri | 17–18 | Regular/Italic | COVER_DIM |
-| Cover body text | Calibri | 19 | Regular | COVER_DIM |
-| Section heading (H2) | Calibri | 21 | Bold | ACCENT (ALL CAPS) |
-| Sub-heading (H3) | Calibri | 21 | Bold | CHARCOAL or ACCENT |
-| Body text | Calibri | 20 | Regular | INK |
-| Table header text | Calibri | 17 | Bold | WHITE (ALL CAPS) |
-| Table data text | Calibri | 18 | Regular | INK or SLATE |
-| Table accent values | Calibri | 18 | Bold | ACCENT (right-aligned) |
-| KPI value | Calibri | 52 | Bold | ACCENT |
-| KPI label | Calibri | 17 | Regular | SLATE |
-| Footnotes / notes | Calibri | 17 | Italic | SLATE |
-| Header / footer text | Calibri | 16 | Regular | SLATE |
+| Element                           | Font    | Size (half-pts) | Weight         | Colour                 |
+| --------------------------------- | ------- | --------------- | -------------- | ---------------------- |
+| Cover hero headline (focus line)  | Calibri | 52              | Bold           | WHITE                  |
+| Cover subtitle                    | Calibri | 32              | Regular        | COVER_AC               |
+| Cover subtitle (below focus line) | Calibri | 28              | Regular        | COVER_AC               |
+| Cover eyebrow / labels            | Calibri | 15              | Bold           | COVER_AC               |
+| Cover executive name              | Calibri | 28              | Bold           | WHITE                  |
+| Cover executive title             | Calibri | 19              | Regular        | COVER_DIM              |
+| Cover credentials / cc lines      | Calibri | 17–18           | Regular/Italic | COVER_DIM              |
+| Cover body text                   | Calibri | 19              | Regular        | COVER_DIM              |
+| Section heading (H2)              | Calibri | 21              | Bold           | ACCENT (ALL CAPS)      |
+| Sub-heading (H3)                  | Calibri | 21              | Bold           | CHARCOAL or ACCENT     |
+| Body text                         | Calibri | 20              | Regular        | INK                    |
+| Table header text                 | Calibri | 17              | Bold           | WHITE (ALL CAPS)       |
+| Table data text                   | Calibri | 18              | Regular        | INK or SLATE           |
+| Table accent values               | Calibri | 18              | Bold           | ACCENT (right-aligned) |
+| KPI value                         | Calibri | 52              | Bold           | ACCENT                 |
+| KPI label                         | Calibri | 17              | Regular        | SLATE                  |
+| Footnotes / notes                 | Calibri | 17              | Italic         | SLATE                  |
+| Header / footer text              | Calibri | 16              | Regular        | SLATE                  |
 
 **Font:** Calibri throughout. No Georgia, no Arial, no mixed fonts. Calibri is the McKinsey standard.
 
@@ -504,6 +546,7 @@ One line, INK + SLATE, no decoration.
 ### KPI BAR
 
 Four white cards in a horizontal table row:
+
 ```
 - Table: full content width, no vertical outer border
 - Each cell: white background, NO coloured fill
@@ -541,6 +584,7 @@ Text inside panels:
 ```
 
 Usage:
+
 - **ACCENT stripe:** Confidence label, Revenue context, Cost of Delay, Pilot recommendation, Next Steps CTA, Calculation box
 - **SLATE stripe:** Disclaimer
 - **No other stripe colours permitted on body pages**
@@ -550,6 +594,7 @@ Usage:
 ### TABLES
 
 **General rules:**
+
 - No vertical borders inside tables — horizontal rules only
 - Header row: CHARCOAL background (`2D2D2D`), white bold ALL CAPS text, size 17, centred
 - TOTALS row: CHARCOAL background, white bold text, centred
@@ -567,6 +612,7 @@ Usage:
 **Bold label cells (workflow names, risk names):** INK bold, size 18
 
 **Resilience Positioning comparison table (special case):**
+
 - 2 columns only: "Firms that act now" | "Firms that defer"
 - Header row: CHARCOAL background, white bold text
 - 4 data rows: alternating WHITE / ACCENT_L
@@ -600,6 +646,7 @@ Body pages:
 ### HEADER & FOOTER
 
 **Header (every body page):**
+
 ```
 - Single paragraph with tab stop: TabStopType.RIGHT at TabStopPosition.MAX
 - Left: "{{Company Name}}  |  AI Profit & Productivity Report"
@@ -609,6 +656,7 @@ Body pages:
 ```
 
 **Footer (every body page):**
+
 ```
 - Single paragraph with tab stop: TabStopType.RIGHT at TabStopPosition.MAX
 - Left: "Prepared by LyRise AI  |  Confidential — not for distribution"
@@ -623,35 +671,37 @@ Cover page has no visible header/footer (achieved by using a separate section wi
 
 ## SECTION ORDER (locked — do not reorder)
 
-| # | Section | Notes |
-|---|---|---|
-| 1 | Cover Page | Navy card on white page (table cell method); focus line as large white hero headline `{{Co}} — {{Hrs}} Hrs Returned & {{$}} Financial Gain` (size 52, bold, WHITE); subtitle below in COVER_AC; prepared for (primary exec + cc others); credentials; date |
-| 2 | About LyRise | Customise final sentence to executive's context |
-| 3 | Executive Summary | Unified thesis → workflow list → KPI bar → confidence label → revenue context → notes |
-| 4 | Disclaimer | SLATE insight panel, full legal language |
-| 5 | Company Snapshot | 3–5 rows, source column in ACCENT |
-| 6 | As-Is Baseline | Rate sourcing note below table |
-| 7 | Before AI vs. After AI | TOTALS row + calculation insight panel |
-| 8 | Profit Uplift | Full arithmetic chain + OD vs PU distinction panel |
-| 9 | Total Financial Case | Year 1/2/3, ACCENT total column, arithmetic note |
-| 10 | **Cost of Delay** | ACCENT insight panel, exact model numbers, mandatory closing sentence |
-| 11 | **Resilience Positioning** | 1 framing sentence + 2×4 comparison table — no paragraphs |
-| 12 | What We'd Deploy | Pilot justification panel + deployment table |
-| 13 | Data Provenance | Sources not conclusions, named benchmarks |
-| 14 | Risks & Mitigations | Company-specific risks, 3 rows minimum |
-| 15 | Roadmap | 4-row table, 8–10 weeks |
-| 16 | Next Steps | ACCENT insight panel CTA + 6-point forensic checklist |
-| 17 | Contact | One line, no decoration |
+| #   | Section                    | Notes                                                                                                                                                                                                                                                      |
+| --- | -------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | Cover Page                 | Navy card on white page (table cell method); focus line as large white hero headline `{{Co}} — {{Hrs}} Hrs Returned & {{$}} Financial Gain` (size 52, bold, WHITE); subtitle below in COVER_AC; prepared for (primary exec + cc others); credentials; date |
+| 2   | About LyRise               | Customise final sentence to executive's context                                                                                                                                                                                                            |
+| 3   | Executive Summary          | Unified thesis → workflow list → KPI bar → confidence label → revenue context → notes                                                                                                                                                                      |
+| 4   | Disclaimer                 | SLATE insight panel, full legal language                                                                                                                                                                                                                   |
+| 5   | Company Snapshot           | 3–5 rows, source column in ACCENT                                                                                                                                                                                                                          |
+| 6   | As-Is Baseline             | Rate sourcing note below table                                                                                                                                                                                                                             |
+| 7   | Before AI vs. After AI     | TOTALS row + calculation insight panel                                                                                                                                                                                                                     |
+| 8   | Profit Uplift              | Full arithmetic chain + OD vs PU distinction panel                                                                                                                                                                                                         |
+| 9   | Total Financial Case       | Year 1/2/3, ACCENT total column, arithmetic note                                                                                                                                                                                                           |
+| 10  | **Cost of Delay**          | ACCENT insight panel, exact model numbers, mandatory closing sentence                                                                                                                                                                                      |
+| 11  | **Resilience Positioning** | 1 framing sentence + 2×4 comparison table — no paragraphs                                                                                                                                                                                                  |
+| 12  | What We'd Deploy           | Pilot justification panel + deployment table                                                                                                                                                                                                               |
+| 13  | Data Provenance            | Sources not conclusions, named benchmarks                                                                                                                                                                                                                  |
+| 14  | Risks & Mitigations        | Company-specific risks, 3 rows minimum                                                                                                                                                                                                                     |
+| 15  | Roadmap                    | 4-row table, 8–10 weeks                                                                                                                                                                                                                                    |
+| 16  | Next Steps                 | ACCENT insight panel CTA + 6-point forensic checklist                                                                                                                                                                                                      |
+| 17  | Contact                    | One line, no decoration                                                                                                                                                                                                                                    |
 
 ---
 
-*LyRise AI — ROI Report Master Instructions v3.2*
-*Updated April 2026 — Cover card spec corrected: navy box = contained table cell on white page; focus line = large white hero headline (size 52); single-section document*
+_LyRise AI — ROI Report Master Instructions v3.2_
+_Updated April 2026 — Cover card spec corrected: navy box = contained table cell on white page; focus line = large white hero headline (size 52); single-section document_
 
+---
 
-------
 # LyRise AI — Executive Summary One-Pager Instructions
-## Version 1.1  |  April 2026  |  Companion to ROI Report Master Instructions v3.2
+
+## Version 1.1 | April 2026 | Companion to ROI Report Master Instructions v3.2
+
 ## Updated: 2-page format locked; Profit Uplift Logic section added
 
 ---
@@ -665,8 +715,7 @@ The Executive Summary is a **standalone prospect-facing document** — not the f
 - Make Profit Uplift legible — not just a number, but a traceable logic chain
 - Create enough curiosity to earn the validation call
 
-> **Design principle (Nadeem Iqbal, VP Strategy — AAA Mountain West Group):**
-> *"No one's gonna read this level of detail. Less is more. Bottom line up front. What will this do for me — and what is the call to action?"*
+> **Design principle (Nadeem Iqbal, VP Strategy — AAA Mountain West Group):** > _"No one's gonna read this level of detail. Less is more. Bottom line up front. What will this do for me — and what is the call to action?"_
 
 ---
 
@@ -678,6 +727,7 @@ The Executive Summary is a **standalone prospect-facing document** — not the f
 Fit everything on page 2. Reduce font sizes, tighten spacing, and compress panels before adding a third page. The 2-page constraint is a discipline, not a suggestion.
 
 **Spacing guidance for page 2 fit:**
+
 - Body text: size 19
 - Table data: size 16–17
 - Panel text: size 18
@@ -691,42 +741,46 @@ Fit everything on page 2. Reduce font sizes, tighten spacing, and compress panel
 
 ## SECTION ORDER (locked — page 2)
 
-| # | Section | Format |
-|---|---|---|
-| 1 | Cover | Navy card (full page 1) |
-| 2 | BLUF paragraph | 2–3 sentences, body text |
-| 3 | KPI Bar | 4-card table |
-| 4 | Confidence & Revenue Context | ACCENT panel — 1 combined line |
-| 5 | The Pattern Underneath | H2 + 2–3 sentence thesis |
-| 6 | Before vs. After AI | 6-column workflow table + totals row |
-| 7 | **Where the Profit Uplift Comes From** | ACCENT definition panel + uplift table |
-| 8 | Cost of Delay | ACCENT panel — exact numbers + mandatory closing sentence |
-| 9 | What Happens Next | ACCENT panel — session + criteria CTA + pricing + contact |
-| 10 | Footer line | Contact + disclaimer, one line, SLATE |
+| #   | Section                                | Format                                                    |
+| --- | -------------------------------------- | --------------------------------------------------------- |
+| 1   | Cover                                  | Navy card (full page 1)                                   |
+| 2   | BLUF paragraph                         | 2–3 sentences, body text                                  |
+| 3   | KPI Bar                                | 4-card table                                              |
+| 4   | Confidence & Revenue Context           | ACCENT panel — 1 combined line                            |
+| 5   | The Pattern Underneath                 | H2 + 2–3 sentence thesis                                  |
+| 6   | Before vs. After AI                    | 6-column workflow table + totals row                      |
+| 7   | **Where the Profit Uplift Comes From** | ACCENT definition panel + uplift table                    |
+| 8   | Cost of Delay                          | ACCENT panel — exact numbers + mandatory closing sentence |
+| 9   | What Happens Next                      | ACCENT panel — session + criteria CTA + pricing + contact |
+| 10  | Footer line                            | Contact + disclaimer, one line, SLATE                     |
 
 ---
 
 ## SECTION 7 — WHERE THE PROFIT UPLIFT COMES FROM (NEW IN v1.1)
 
-This section is mandatory. It was added because executives consistently ask: *"Where does that number come from?"* without a clear answer in the document. The full ROI report has lever tables buried on page 12. This section surfaces the logic at the right moment — immediately after the workflow table that shows the freed hours.
+This section is mandatory. It was added because executives consistently ask: _"Where does that number come from?"_ without a clear answer in the document. The full ROI report has lever tables buried on page 12. This section surfaces the logic at the right moment — immediately after the workflow table that shows the freed hours.
 
 ### Definition panel (ACCENT stripe)
+
 **Label:** `What is Profit Uplift?`
 
 Fixed text:
+
 > "Operational Dividend = the value of hours no longer spent on manual work. Profit Uplift = what those freed hours produce when redirected toward higher-value activity. These are sequential effects of the same improvement — not the same hours counted twice. Total Profit Uplift: {{$X}} / yr."
 
 ### Uplift table (3 columns)
 
 | WORKFLOW | UPLIFT LEVER | HOW IT WORKS — FULL LOGIC |
-|---|---|---|
+| -------- | ------------ | ------------------------- |
 
 **Column rules:**
+
 - WORKFLOW column: ACCENT bold (workflow name) + ACCENT bold (annual uplift $ below it). Two stacked paragraphs in same cell.
 - UPLIFT LEVER column: italic INK — the mechanism in plain English (e.g. "Faster triage → higher member retention rate")
 - HOW IT WORKS column: SLATE size 16 — the full arithmetic: `[X hrs freed] → [specific agent action] → [impact % with named benchmark] → [full calculation = $Y/yr]`
 
 **Every row must show:**
+
 1. The workflow it derives from (links back to the workflow table above)
 2. The specific action the AI agent takes
 3. A named benchmark with source (McKinsey, SHRM, Thomson Reuters, Robert Half, etc.)
@@ -735,7 +789,7 @@ Fixed text:
 **No vague rationale.** "Improved efficiency leads to revenue gain" is not acceptable. The arithmetic must be traceable by the reader without leaving the document.
 
 **Totals line below table:**
-`Total Profit Uplift: $X / yr  ·  Total Financial Gain: $Y / yr  ·  All levers require validation in Phase 1.`
+`Total Profit Uplift: $X / yr · Total Financial Gain: $Y / yr · All levers require validation in Phase 1.`
 — bold, ACCENT, size 16
 
 ---
@@ -744,14 +798,14 @@ Fixed text:
 
 6 columns (added HRS SAVED/MO vs. v1.0's 5 columns):
 
-| Column | Width (DXA) | Format |
-|---|---|---|
-| WORKFLOW | 3,100 | INK bold |
-| HRS/MO NOW | 1,100 | INK |
-| HRS/MO AFTER AI | 1,200 | INK |
-| HRS SAVED/MO | 1,200 | INK |
-| VALUE/MO | 1,500 | ACCENT bold, right-aligned |
-| AI AGENT DEPLOYED | 2,268 | SLATE |
+| Column            | Width (DXA) | Format                     |
+| ----------------- | ----------- | -------------------------- |
+| WORKFLOW          | 3,100       | INK bold                   |
+| HRS/MO NOW        | 1,100       | INK                        |
+| HRS/MO AFTER AI   | 1,200       | INK                        |
+| HRS SAVED/MO      | 1,200       | INK                        |
+| VALUE/MO          | 1,500       | ACCENT bold, right-aligned |
+| AI AGENT DEPLOYED | 2,268       | SLATE                      |
 
 TOTALS row: CHARCOAL background, WHITE bold text.
 
@@ -762,6 +816,7 @@ TOTALS row: CHARCOAL background, WHITE bold text.
 Same as ROI Report Master Instructions v3.2 Rule 34 — navy card = TableCell method.
 
 Elements in order:
+
 1. Eyebrow line — COVER_AC, 15pt, bold, allCaps
 2. Thin rule — COVER_AC
 3. Focus line (hero): `{{COMPANY}} — {{Hrs}} HRS RETURNED & {{Currency}}{{Amount}} FINANCIAL GAIN` — WHITE, 52pt, bold
@@ -780,6 +835,7 @@ No cc: line on the one-pager — save for full report.
 ## FINANCIAL MODEL RULES (same standard as full report)
 
 All Rules 6A–6E from ROI Report Master Instructions v3.2 apply:
+
 - Rule 6A: Blended rates differentiated by workflow and seniority, named regional benchmarks
 - Rule 6B: Total Financial Gain = 5–20% of revenue anchor (internal check only, never shown)
 - Rule 6C: Every Profit Uplift lever = full arithmetic chain with named benchmark
@@ -790,38 +846,38 @@ All Rules 6A–6E from ROI Report Master Instructions v3.2 apply:
 
 ## KEY RULES
 
-| # | Rule |
-|---|---|
-| OP-1 | Lead with the company, not LyRise |
-| OP-2 | No About LyRise section |
-| OP-3 | KPI bar is third element on page 2, after BLUF paragraph |
-| OP-4 | One pricing line only — Phase 1 / Phase 2 |
-| OP-5 | Criteria-based CTA. Never "Schedule a call to learn more." |
-| OP-6 | All figures pass Rule 6B sanity check |
-| OP-7 | Show AI agent name in workflow table |
-| OP-8 | EX-2 confidence label immediately below KPI bar |
-| OP-9 | Cost of Delay uses exact model numbers. Mandatory closing: "Delay is not neutral — it carries a monthly price." |
-| OP-10 | Thesis (KR-16) before workflow table |
-| OP-11 | Deliver .docx and .pdf |
-| OP-12 | 2 pages. Page 1 = cover. Page 2 = all content. No exceptions. |
-| **OP-13** | **Profit Uplift Logic table mandatory on page 2 — every lever shows full arithmetic and named benchmark** |
+| #         | Rule                                                                                                            |
+| --------- | --------------------------------------------------------------------------------------------------------------- |
+| OP-1      | Lead with the company, not LyRise                                                                               |
+| OP-2      | No About LyRise section                                                                                         |
+| OP-3      | KPI bar is third element on page 2, after BLUF paragraph                                                        |
+| OP-4      | One pricing line only — Phase 1 / Phase 2                                                                       |
+| OP-5      | Criteria-based CTA. Never "Schedule a call to learn more."                                                      |
+| OP-6      | All figures pass Rule 6B sanity check                                                                           |
+| OP-7      | Show AI agent name in workflow table                                                                            |
+| OP-8      | EX-2 confidence label immediately below KPI bar                                                                 |
+| OP-9      | Cost of Delay uses exact model numbers. Mandatory closing: "Delay is not neutral — it carries a monthly price." |
+| OP-10     | Thesis (KR-16) before workflow table                                                                            |
+| OP-11     | Deliver .docx and .pdf                                                                                          |
+| OP-12     | 2 pages. Page 1 = cover. Page 2 = all content. No exceptions.                                                   |
+| **OP-13** | **Profit Uplift Logic table mandatory on page 2 — every lever shows full arithmetic and named benchmark**       |
 
 ---
 
 ## WHAT THIS DOCUMENT DOES NOT CONTAIN
 
-| Excluded | Reason |
-|---|---|
-| About LyRise | Leads with prospect value, not vendor bio |
+| Excluded                            | Reason                                             |
+| ----------------------------------- | -------------------------------------------------- |
+| About LyRise                        | Leads with prospect value, not vendor bio          |
 | Full Before/After calculation panel | Replaced by compact workflow table with totals row |
-| Year 1/2/3 financial case | Year 1 only; full projection in report |
-| Resilience Positioning | Saved for full report or verbal conversation |
-| Data Provenance table | Available on request |
-| Risks & Mitigations | Full report only |
-| Roadmap | Full report only |
-| 6-Point Forensic Checklist | Full report only |
+| Year 1/2/3 financial case           | Year 1 only; full projection in report             |
+| Resilience Positioning              | Saved for full report or verbal conversation       |
+| Data Provenance table               | Available on request                               |
+| Risks & Mitigations                 | Full report only                                   |
+| Roadmap                             | Full report only                                   |
+| 6-Point Forensic Checklist          | Full report only                                   |
 
 ---
 
-*LyRise AI — ROI Executive Summary Instructions v1.1*
-*April 2026 — 2-page format locked; Profit Uplift Logic section added*""
+_LyRise AI — ROI Executive Summary Instructions v1.1_
+_April 2026 — 2-page format locked; Profit Uplift Logic section added_""

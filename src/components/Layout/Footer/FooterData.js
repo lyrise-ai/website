@@ -11,7 +11,7 @@ export const footerLinksOne = [
   },
   {
     id: 2,
-    href: 'https://calendly.com/elena-lyrise/30min',
+    href: 'https://api.leadconnectorhq.com/widget/bookings/strategy-call-with-lyrisesivto9',
     text: 'Book A Meeting',
   },
 ]

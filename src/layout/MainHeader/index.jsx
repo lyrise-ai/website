@@ -12,7 +12,7 @@ const BUTTONS = [
   {
     id: 'btn_0',
     label: 'Get your AI Agent',
-    path: 'https://calendly.com/elena-lyrise/30min',
+    path: 'https://api.leadconnectorhq.com/widget/bookings/strategy-call-with-lyrisesivto9',
   },
 ]
 
