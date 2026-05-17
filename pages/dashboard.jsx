@@ -42,6 +42,29 @@ function StatusBadge({ status }) {
   )
 }
 
+function RoleBadge({ role }) {
+  const isEmployee = role === 'EMPLOYEE'
+  return (
+    <span
+      className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold ${
+        isEmployee ? 'bg-blue-50 text-blue-700' : 'bg-gray-100 text-gray-500'
+      }`}
+    >
+      {isEmployee ? 'Employee' : 'Client'}
+    </span>
+  )
+}
+
+// Tags each report with the requesting user's role. Only @lyrise.ai addresses
+// count as employees; everyone else (including external client domains) is a
+// client, regardless of how their account role is stored.
+function withRequesterRole(reports) {
+  return (reports ?? []).map((r) => ({
+    ...r,
+    requester_role: r.email?.endsWith('@lyrise.ai') ? 'EMPLOYEE' : 'CLIENT',
+  }))
+}
+
 function formatDate(iso) {
   if (!iso) return '—'
   return new Date(iso).toLocaleDateString('en-GB', {
@@ -114,7 +137,7 @@ export async function getServerSideProps({ req, res }) {
           name: user.user_metadata?.full_name ?? null,
         },
         isEmployee,
-        reports: reports ?? [],
+        reports: withRequesterRole(reports),
         reportsThisWeek,
         users: [],
         recentEvents: [],
@@ -167,7 +190,7 @@ export async function getServerSideProps({ req, res }) {
       user: { email: user.email, name: user.user_metadata?.full_name ?? null },
       isEmployee,
       userId: user.id,
-      reports: reports ?? [],
+      reports: withRequesterRole(reports),
       reportsThisWeek,
       users: usersWithStats,
       recentEvents,
@@ -202,6 +225,12 @@ export default function Dashboard({
     const supabase = createBrowserClient()
     await supabase.auth.signOut()
     router.replace('/login')
+  }
+
+  const goToReport = (id) => {
+    if (navigatingId) return
+    setNavigatingId(id)
+    router.push(`/report/${id}`)
   }
 
   const handleDelete = async (id) => {
@@ -319,7 +348,11 @@ export default function Dashboard({
                       Company
                     </th>
                     <th className="font-outfit font-semibold text-[11px] uppercase tracking-wider text-gray-400 text-left px-6 py-3.5">
-                      Email
+                      Requested By
+                    </th>
+                    {/* pl offset (px-6 + badge's px-2.5) aligns the header with the badge text */}
+                    <th className="font-outfit font-semibold text-[11px] uppercase tracking-wider text-gray-400 text-left pl-[34px] pr-6 py-3.5">
+                      Role
                     </th>
                     <th className="font-outfit font-semibold text-[11px] uppercase tracking-wider text-gray-400 text-left px-6 py-3.5">
                       Status
@@ -337,11 +370,6 @@ export default function Dashboard({
                       return (
                         <tr
                           key={r.id}
-                          onClick={() => {
-                            if (!clickable || navigatingId) return
-                            setNavigatingId(r.id)
-                            router.push(`/report/${r.id}`)
-                          }}
                           className={`${
                             i <
                             (activeTab === 'My Reports' ? myReports : reports)
@@ -349,11 +377,7 @@ export default function Dashboard({
                               1
                               ? 'border-b border-gray-50'
                               : ''
-                          } hover:bg-gray-50 transition-colors ${
-                            clickable && !navigatingId
-                              ? 'cursor-pointer'
-                              : 'cursor-default'
-                          }`}
+                          } hover:bg-gray-50 transition-colors`}
                         >
                           <td className="font-outfit font-medium text-[#2C2C2C] px-6 py-4">
                             {r.company_name || '—'}
@@ -362,15 +386,15 @@ export default function Dashboard({
                             {r.email || '—'}
                           </td>
                           <td className="px-6 py-4">
+                            <RoleBadge role={r.requester_role} />
+                          </td>
+                          <td className="px-6 py-4">
                             <StatusBadge status={r.status} />
                           </td>
                           <td className="font-outfit text-gray-400 px-6 py-4">
                             {formatDate(r.created_at)}
                           </td>
-                          <td
-                            className="px-6 py-4 text-right"
-                            onClick={(e) => e.stopPropagation()}
-                          >
+                          <td className="px-6 py-4 text-right">
                             <div className="flex items-center justify-end gap-3">
                               {clickable &&
                                 (navigatingId === r.id ? (
@@ -387,9 +411,13 @@ export default function Dashboard({
                                     }}
                                   />
                                 ) : (
-                                  <span className="font-outfit text-xs font-semibold text-[#2957FF]">
+                                  <button
+                                    type="button"
+                                    onClick={() => goToReport(r.id)}
+                                    className="font-outfit text-xs font-semibold text-[#2957FF] hover:underline cursor-pointer"
+                                  >
                                     View →
-                                  </span>
+                                  </button>
                                 ))}
                               {isEmployee &&
                                 (confirmingId === r.id ? (
@@ -478,15 +506,13 @@ export default function Dashboard({
                         {u.email}
                       </td>
                       <td className="px-6 py-4">
-                        <span
-                          className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold ${
-                            u.role === 'EMPLOYEE'
-                              ? 'bg-blue-50 text-blue-700'
-                              : 'bg-gray-100 text-gray-500'
-                          }`}
-                        >
-                          {u.role ?? 'CLIENT'}
-                        </span>
+                        <RoleBadge
+                          role={
+                            u.email?.endsWith('@lyrise.ai')
+                              ? 'EMPLOYEE'
+                              : 'CLIENT'
+                          }
+                        />
                       </td>
                       <td className="font-outfit text-gray-500 px-6 py-4">
                         {u.report_count}
