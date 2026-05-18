@@ -1856,6 +1856,9 @@ export async function runReportAgent(params: {
   templateHtml: string
   fullTemplateHtml: string
   estimatesOnly?: boolean
+  // Aborts the streamText loop when the caller (e.g. an HTTP client) goes away,
+  // so we stop burning tokens on a report nobody is waiting on.
+  abortSignal?: AbortSignal
 }): Promise<void> {
   const {
     mode,
@@ -1866,6 +1869,7 @@ export async function runReportAgent(params: {
     templateHtml,
     fullTemplateHtml,
     estimatesOnly = false,
+    abortSignal,
   } = params
 
   const company = state.normInput?.companyName ?? 'unknown'
@@ -1947,21 +1951,36 @@ ${
     messages,
     tools,
     stopWhen: stepCountIs(mode === 'generate' ? 24 : 8),
+    abortSignal,
   })
 
-  for await (const part of result.fullStream) {
-    if (part.type === 'text-delta') {
-      callbacks.onTextDelta(part.text)
-    } else if (part.type === 'tool-call') {
-      callbacks.onToolStart(part.toolName)
-    } else if (part.type === 'error') {
-      callbacks.onError(
-        part.error instanceof Error
-          ? part.error
-          : new Error(String(part.error)),
-      )
+  try {
+    for await (const part of result.fullStream) {
+      if (part.type === 'text-delta') {
+        callbacks.onTextDelta(part.text)
+      } else if (part.type === 'tool-call') {
+        callbacks.onToolStart(part.toolName)
+      } else if (part.type === 'error') {
+        // An abort surfaces here as an error part — treat it as a clean stop,
+        // not a generation failure, so the caller doesn't persist/email it.
+        if (abortSignal?.aborted) {
+          roiWarn('agent', '⏹ runReportAgent aborted — caller disconnected')
+          return
+        }
+        callbacks.onError(
+          part.error instanceof Error
+            ? part.error
+            : new Error(String(part.error)),
+        )
+        return
+      }
+    }
+  } catch (err) {
+    if (abortSignal?.aborted) {
+      roiWarn('agent', '⏹ runReportAgent aborted — caller disconnected')
       return
     }
+    throw err
   }
 
   const response = await result.response

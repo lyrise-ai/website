@@ -35,6 +35,8 @@ export const config = {
 const IS_DEV = process.env.NODE_ENV === 'development'
 
 function send(res, event) {
+  // Once the connection is closed, writing throws (EPIPE) — silently drop.
+  if (res.writableEnded || res.destroyed) return
   res.write(`data: ${JSON.stringify(event)}\n\n`)
   if (typeof res.flush === 'function') res.flush()
 }
@@ -237,6 +239,22 @@ export default async function handler(req, res) {
   res.setHeader('Connection', 'keep-alive')
   res.setHeader('X-Accel-Buffering', 'no')
 
+  // ── Client-disconnect handling ─────────────────────────────────────────────
+  // If the browser tab closes, navigates away, or the landing page crashes
+  // mid-stream, the underlying connection drops. Without this the agent keeps
+  // burning tokens and still fires the PDF/email side effects for a report
+  // nobody is waiting on. Abort the agent loop and skip the email when the
+  // client goes away — already-saved reports stay accessible from the
+  // dashboard, and an employee can still email them manually.
+  const abortController = new AbortController()
+  let clientDisconnected = false
+  res.on('close', () => {
+    if (res.writableEnded) return // normal completion, not a disconnect
+    clientDisconnected = true
+    abortController.abort()
+    console.warn('[roi-agent] client disconnected — aborting agent run')
+  })
+
   try {
     const execTemplateHtml = loadTemplate('roi-exec-template.html')
     const fullTemplateHtml = loadTemplate('roi-template.html')
@@ -298,6 +316,7 @@ export default async function handler(req, res) {
       templateHtml: execTemplateHtml,
       fullTemplateHtml,
       estimatesOnly: Boolean(devOptions?.estimatesOnly),
+      abortSignal: abortController.signal,
       callbacks: {
         onTextDelta: (delta) => send(res, { type: 'text_delta', delta }),
         onToolStart: (tool) => send(res, { type: 'tool_start', tool }),
@@ -468,9 +487,18 @@ export default async function handler(req, res) {
       }
     }
 
-    // Fire-and-forget PDF + email after generation
+    // Fire-and-forget PDF + email after generation.
+    // Skip when the client has disconnected: the report is still saved above
+    // and reachable from the dashboard, but we don't auto-email a company a
+    // report whose request was abandoned.
+    if (clientDisconnected && mode === 'generate' && state.assembled) {
+      console.warn(
+        '[roi-agent] client gone — report saved but skipping PDF/email',
+      )
+    }
     if (
       !IS_DEV &&
+      !clientDisconnected &&
       mode === 'generate' &&
       state.assembled &&
       state.renderedHtml &&
