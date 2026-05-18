@@ -55,14 +55,23 @@ function RoleBadge({ role }) {
   )
 }
 
-// Tags each report with the requesting user's role. Only @lyrise.ai addresses
-// count as employees; everyone else (including external client domains) is a
-// client, regardless of how their account role is stored.
-function withRequesterRole(reports) {
-  return (reports ?? []).map((r) => ({
-    ...r,
-    requester_role: r.email?.endsWith('@lyrise.ai') ? 'EMPLOYEE' : 'CLIENT',
-  }))
+// Tags each report with the email + role of the user who actually requested
+// it. The requester is the authenticated account that submitted the request
+// (resolved via user_id) — for bulk uploads that is the LyRise employee who
+// uploaded the CSV, NOT the company contact in reports.email the report is
+// addressed to. Showing reports.email here made employee bulk runs look like
+// self-service client requests. Only @lyrise.ai addresses count as employees.
+function withRequester(reports, requesterEmailFor) {
+  return (reports ?? []).map((r) => {
+    const requesterEmail = requesterEmailFor(r) ?? r.email ?? null
+    return {
+      ...r,
+      requester_email: requesterEmail,
+      requester_role: requesterEmail?.endsWith('@lyrise.ai')
+        ? 'EMPLOYEE'
+        : 'CLIENT',
+    }
+  })
 }
 
 function formatDate(iso) {
@@ -137,7 +146,7 @@ export async function getServerSideProps({ req, res }) {
           name: user.user_metadata?.full_name ?? null,
         },
         isEmployee,
-        reports: withRequesterRole(reports),
+        reports: withRequester(reports, () => user.email),
         reportsThisWeek,
         users: [],
         recentEvents: [],
@@ -190,7 +199,7 @@ export async function getServerSideProps({ req, res }) {
       user: { email: user.email, name: user.user_metadata?.full_name ?? null },
       isEmployee,
       userId: user.id,
-      reports: withRequesterRole(reports),
+      reports: withRequester(reports, (r) => userEmailById[r.user_id]),
       reportsThisWeek,
       users: usersWithStats,
       recentEvents,
@@ -383,7 +392,7 @@ export default function Dashboard({
                             {r.company_name || '—'}
                           </td>
                           <td className="font-outfit text-gray-500 px-6 py-4">
-                            {r.email || '—'}
+                            {r.requester_email || '—'}
                           </td>
                           <td className="px-6 py-4">
                             <RoleBadge role={r.requester_role} />
