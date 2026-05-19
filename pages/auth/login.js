@@ -71,11 +71,12 @@ export default function Login() {
         return
       }
 
-      if (data.role === 'EMPLOYEE') {
-        router.push('/dashboard')
-      } else if (data.role === 'CLIENT') {
-        router.push('/roi-report')
-      }
+      // if (data.role === 'EMPLOYEE') {
+      //   router.push('/dashboard')
+      // } else if (data.role === 'CLIENT') {
+      //   router.push('/roi-report')
+      // }
+      router.push('/dashboard')
     } catch {
       setError('Something went wrong. Please try again.')
       setLoading(false)

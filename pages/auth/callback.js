@@ -55,7 +55,8 @@ export async function getServerSideProps({ req, res, query }) {
     role = newRole
   }
 
-  const destination = role === 'EMPLOYEE' ? '/dashboard' : '/roi-report'
+  // const destination = role === 'EMPLOYEE' ? '/dashboard' : '/roi-report'
+  const destination = '/dashboard'
   return { redirect: { destination, permanent: false } }
 }
 

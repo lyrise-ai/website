@@ -9,6 +9,7 @@ import {
 } from '../src/lib/supabase-server'
 import { createClient as createBrowserClient } from '../src/lib/supabase-browser'
 import MainHeader from '../src/layout/MainHeader/index'
+import { getRoleForUser } from '../src/lib/authHelpers'
 
 const STATUS_STYLES = {
   SUCCESS: { bg: 'bg-green-50', text: 'text-green-700', label: 'Done' },
@@ -116,7 +117,11 @@ export async function getServerSideProps({ req, res }) {
     return { redirect: { destination: '/login', permanent: false } }
   }
 
-  const isEmployee = user.email?.endsWith('@lyrise.ai')
+  const { role, error: roleError } = await getRoleForUser(user.id)
+  if (roleError || !role) {
+    return { redirect: { destination: '/auth/login', permanent: false } }
+  }
+  const isEmployee = role === 'EMPLOYEE'
 
   let query = supabase
     .from('reports')
@@ -230,12 +235,6 @@ export default function Dashboard({
 
   const myReports = reports.filter((r) => r.user_id === userId)
 
-  const handleSignOut = async () => {
-    const supabase = createBrowserClient()
-    await supabase.auth.signOut()
-    router.replace('/login')
-  }
-
   const goToReport = (id) => {
     if (navigatingId) return
     setNavigatingId(id)
@@ -294,13 +293,6 @@ export default function Dashboard({
             >
               + New Report
             </Link>
-            <button
-              type="button"
-              onClick={handleSignOut}
-              className="font-outfit text-sm font-medium text-gray-500 hover:text-gray-800 transition-colors border border-gray-200 rounded-full px-4 py-2.5"
-            >
-              Sign out
-            </button>
           </div>
         </div>
 
