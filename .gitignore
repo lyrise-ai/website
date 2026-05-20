@@ -59,24 +59,6 @@ temp/
 
 # Local workflow scratch files
 workflows/
-# Added by code-review-graph
-.code-review-graph/
 
-# AI agent / editor config files (keep DESIGN.md, PRODUCT.md, .impeccable/design.json)
-AGENTS.md
-CLAUDE.md
-GEMINI.md
-QODER.md
-skills-lock.json
-.agents/
-.cursor/
-.cursorrules
-.gemini/
-.github/
-.kiro/
-.mcp.json
-.opencode.json
-.qoder/
-.windsurfrules
-.impeccable/*
-!.impeccable/design.json
+# AI tool instructions inside .github (keep workflows/actions untouched)
+.github/code-review-graph.instruction.md
