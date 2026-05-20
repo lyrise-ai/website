@@ -254,7 +254,22 @@ export default async function handler(req, res) {
       .limit(20)
     persistedChatHistory = buildPersistedChatHistory(messages ?? [])
 
-    if ((persistedReport.share_message_count ?? 0) >= CHAT_LIMIT) {
+    // Atomically claim a slot before doing any work. The RPC increments
+    // share_message_count only if it's still below CHAT_LIMIT and returns
+    // the new count; a null result means the cap is reached. Claiming up
+    // front (rather than incrementing after the LLM call) closes the
+    // race where two concurrent submits both read count=N<CHAT_LIMIT,
+    // both run the LLM, and only one of the post-hoc updates lands.
+    const { data: claimedCount, error: claimErr } = await adminSupabase.rpc(
+      'claim_share_chat_slot',
+      { p_report_id: reportId, p_max: CHAT_LIMIT },
+    )
+    if (claimErr) {
+      console.error('[roi-agent] claim_share_chat_slot error:', claimErr)
+      res.status(500).json({ error: 'internal_error' })
+      return
+    }
+    if (claimedCount == null) {
       adminSupabase
         .from('events')
         .insert({
@@ -269,6 +284,7 @@ export default async function handler(req, res) {
       res.status(403).json({ error: 'limit_reached' })
       return
     }
+    persistedReport.share_message_count = claimedCount
   }
 
   if (mode === 'generate') {
@@ -476,20 +492,8 @@ export default async function handler(req, res) {
         })
 
       if (isShareLinkChat) {
-        // Conditional update so two concurrent share-link submits can't
-        // both squeeze past the 5-message cap.
-        const { error: shareIncErr } = await adminSupabase
-          .from('reports')
-          .update({
-            share_message_count: (persistedReport.share_message_count ?? 0) + 1,
-          })
-          .eq('id', reportId)
-          .lt('share_message_count', CHAT_LIMIT)
-        if (shareIncErr)
-          console.error(
-            '[roi-agent] share_message_count update error:',
-            shareIncErr,
-          )
+        // Slot was already claimed atomically via claim_share_chat_slot
+        // before the LLM ran, so no post-hoc increment is needed here.
       } else if (userRole !== 'EMPLOYEE') {
         const { data: usage, error: usageReadErr } = await adminSupabase
           .from('chat_usage')
