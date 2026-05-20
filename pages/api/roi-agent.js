@@ -6,6 +6,7 @@
 // Streams SSE events:
 //   { type: 'text_delta', delta }           — agent is typing
 //   { type: 'tool_start', tool }            — agent called a tool
+//   { type: 'pipeline_log', message }       — key pipeline milestone (research, model, assemble)
 //   { type: 'report_update', state }        — report HTML changed
 //   { type: 'done', messages? }             — agent finished
 //   { type: 'error', message }
@@ -319,7 +320,10 @@ export default async function handler(req, res) {
       abortSignal: abortController.signal,
       callbacks: {
         onTextDelta: (delta) => send(res, { type: 'text_delta', delta }),
-        onToolStart: (tool) => send(res, { type: 'tool_start', tool }),
+        onToolStart: (tool, args) =>
+          send(res, { type: 'tool_start', tool, args }),
+        onPipelineLog: (message) =>
+          send(res, { type: 'pipeline_log', message }),
         onReportUpdate: (s, changedSections) => {
           const { renderedHtml, renderedFullHtml, ...rest } = s
           send(res, {
