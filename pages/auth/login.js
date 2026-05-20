@@ -1,13 +1,21 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { useRouter } from 'next/router'
 import Head from 'next/head'
-import dynamic from 'next/dynamic'
-import { createClient } from '../src/lib/supabase-browser'
+import { createRouteClient } from '../../src/lib/supabaseRouteClient'
+import { supabase } from '../../src/lib/supabase'
 
-const ParticleBackground = dynamic(
-  () => import('../src/components/shared/ParticleBackground'),
-  { ssr: false },
-)
+export async function getServerSideProps({ req, res }) {
+  const supabase = createRouteClient(req, res)
+  const { data } = await supabase.auth.getUser()
+
+  if (data.user) {
+    return {
+      redirect: { destination: '/', permanent: false },
+    }
+  }
+
+  return { props: {} }
+}
 
 function GoogleIcon() {
   return (
@@ -25,7 +33,14 @@ function GoogleIcon() {
     </svg>
   )
 }
-
+const handleGoogleAuth = async () => {
+  await supabase.auth.signInWithOAuth({
+    provider: 'google',
+    options: {
+      redirectTo: `${window.location.origin}/auth/callback`,
+    },
+  })
+}
 export default function Login() {
   const router = useRouter()
   const [mode, setMode] = useState('login')
@@ -34,70 +49,34 @@ export default function Login() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
-  useEffect(() => {
-    const supabase = createClient()
-    supabase.auth.getUser().then(({ data: { user } }) => {
-      if (user)
-        router.replace(
-          user.email?.endsWith('@lyrise.ai') ? '/dashboard' : '/roi-report',
-        )
-    })
-  }, [router])
-
-  const loginWithGoogle = async () => {
-    const supabase = createClient()
-    await supabase.auth.signInWithOAuth({
-      provider: 'google',
-      options: { redirectTo: `${window.location.origin}/auth/callback` },
-    })
-  }
-
   const handleSubmit = async (e) => {
     e.preventDefault()
     setLoading(true)
     setError('')
 
-    const trimmedEmail = email.trim()
+    const endpoint = mode === 'signup' ? '/api/auth/signup' : '/api/auth/login'
 
     try {
-      if (mode === 'signup') {
-        const res = await fetch('/api/auth/signup', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email: trimmedEmail, password }),
-        })
-        const body = await res.json()
-        if (!res.ok) {
-          const msg = body.error || ''
-          if (
-            msg.toLowerCase().includes('already registered') ||
-            msg.toLowerCase().includes('already been registered')
-          ) {
-            setError(
-              'An account with this email already exists. Try logging in instead.',
-            )
-          } else {
-            setError(msg || 'Signup failed. Please try again.')
-          }
-          setLoading(false)
-          return
-        }
-      }
-
-      const supabase = createClient()
-      const { error: authError } = await supabase.auth.signInWithPassword({
-        email: trimmedEmail,
-        password,
+      const res = await fetch(endpoint, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ email: email.trim(), password }),
       })
-      if (authError) {
-        setError(authError.message)
+      const data = await res.json()
+
+      if (!res.ok) {
+        setError(data.error || 'Something went wrong. Please try again.')
         setLoading(false)
         return
       }
 
-      router.replace(
-        trimmedEmail.endsWith('@lyrise.ai') ? '/dashboard' : '/roi-report',
-      )
+      // if (data.role === 'EMPLOYEE') {
+      //   router.push('/dashboard')
+      // } else if (data.role === 'CLIENT') {
+      //   router.push('/roi-report')
+      // }
+      router.push('/dashboard')
     } catch {
       setError('Something went wrong. Please try again.')
       setLoading(false)
@@ -125,11 +104,14 @@ export default function Login() {
       </Head>
 
       <div
-        className="rebranding-landing-page min-h-screen flex items-center justify-center px-4"
-        style={{ position: 'relative', overflow: 'hidden' }}
+        className="flex items-center justify-center min-h-screen px-4 rebranding-landing-page"
+        style={{
+          position: 'relative',
+          overflow: 'hidden',
+          background:
+            'linear-gradient(135deg, #f0f4ff 0%, #ffffff 50%, #fef0f7 100%)',
+        }}
       >
-        <ParticleBackground />
-
         <div
           style={{
             position: 'relative',
@@ -143,7 +125,6 @@ export default function Login() {
             boxShadow: '0 8px 48px rgba(0,0,0,0.10)',
           }}
         >
-          {/* Logo */}
           <div className="text-center mb-7">
             <div
               className="font-outfit font-bold text-[#2C2C2C] mx-auto mb-5"
@@ -170,12 +151,10 @@ export default function Login() {
             </p>
           </div>
 
-          {/* Google */}
           <button
             type="button"
-            onClick={loginWithGoogle}
-            disabled={loading}
-            className="w-full flex items-center justify-center gap-3 font-outfit font-semibold text-[#2C2C2C] bg-white hover:bg-gray-50 transition-colors cursor-pointer disabled:opacity-60"
+            onClick={handleGoogleAuth}
+            className="w-full flex items-center justify-center gap-3 font-outfit font-semibold text-[#2C2C2C] bg-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             style={{
               border: '1.5px solid #e5e7eb',
               borderRadius: '50px',
@@ -187,14 +166,12 @@ export default function Login() {
             Continue with Google
           </button>
 
-          {/* Divider */}
           <div className="flex items-center my-5">
             <div className="flex-1 border-t border-gray-200" />
-            <span className="mx-3 font-outfit text-xs text-gray-400">or</span>
+            <span className="mx-3 text-xs text-gray-400 font-outfit">or</span>
             <div className="flex-1 border-t border-gray-200" />
           </div>
 
-          {/* Email / Password form */}
           <form onSubmit={handleSubmit}>
             <input
               type="email"
@@ -224,7 +201,7 @@ export default function Login() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full font-outfit font-semibold text-white transition-colors cursor-pointer disabled:opacity-60"
+              className="w-full font-semibold text-white transition-colors cursor-pointer font-outfit disabled:opacity-60"
               style={{
                 background: '#2957FF',
                 borderRadius: '50px',
@@ -242,7 +219,6 @@ export default function Login() {
             </button>
           </form>
 
-          {/* Mode toggle */}
           <p className="font-outfit text-center text-[13px] text-gray-500">
             {mode === 'login' ? (
               <>

@@ -1027,7 +1027,7 @@ export default function ReportViewer({
                   next steps for your ROI strategy.
                 </p>
                 <a
-                  href="https://calendly.com/elena-lyrise/30min"
+                  href="https://api.leadconnectorhq.com/widget/bookings/strategy-call-with-lyrisesivto9"
                   target="_blank"
                   rel="noopener noreferrer"
                   style={{
@@ -1179,7 +1179,7 @@ export default function ReportViewer({
                   You&apos;ve used your 5 free messages.
                 </p>
                 <a
-                  href="https://calendly.com/elena-lyrise/30min"
+                  href="https://api.leadconnectorhq.com/widget/bookings/strategy-call-with-lyrisesivto9"
                   style={{ fontSize: 12, color: '#2957FF' }}
                 >
                   Contact LyRise to continue →

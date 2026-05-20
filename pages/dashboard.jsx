@@ -8,7 +8,8 @@ import {
   createAdminClient,
 } from '../src/lib/supabase-server'
 import { createClient as createBrowserClient } from '../src/lib/supabase-browser'
-import MainHeader from '../src/layout/MainHeader'
+import MainHeader from '../src/layout/MainHeader/index'
+import { getRoleForUser } from '../src/lib/authHelpers'
 
 const STATUS_STYLES = {
   SUCCESS: { bg: 'bg-green-50', text: 'text-green-700', label: 'Done' },
@@ -97,7 +98,7 @@ function timeAgo(iso) {
 
 function StatCard({ label, value }) {
   return (
-    <div className="bg-white rounded-2xl border border-gray-100 shadow-sm px-6 py-5">
+    <div className="px-6 py-5 bg-white border border-gray-100 shadow-sm rounded-2xl">
       <p className="font-outfit text-[11px] uppercase tracking-wider text-gray-400 font-semibold mb-1">
         {label}
       </p>
@@ -116,7 +117,11 @@ export async function getServerSideProps({ req, res }) {
     return { redirect: { destination: '/login', permanent: false } }
   }
 
-  const isEmployee = user.email?.endsWith('@lyrise.ai')
+  const { role, error: roleError } = await getRoleForUser(user.id)
+  if (roleError || !role) {
+    return { redirect: { destination: '/auth/login', permanent: false } }
+  }
+  const isEmployee = role === 'EMPLOYEE'
 
   let query = supabase
     .from('reports')
@@ -230,12 +235,6 @@ export default function Dashboard({
 
   const myReports = reports.filter((r) => r.user_id === userId)
 
-  const handleSignOut = async () => {
-    const supabase = createBrowserClient()
-    await supabase.auth.signOut()
-    router.replace('/login')
-  }
-
   const goToReport = (id) => {
     if (navigatingId) return
     setNavigatingId(id)
@@ -263,7 +262,7 @@ export default function Dashboard({
         <title>{isEmployee ? 'Admin Dashboard' : 'My Reports'} | LyRise</title>
       </Head>
 
-      <div className="max-w-5xl mx-auto px-4 py-12">
+      <div className="max-w-5xl px-4 py-12 mx-auto">
         {/* Header row */}
         <div className="flex items-center justify-between mb-8">
           <div>
@@ -294,13 +293,6 @@ export default function Dashboard({
             >
               + New Report
             </Link>
-            <button
-              type="button"
-              onClick={handleSignOut}
-              className="font-outfit text-sm font-medium text-gray-500 hover:text-gray-800 transition-colors border border-gray-200 rounded-full px-4 py-2.5"
-            >
-              Sign out
-            </button>
           </div>
         </div>
 
@@ -313,7 +305,7 @@ export default function Dashboard({
               <StatCard label="Reports This Week" value={reportsThisWeek} />
             </div>
 
-            <div className="flex gap-1 mb-6 bg-gray-100 p-1 rounded-xl w-fit">
+            <div className="flex gap-1 p-1 mb-6 bg-gray-100 rounded-xl w-fit">
               {['Reports', 'My Reports', 'Users', 'Activity'].map((tab) => (
                 <button
                   key={tab}
@@ -337,8 +329,8 @@ export default function Dashboard({
           activeTab === 'Reports' ||
           activeTab === 'My Reports') &&
           ((activeTab === 'My Reports' ? myReports : reports).length === 0 ? (
-            <div className="text-center py-20 bg-white rounded-2xl border border-gray-100 shadow-sm">
-              <p className="font-outfit text-gray-400 text-sm mb-4">
+            <div className="py-20 text-center bg-white border border-gray-100 shadow-sm rounded-2xl">
+              <p className="mb-4 text-sm text-gray-400 font-outfit">
                 No reports yet.
               </p>
               <Link
@@ -349,7 +341,7 @@ export default function Dashboard({
               </Link>
             </div>
           ) : (
-            <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+            <div className="overflow-hidden bg-white border border-gray-100 shadow-sm rounded-2xl">
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b border-gray-100">
@@ -391,7 +383,7 @@ export default function Dashboard({
                           <td className="font-outfit font-medium text-[#2C2C2C] px-6 py-4">
                             {r.company_name || '—'}
                           </td>
-                          <td className="font-outfit text-gray-500 px-6 py-4">
+                          <td className="px-6 py-4 text-gray-500 font-outfit">
                             {r.requester_email || '—'}
                           </td>
                           <td className="px-6 py-4">
@@ -400,7 +392,7 @@ export default function Dashboard({
                           <td className="px-6 py-4">
                             <StatusBadge status={r.status} />
                           </td>
-                          <td className="font-outfit text-gray-400 px-6 py-4">
+                          <td className="px-6 py-4 text-gray-400 font-outfit">
                             {formatDate(r.created_at)}
                           </td>
                           <td className="px-6 py-4 text-right">
@@ -435,7 +427,7 @@ export default function Dashboard({
                                       type="button"
                                       onClick={() => handleDelete(r.id)}
                                       disabled={deletingId === r.id}
-                                      className="font-outfit text-xs font-semibold text-red-600 hover:text-red-800 transition-colors disabled:opacity-50"
+                                      className="text-xs font-semibold text-red-600 transition-colors font-outfit hover:text-red-800 disabled:opacity-50"
                                     >
                                       {deletingId === r.id
                                         ? 'Deleting…'
@@ -444,7 +436,7 @@ export default function Dashboard({
                                     <button
                                       type="button"
                                       onClick={() => setConfirmingId(null)}
-                                      className="font-outfit text-xs text-gray-400 hover:text-gray-600 transition-colors"
+                                      className="text-xs text-gray-400 transition-colors font-outfit hover:text-gray-600"
                                     >
                                       Cancel
                                     </button>
@@ -453,7 +445,7 @@ export default function Dashboard({
                                   <button
                                     type="button"
                                     onClick={() => setConfirmingId(r.id)}
-                                    className="text-gray-300 hover:text-red-500 transition-colors"
+                                    className="text-gray-300 transition-colors hover:text-red-500"
                                     title="Delete report"
                                   >
                                     <FaTrash size={13} />
@@ -472,7 +464,7 @@ export default function Dashboard({
 
         {/* Users tab */}
         {isEmployee && activeTab === 'Users' && (
-          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+          <div className="overflow-hidden bg-white border border-gray-100 shadow-sm rounded-2xl">
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-gray-100">
@@ -498,7 +490,7 @@ export default function Dashboard({
                   <tr>
                     <td
                       colSpan={5}
-                      className="font-outfit text-gray-400 text-sm text-center px-6 py-12"
+                      className="px-6 py-12 text-sm text-center text-gray-400 font-outfit"
                     >
                       No users found.
                     </td>
@@ -523,13 +515,13 @@ export default function Dashboard({
                           }
                         />
                       </td>
-                      <td className="font-outfit text-gray-500 px-6 py-4">
+                      <td className="px-6 py-4 text-gray-500 font-outfit">
                         {u.report_count}
                       </td>
-                      <td className="font-outfit text-gray-400 px-6 py-4">
+                      <td className="px-6 py-4 text-gray-400 font-outfit">
                         {formatDate(u.created_at)}
                       </td>
-                      <td className="font-outfit text-gray-400 px-6 py-4">
+                      <td className="px-6 py-4 text-gray-400 font-outfit">
                         {timeAgo(u.last_active)}
                       </td>
                     </tr>
@@ -542,9 +534,9 @@ export default function Dashboard({
 
         {/* Activity tab */}
         {isEmployee && activeTab === 'Activity' && (
-          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+          <div className="overflow-hidden bg-white border border-gray-100 shadow-sm rounded-2xl">
             {recentEvents.length === 0 ? (
-              <p className="font-outfit text-gray-400 text-sm text-center px-6 py-12">
+              <p className="px-6 py-12 text-sm text-center text-gray-400 font-outfit">
                 No activity recorded yet.
               </p>
             ) : (
@@ -565,7 +557,7 @@ export default function Dashboard({
                         {EVENT_LABELS[e.type] ?? e.type}
                       </span>
                     </span>
-                    <span className="font-outfit text-xs text-gray-400 flex-shrink-0">
+                    <span className="flex-shrink-0 text-xs text-gray-400 font-outfit">
                       {timeAgo(e.created_at)}
                     </span>
                   </li>

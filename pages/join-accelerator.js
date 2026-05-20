@@ -262,7 +262,7 @@ export default function CompanyRegistrationForm() {
                     To confirm your registration, you need to
                   </p>
                   <a
-                    href="https://calendly.com/elena-lyrise/30min"
+                    href="https://api.leadconnectorhq.com/widget/bookings/strategy-call-with-lyrisesivto9"
                     target="_blank"
                     rel="noopener noreferrer"
                     className="group relative text-[20px] font-[400] flex items-center justify-center gap-2 p-2 px-5 leading-[24px]  rounded-[30px] text-white bg-new-black transition-colors hover:bg-new-black/85 "
