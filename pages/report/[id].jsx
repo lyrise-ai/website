@@ -4,66 +4,100 @@ import ReportViewerWithBatch from '../../src/components/ROIGenerator/BulkUpload/
 import { buildStateFromReportRow } from '@/src/lib/roi/reportState'
 import { motion } from 'framer-motion'
 
-export async function getServerSideProps({ req, res, params }) {
+export async function getServerSideProps({ req, res, params, query }) {
   const supabase = createClient(req, res)
   const admin = createAdminClient()
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
+  const token = typeof query?.t === 'string' ? query.t : null
 
-  if (!user) {
-    return { redirect: { destination: '/login', permanent: false } }
-  }
-
-  const [{ data: userData }, { data: report }] = await Promise.all([
-    admin.from('users').select('role').eq('id', user.id).single(),
-    admin
-      .from('reports')
-      .select('id, company_name, email, status, state_data, user_id')
-      .eq('id', params.id)
-      .single(),
-  ])
-
-  const isEmployee =
-    userData?.role === 'EMPLOYEE' || user.email?.endsWith('@lyrise.ai')
+  // Always fetch the report once with its share fields so we can decide
+  // whether to grant share-link access before requiring a Supabase session.
+  const { data: report } = await admin
+    .from('reports')
+    .select(
+      'id, company_name, email, status, state_data, user_id, share_token, share_revoked_at, share_message_count',
+    )
+    .eq('id', params.id)
+    .single()
 
   if (!report) {
     return { redirect: { destination: '/dashboard', permanent: false } }
   }
 
-  if (!isEmployee && report.user_id !== user.id) {
-    return { redirect: { destination: '/dashboard', permanent: false } }
-  }
+  const isShareLink =
+    !!token &&
+    !!report.share_token &&
+    token === report.share_token &&
+    !report.share_revoked_at
 
-  if (!isEmployee && report.status !== 'SUCCESS') {
-    return { redirect: { destination: '/dashboard', permanent: false } }
+  let isEmployee = false
+  let viewerUserId = null
+
+  if (!isShareLink) {
+    const {
+      data: { user },
+    } = await supabase.auth.getUser()
+
+    if (!user) {
+      return { redirect: { destination: '/login', permanent: false } }
+    }
+
+    const { data: userData } = await admin
+      .from('users')
+      .select('role')
+      .eq('id', user.id)
+      .single()
+
+    isEmployee =
+      userData?.role === 'EMPLOYEE' || user.email?.endsWith('@lyrise.ai')
+    viewerUserId = user.id
+
+    if (!isEmployee && report.user_id !== user.id) {
+      return { redirect: { destination: '/dashboard', permanent: false } }
+    }
+
+    if (!isEmployee && report.status !== 'SUCCESS') {
+      return { redirect: { destination: '/dashboard', permanent: false } }
+    }
   }
 
   const initialState = buildStateFromReportRow(report)
 
-  // Load chat history and usage count in parallel
+  // Load chat history and usage count in parallel.
+  // Share-link visitors see the full thread so they have the owner's prior
+  // context; their per-report cap lives on reports.share_message_count, not
+  // chat_usage.
   let msgQuery = admin
     .from('chat_messages')
     .select('role, content')
     .eq('report_id', report.id)
     .order('created_at', { ascending: true })
     .limit(20)
-  if (!isEmployee) msgQuery = msgQuery.eq('user_id', user.id)
+  if (!isShareLink && !isEmployee) {
+    msgQuery = msgQuery.eq('user_id', viewerUserId)
+  }
+
+  let initialMessagesUsed = 0
+  if (isShareLink) {
+    initialMessagesUsed = report.share_message_count ?? 0
+  }
 
   const [{ data: messages }, usageResult] = await Promise.all([
     msgQuery,
-    isEmployee
+    isShareLink || isEmployee
       ? Promise.resolve({ data: null })
       : admin
           .from('chat_usage')
           .select('message_count')
-          .eq('user_id', user.id)
+          .eq('user_id', viewerUserId)
           .eq('report_id', report.id)
           .single(),
   ])
 
-  const initialMessagesUsed = usageResult.data?.message_count ?? 0
+  if (!isShareLink) {
+    initialMessagesUsed = usageResult.data?.message_count ?? 0
+  }
+
   const initialChatHistory = (messages ?? [])
     .filter((m) => m.role === 'user' || m.role === 'assistant')
     .filter((m) => m.content && m.content.trim() !== '')
@@ -76,6 +110,8 @@ export async function getServerSideProps({ req, res, params }) {
       isEmployee,
       initialMessagesUsed,
       initialChatHistory,
+      isShareLink,
+      shareToken: isShareLink ? token : null,
     },
   }
 }
@@ -87,6 +123,8 @@ export default function ReportPage({
   isEmployee,
   initialMessagesUsed,
   initialChatHistory,
+  isShareLink,
+  shareToken,
 }) {
   return (
     <>
@@ -105,7 +143,10 @@ export default function ReportPage({
           isEmployee={isEmployee}
           initialMessagesUsed={initialMessagesUsed}
           initialChatHistory={initialChatHistory}
-          backHref="/dashboard"
+          isShareLink={isShareLink}
+          shareToken={shareToken}
+          forceTour={isShareLink}
+          backHref={isShareLink ? null : '/dashboard'}
         />
       </motion.div>
     </>

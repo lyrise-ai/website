@@ -125,6 +125,9 @@ export default function ReportViewer({
   initialChatHistory = [],
   backHref,
   batchContext,
+  isShareLink = false,
+  shareToken = null,
+  forceTour = false,
 }) {
   const [reportState, setReportState] = useState(initialState)
   const [htmlLoading, setHtmlLoading] = useState(
@@ -160,26 +163,37 @@ export default function ReportViewer({
       title: 'Executive Summary',
       body: 'Concise snapshot — share this version with execs and decision-makers. If anything here feels unclear or you want the reasoning behind a number, switch to the Full Report for the detail behind every section.',
       placement: 'bottom-start',
+      targetRef: execTabRef,
     },
     {
       title: 'Full Report',
       body: 'Multi-page deep dive — workflows, projections, case studies, data provenance, and the full financial model.',
       placement: 'bottom-start',
+      targetRef: fullTabRef,
     },
     {
       title: 'Download as PDF',
       body: 'Save the report you’re viewing as a PDF you can share, attach, or print.',
       placement: 'bottom-end',
+      targetRef: downloadRef,
     },
-    {
-      title: 'Re-send Email',
-      body: 'You should already have the initial version of this report in your inbox — it was sent automatically as soon as the report finished generating. After you refine anything with the AI assistant, click here to email yourself the updated version.',
-      placement: 'bottom-end',
-    },
+    // Re-send Email button is hidden for share-link visitors (they
+    // shouldn't be triggering resends to themselves), so omit its step.
+    ...(isShareLink
+      ? []
+      : [
+          {
+            title: 'Re-send Email',
+            body: 'You should already have the initial version of this report in your inbox — it was sent automatically as soon as the report finished generating. After you refine anything with the AI assistant, click here to email yourself the updated version.',
+            placement: 'bottom-end',
+            targetRef: resendEmailRef,
+          },
+        ]),
     {
       title: 'Refine with AI',
       body: 'Ask the assistant to adjust numbers, change currency, swap workflows, or rewrite copy. The report updates live.',
       placement: 'left',
+      targetRef: chatPanelRef,
     },
   ]
 
@@ -195,12 +209,18 @@ export default function ReportViewer({
   }, [reportId, htmlLoading])
 
   useEffect(() => {
+    if (forceTour) {
+      // Share-link visitors should always see the tour on first arrival
+      // from the email, even if a prior anon visit dismissed it.
+      setTourStep(0)
+      return
+    }
     try {
       if (!localStorage.getItem('lyrise_tour_seen')) setTourStep(0)
     } catch {
       /* private browsing */
     }
-  }, [])
+  }, [forceTour])
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
@@ -273,15 +293,8 @@ export default function ReportViewer({
       setTourRect(null)
       return undefined
     }
-    const targets = [
-      execTabRef,
-      fullTabRef,
-      downloadRef,
-      resendEmailRef,
-      chatPanelRef,
-    ]
     const recompute = () => {
-      const el = targets[tourStep]?.current
+      const el = TOUR_STEPS[tourStep]?.targetRef?.current
       if (!el) {
         setTourRect(null)
         return
@@ -362,6 +375,7 @@ export default function ReportViewer({
             chatHistory: newHistory,
             state: reportState,
             reportId,
+            ...(shareToken ? { shareToken } : {}),
           }),
         })
 
@@ -424,6 +438,7 @@ export default function ReportViewer({
       reportId,
       userSentCount,
       isEmployee,
+      shareToken,
     ],
   )
 
@@ -713,44 +728,46 @@ export default function ReportViewer({
           >
             ?
           </button>
-          <button
-            ref={resendEmailRef}
-            type="button"
-            onClick={handleResendEmail}
-            disabled={!reportId || emailStatus === 'sending'}
-            style={{
-              padding: '6px 14px',
-              fontSize: 13,
-              fontWeight: 500,
-              border: '1px solid #2957FF',
-              borderRadius: 6,
-              background:
-                emailStatus === 'sent'
-                  ? '#dcfce7'
-                  : emailStatus === 'error'
-                  ? '#fee2e2'
-                  : '#2957FF',
-              color:
-                emailStatus === 'sent'
-                  ? '#166534'
-                  : emailStatus === 'error'
-                  ? '#991b1b'
-                  : '#fff',
-              cursor:
-                !reportId || emailStatus === 'sending'
-                  ? 'not-allowed'
-                  : 'pointer',
-              opacity: !reportId || emailStatus === 'sending' ? 0.7 : 1,
-            }}
-          >
-            {emailStatus === 'sending'
-              ? 'Sending…'
-              : emailStatus === 'sent'
-              ? 'Email Sent!'
-              : emailStatus === 'error'
-              ? 'Send Failed'
-              : 'Re-send Email'}
-          </button>
+          {!isShareLink && (
+            <button
+              ref={resendEmailRef}
+              type="button"
+              onClick={handleResendEmail}
+              disabled={!reportId || emailStatus === 'sending'}
+              style={{
+                padding: '6px 14px',
+                fontSize: 13,
+                fontWeight: 500,
+                border: '1px solid #2957FF',
+                borderRadius: 6,
+                background:
+                  emailStatus === 'sent'
+                    ? '#dcfce7'
+                    : emailStatus === 'error'
+                    ? '#fee2e2'
+                    : '#2957FF',
+                color:
+                  emailStatus === 'sent'
+                    ? '#166534'
+                    : emailStatus === 'error'
+                    ? '#991b1b'
+                    : '#fff',
+                cursor:
+                  !reportId || emailStatus === 'sending'
+                    ? 'not-allowed'
+                    : 'pointer',
+                opacity: !reportId || emailStatus === 'sending' ? 0.7 : 1,
+              }}
+            >
+              {emailStatus === 'sending'
+                ? 'Sending…'
+                : emailStatus === 'sent'
+                ? 'Email Sent!'
+                : emailStatus === 'error'
+                ? 'Send Failed'
+                : 'Re-send Email'}
+            </button>
+          )}
           {batchContext &&
             (batchContext.currentIndex + 1 < batchContext.total ? (
               <button
