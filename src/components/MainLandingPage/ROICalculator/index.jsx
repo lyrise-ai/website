@@ -250,7 +250,7 @@ This lead came from the KYC/AML ROI Calculator on the website.`,
                       <p className="text-[16px] font-[500]">
                         <strong>📞 Book a full AI audit:</strong>{' '}
                         <a
-                          href="https://calendly.com/yourlink"
+                          href="https://api.leadconnectorhq.com/widget/bookings/strategy-call-with-lyrisesivto9"
                           target="_blank"
                           rel="noopener noreferrer"
                           className="text-blue-600 underline hover:text-blue-800"
@@ -380,7 +380,7 @@ This lead came from the KYC/AML ROI Calculator on the website.`,
                 <p className="text-[14px] font-[500]">
                   <strong>📞 Book a full AI audit:</strong>{' '}
                   <a
-                    href="https://calendly.com/yourlink"
+                    href="https://api.leadconnectorhq.com/widget/bookings/strategy-call-with-lyrisesivto9"
                     target="_blank"
                     rel="noopener noreferrer"
                     className="text-blue-600 underline hover:text-blue-800"
