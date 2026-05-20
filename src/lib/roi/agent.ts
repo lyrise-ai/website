@@ -67,6 +67,8 @@ interface ModelerResult {
   }>
 }
 
+export { PIPELINE_LOG_TOOL_NAMES } from '@/src/lib/roi/constants'
+
 // Map a salary-source URL hostname to a clean display label. We trust the URL
 // over the modeler's free-text rateSource — if the URL is real, derive the
 // label from it so the Provenance table never says "Bayt" for a glassdoor.com

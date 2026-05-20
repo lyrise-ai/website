@@ -147,6 +147,7 @@ export default function ReportLoadingScreen({
       const seen = new Set(prev.map((entry) => entry.text))
       let next = prev
       let lastAppendAt = lastLogAppendAt.current
+      const now = Date.now()
 
       pending.forEach((event) => {
         const kind = classifyPipelineLog(event.text)
@@ -159,9 +160,14 @@ export default function ReportLoadingScreen({
           return
         }
 
-        const now = Date.now()
-        if (kind !== 'milestone' && now - lastAppendAt < MIN_LOG_GAP_MS) {
-          return
+        // Milestones always pass; non-milestones get spaced by MIN_LOG_GAP_MS
+        // even within the same batch so parallel bursts don't drop messages.
+        if (kind !== 'milestone') {
+          const earliestAllowed = lastAppendAt + MIN_LOG_GAP_MS
+          if (now < earliestAllowed && lastAppendAt !== 0) return
+          lastAppendAt = Math.max(now, lastAppendAt + MIN_LOG_GAP_MS)
+        } else {
+          lastAppendAt = now
         }
 
         logId.current += 1
@@ -175,7 +181,6 @@ export default function ReportLoadingScreen({
           },
         ].slice(-MAX_LOG_LINES)
         seen.add(displayText)
-        lastAppendAt = now
       })
 
       lastLogAppendAt.current = lastAppendAt
@@ -216,8 +221,12 @@ export default function ReportLoadingScreen({
 
     if (sseEvents.length > 0) return () => {}
 
-    const seed = activePhase.logs[0]
-    if (!seed) return () => {}
+    const rawSeed = activePhase.logs[0]
+    if (!rawSeed) return () => {}
+    const seed =
+      classifyPipelineLog(rawSeed) === 'search-pool'
+        ? RESEARCH_ACTIVITY_SUMMARY
+        : rawSeed
 
     setLogs((prev) => {
       if (prev.some((entry) => entry.text === seed)) return prev

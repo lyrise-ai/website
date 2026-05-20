@@ -1,6 +1,5 @@
 import React from 'react'
 import styles from './styles.module.css'
-// TODO: migrate to next/image — legacy/image used to avoid fetchPriority DOM prop warning
 import Image from 'next/legacy/image'
 import LyriseLogo from '../../../assets/rebranding/lyriselogo.png'
 import { FaFacebook, FaInstagram, FaLinkedin } from 'react-icons/fa'

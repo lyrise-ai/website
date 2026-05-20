@@ -10,6 +10,7 @@ import ReportLoadingScreen from '../src/components/ROIGenerator/ReportLoadingScr
 import ReportViewer from '../src/components/ROIGenerator/ReportViewer'
 import GeneratingView from '../src/components/ROIGenerator/GeneratingView'
 import { drainSSE } from '../src/lib/drainSSE'
+import { PIPELINE_LOG_TOOL_NAMES } from '../src/lib/roi/constants'
 import { useRouter } from 'next/router'
 
 // ── Constants ─────────────────────────────────────────────────────────────────
@@ -671,23 +672,10 @@ export async function getServerSideProps({ req, res }) {
   return { props: { isEmployee } }
 }
 
-function nowLabelClient() {
-  const d = new Date()
-  return [d.getHours(), d.getMinutes(), d.getSeconds()]
-    .map((n) => String(n).padStart(2, '0'))
-    .join(':')
-}
-
 // Tools with pipeline_log coverage emit their own messages from the server-side
 // execute function. Returning null here prevents a duplicate tool_start entry
 // from flooding the log before the classified pipeline_log message arrives.
-const PIPELINE_LOG_TOOLS = new Set([
-  'web_search',
-  'fetch_page',
-  'set_research_output',
-  'run_financial_model',
-  'set_report_copy',
-])
+const PIPELINE_LOG_TOOLS = new Set(PIPELINE_LOG_TOOL_NAMES)
 
 function sseEventToLogLine(event) {
   if (event.type !== 'tool_start') return null
@@ -842,19 +830,13 @@ export default function ROIReport({ isEmployee }) {
               setGenerationLog((prev) => `${prev}\n[${event.tool}]`)
               const line = sseEventToLogLine(event)
               if (line) {
-                setSseEvents((prev) => [
-                  ...prev,
-                  { text: line, time: nowLabelClient() },
-                ])
+                setSseEvents((prev) => [...prev, { text: line }])
               }
             } else if (event.type === 'pipeline_log') {
               setGenerationLog((prev) =>
                 `${prev}\n${event.message}`.slice(-2000),
               )
-              setSseEvents((prev) => [
-                ...prev,
-                { text: event.message, time: nowLabelClient() },
-              ])
+              setSseEvents((prev) => [...prev, { text: event.message }])
             } else if (event.type === 'report_update') {
               latestState = event.state
               setReportState(event.state)
@@ -912,13 +894,24 @@ export default function ROIReport({ isEmployee }) {
     }
   }, [viewState, reportState])
 
-  // COMPLETE lifecycle: brief beat, then navigate to the persisted report
+  // COMPLETE lifecycle: brief beat, then navigate to the persisted report.
+  // If reportId hasn't arrived within 8s of COMPLETE, show an error — the
+  // report save likely failed server-side (check server logs).
   useEffect(() => {
-    if (viewState !== VIEW_STATES.COMPLETE || !reportId) return () => {}
-    const timeout = setTimeout(() => {
-      router.push(`/report/${reportId}`)
-    }, 400)
-    return () => clearTimeout(timeout)
+    if (viewState !== VIEW_STATES.COMPLETE) return () => {}
+    if (reportId) {
+      const timeout = setTimeout(() => {
+        router.push(`/report/${reportId}`)
+      }, 400)
+      return () => clearTimeout(timeout)
+    }
+    const fallback = setTimeout(() => {
+      setErrorMessage(
+        'Report was generated but could not be saved. Please try again or check server logs.',
+      )
+      setViewState(VIEW_STATES.ERROR)
+    }, 8000)
+    return () => clearTimeout(fallback)
   }, [viewState, reportId, router])
 
   const next = useCallback(

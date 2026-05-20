@@ -549,7 +549,7 @@ export default async function handler(req, res) {
       const { stateData, renderedHtml, renderedFullHtml } =
         splitStoredState(state)
       generatedShareToken = crypto.randomBytes(24).toString('base64url')
-      const { data: savedReport } = await supabase
+      const { data: savedReport, error: saveError } = await supabase
         .from('reports')
         .insert({
           user_id: user.id,
@@ -568,6 +568,16 @@ export default async function handler(req, res) {
         })
         .select('id')
         .single()
+
+      if (saveError) {
+        console.error('[roi-agent] report save failed:', saveError)
+        send(res, {
+          type: 'error',
+          message: 'Failed to save report: ' + saveError.message,
+        })
+        res.end()
+        return
+      }
 
       if (savedReport?.id) {
         savedReportId = savedReport.id
