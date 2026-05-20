@@ -11,6 +11,7 @@
 //   { type: 'error', message }
 // ─────────────────────────────────────────────────────────────────────────────
 
+import crypto from 'node:crypto'
 import { normalizeInput } from '@/src/lib/roi/pipeline/normalize'
 import { loadTemplate } from '@/src/lib/roi/pipeline/renderTemplate'
 import { runReportAgent } from '@/src/lib/roi/agent'
@@ -69,6 +70,18 @@ function buildPersistedChatHistory(rows = []) {
     .map((row) => ({ role: row.role, content: row.content }))
 }
 
+function buildShareUrl(req, reportId, token) {
+  const explicit = process.env.NEXT_PUBLIC_BASE_URL
+  const host = req.headers?.host
+  const proto =
+    req.headers?.['x-forwarded-proto'] ||
+    (host && host.startsWith('localhost') ? 'http' : 'https')
+  const base = explicit ?? (host ? `${proto}://${host}` : 'https://lyrise.ai')
+  return `${base.replace(/\/$/, '')}/report/${reportId}?t=${encodeURIComponent(
+    token,
+  )}`
+}
+
 export default async function handler(req, res) {
   if (req.method === 'GET') {
     const supabase = createClient(req, res)
@@ -111,13 +124,6 @@ export default async function handler(req, res) {
   }
 
   const supabase = createClient(req, res)
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-  if (!user) {
-    res.status(401).json({ error: 'Unauthorized' })
-    return
-  }
 
   const {
     mode,
@@ -127,6 +133,7 @@ export default async function handler(req, res) {
     devOptions,
     reportId,
     emailOverride,
+    shareToken,
   } = req.body
 
   if (!mode || !['generate', 'chat'].includes(mode)) {
@@ -141,8 +148,37 @@ export default async function handler(req, res) {
   const adminSupabase = createAdminClient()
   let persistedReport = null
   let persistedChatHistory = []
+  // Share-link chat: an email recipient is editing via the tokenized URL.
+  // They have no Supabase session, so we attribute writes to the report
+  // owner (chat_messages.user_id) and gate the 5-message cap on
+  // reports.share_message_count instead of chat_usage.
+  let isShareLinkChat = false
 
-  if (mode === 'chat') {
+  if (mode === 'chat' && shareToken && reportId) {
+    const { data: r } = await adminSupabase
+      .from('reports')
+      .select(
+        'id, user_id, email, status, input_data, state_data, rendered_html, rendered_full_html, share_token, share_revoked_at, share_message_count',
+      )
+      .eq('id', reportId)
+      .single()
+    if (r && r.share_token === shareToken && !r.share_revoked_at) {
+      isShareLinkChat = true
+      persistedReport = r
+    }
+  }
+
+  let user = null
+  if (!isShareLinkChat) {
+    const authResult = await supabase.auth.getUser()
+    user = authResult?.data?.user ?? null
+    if (!user) {
+      res.status(401).json({ error: 'Unauthorized' })
+      return
+    }
+  }
+
+  if (mode === 'chat' && !isShareLinkChat) {
     if (!reportId) {
       res.status(400).json({ error: 'reportId is required for chat mode' })
       return
@@ -205,6 +241,34 @@ export default async function handler(req, res) {
 
     persistedReport = report
     persistedChatHistory = buildPersistedChatHistory(messages ?? [])
+  }
+
+  if (mode === 'chat' && isShareLinkChat) {
+    chatUserRole = 'CLIENT'
+    // Share-link visitors see the full message thread on the report.
+    const { data: messages } = await adminSupabase
+      .from('chat_messages')
+      .select('role, content')
+      .eq('report_id', reportId)
+      .order('created_at', { ascending: true })
+      .limit(20)
+    persistedChatHistory = buildPersistedChatHistory(messages ?? [])
+
+    if ((persistedReport.share_message_count ?? 0) >= CHAT_LIMIT) {
+      adminSupabase
+        .from('events')
+        .insert({
+          user_id: persistedReport.user_id,
+          report_id: reportId,
+          type: 'chat_limit_reached',
+        })
+        .then(({ error }) => {
+          if (error)
+            console.error('event insert failed (chat_limit_reached)', error)
+        })
+      res.status(403).json({ error: 'limit_reached' })
+      return
+    }
   }
 
   if (mode === 'generate') {
@@ -344,9 +408,19 @@ export default async function handler(req, res) {
       const userRole = chatUserRole
       state.specificityAssessment = assessReportSpecificity(state)
 
-      await supabase.from('chat_messages').insert({
+      // chat_messages.user_id is FK to auth.users. For share-link visitors
+      // (no session) we attribute writes to the report owner so the FK
+      // holds and the owner sees the conversation in their own thread.
+      const chatWriterUserId = isShareLinkChat
+        ? persistedReport.user_id
+        : user.id
+      // Use admin client for share-link writes since the chat_messages RLS
+      // insert policy requires user_id = auth.uid().
+      const chatWriteClient = isShareLinkChat ? adminSupabase : supabase
+
+      await chatWriteClient.from('chat_messages').insert({
         report_id: reportId,
-        user_id: user.id,
+        user_id: chatWriterUserId,
         role: 'user',
         content: message?.trim() ?? '',
       })
@@ -366,9 +440,9 @@ export default async function handler(req, res) {
         .trim()
 
       if (assistantText) {
-        await supabase.from('chat_messages').insert({
+        await chatWriteClient.from('chat_messages').insert({
           report_id: reportId,
-          user_id: user.id,
+          user_id: chatWriterUserId,
           role: 'assistant',
           content: assistantText,
         })
@@ -390,16 +464,33 @@ export default async function handler(req, res) {
       adminSupabase
         .from('events')
         .insert({
-          user_id: user.id,
+          user_id: chatWriterUserId,
           report_id: reportId,
-          type: 'chat_message_sent',
+          type: isShareLinkChat
+            ? 'chat_message_sent_share'
+            : 'chat_message_sent',
         })
         .then(({ error }) => {
           if (error)
             console.error('event insert failed (chat_message_sent)', error)
         })
 
-      if (userRole !== 'EMPLOYEE') {
+      if (isShareLinkChat) {
+        // Conditional update so two concurrent share-link submits can't
+        // both squeeze past the 5-message cap.
+        const { error: shareIncErr } = await adminSupabase
+          .from('reports')
+          .update({
+            share_message_count: (persistedReport.share_message_count ?? 0) + 1,
+          })
+          .eq('id', reportId)
+          .lt('share_message_count', CHAT_LIMIT)
+        if (shareIncErr)
+          console.error(
+            '[roi-agent] share_message_count update error:',
+            shareIncErr,
+          )
+      } else if (userRole !== 'EMPLOYEE') {
         const { data: usage, error: usageReadErr } = await adminSupabase
           .from('chat_usage')
           .select('id, message_count')
@@ -434,6 +525,8 @@ export default async function handler(req, res) {
     }
 
     // Save report to DB after generation
+    let generatedShareToken = null
+    let savedReportId = null
     if (mode === 'generate' && state.assembled) {
       state.specificityAssessment = assessReportSpecificity(state)
 
@@ -447,6 +540,7 @@ export default async function handler(req, res) {
 
       const { stateData, renderedHtml, renderedFullHtml } =
         splitStoredState(state)
+      generatedShareToken = crypto.randomBytes(24).toString('base64url')
       const { data: savedReport } = await supabase
         .from('reports')
         .insert({
@@ -462,11 +556,13 @@ export default async function handler(req, res) {
           rendered_html: renderedHtml,
           rendered_full_html: renderedFullHtml,
           state_data: stateData,
+          share_token: generatedShareToken,
         })
         .select('id')
         .single()
 
       if (savedReport?.id) {
+        savedReportId = savedReport.id
         await persistReportEvidence(
           adminSupabase,
           savedReport.id,
@@ -522,7 +618,18 @@ export default async function handler(req, res) {
               (addr) => addr.toLowerCase() !== overrideAddr,
             )
           : DEFAULT_REPORT_BCC
-        await sendReportEmail(recipient, company, pdf.base64, pdf.filename, bcc)
+        const chatUrl =
+          savedReportId && generatedShareToken
+            ? buildShareUrl(req, savedReportId, generatedShareToken)
+            : undefined
+        await sendReportEmail(
+          recipient,
+          company,
+          pdf.base64,
+          pdf.filename,
+          bcc,
+          chatUrl,
+        )
         send(res, { type: 'email_sent' })
       } catch (bgErr) {
         console.error('[roi-agent] PDF/email failed:', bgErr)

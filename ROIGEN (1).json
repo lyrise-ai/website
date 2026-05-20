@@ -1,0 +1,413 @@
+{
+  "name": "ROIGEN",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "roi-gen",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [-2128, 2688],
+      "id": "53c72f59-5b50-4166-8497-05152dcc62c9",
+      "name": "Webhook",
+      "webhookId": "f5c5bd94-cc07-4bd6-9c1f-65ace6ba8e55"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Normalize Input — handles both questionnaire (processes[]) and legacy flat fields\nconst src = $json.body || $json;\n\nconst companyName        = src['Company Name']               || '';\nconst website            = src['Company Website URL']        || '';\nconst email              = src['Email']                      || '';\nconst selectedCurrency   = src['Operating Currency']         || '';\nconst businessDescription= src['What does your company do?']|| '';\nconst teamSize           = src['Number of Employees']        || '';\nconst revenueRange       = src['Estimated Annual Revenue']   || '';\n\n// ── Process registry ──────────────────────────────────────────\n// Primary source: structured processes[] array from questionnaire\n// Fallback: legacy flat fields for backward compat / n8n form\nlet processes = [];\n\nif (Array.isArray(src.processes) && src.processes.length) {\n  // Questionnaire path — already structured\n  processes = src.processes.map(p => ({\n    name:            p.name           || '',\n    department:      p.department     || 'Operations',\n    icon:            p.icon           || '🔧',\n    volume_per_month:  p.volume_per_month  || null,\n    time_per_item:     p.time_per_item     || null,\n    owner_role:      p.owner_role     || null,\n    systems_used:    p.systems_used   || [],\n    decision_points: p.decision_points|| [],\n    handoffs:        p.handoffs       || [],\n    steps:           p.steps          || [],\n  }));\n} else {\n  // Legacy flat-field path (n8n form or API)\n  const primary  = src['Biggest time drain on your team'] || '';\n  const primVol  = src['Monthly volume of this process (approx.)'] || null;\n  const primTime = src['Primary process time per item'] || null;\n  const extra    = src['Any other bottlenecks to mention? (optional)'] || '';\n\n  if (primary) {\n    processes.push({\n      name: primary, department: 'Operations', icon: '🔧',\n      volume_per_month: primVol, time_per_item: primTime,\n      owner_role: null, systems_used: [], decision_points: [], handoffs: [], steps: [],\n    });\n  }\n  // Parse secondary from \"Name (~vol, ~time); Name2 (~vol)\" format\n  if (extra) {\n    extra.split(';').map(s => s.trim()).filter(Boolean).forEach(chunk => {\n      const nameMatch = chunk.match(/^([^(~]+)/);\n      const volMatch  = chunk.match(/~([^,)]+per\\s+month[^,)]*)/i);\n      const timeMatch = chunk.match(/~([^,)]+(?:minutes?|hours?)[^,)]*)/i);\n      const procName  = nameMatch ? nameMatch[1].replace(/^Also:\\s*/i,'').trim() : chunk.split('(')[0].trim();\n      if (procName) {\n        processes.push({\n          name: procName, department: 'Operations', icon: '🔧',\n          volume_per_month: volMatch  ? volMatch[1].trim()  : null,\n          time_per_item:    timeMatch ? timeMatch[1].trim() : null,\n          owner_role: null, systems_used: [], decision_points: [], handoffs: [], steps: [],\n        });\n      }\n    });\n  }\n}\n\n// ── Flat compat fields downstream nodes still use ─────────────\nconst primaryProcess  = processes[0]?.name         || '';\nconst volumeHint      = processes[0]?.volume_per_month || 'Not sure';\nconst primaryTimeHint = processes[0]?.time_per_item    || '';\nconst additionalContext = processes.slice(1).map(p => {\n  let s = p.name;\n  if (p.volume_per_month) s += ` (~${p.volume_per_month})`;\n  if (p.time_per_item)    s += ` (~${p.time_per_item})`;\n  return s;\n}).join('; ');\n\nconst workContext = [primaryProcess, additionalContext].filter(Boolean).join('. Also: ');\n\nreturn [{ json: {\n  companyName, website, email, selectedCurrency,\n  businessDescription, teamSize, revenueRange,\n  processes,\n  primaryProcess, volumeHint, primaryTimeHint,\n  additionalContext, workContext,\n}}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [-1888, 2688],
+      "id": "bf500d35-c9ab-4dd9-90a8-24e4dbd574b3",
+      "name": "Normalize Input"
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "gpt-4o-mini",
+          "mode": "list",
+          "cachedResultName": "GPT-4O-MINI"
+        },
+        "responses": {
+          "values": [
+            {
+              "role": "system",
+              "content": "You are a senior business analyst. From the company data below, output structured JSON.\n\nSECTION 1 — company_profile\n- company: exact name as provided\n- industry: infer from businessDescription\n- country: infer from website domain (.co.uk=UK, .de=Germany, .com=US default)\n- primaryFocus: one sentence on what the company does\n- keyPriorities: 3–5 strategic priorities for this size and industry\n- employees: range midpoint (1-10→5, 11-50→30, 51-200→125, 201-500→350, 500+→750)\n- revenueEstimateM: range midpoint in millions (Under $1M→0.5, $1M-$5M→3, $5M-$20M→12.5, $20M-$100M→50, $100M+→150)\n\nSECTION 2 — pain_points (3–6 items)\nInput contains processes[]: an array of processes the exec explicitly identified.\n- Each process in processes[] becomes a pain_point with source=\"user_stated\", confidence=\"high\"\n- Use the process name as the title. Write a 1-sentence description of the operational impact.\n- Add 1–2 industry-typical inferred pain points if needed to reach 3 items: source=\"inferred\", confidence=\"medium\"\n\nSECTION 3 — workflows (exactly 4)\nMap the top 4 processes from processes[] to workflows (or all of them if fewer than 4 exist, filling remaining with inferred).\nProcesses with volume_per_month and time_per_item set are the most data-rich — prioritize them.\nEach: name (match the process name exactly), function (e.g. \"Sales Operations\"), owner (job title matching the department), whyItMatters, agentName (catchy AI agent name), expectedOutcome (specific operational KPI, no revenue claims), sourceType (\"user_stated\" or \"inferred\")\n\nReturn valid JSON only. No commentary."
+            },
+            {
+              "content": "={{ ({\n  companyName:         $json.companyName,\n  website:             $json.website,\n  businessDescription: $json.businessDescription,\n  processes:           $json.processes,\n  teamSize:            $json.teamSize,\n  revenueRange:        $json.revenueRange\n}).toJsonString() }}"
+            }
+          ]
+        },
+        "simplify": false,
+        "builtInTools": {},
+        "options": {
+          "textFormat": {
+            "textOptions": {
+              "type": "json_schema",
+              "schema": "{\"type\": \"object\", \"additionalProperties\": false, \"required\": [\"company_profile\", \"pain_points\", \"workflows\"], \"properties\": {\"company_profile\": {\"type\": \"object\", \"additionalProperties\": false, \"required\": [\"company\", \"industry\", \"country\", \"primaryFocus\", \"keyPriorities\", \"employees\", \"revenueEstimateM\"], \"properties\": {\"company\": {\"type\": \"string\"}, \"industry\": {\"type\": \"string\"}, \"country\": {\"type\": [\"string\", \"null\"]}, \"primaryFocus\": {\"type\": [\"string\", \"null\"]}, \"keyPriorities\": {\"type\": \"array\", \"items\": {\"type\": \"string\"}, \"maxItems\": 5}, \"employees\": {\"type\": [\"integer\", \"null\"], \"minimum\": 1}, \"revenueEstimateM\": {\"type\": [\"number\", \"null\"], \"minimum\": 0}}}, \"pain_points\": {\"type\": \"array\", \"minItems\": 3, \"maxItems\": 6, \"items\": {\"type\": \"object\", \"additionalProperties\": false, \"required\": [\"title\", \"description\", \"confidence\", \"source\"], \"properties\": {\"title\": {\"type\": \"string\"}, \"description\": {\"type\": \"string\"}, \"confidence\": {\"type\": \"string\", \"enum\": [\"high\", \"medium\", \"low\"]}, \"source\": {\"type\": \"string\", \"enum\": [\"user_stated\", \"inferred\"]}}}}, \"workflows\": {\"type\": \"array\", \"minItems\": 4, \"maxItems\": 4, \"items\": {\"type\": \"object\", \"additionalProperties\": false, \"required\": [\"name\", \"function\", \"owner\", \"whyItMatters\", \"agentName\", \"expectedOutcome\", \"sourceType\"], \"properties\": {\"name\": {\"type\": \"string\"}, \"function\": {\"type\": \"string\"}, \"owner\": {\"type\": \"string\"}, \"whyItMatters\": {\"type\": \"string\"}, \"agentName\": {\"type\": \"string\"}, \"expectedOutcome\": {\"type\": \"string\"}, \"sourceType\": {\"type\": \"string\", \"enum\": [\"user_stated\", \"inferred\"]}}}}}}"
+            }
+          }
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 2.1,
+      "position": [-1616, 2688],
+      "id": "19508b6a-db20-49ac-8232-de8f5f9d58a5",
+      "name": "Company Analyst",
+      "credentials": {
+        "openAiApi": {
+          "id": "G6YyWX5tcLjtlLkM",
+          "name": "OpenAi account 3"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const resp = items[0].json;\nconst raw =\n  resp?.output?.[0]?.content?.find(c => c.type === 'output_text')?.text\n  ?? resp?.output?.[0]?.content?.[0]?.text\n  ?? null;\n\nif (!raw) throw new Error('Company Analyst: could not find output_text in API response.');\n\nlet result;\ntry {\n  result = typeof raw === 'string' ? JSON.parse(raw) : raw;\n} catch(e) {\n  throw new Error('Company Analyst: failed to parse JSON — ' + e.message);\n}\n\nreturn [{ json: {\n  result,\n  tokenTotals: {\n    input:  resp?.usage?.input_tokens  ?? null,\n    output: resp?.usage?.output_tokens ?? null,\n  },\n} }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [-1344, 2688],
+      "id": "8aece2aa-9b4d-4780-a09d-6429372db385",
+      "name": "Parse Company Analyst"
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "gpt-4o-mini",
+          "mode": "list",
+          "cachedResultName": "GPT-4O-MINI"
+        },
+        "responses": {
+          "values": [
+            {
+              "role": "system",
+              "content": "You are generating numeric ROI assumptions for an AI automation report.\n\nInput fields: company_profile, workflows[] (exactly 4 from Company Analyst), processes[] (structured list from the executive), selectedCurrency.\n\nCURRENCY: Parse from selectedCurrency (format \"CODE – Name (symbol)\"). Use exact GCC symbols: SAR→\"ر.س\", AED→\"د.إ\", QAR→\"ر.ق\", KWD→\"د.ك\", BHD→\"BD\", OMR→\"ر.ع.\". If blank, infer from country.\n\nVOLUME & TIME ANCHORING (critical — these are hard anchors):\nInput contains processes[]: each has volume_per_month and time_per_item from the executive directly.\nFor each workflow in workflows[], find the matching process in processes[] by name.\nIf a match exists and volume_per_month is set, use it as the monthlyVolume anchor:\n- \"Under 30 per month\"   → 15–25\n- \"30–100 per month\"     → 40–85\n- \"100–300 per month\"    → 110–250\n- \"Over 300 per month\"   → 300–500\nIf time_per_item is set, use it as minutesPerItemBefore:\n- \"Under 30 minutes\" → 20–28\n- \"30–60 minutes\"    → 35–55\n- \"1–2 hours\"        → 65–110\n- \"Over 2 hours\"     → 130–180\nIf no match or value is null: use conservative industry benchmark (lower end of range for company size).\n\nAUTOMATION TIME REDUCTION TARGETS — use these to set minutesPerItemAfter:\nAI automation eliminates the manual execution portion of a task. The human's remaining role is to review,\napprove, and submit — not redo the work. Apply these reduction targets to minutesPerItemBefore:\n- Document generation (proposals, quotes, contracts, reports): 70–85% reduction\n- Data entry / CRM updates / system logging: 80–92% reduction\n- Status reporting / dashboards / summaries: 72–85% reduction\n- Client onboarding coordination / scheduling: 55–72% reduction\n- Email drafting / follow-ups / communications: 70–82% reduction\n- Invoice / financial reconciliation: 65–80% reduction\nExample: if a proposal takes 90 min before, minutesPerItemAfter should be 90 × (1 - 0.75) = ~22 min.\nDo NOT set minutesPerItemAfter above 40% of minutesPerItemBefore — AI automation always delivers substantial gains.\n\nVOLUME CEILING: No single workflow monthlyVolume may exceed employees × 2.\n\nCOSTS:\n- implementationCost: MUST equal 6–10× estimated monthly labor savings. Enforces a 6–10 month payback.\n- monthlyToolingCost: recurring platform/license fees.\n\nLABOR:\n- fullyLoadedHourlyCost: blended rate for this country and industry.\n- workWeeksPerYear: 48 for GCC/Egypt, 50 for US/EU.\n\nrealizationFactor: 0.70–0.85. LyRise's structured onboarding ensures adoption; do not go below 0.70.\nprofitMultiplier: 1.5–4.0. Cap at 3.5 for companies under 500 employees.\n\nworkflowAssumptions (exactly 4, names must match workflows input):\n- minutesPerItemAfter: apply the AUTOMATION TIME REDUCTION TARGETS above. Must be ≤ 40% of minutesPerItemBefore.\n- exceptionRate: 0.05–0.20, exceptionMinutes, adoption_low/base/high.\n- rationale: 1 sentence citing employee count, industry norms, and why volume is realistic.\n\nSANITY CHECK — annual labor savings = sum(volume × timeSaved/60 × rate × realization × 12):\n- Under 200 employees: $60K–$300K total.\n- 200–2000 employees: $150K–$700K total.\nScale down volumes only if the upper bound is substantially exceeded.\n\nReturn valid JSON only."
+            },
+            {
+              "content": "={{ ({\n  company_profile:   $json.result.company_profile,\n  workflows:         $json.result.workflows,\n  processes:         $('Normalize Input').item.json.processes,\n  selectedCurrency:  $('Normalize Input').item.json.selectedCurrency,\n  primaryProcess:    $('Normalize Input').item.json.primaryProcess,\n  volumeHint:        $('Normalize Input').item.json.volumeHint,\n  primaryTimeHint:   $('Normalize Input').item.json.primaryTimeHint,\n  additionalContext: $('Normalize Input').item.json.additionalContext\n}).toJsonString() }}"
+            }
+          ]
+        },
+        "simplify": false,
+        "builtInTools": {},
+        "options": {
+          "textFormat": {
+            "textOptions": {
+              "type": "json_schema",
+              "schema": "{\"type\": \"object\", \"additionalProperties\": false, \"required\": [\"currency\", \"costs\", \"labor\", \"realizationFactor\", \"profitMultiplier\", \"workflowAssumptions\", \"rollout\", \"notes\"], \"properties\": {\"currency\": {\"type\": \"object\", \"additionalProperties\": false, \"required\": [\"code\", \"symbol\", \"name\"], \"properties\": {\"code\": {\"type\": \"string\"}, \"symbol\": {\"type\": \"string\"}, \"name\": {\"type\": \"string\"}}}, \"costs\": {\"type\": \"object\", \"additionalProperties\": false, \"required\": [\"implementationCost\", \"monthlyToolingCost\"], \"properties\": {\"implementationCost\": {\"type\": \"number\", \"minimum\": 0}, \"monthlyToolingCost\": {\"type\": \"number\", \"minimum\": 0}}}, \"labor\": {\"type\": \"object\", \"additionalProperties\": false, \"required\": [\"fullyLoadedHourlyCost\", \"workWeeksPerYear\"], \"properties\": {\"fullyLoadedHourlyCost\": {\"type\": \"number\", \"minimum\": 1}, \"workWeeksPerYear\": {\"type\": \"number\", \"minimum\": 40, \"maximum\": 52}}}, \"realizationFactor\": {\"type\": \"number\", \"minimum\": 0.5, \"maximum\": 0.95}, \"profitMultiplier\": {\"type\": \"number\", \"minimum\": 1.5, \"maximum\": 6.0}, \"workflowAssumptions\": {\"type\": \"array\", \"minItems\": 4, \"maxItems\": 4, \"items\": {\"type\": \"object\", \"additionalProperties\": false, \"required\": [\"workflowName\", \"monthlyVolume\", \"minutesPerItemBefore\", \"minutesPerItemAfter\", \"exceptionRate\", \"exceptionMinutes\", \"adoption_low\", \"adoption_base\", \"adoption_high\", \"rationale\"], \"properties\": {\"workflowName\": {\"type\": \"string\"}, \"monthlyVolume\": {\"type\": \"number\", \"minimum\": 0}, \"minutesPerItemBefore\": {\"type\": \"number\", \"minimum\": 0}, \"minutesPerItemAfter\": {\"type\": \"number\", \"minimum\": 0}, \"exceptionRate\": {\"type\": \"number\", \"minimum\": 0, \"maximum\": 1}, \"exceptionMinutes\": {\"type\": \"number\", \"minimum\": 0}, \"adoption_low\": {\"type\": \"number\", \"minimum\": 0, \"maximum\": 1}, \"adoption_base\": {\"type\": \"number\", \"minimum\": 0, \"maximum\": 1}, \"adoption_high\": {\"type\": \"number\", \"minimum\": 0, \"maximum\": 1}, \"rationale\": {\"type\": \"string\"}}}}, \"rollout\": {\"type\": \"object\", \"additionalProperties\": false, \"required\": [\"timeToDeployWeeks\", \"rampUpWeeks\"], \"properties\": {\"timeToDeployWeeks\": {\"type\": \"number\", \"minimum\": 0}, \"rampUpWeeks\": {\"type\": \"number\", \"minimum\": 0}}}, \"notes\": {\"type\": \"object\", \"additionalProperties\": false, \"required\": [\"assumptions\"], \"properties\": {\"assumptions\": {\"type\": \"array\", \"items\": {\"type\": \"string\"}, \"maxItems\": 10}}}}}"
+            }
+          }
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 2.1,
+      "position": [-1088, 2688],
+      "id": "fd129503-7aac-47c1-aa6a-91dd77a18d23",
+      "name": "ROI Modeler",
+      "credentials": {
+        "openAiApi": {
+          "id": "G6YyWX5tcLjtlLkM",
+          "name": "OpenAi account 3"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const resp = items[0].json;\nconst raw =\n  resp?.output?.[0]?.content?.find(c => c.type === 'output_text')?.text\n  ?? resp?.output?.[0]?.content?.[0]?.text\n  ?? null;\n\nif (!raw) throw new Error('ROI Modeler: could not find output_text in API response.');\n\nlet result;\ntry {\n  result = typeof raw === 'string' ? JSON.parse(raw) : raw;\n} catch(e) {\n  throw new Error('ROI Modeler: failed to parse JSON — ' + e.message);\n}\n\nreturn [{ json: {\n  result,\n  tokenTotals: {\n    input:  resp?.usage?.input_tokens  ?? null,\n    output: resp?.usage?.output_tokens ?? null,\n  },\n} }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [-800, 2688],
+      "id": "c992dc2a-7258-450b-b68d-c761e3993773",
+      "name": "Parse ROI Modeler"
+    },
+    {
+      "parameters": {
+        "jsCode": "const modelerOut = items[0].json.result;\nconst analystOut  = $('Parse Company Analyst').first().json.result;\n\nif (!modelerOut || !analystOut) throw new Error('ROI Calculator: missing upstream data.');\n\nconst profile   = analystOut.company_profile;\nconst workflows = analystOut.workflows;   // from Company Analyst\nconst wfAssumps = modelerOut.workflowAssumptions; // from ROI Modeler\n\n// Match by name (case-insensitive) so reordering never misaligns numbers\nfunction findAssump(wfName) {\n  const lower = (wfName || '').toLowerCase();\n  return wfAssumps.find(a => (a.workflowName || '').toLowerCase() === lower)\n      || wfAssumps.find(a => lower.includes((a.workflowName || '').toLowerCase().slice(0, 8)))\n      || wfAssumps[workflows.findIndex(w => w.name === wfName)] // index fallback\n      || null;\n}\n\nconst currency          = modelerOut.currency;\nconst hourlyCost        = modelerOut.labor.fullyLoadedHourlyCost;\nconst workWeeksPerYear  = modelerOut.labor.workWeeksPerYear || 48;\nconst realizationFactor = modelerOut.realizationFactor;\nconst profitMultiplier  = modelerOut.profitMultiplier;\nconst implCost          = modelerOut.costs.implementationCost;\nconst monthlyTooling    = modelerOut.costs.monthlyToolingCost;\nconst workingMonthFactor = workWeeksPerYear / 52;\nconst MAX_MIN = 480;\n\nfunction calcScenario(wa, adoptionRate) {\n  const netSaved = Math.max(0,\n    (wa.minutesPerItemBefore - wa.minutesPerItemAfter)\n    - (wa.exceptionRate * wa.exceptionMinutes)\n  );\n  const hrs = (wa.monthlyVolume * adoptionRate * netSaved / 60) * realizationFactor * workingMonthFactor;\n  return { monthlyHours: hrs, annualHours: hrs * 12, annualValue: hrs * 12 * hourlyCost };\n}\n\nconst workflowResults = [];\nfor (const wf of workflows) {\n  const wa = { ...findAssump(wf.name) };\n  if (!wa.workflowName) throw new Error('ROI Calculator: no assumption found for workflow \"' + wf.name + '\".');\n\n  wa.minutesPerItemBefore = Math.min(wa.minutesPerItemBefore, MAX_MIN);\n  wa.minutesPerItemAfter  = Math.min(wa.minutesPerItemAfter, wa.minutesPerItemBefore);\n\n  const timeSaved  = wa.minutesPerItemBefore - wa.minutesPerItemAfter;\n  const savingsPct = wa.minutesPerItemBefore > 0\n    ? Math.round(timeSaved / wa.minutesPerItemBefore * 100) : 0;\n  const costPerRun  = (wa.minutesPerItemBefore / 60) * hourlyCost;\n  const monthlyCost = Math.round(wa.monthlyVolume * costPerRun);\n  const base        = calcScenario(wa, wa.adoption_base);\n\n  workflowResults.push({\n    name:            wf.name,\n    function:        wf.function        || 'Operations',\n    owner:           wf.owner           || '—',\n    agentName:       wf.agentName       || '',\n    whyItMatters:    wf.whyItMatters     || '',\n    expectedOutcome: wf.expectedOutcome || '',\n    source:          wf.sourceType      || 'inferred',\n    volume:          Math.round(wa.monthlyVolume),\n    timeBefore:      wa.minutesPerItemBefore,\n    timeAfter:       wa.minutesPerItemAfter,\n    timeSaved:       Math.round(timeSaved),\n    savingsPct,\n    costPerRun:      Math.round(costPerRun),\n    monthlyCost,\n    monthlyHours:    Math.round(base.monthlyHours),\n    monthlyValue:    Math.round(base.monthlyHours * hourlyCost),\n    annualHours:     Math.round(base.annualHours),\n    annualValue:     Math.round(base.annualValue),\n    rate:            hourlyCost,\n    rationale:       wa.rationale || '',\n  });\n}\n\n// Revenue guardrail — cap at 20% of annual revenue, never inflate\nconst revenueM = profile.revenueEstimateM;\nif (revenueM != null && revenueM > 0) {\n  const rawTotal = workflowResults.reduce((s, w) => s + w.annualValue, 0);\n  if (rawTotal > 0) {\n    const cap    = revenueM * 1e6 * 0.20;\n    const clamped = Math.round(Math.min(cap, rawTotal) / 1000) * 1000;\n    const scale   = clamped / rawTotal;\n    if (Math.abs(scale - 1) > 0.001) {\n      workflowResults.forEach(w => {\n        w.annualValue  = Math.round(w.annualValue  * scale);\n        w.monthlyValue = Math.round(w.monthlyValue * scale);\n        w.annualHours  = Math.round(w.annualHours  * scale);\n        w.monthlyHours = Math.round(w.monthlyHours * scale);\n      });\n    }\n  }\n}\n\nconst totalMonthlyHours = workflowResults.reduce((s, w) => s + w.monthlyHours, 0);\nconst totalAnnualHours  = workflowResults.reduce((s, w) => s + w.annualHours,  0);\nconst totalAnnualValue  = workflowResults.reduce((s, w) => s + w.annualValue,  0);\n\nconst od12 = Math.round(totalAnnualValue);\nconst pu12 = Math.round(totalAnnualValue * (profitMultiplier - 1));\nconst tf12 = od12 + pu12;\nconst od24 = Math.round(od12 * 2.15); const pu24 = Math.round(pu12 * 2.15); const tf24 = od24 + pu24;\nconst od36 = Math.round(od12 * 3.40); const pu36 = Math.round(pu12 * 3.40); const tf36 = od36 + pu36;\n\nconst paybackMonths = totalAnnualValue > 0\n  ? Math.ceil(implCost / (totalAnnualValue / 12)) : null;\n\n// Enforce 6–10 month payback regardless of what modeler returned\n// The modeler often underestimates implementationCost\nconst monthlyValue   = totalAnnualValue / 12;\nconst minImplCost    = Math.round(monthlyValue * 6);\nconst maxImplCost    = Math.round(monthlyValue * 10);\nconst adjImplCost    = Math.max(minImplCost, Math.min(maxImplCost, implCost));\nconst adjPayback     = totalAnnualValue > 0 ? Math.ceil(adjImplCost / monthlyValue) : null;\n\n// Pre-formatted strings for Report Writer — prevents number hallucination\nfunction addCommas(n) {\n  const str = String(Math.round(+n || 0));\n  let out = '';\n  for (let i = 0; i < str.length; i++) {\n    if (i > 0 && (str.length - i) % 3 === 0) out += ',';\n    out += str[i];\n  }\n  return out;\n}\nconst sym    = currency.symbol;\nconst fmtCur = (n) => sym + addCommas(n);\nconst fmtShort = (n) => {\n  const v = Math.round(+n);\n  if (v >= 1000000) return sym + (v / 1000000).toFixed(1) + 'M';\n  if (v >= 1000)    return sym + Math.round(v / 1000) + 'K';\n  return fmtCur(v);\n};\n\nconst figures = {\n  totalMonthlyHours:       addCommas(Math.round(totalMonthlyHours)),\n  totalAnnualHours:        addCommas(Math.round(totalAnnualHours)),\n  statFTE:                 (totalAnnualHours / 2000).toFixed(1),\n  operationalDividend12mo: fmtCur(od12),\n  profitUplift12mo:        fmtCur(pu12),\n  totalFinancialGain12mo:  fmtCur(tf12),\n  totalFinancialGainShort: fmtShort(tf12),\n  workflowLines: workflowResults.map(w =>\n    w.name + ': ' + addCommas(w.monthlyHours) + ' hrs/mo freed, ' + fmtCur(w.annualValue) + '/yr'\n  ),\n};\n\nreturn [{ json: {\n  roi_data: {\n    company:       profile.company,\n    industry:      profile.industry,\n    country:       profile.country,\n    primaryFocus:  profile.primaryFocus,\n    keyPriorities: profile.keyPriorities || [],\n    employees:     profile.employees,\n    revenue:       profile.revenueEstimateM,\n    currency,\n    workflows:     workflowResults,\n    totalMonthlyHours: Math.round(totalMonthlyHours),\n    totalAnnualHours:  Math.round(totalAnnualHours),\n    profitMultiplier,\n    realizationFactor,\n    workWeeksPerYear,\n    summary: {\n      totalAnnualHours,\n      operationalDividend12mo: od12, profitUplift12mo: pu12, totalFinancialGain12mo: tf12,\n      operationalDividend24mo: od24, profitUplift24mo: pu24, totalFinancialGain24mo: tf24,\n      operationalDividend36mo: od36, profitUplift36mo: pu36, totalFinancialGain36mo: tf36,\n      implCost: adjImplCost, monthlyTooling, paybackMonths: adjPayback,\n    },\n  },\n  figures,\n  analystData:  analystOut,\n  modelerNotes: modelerOut.notes?.assumptions || [],\n}}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [-528, 2688],
+      "id": "b1c9874e-8f05-4830-b4c7-3ba0fff0fdb5",
+      "name": "ROI Calculator"
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "gpt-4o-mini",
+          "mode": "list",
+          "cachedResultName": "GPT-4O-MINI"
+        },
+        "responses": {
+          "values": [
+            {
+              "role": "system",
+              "content": "You write copy for a client-facing AI automation ROI report.\n\nCRITICAL — NUMBER DISCIPLINE:\nAll financial figures are pre-computed and provided in the `figures` field.\nYou MUST copy these strings verbatim. Do NOT compute, round, or substitute any numbers.\n- Hours returned per month: figures.totalMonthlyHours\n- Hours returned per year: figures.totalAnnualHours\n- Operational Dividend: figures.operationalDividend12mo\n- Profit Uplift: figures.profitUplift12mo\n- Total Financial Gain: figures.totalFinancialGain12mo\n\nOUTPUT 4 SECTIONS:\n\n1. executiveSummary (200–280 words, exactly 4 paragraphs)\n\nPara 1 — Context (2–3 sentences): Name the company, industry, approximate size, and 1–2 of their stated challenges using their EXACT words from pain_points where source=\"user_stated\". Set the scene. NO financial figures in this paragraph.\n\nPara 2 — Workflows (2–3 sentences): Name the 4 workflows and explain why each addresses their specific challenges. Connect directly to what they told us. NO financial figures in this paragraph.\n\nPara 3 — Human Impact (2–3 sentences): Translate the opportunity into human terms. Use EXACTLY figures.statFTE as the FTE equivalent (e.g. \"the equivalent of figures.statFTE full-time contributors\"). What does this mean for the people doing the work? Use language around: time freed for higher-value work, reduced repetitive burden, team capacity redirected to clients. NO financial figures in this paragraph.\n\nPara 4 — Opportunity + CTA (2 sentences): State EXACTLY figures.totalFinancialGain12mo as the total 12-month financial gain. Acknowledge estimates are directional. Invite a 30-min validation call.\n\nCRITICAL: ONLY Para 4 may contain any financial figure. Paras 1–3 are purely narrative.\nUse \"we\" (LyRise), never \"I\". No hype. No generic phrases.\n\n2. cta_paragraph (2–3 sentences)\nUse EXACTLY figures.operationalDividend12mo and figures.totalMonthlyHours hrs. Invite a 30-min discovery call.\n\n3. profit_levers (exactly 3 items in this order)\nThe 3 profits MUST sum to EXACTLY profitUplift12mo (the raw integer, provided separately).\n\nCRITICAL for all levers:\n- baseline_data: 1 factual sentence grounded in the company's workflows (use process names, volumes, or hours from figures.workflowLines). No invented numbers.\n- assumption: 1 concrete sentence on what the automation enables. Use percentages and hours. No invented business context.\n- rationale: 1 plain business sentence on WHY this creates value. Write it the way a CFO would say it in a board meeting. NEVER mention seasons, holidays, named events, or external market conditions. Do not use the word \"Christmas\", \"seasonal\", or any time-specific references. The sentence should read: \"[Outcome] because [direct operational reason].\"\n\nLever 1 — Revenue Throughput:\n  baseline_data: reference the proposal or highest-value workflow volume and current time cost (from figures.workflowLines).\n  assumption: state the % of freed time redirected to pipeline activity and the estimated deal-value uplift.\n  CAP profit at min(derived, profitUplift12mo × 0.45). Set lever1 = capped value.\n\nLever 2 — Error Reduction:\n  baseline_data: reference the CRM, data entry, or reporting workflow — state current volume and error-prone nature.\n  assumption: state the % reduction in errors/rework and the hours saved per month.\n  CAP profit at min(derived, profitUplift12mo × 0.30). Set lever2 = capped value.\n\nLever 3 — Strategic Capacity:\n  Set lever3 = profitUplift12mo - lever1 - lever2. Always positive.\n  baseline_data: state what % of senior/skilled staff time currently goes to administrative or low-value tasks (cite a specific number from the workflows, e.g. \"X hrs/week across Y roles\").\n  assumption: state how many hrs/month are redirected to strategic or billable work, and the direct financial impact.\n\nEach lever fields:\n- lever_name: short label\n- baseline_data: 1 sentence on the current inefficiency with a specific number\n- assumption: 1 sentence on what automation enables, with a specific percentage\n- rationale: 1 plain business sentence on why this lever creates value — no formulas, no math, no equals signs\n- profit: positive integer as string, no symbols or commas (e.g. \"86401\")\n\n4. risks_mitigations (3–4 items)\nImplementation risks ONLY — not the client's pain points.\nRisk 1: adoption variance (cite employee count). Risk 2: data/integration complexity for their industry.\nRisk 3: volume calibration (cite a specific workflow volume). Risk 4 (optional): technical risk for one named workflow.\nEach: risk (1 sentence), mitigation (1 sentence referencing LyRise methodology).\n\nReturn valid JSON only."
+            },
+            {
+              "content": "={{ ({\n  figures:         $json.figures,\n  company_profile: $json.analystData.company_profile,\n  pain_points:     $json.analystData.pain_points,\n  workflows:       $json.analystData.workflows,\n  profitUplift12mo:$json.roi_data.summary.profitUplift12mo\n}).toJsonString() }}"
+            }
+          ]
+        },
+        "simplify": false,
+        "builtInTools": {},
+        "options": {
+          "textFormat": {
+            "textOptions": {
+              "type": "json_schema",
+              "schema": "{\"type\": \"object\", \"additionalProperties\": false, \"required\": [\"executiveSummary\", \"cta_paragraph\", \"profit_levers\", \"risks_mitigations\"], \"properties\": {\"executiveSummary\": {\"type\": \"string\", \"minLength\": 400, \"maxLength\": 3500}, \"cta_paragraph\": {\"type\": \"string\", \"minLength\": 50, \"maxLength\": 400}, \"profit_levers\": {\"type\": \"array\", \"minItems\": 3, \"maxItems\": 3, \"items\": {\"type\": \"object\", \"additionalProperties\": false, \"required\": [\"lever_name\", \"baseline_data\", \"assumption\", \"rationale\", \"profit\"], \"properties\": {\"lever_name\": {\"type\": \"string\"}, \"baseline_data\": {\"type\": \"string\"}, \"assumption\": {\"type\": \"string\"}, \"rationale\": {\"type\": \"string\"}, \"profit\": {\"type\": \"string\"}}}}, \"risks_mitigations\": {\"type\": \"array\", \"minItems\": 3, \"maxItems\": 4, \"items\": {\"type\": \"object\", \"additionalProperties\": false, \"required\": [\"risk\", \"mitigation\"], \"properties\": {\"risk\": {\"type\": \"string\"}, \"mitigation\": {\"type\": \"string\"}}}}}}"
+            }
+          }
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 2.1,
+      "position": [-240, 2688],
+      "id": "07942cb1-a559-4178-b9ee-5f9a2d138d66",
+      "name": "Report Writer",
+      "credentials": {
+        "openAiApi": {
+          "id": "G6YyWX5tcLjtlLkM",
+          "name": "OpenAi account 3"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const resp = items[0].json;\nconst raw =\n  resp?.output?.[0]?.content?.find(c => c.type === 'output_text')?.text\n  ?? resp?.output?.[0]?.content?.[0]?.text\n  ?? null;\n\nif (!raw) throw new Error('Report Writer: could not find output_text in API response.');\n\nlet result;\ntry {\n  result = typeof raw === 'string' ? JSON.parse(raw) : raw;\n} catch(e) {\n  throw new Error('Report Writer: failed to parse JSON — ' + e.message);\n}\n\nreturn [{ json: {\n  result,\n  tokenTotals: {\n    input:  resp?.usage?.input_tokens  ?? null,\n    output: resp?.usage?.output_tokens ?? null,\n  },\n} }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [32, 2688],
+      "id": "378de909-3b3c-4b5b-83ad-56511309928e",
+      "name": "Parse Report Writer"
+    },
+    {
+      "parameters": {
+        "jsCode": "// ─────────────────────────────────────────────────────────────\n// ASSEMBLE REPORT\n// Pulls from ROI Calculator, Parse Report Writer, Normalize Input.\n// Pre-builds all display strings and table HTML.\n// HTML Template node only does {{ $json.display.xxx }} lookups.\n// ─────────────────────────────────────────────────────────────\n\n// ── Source nodes ──────────────────────────────────────────────\nconst calcOut   = $('ROI Calculator').first().json;\nconst writerOut = $('Parse Report Writer').first().json.result || {};\nconst normInput = $('Normalize Input').first().json;\n\nconst roi        = calcOut.roi_data;\nconst analystData = calcOut.analystData || {};\nconst painPoints  = analystData.pain_points || [];\nconst modelerNotes = calcOut.modelerNotes  || [];\nconst sym         = roi.currency.symbol;\nconst s           = roi.summary;\n\n// ── Formatters ────────────────────────────────────────────────\n// addCommas: loop-only, no regex, no toLocaleString (PDF-safe)\nfunction addCommas(n) {\n  const str = String(Math.round(+n || 0));\n  let out = '';\n  for (let i = 0; i < str.length; i++) {\n    if (i > 0 && (str.length - i) % 3 === 0) out += ',';\n    out += str[i];\n  }\n  return out;\n}\nconst fmt   = (n) => (n != null && !isNaN(+n)) ? addCommas(+n) : '—';\nconst cur   = (n) => sym + fmt(n);\nconst short = (n) => {\n  if (n == null || isNaN(+n)) return '—';\n  const v = Math.round(+n);\n  if (v >= 1000000) return sym + (v / 1000000).toFixed(1) + 'M';\n  if (v >= 1000)    return sym + Math.round(v / 1000) + 'K';\n  return cur(v);\n};\n\n// ── Derived values ────────────────────────────────────────────\nconst tf12 = s.operationalDividend12mo + s.profitUplift12mo;\n\n// Sort workflows by annual value descending for table display\nconst wfs = [...roi.workflows].sort((a, b) => b.annualValue - a.annualValue);\n\nconst totalMonthlyHours = wfs.reduce((a, w) => a + w.monthlyHours, 0);\nconst totalMonthlyCost  = wfs.reduce((a, w) => a + w.monthlyCost,  0);\n\n// Function roll-up: aggregate by business function\nconst fnMap = {};\nroi.workflows.forEach(w => {\n  const fn = w.function || 'Operations';\n  if (!fnMap[fn]) fnMap[fn] = { function: fn, monthlyHours: 0, rate: w.rate, monthlyValue: 0, annualValue: 0 };\n  fnMap[fn].monthlyHours += w.monthlyHours;\n  fnMap[fn].monthlyValue += w.monthlyValue;\n  fnMap[fn].annualValue  += w.annualValue;\n});\nconst fnRollup = Object.values(fnMap).sort((a, b) => b.annualValue - a.annualValue);\n\n// Date — loop-only, no toLocaleDateString (PDF-safe)\nconst MONTHS = ['January','February','March','April','May','June',\n                'July','August','September','October','November','December'];\nconst now = new Date();\nconst currentDate = MONTHS[now.getMonth()] + ' ' + now.getDate() + ', ' + now.getFullYear();\n\n// ── HTML blocks ───────────────────────────────────────────────\n\n// Executive summary: double-newlines → <p> tags\nconst execSummaryHTML = (writerOut.executiveSummary || '')\n  .split(/\\n\\n+/)\n  .filter(p => p.trim())\n  .map(p => '<p style=\"margin-bottom:7px\">' + p.replace(/\\n/g, ' ').trim() + '</p>')\n  .join('');\n\n// Scope list\nconst scopeListHTML = wfs.map(w => '<li>' + w.name + '</li>').join('');\n\n// As-Is Baseline table\nconst asisTableBody = wfs.map(wf =>\n  '<tr>'\n  + '<td><strong>' + wf.name + '</strong></td>'\n  + '<td>' + (wf.owner || '—') + '</td>'\n  + '<td style=\"text-align:center\">' + fmt(wf.volume) + '</td>'\n  + '<td style=\"text-align:center\">' + fmt(wf.timeBefore) + ' min</td>'\n  + '<td>' + sym + fmt(wf.rate) + '/hr</td>'\n  + '<td>' + sym + fmt(wf.costPerRun) + '</td>'\n  + '<td><strong>' + sym + fmt(wf.monthlyCost) + '</strong></td>'\n  + '</tr>'\n).join('')\n+ '<tr class=\"total-row\">'\n  + '<td colspan=\"6\"><strong>Total monthly run-cost</strong></td>'\n  + '<td><strong>' + sym + fmt(totalMonthlyCost) + '</strong></td>'\n  + '</tr>';\n\n// Before vs After table\nconst bvaTableBody = wfs.map(wf =>\n  '<tr>'\n  + '<td><strong>' + wf.name + '</strong></td>'\n  + '<td style=\"text-align:center\">' + fmt(wf.volume) + '</td>'\n  + '<td style=\"text-align:center\">' + fmt(wf.timeBefore) + ' min</td>'\n  + '<td style=\"text-align:center\">' + fmt(wf.timeAfter) + ' min</td>'\n  + '<td style=\"text-align:center\">' + fmt(wf.timeSaved) + ' min (-' + (wf.savingsPct || 0) + '%)</td>'\n  + '<td style=\"text-align:center\">' + fmt(wf.monthlyHours) + ' hrs</td>'\n  + '<td>' + sym + fmt(wf.rate) + '/hr</td>'\n  + '<td class=\"accent\">' + sym + fmt(wf.annualValue) + '</td>'\n  + '</tr>'\n).join('')\n+ '<tr class=\"total-row\">'\n  + '<td colspan=\"5\"><strong>Monthly capacity unlocked</strong></td>'\n  + '<td><strong>' + fmt(totalMonthlyHours) + ' hrs</strong></td>'\n  + '<td></td>'\n  + '<td class=\"accent\"><strong>' + sym + fmt(s.operationalDividend12mo) + '/yr</strong></td>'\n  + '</tr>';\n\n// Profit Levers table\nconst levers = writerOut.profit_levers || [];\nconst profitLeversBody = levers.map(l =>\n  '<tr>'\n  + '<td><strong>' + (l.lever_name || '') + '</strong></td>'\n  + '<td>' + (l.baseline_data || '') + '</td>'\n  + '<td>' + (l.assumption || '') + '</td>'\n  + '<td>' + (l.rationale || '') + '</td>'\n  + '<td class=\"accent\"><strong>' + sym + fmt(+l.profit || 0) + '</strong></td>'\n  + '</tr>'\n).join('')\n+ '<tr class=\"total-row\">'\n  + '<td colspan=\"4\"><strong>12-month incremental profit</strong></td>'\n  + '<td class=\"accent\"><strong>' + sym + fmt(s.profitUplift12mo) + '</strong></td>'\n  + '</tr>';\n\n// Deploy table\nconst deployTableBody = wfs.map(wf =>\n  '<tr>'\n  + '<td><strong>' + wf.name + '</strong><br>'\n  + '<span class=\"muted\">' + (wf.expectedOutcome || '') + '</span></td>'\n  + '<td class=\"accent\"><strong>' + (wf.agentName || '') + '</strong></td>'\n  + '<td>' + (wf.whyItMatters || '') + '</td>'\n  + '</tr>'\n).join('');\n\n// Function Roll-Up table\nconst fnTotalHrs = fnRollup.reduce((a, f) => a + f.monthlyHours, 0);\nconst fnTotalMoV = fnRollup.reduce((a, f) => a + f.monthlyValue, 0);\nconst fnTotalAnV = fnRollup.reduce((a, f) => a + f.annualValue,  0);\nconst functionRollupBody = fnRollup.map(fn =>\n  '<tr>'\n  + '<td><strong>' + fn.function + '</strong></td>'\n  + '<td>' + fmt(fn.monthlyHours) + ' hrs</td>'\n  + '<td>' + sym + fmt(fn.rate) + '/hr</td>'\n  + '<td>' + sym + fmt(fn.monthlyValue) + '</td>'\n  + '<td class=\"accent\"><strong>' + sym + fmt(fn.annualValue) + '</strong></td>'\n  + '</tr>'\n).join('')\n+ '<tr class=\"total-row\">'\n  + '<td><strong>Total</strong></td>'\n  + '<td><strong>' + fmt(fnTotalHrs) + ' hrs</strong></td>'\n  + '<td></td>'\n  + '<td><strong>' + sym + fmt(fnTotalMoV) + '</strong></td>'\n  + '<td class=\"accent\"><strong>' + sym + fmt(fnTotalAnV) + '</strong></td>'\n  + '</tr>';\n\n// Risks table\nconst risksTableBody = (writerOut.risks_mitigations || []).map(r =>\n  '<tr>'\n  + '<td>' + (r.risk || '') + '</td>'\n  + '<td class=\"accent\">' + (r.mitigation || '') + '</td>'\n  + '</tr>'\n).join('');\n\n// ── Confidence Score ──────────────────────────────────────────\n// Measures how much of the analysis is grounded in exec-provided data.\nconst inputProcs    = normInput.processes || [];\nconst procCount     = inputProcs.length;\nconst withVolume    = inputProcs.filter(p => p.volume_per_month && p.volume_per_month !== 'Not sure').length;\nconst withTime      = inputProcs.filter(p => p.time_per_item).length;\nconst denominator   = procCount || 1;\n\nconst confScore =\n  (procCount > 0         ? 0.20 : 0) +\n  Math.min(withVolume / denominator, 1) * 0.35 +\n  Math.min(withTime   / denominator, 1) * 0.25 +\n  Math.min(procCount  / 4,           1) * 0.20;\n\nconst confLevel = confScore >= 0.65 ? 'HIGH' : confScore >= 0.35 ? 'MEDIUM' : 'LOW';\nconst confColor = confScore >= 0.65 ? '#10b981' : confScore >= 0.35 ? '#d97706' : '#94a3b8';\nconst confDesc  = confScore >= 0.65\n  ? 'Based primarily on your specific inputs'\n  : confScore >= 0.35\n  ? 'Mix of your inputs and industry benchmarks'\n  : 'Primarily industry benchmarks — more detail improves accuracy';\n\nconst confidenceBadgeHTML =\n  '<div class=\"conf-badge\">'\n  + '<span class=\"conf-dot\" style=\"background:' + confColor + '\"></span>'\n  + '<span><strong style=\"color:' + confColor + '\">' + confLevel + ' CONFIDENCE</strong>'\n  + ' &nbsp;—&nbsp; <span style=\"color:#64748b\">' + confDesc + '</span></span>'\n  + '</div>';\n\n// ── Workforce Impact ──────────────────────────────────────────\nconst uniqueOwners = [...new Set(roi.workflows.map(w => w.owner).filter(Boolean))];\nconst ownerCount   = uniqueOwners.length || 1;\nconst hrsPerRole   = Math.round(totalMonthlyHours / ownerCount);\nconst fteVal       = (s.totalAnnualHours / 2000).toFixed(1);\nconst ownerRoles   = uniqueOwners.slice(0, 3).join(', ');\n\nconst workforceImpactHTML =\n  '<table class=\"impact-table\"><tr>'\n  + '<td><span class=\"impact-label\">Hours freed per affected role</span>'\n  + '<span class=\"impact-val\">' + addCommas(hrsPerRole) + '/mo</span>'\n  + '<span class=\"impact-sub\">avg. across ' + ownerCount + ' role' + (ownerCount > 1 ? 's' : '') + ' doing these tasks</span></td>'\n  + '<td><span class=\"impact-label\">FTE equivalent returned</span>'\n  + '<span class=\"impact-val\">' + fteVal + '</span>'\n  + '<span class=\"impact-sub\">full-time contributors freed per year</span></td>'\n  + '<td><span class=\"impact-label\">Roles most impacted</span>'\n  + '<span class=\"impact-val impact-roles\">' + (ownerRoles || '—') + '</span>'\n  + '<span class=\"impact-sub\">regain capacity for higher-value work</span></td>'\n  + '</tr></table>';\n\n// ── Provenance ────────────────────────────────────────────────\n// Pulls pain_points from analyst data (via ROI Calculator output).\n// Splits clearly: what came from the exec vs what was benchmarked.\nconst userPainItems = painPoints\n  .filter(p => p.source === 'user_stated')\n  .map(p => 'Pain point — \"' + (p.title || '') + '\": captured directly from your submission');\n\nconst userWfItems = wfs\n  .filter(w => w.source === 'user_stated')\n  .map(w => 'Workflow — ' + w.name + ': selected because you identified this as a bottleneck');\n\n// Fallback: if analyst didn't tag sources, use normInput process names\nconst inputProcNames = (normInput.processes || []).map(p => p.name).filter(Boolean);\nconst userWfNames    = wfs.filter(w => w.source === 'user_stated').map(w => w.name);\nconst unmatchedProcs = inputProcNames.filter(n => !userWfNames.includes(n));\nconst fallbackItems  = unmatchedProcs.map(n => 'Process — \"' + n + '\": submitted directly by your team');\n\nconst benchmarkWfItems = wfs\n  .filter(w => w.source !== 'user_stated')\n  .map(w => 'Workflow — ' + w.name + ' (inferred): ' + (w.rationale || 'industry-typical for this sector'));\n\n// Filter empty strings from modeler notes\nconst cleanModelerNotes = modelerNotes.filter(n => typeof n === 'string' && n.trim().length > 0);\n\nconst provenanceUserItems      = [...userPainItems, ...userWfItems, ...fallbackItems];\nconst provenanceBenchmarkItems = [...cleanModelerNotes, ...benchmarkWfItems];\n\nconst provenanceHTML =\n  '<p style=\"font-size:8.5pt;font-weight:bold;color:#0a1628;margin-bottom:4px\">From your inputs</p>'\n  + (provenanceUserItems.length\n    ? '<ul class=\"prov-list\">' + provenanceUserItems.map(l => '<li>' + l + '</li>').join('') + '</ul>'\n    : '<p class=\"muted\" style=\"margin-bottom:8px\">No direct inputs captured — all figures are benchmark-based.</p>')\n  + '<p style=\"font-size:8.5pt;font-weight:bold;color:#0a1628;margin:8px 0 4px\">Industry benchmarks applied</p>'\n  + (provenanceBenchmarkItems.length\n    ? '<ul class=\"prov-list\">' + provenanceBenchmarkItems.map(l => '<li>' + l + '</li>').join('') + '</ul>'\n    : '<p class=\"muted\">No benchmark adjustments were applied.</p>');\n\n// ── Display object ────────────────────────────────────────────\n// Flat strings only — HTML Template node reads these directly.\nconst display = {\n  currencyCode:   roi.currency.code,\n  currencySymbol: sym,\n  coverHeadline:  fmt(totalMonthlyHours) + ' hrs returned & ' + short(tf12) + ' total financial gain — 12-month conservative estimate',\n\n  // Stat cards\n  statHours:    fmt(s.totalAnnualHours),\n  statHoursSub: fmt(totalMonthlyHours),\n  statOD:       short(s.operationalDividend12mo),\n  statTF:       short(tf12),\n  statFTE:      (s.totalAnnualHours / 2000).toFixed(1),\n\n  // Outcomes (full precision)\n  totalAnnualHours:  fmt(s.totalAnnualHours),\n  totalMonthlyHours: fmt(totalMonthlyHours),\n  od12:     cur(s.operationalDividend12mo),\n  pu12:     cur(s.profitUplift12mo),\n  tf12:     cur(tf12),\n  payback:  s.paybackMonths != null ? String(s.paybackMonths) + ' months' : '—',\n\n  // Multi-year ramp (Y2 = 2.15×, Y3 = 3.40×)\n  hrs24: fmt(Math.round(s.totalAnnualHours * 2.15)),\n  od24: cur(s.operationalDividend24mo),\n  pu24: cur(s.profitUplift24mo),\n  tf24: cur(s.totalFinancialGain24mo),\n  hrs36: fmt(Math.round(s.totalAnnualHours * 3.40)),\n  od36: cur(s.operationalDividend36mo),\n  pu36: cur(s.profitUplift36mo),\n  tf36: cur(s.totalFinancialGain36mo),\n\n  // Company snapshot\n  employeesDisplay: roi.employees ? addCommas(roi.employees) + ' (est. midpoint)' : 'Not specified',\n  revenueDisplay:   roi.revenue   ? sym + String(roi.revenue) + 'M (est. midpoint)' : 'Not specified',\n\n  // Pre-built HTML blocks\n  execSummaryHTML,\n  confidenceBadgeHTML,\n  workforceImpactHTML,\n  scopeListHTML,\n  asisTableBody,\n  bvaTableBody,\n  profitLeversBody,\n  deployTableBody,\n  functionRollupBody,\n  risksTableBody,\n  provenanceHTML,\n  cta: writerOut.cta_paragraph || ('Let us show you how we can return ' + fmt(totalMonthlyHours) + ' hours to your team each month.'),\n};\n\nreturn [{ json: {\n  roi_data:        roi,\n  copy:            writerOut,\n  display,\n  current_date:    currentDate,\n  recipient_email: normInput.email || '',\n}}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [304, 2688],
+      "id": "8beb1f81-bcc1-4d31-97e2-d7594764f09e",
+      "name": "Assemble Report"
+    },
+    {
+      "parameters": {
+        "html": "<!DOCTYPE html>\n<html>\n<head>\n<meta charset=\"UTF-8\">\n<style>\n* { box-sizing: border-box; margin: 0; padding: 0; }\nbody {\n  font-family: 'Helvetica Neue', Arial, Helvetica, sans-serif;\n  font-size: 9.5pt;\n  color: #1e293b;\n  line-height: 1.55;\n  background: #fff;\n}\n.page {\n  width: 210mm;\n  min-height: 285mm;\n  padding: 12mm 15mm 10mm;\n  margin: 0 auto;\n  page-break-after: always;\n}\n.page.last { page-break-after: auto; }\n.top-bar { height: 4px; background: #0a1628; margin-bottom: 10px; }\n/* Typography */\nh2 {\n  font-size: 11pt; font-weight: bold; color: #0a1628;\n  border-bottom: 2px solid #0a1628; padding-bottom: 4px;\n  margin-bottom: 8px; margin-top: 12px;\n}\nh2:first-child { margin-top: 0; }\nh3 { font-size: 10pt; font-weight: bold; color: #0a1628; margin-bottom: 5px; }\np  { font-size: 9.5pt; margin-bottom: 5px; }\n.accent { color: #0a1628; font-weight: bold; }\n.muted  { color: #64748b; font-size: 8.5pt; }\n/* Tables */\ntable { width: 100%; border-collapse: collapse; font-size: 9pt; margin-bottom: 6px; }\nth {\n  background: #0a1628; color: #fff; font-weight: bold; font-size: 7.5pt;\n  text-transform: uppercase; letter-spacing: 0.3px;\n  padding: 5px 7px; border: 1px solid #0a1628; text-align: left;\n}\ntd { padding: 4px 7px; border: 1px solid #dde1e7; vertical-align: top; }\ntr:nth-child(even) td { background: #f9fafb; }\n.total-row td { border-top: 2px solid #0a1628; background: #f1f5f9 !important; font-weight: bold; }\n.note {\n  font-size: 7.5pt; color: #64748b; padding: 3px 8px;\n  border-left: 2px solid #dde1e7; margin-top: 4px; font-style: italic;\n}\n/* Footer */\n.footer {\n  margin-top: 8px; padding-top: 6px; border-top: 1px solid #e2e8f0;\n  font-size: 7.5pt; color: #94a3b8;\n  display: flex; justify-content: space-between; align-items: center;\n}\n.footer a { color: #0a1628; text-decoration: none; font-weight: bold; }\n/* Cover */\n.eyebrow {\n  font-size: 7pt; letter-spacing: 2px; text-transform: uppercase;\n  color: #94a3b8; margin-top: 8mm; margin-bottom: 4px;\n}\n.co-name {\n  font-size: 26pt; font-weight: bold; color: #0a1628;\n  line-height: 1.05; margin-bottom: 3px;\n}\n.headline {\n  font-size: 12pt; font-weight: bold; color: #0a1628;\n  margin-bottom: 10px; line-height: 1.3;\n}\n.meta-line {\n  font-size: 8.5pt; color: #64748b; margin-bottom: 12px;\n}\n.meta-line strong { color: #1e293b; }\n/* Stat grid — using table for PDF safety */\n.stat-table { margin-bottom: 10px; border-collapse: separate; border-spacing: 5px; }\n.stat-table td {\n  background: #f8fafc; border: 1px solid #dde1e7;\n  padding: 9px 11px; width: 25%; vertical-align: top;\n}\n.stat-label {\n  font-size: 7pt; text-transform: uppercase; letter-spacing: 0.8px;\n  color: #94a3b8; font-weight: bold; margin-bottom: 3px; display: block;\n}\n.stat-value {\n  font-size: 17pt; font-weight: bold; color: #0a1628;\n  line-height: 1.1; display: block;\n}\n.stat-sub { font-size: 7.5pt; color: #64748b; margin-top: 2px; display: block; }\n/* About box */\n.about-box {\n  background: #0a1628; padding: 10px 14px;\n  margin-bottom: 10px;\n}\n.about-label {\n  font-size: 7pt; text-transform: uppercase; letter-spacing: 1.5px;\n  color: #cbd5e1; font-weight: bold; margin-bottom: 4px;\n}\n.about-box p { color: #cbd5e1; font-size: 9pt; line-height: 1.5; }\n.about-box strong { color: #fff; }\n/* Cover 2-col — table */\n.cover-2col td {\n  vertical-align: top; width: 50%;\n  background: #f8fafc; border: 1px solid #dde1e7; padding: 10px 12px;\n}\n/* Scope list */\n.scope-list { list-style: none; margin-top: 6px; }\n.scope-list li {\n  padding: 3px 0 3px 14px; border-bottom: 1px dotted #e2e8f0;\n  font-size: 9pt; position: relative;\n}\n.scope-list li:before { content: \">\"; position: absolute; left: 0; color: #0a1628; font-weight: bold; }\n.scope-list li:last-child { border-bottom: none; }\n/* Outcomes list */\n.outcomes { list-style: none; margin-top: 6px; }\n.outcomes li {\n  display: flex; justify-content: space-between; padding: 4px 0;\n  border-bottom: 1px solid #e2e8f0; font-size: 9pt;\n}\n.outcomes li:last-child { border-bottom: none; }\n.oc-label { color: #64748b; }\n.oc-val   { font-weight: bold; color: #1e293b; }\n.oc-hi    { font-weight: bold; color: #0a1628; font-size: 10pt; }\n/* Disclaimer */\n.disc-box {\n  background: #fffbeb; border: 1px solid #fde68a;\n  border-left: 4px solid #f59e0b; padding: 9px 11px;\n  margin-bottom: 8px;\n}\n.disc-title {\n  font-size: 7.5pt; text-transform: uppercase; letter-spacing: 0.8px;\n  font-weight: bold; color: #92400e; margin-bottom: 4px;\n}\n.disc-box p, .disc-box li { font-size: 9pt; color: #78350f; line-height: 1.4; }\n.disc-box ul { margin: 4px 0 0 14px; }\n/* Snapshot */\n.snap-table td {\n  background: #f1f5f9; border: 1px solid #dde1e7;\n  padding: 7px 9px; width: 33%; vertical-align: top;\n}\n.chip-label {\n  font-size: 7pt; text-transform: uppercase; letter-spacing: 0.6px;\n  color: #94a3b8; font-weight: bold; margin-bottom: 2px; display: block;\n}\n/* Provenance */\n.prov-list { list-style: none; }\n.prov-list li {\n  font-size: 8.5pt; color: #64748b; padding: 3px 0 3px 12px;\n  border-bottom: 1px solid #f1f5f9; position: relative; line-height: 1.4;\n}\n.prov-list li:before { content: \"-\"; position: absolute; left: 0; color: #94a3b8; }\n.prov-list li:last-child { border-bottom: none; }\n/* Roadmap */\n.roadmap-table td {\n  vertical-align: top; width: 25%; background: #f8fafc;\n  border: 1px solid #dde1e7; padding: 8px 9px;\n}\n.phase-weeks {\n  font-size: 7pt; text-transform: uppercase; letter-spacing: 0.7px;\n  color: #0a1628; font-weight: bold; margin-bottom: 3px;\n}\n.phase-title { font-size: 9pt; font-weight: bold; color: #0a1628; margin-bottom: 3px; }\n.phase-desc  { font-size: 8.5pt; color: #64748b; line-height: 1.35; }\n/* Checklist */\n.check-table td { background: #f8fafc; border: 1px solid #dde1e7; padding: 6px 9px; width: 50%; font-size: 9pt; }\n.check-icon {\n  display: inline-block; width: 14px; height: 14px; background: #0a1628;\n  color: white; font-size: 8pt; font-weight: bold;\n  text-align: center; line-height: 14px; margin-right: 6px;\n  vertical-align: middle;\n}\n/* Confidence badge */\n.conf-badge {\n  display: table; font-size: 8.5pt; padding: 5px 10px;\n  border: 1px solid #e2e8f0; background: #f8fafc;\n  margin-bottom: 10px;\n}\n.conf-dot {\n  display: inline-block; width: 8px; height: 8px;\n  border-radius: 50%; margin-right: 7px; vertical-align: middle;\n}\n/* Workforce Impact */\n.impact-section {\n  background: #f8fafc; border: 1px solid #e2e8f0;\n  border-left: 4px solid #0a1628; padding: 10px 13px; margin-top: 10px;\n}\n.impact-title {\n  font-size: 8pt; text-transform: uppercase; letter-spacing: 0.8px;\n  font-weight: bold; color: #0a1628; margin-bottom: 7px;\n}\n.impact-table { border: none; margin: 0; }\n.impact-table td { border: none; padding: 0 12px 0 0; width: 33%; vertical-align: top; background: transparent; }\n.impact-table tr:nth-child(even) td { background: transparent; }\n.impact-label {\n  font-size: 7pt; text-transform: uppercase; letter-spacing: 0.6px;\n  color: #64748b; font-weight: bold; display: block; margin-bottom: 2px;\n}\n.impact-val {\n  font-size: 16pt; font-weight: bold; color: #0a1628;\n  display: block; line-height: 1.1;\n}\n.impact-roles { font-size: 9pt !important; }\n.impact-sub { font-size: 7.5pt; color: #64748b; display: block; margin-top: 2px; }\n.cta-box {\n  background: #0a1628; padding: 14px 18px; text-align: center; margin-bottom: 8px;\n}\n.cta-box h3 { color: #fff; font-size: 11pt; margin-bottom: 5px; }\n.cta-box p  { color: #94a3b8; font-size: 9pt; margin-bottom: 8px; }\n.cta-btn {\n  display: inline-block; background: #0a1628; border: 1px solid #fff; color: #fff;\n  padding: 7px 20px; font-weight: bold; font-size: 9.5pt; text-decoration: none;\n}\n.cta-contact { font-size: 8pt; color: #64748b; margin-top: 6px; }\n.cta-contact a { color: #cbd5e1; text-decoration: none; }\n@media print {\n  body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }\n  .page { page-break-after: always; }\n  .page.last { page-break-after: auto; }\n}\n</style>\n</head>\n<body>\n\n<!-- PAGE 1 — COVER -->\n<div class=\"page\">\n<div class=\"top-bar\"></div>\n<div class=\"eyebrow\">AI Automation ROI Analysis — Prepared by LyRise AI</div>\n<div class=\"co-name\">{{ $json.roi_data.company }}</div>\n<div class=\"headline\">{{ $json.display.coverHeadline }}</div>\n\n<p class=\"meta-line\">\n  <strong>Prepared for:</strong> {{ $json.roi_data.company }} leadership &nbsp;|&nbsp;\n  <strong>Prepared by:</strong> LyRise AI &nbsp;|&nbsp;\n  <strong>Date:</strong> {{ $json.current_date }} &nbsp;|&nbsp;\n  <strong>Currency:</strong> {{ $json.display.currencyCode }} ({{ $json.display.currencySymbol }})\n</p>\n\n<table class=\"stat-table\">\n  <tr>\n    <td>\n      <span class=\"stat-label\">Hours Returned / yr</span>\n      <span class=\"stat-value\">{{ $json.display.statHours }}</span>\n      <span class=\"stat-sub\">{{ $json.display.statHoursSub }} hrs freed / mo</span>\n    </td>\n    <td>\n      <span class=\"stat-label\">Operational Dividend</span>\n      <span class=\"stat-value\">{{ $json.display.statOD }}</span>\n      <span class=\"stat-sub\">12-month direct labour savings</span>\n    </td>\n    <td>\n      <span class=\"stat-label\">Total Financial Gain</span>\n      <span class=\"stat-value\">{{ $json.display.statTF }}</span>\n      <span class=\"stat-sub\">Labour savings + profit uplift</span>\n    </td>\n    <td>\n      <span class=\"stat-label\">FTE Equivalent / yr</span>\n      <span class=\"stat-value\">{{ $json.display.statFTE }}</span>\n      <span class=\"stat-sub\">Across 4 workflows</span>\n    </td>\n  </tr>\n</table>\n\n{{ $json.display.confidenceBadgeHTML }}\n\n<div class=\"about-box\">\n  <div class=\"about-label\">About LyRise</div>\n  <p>We map critical business processes, quantify true run-costs, and deploy targeted automations and AI agents to return time to teams and unlock measurable financial gains.</p>\n  <p style=\"margin-top:4px\">Recognising your deep expertise in <strong>{{ $json.roi_data.industry || 'your industry' }}</strong>, this report models how AI can be applied to the core processes that power your business.</p>\n</div>\n\n<table class=\"cover-2col\" style=\"border-collapse:separate;border-spacing:7px\">\n  <tr>\n    <td>\n      <h3>Scope — 4 workflows in focus</h3>\n      <ul class=\"scope-list\">{{ $json.display.scopeListHTML }}</ul>\n    </td>\n    <td>\n      <h3>12-Month Outcomes (Conservative)</h3>\n      <ul class=\"outcomes\">\n        <li><span class=\"oc-label\">Time returned</span><span class=\"oc-hi\">{{ $json.display.totalAnnualHours }} hrs</span></li>\n        <li><span class=\"oc-label\">Operational Dividend</span><span class=\"oc-val\">{{ $json.display.od12 }}</span></li>\n        <li><span class=\"oc-label\">Profit Uplift</span><span class=\"oc-val\">{{ $json.display.pu12 }}</span></li>\n        <li><span class=\"oc-label\">Total Financial Gain</span><span class=\"oc-hi\">{{ $json.display.tf12 }}</span></li>\n      </ul>\n      <p class=\"muted\" style=\"margin-top:6px\">No implementation costs included. All numbers to be validated with your actual volumes and rates.</p>\n    </td>\n  </tr>\n</table>\n\n<div class=\"footer\">\n  <span>LyRise AI — Confidential</span>\n  <span>{{ $json.roi_data.company }} &middot; {{ $json.current_date }}</span>\n  <span><a href=\"https://lyrise.ai\">lyrise.ai</a></span>\n</div>\n</div>\n\n\n<!-- PAGE 2 — EXECUTIVE SUMMARY -->\n<div class=\"page\">\n<div class=\"top-bar\"></div>\n<h2>Executive Summary</h2>\n<div style=\"font-size:10pt;color:#1e293b;line-height:1.7\">{{ $json.display.execSummaryHTML }}</div>\n\n<div class=\"impact-section\">\n  <div class=\"impact-title\">Workforce Impact — What This Means for Your Team</div>\n  {{ $json.display.workforceImpactHTML }}\n</div>\n\n<div class=\"footer\">\n  <span>LyRise AI — Confidential</span>\n  <span>{{ $json.roi_data.company }} &middot; {{ $json.current_date }}</span>\n  <span><a href=\"https://lyrise.ai\">lyrise.ai</a></span>\n</div>\n</div>\n\n\n<!-- PAGE 3 — DISCLAIMER + SNAPSHOT + AS-IS BASELINE -->\n<div class=\"page\">\n<div class=\"top-bar\"></div>\n\n<div class=\"disc-box\">\n  <div class=\"disc-title\">Analytical Estimate — Not an Audited Financial Statement</div>\n  <p>This report is derived from: publicly available information about <strong>{{ $json.roi_data.company }}</strong>, operational signals (headcount, roles, industry practices), conservative industry benchmarks, and LyRise process-mapping frameworks. All assumptions should be validated with {{ $json.roi_data.company }} stakeholders before implementation decisions are made.</p>\n</div>\n\n<h2>Company Snapshot</h2>\n<table class=\"snap-table\" style=\"border-collapse:separate;border-spacing:5px;margin-bottom:10px\">\n  <tr>\n    <td><span class=\"chip-label\">Industry</span>{{ $json.roi_data.industry || '—' }}</td>\n    <td><span class=\"chip-label\">Country</span>{{ $json.roi_data.country || 'Inferred from context' }}</td>\n    <td><span class=\"chip-label\">Employees</span>{{ $json.display.employeesDisplay }}</td>\n  </tr>\n  <tr>\n    <td><span class=\"chip-label\">Annual Revenue</span>{{ $json.display.revenueDisplay }}</td>\n    <td><span class=\"chip-label\">Primary Focus</span>{{ $json.roi_data.primaryFocus || '—' }}</td>\n    <td><span class=\"chip-label\">Key Priorities</span>{{ ($json.roi_data.keyPriorities || []).slice(0,3).join(' · ') || '—' }}</td>\n  </tr>\n</table>\n\n<h2>As-Is Baseline — Run-Cost View</h2>\n<table>\n  <thead>\n    <tr>\n      <th style=\"width:28%\">Workflow</th>\n      <th style=\"width:16%\">Owner</th>\n      <th style=\"width:8%\">Vol/mo</th>\n      <th style=\"width:10%\">Time/run</th>\n      <th style=\"width:11%\">Rate</th>\n      <th style=\"width:12%\">Cost/Run</th>\n      <th style=\"width:15%\">Mo. Run-Cost</th>\n    </tr>\n  </thead>\n  <tbody>{{ $json.display.asisTableBody }}</tbody>\n</table>\n<p class=\"note\">Blended rates: pre-tax, fully-loaded conservative estimates (salary + benefits + overhead).</p>\n\n<div class=\"footer\">\n  <span>LyRise AI — Confidential</span>\n  <span>{{ $json.roi_data.company }} &middot; {{ $json.current_date }}</span>\n  <span><a href=\"https://lyrise.ai\">lyrise.ai</a></span>\n</div>\n</div>\n\n\n<!-- PAGE 4 — BEFORE VS AFTER + PROFIT UPLIFT -->\n<div class=\"page\">\n<div class=\"top-bar\"></div>\n\n<h2>Before vs After — Time &amp; Cost</h2>\n<table>\n  <thead>\n    <tr>\n      <th style=\"width:22%\">Workflow</th>\n      <th style=\"width:8%\">Volume</th>\n      <th style=\"width:9%\">Before</th>\n      <th style=\"width:9%\">After</th>\n      <th style=\"width:14%\">Time Saved</th>\n      <th style=\"width:11%\">Hrs Freed/mo</th>\n      <th style=\"width:10%\">Rate</th>\n      <th style=\"width:17%\">Value Recaptured/yr</th>\n    </tr>\n  </thead>\n  <tbody>{{ $json.display.bvaTableBody }}</tbody>\n</table>\n\n<h2>Profit Uplift — Throughput &amp; Revenue Effects</h2>\n<table>\n  <thead>\n    <tr>\n      <th style=\"width:18%\">Lever</th>\n      <th style=\"width:22%\">Baseline</th>\n      <th style=\"width:22%\">Assumption</th>\n      <th style=\"width:24%\">Rationale</th>\n      <th style=\"width:14%\">Profit Impact</th>\n    </tr>\n  </thead>\n  <tbody>{{ $json.display.profitLeversBody }}</tbody>\n</table>\n\n<div class=\"footer\">\n  <span>LyRise AI — Confidential</span>\n  <span>{{ $json.roi_data.company }} &middot; {{ $json.current_date }}</span>\n  <span><a href=\"https://lyrise.ai\">lyrise.ai</a></span>\n</div>\n</div>\n\n\n<!-- PAGE 5 — TOTAL FINANCIAL CASE + WHAT WE'D DEPLOY -->\n<div class=\"page\">\n<div class=\"top-bar\"></div>\n\n<h2>Total Financial Case — No Implementation Costs Included</h2>\n<table>\n  <thead>\n    <tr>\n      <th style=\"width:14%\">Horizon</th>\n      <th style=\"width:20%\">Hours Returned</th>\n      <th style=\"width:22%\">Operational Dividend</th>\n      <th style=\"width:20%\">Profit Uplift</th>\n      <th style=\"width:24%\">Total Financial Gain</th>\n    </tr>\n  </thead>\n  <tbody>\n    <tr style=\"background:#f1f5f9\">\n      <td><strong>12 months</strong></td>\n      <td>{{ $json.display.totalAnnualHours }} hrs</td>\n      <td>{{ $json.display.od12 }}</td>\n      <td>{{ $json.display.pu12 }}</td>\n      <td class=\"accent\"><strong>{{ $json.display.tf12 }}</strong></td>\n    </tr>\n    <tr>\n      <td>24 months</td>\n      <td>{{ $json.display.hrs24 }} hrs</td>\n      <td>{{ $json.display.od24 }}</td>\n      <td>{{ $json.display.pu24 }}</td>\n      <td><strong>{{ $json.display.tf24 }}</strong></td>\n    </tr>\n    <tr style=\"background:#f9fafb\">\n      <td>36 months</td>\n      <td>{{ $json.display.hrs36 }} hrs</td>\n      <td>{{ $json.display.od36 }}</td>\n      <td>{{ $json.display.pu36 }}</td>\n      <td><strong>{{ $json.display.tf36 }}</strong></td>\n    </tr>\n  </tbody>\n</table>\n<p class=\"note\">Payback on implementation cost: {{ $json.display.payback }}. Year 2 assumes 15% deeper adoption; Year 3 assumes full process maturity. Not a linear extrapolation.</p>\n\n<h2>What We'd Deploy — by Workflow</h2>\n<table>\n  <thead>\n    <tr>\n      <th style=\"width:35%\">Workflow + Target Outcome</th>\n      <th style=\"width:22%\">AI Agent</th>\n      <th style=\"width:43%\">Why It Fits</th>\n    </tr>\n  </thead>\n  <tbody>{{ $json.display.deployTableBody }}</tbody>\n</table>\n\n<div class=\"footer\">\n  <span>LyRise AI — Confidential</span>\n  <span>{{ $json.roi_data.company }} &middot; {{ $json.current_date }}</span>\n  <span><a href=\"https://lyrise.ai\">lyrise.ai</a></span>\n</div>\n</div>\n\n\n<!-- PAGE 6 — FUNCTION ROLL-UP + RISKS & MITIGATIONS -->\n<div class=\"page\">\n<div class=\"top-bar\"></div>\n\n<h2>Function Roll-Up — Where the Time Comes From</h2>\n<table>\n  <thead>\n    <tr>\n      <th style=\"width:30%\">Function</th>\n      <th style=\"width:20%\">Hours Returned / mo</th>\n      <th style=\"width:17%\">Blended Rate</th>\n      <th style=\"width:17%\">Value / mo</th>\n      <th style=\"width:16%\">Value / yr</th>\n    </tr>\n  </thead>\n  <tbody>{{ $json.display.functionRollupBody }}</tbody>\n</table>\n\n<h2>Risks &amp; Mitigations</h2>\n<table>\n  <thead>\n    <tr>\n      <th style=\"width:50%\">Risk</th>\n      <th style=\"width:50%\">Mitigation</th>\n    </tr>\n  </thead>\n  <tbody>{{ $json.display.risksTableBody }}</tbody>\n</table>\n\n<h2>Data Provenance &amp; Modelling Assumptions</h2>\n{{ $json.display.provenanceHTML }}\n\n<div class=\"footer\">\n  <span>LyRise AI — Confidential</span>\n  <span>{{ $json.roi_data.company }} &middot; {{ $json.current_date }}</span>\n  <span><a href=\"https://lyrise.ai\">lyrise.ai</a></span>\n</div>\n</div>\n\n\n<!-- PAGE 7 — ROADMAP + CHECKLIST + CTA -->\n<div class=\"page last\">\n<div class=\"top-bar\"></div>\n\n<h2>Roadmap — 8 to 10 Weeks to Measurable Gains</h2>\n<table class=\"roadmap-table\" style=\"border-collapse:separate;border-spacing:5px;margin-bottom:12px\">\n  <tr>\n    <td>\n      <div class=\"phase-weeks\">Weeks 1-2</div>\n      <div class=\"phase-title\">Rapid Discovery &amp; Validation</div>\n      <div class=\"phase-desc\">Map live workflows, validate volumes and task times, confirm automation priorities.</div>\n    </td>\n    <td>\n      <div class=\"phase-weeks\">Weeks 3-6</div>\n      <div class=\"phase-title\">Pilot Build &amp; Testing</div>\n      <div class=\"phase-desc\">Deploy AI agents for the top-priority workflow. Integrate with existing systems and run parallel testing.</div>\n    </td>\n    <td>\n      <div class=\"phase-weeks\">Weeks 7-8</div>\n      <div class=\"phase-title\">Controlled Go-Live</div>\n      <div class=\"phase-desc\">Launch with real data. Monitor exceptions, adoption rates, and time savings against predictions.</div>\n    </td>\n    <td>\n      <div class=\"phase-weeks\">Weeks 9-10</div>\n      <div class=\"phase-title\">ROI Validation &amp; Expansion</div>\n      <div class=\"phase-desc\">Confirm realised savings vs. model. Present results to leadership and plan remaining rollout.</div>\n    </td>\n  </tr>\n</table>\n\n<h2>Next Steps &amp; Sign-Off Checklist</h2>\n<table class=\"check-table\" style=\"border-collapse:separate;border-spacing:5px;margin-bottom:12px\">\n  <tr>\n    <td><span class=\"check-icon\">&#10003;</span>Confirm workflow volumes with operations team</td>\n    <td><span class=\"check-icon\">&#10003;</span>Validate task times against actual staff feedback</td>\n  </tr>\n  <tr>\n    <td><span class=\"check-icon\">&#10003;</span>Approve pilot workflow to begin in Week 3</td>\n    <td><span class=\"check-icon\">&#10003;</span>Schedule validation &amp; process-mapping session</td>\n  </tr>\n</table>\n\n<div class=\"cta-box\">\n  <h3>Book Your 30-Min Call</h3>\n  <p>{{ $json.display.cta }}</p>\n  <a href=\"https://calendly.com/elena-lyrise/30min\" class=\"cta-btn\">Book Your 30-Min Call</a>\n  <div class=\"cta-contact\">\n    Questions? Email: <a href=\"mailto:elena@lyrise.ai\">elena@lyrise.ai</a> &nbsp;|&nbsp; Web: <a href=\"https://lyrise.ai\">lyrise.ai</a>\n  </div>\n</div>\n\n<p class=\"note\">Projections are based on benchmarks and publicly available signals. Results may vary +/-10-25% depending on internal process design and adoption. All figures should be validated in a formal process-mapping session.</p>\n\n<div class=\"footer\">\n  <span>LyRise AI Confidential &middot; Generated for {{ $json.roi_data.company }} &middot; {{ $json.current_date }}</span>\n  <span><a href=\"mailto:elena@lyrise.ai\">elena@lyrise.ai</a> &nbsp;|&nbsp; <a href=\"https://calendly.com/elena-lyrise/30min\">calendly.com/elena-lyrise/30min</a></span>\n</div>\n</div>\n\n</body>\n</html>"
+      },
+      "type": "n8n-nodes-base.html",
+      "typeVersion": 1.2,
+      "position": [576, 2688],
+      "id": "a15ab174-67c6-47e2-a044-0dfe50712bc8",
+      "name": "HTML Template"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "8BjjyyRBP1aPEnpr",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/8BjjyyRBP1aPEnpr",
+          "cachedResultName": "ROI Report Gen Agent — PDF Email Workflow-Yousef"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "output": "={{ $json.html }}",
+            "company_name": "={{ $('Normalize Input').item.json.companyName }}",
+            "customer_email": "={{ $('Normalize Input').item.json.email }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "company_name",
+              "displayName": "company_name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string"
+            },
+            {
+              "id": "customer_email",
+              "displayName": "customer_email",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string"
+            },
+            {
+              "id": "output",
+              "displayName": "output",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string"
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {
+          "waitForSubWorkflow": false
+        }
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2,
+      "position": [864, 2688],
+      "id": "b27393e8-fe2e-4dc3-a871-6630c594e097",
+      "name": "Email PDF (Async)"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Normalize Input",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Normalize Input": {
+      "main": [
+        [
+          {
+            "node": "Company Analyst",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Company Analyst": {
+      "main": [
+        [
+          {
+            "node": "Parse Company Analyst",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse Company Analyst": {
+      "main": [
+        [
+          {
+            "node": "ROI Modeler",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "ROI Modeler": {
+      "main": [
+        [
+          {
+            "node": "Parse ROI Modeler",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse ROI Modeler": {
+      "main": [
+        [
+          {
+            "node": "ROI Calculator",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "ROI Calculator": {
+      "main": [
+        [
+          {
+            "node": "Report Writer",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Report Writer": {
+      "main": [
+        [
+          {
+            "node": "Parse Report Writer",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse Report Writer": {
+      "main": [
+        [
+          {
+            "node": "Assemble Report",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Assemble Report": {
+      "main": [
+        [
+          {
+            "node": "HTML Template",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTML Template": {
+      "main": [
+        [
+          {
+            "node": "Email PDF (Async)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": false,
+    "errorWorkflow": "V3C6E1kxHVfNfYwK",
+    "timeSavedMode": "dynamic"
+  },
+  "versionId": "e15e4428-b91b-40b7-bfed-6db0b2788b2c",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "ca55c58955aefdb633ed25155264e9dff095d90b2999d142c7ff4a635f05c39e"
+  },
+  "id": "nps0PJspBtdKYFbW",
+  "tags": []
+}

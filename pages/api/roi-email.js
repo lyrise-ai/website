@@ -50,7 +50,7 @@ export default async function handler(req, res) {
     admin
       .from('reports')
       .select(
-        'id, user_id, company_name, email, input_data, state_data, rendered_html, rendered_full_html',
+        'id, user_id, company_name, email, input_data, state_data, rendered_html, rendered_full_html, share_token, share_revoked_at',
       )
       .eq('id', reportId)
       .single(),
@@ -90,11 +90,28 @@ export default async function handler(req, res) {
     const filename = `LyRise_ROI_${slug}.pdf`
 
     const pdf = await generatePdf(renderedHtml, filename)
+
+    let chatUrl
+    if (report.share_token && !report.share_revoked_at) {
+      const host = req.headers?.host
+      const proto =
+        req.headers?.['x-forwarded-proto'] ||
+        (host && host.startsWith('localhost') ? 'http' : 'https')
+      const base =
+        process.env.NEXT_PUBLIC_BASE_URL ??
+        (host ? `${proto}://${host}` : 'https://lyrise.ai')
+      chatUrl = `${base.replace(/\/$/, '')}/report/${
+        report.id
+      }?t=${encodeURIComponent(report.share_token)}`
+    }
+
     await sendReportEmail(
       state.normInput.email,
       company,
       pdf.base64,
       pdf.filename,
+      undefined,
+      chatUrl,
     )
 
     res.status(200).json({ ok: true })
