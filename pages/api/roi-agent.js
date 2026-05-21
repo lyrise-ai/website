@@ -6,6 +6,7 @@
 // Streams SSE events:
 //   { type: 'text_delta', delta }           — agent is typing
 //   { type: 'tool_start', tool }            — agent called a tool
+//   { type: 'pipeline_log', message }       — key pipeline milestone (research, model, assemble)
 //   { type: 'report_update', state }        — report HTML changed
 //   { type: 'done', messages? }             — agent finished
 //   { type: 'error', message }
@@ -399,7 +400,10 @@ export default async function handler(req, res) {
       abortSignal: abortController.signal,
       callbacks: {
         onTextDelta: (delta) => send(res, { type: 'text_delta', delta }),
-        onToolStart: (tool) => send(res, { type: 'tool_start', tool }),
+        onToolStart: (tool, args) =>
+          send(res, { type: 'tool_start', tool, args }),
+        onPipelineLog: (message) =>
+          send(res, { type: 'pipeline_log', message }),
         onReportUpdate: (s, changedSections) => {
           const { renderedHtml, renderedFullHtml, ...rest } = s
           send(res, {
@@ -545,7 +549,7 @@ export default async function handler(req, res) {
       const { stateData, renderedHtml, renderedFullHtml } =
         splitStoredState(state)
       generatedShareToken = crypto.randomBytes(24).toString('base64url')
-      const { data: savedReport } = await supabase
+      const { data: savedReport, error: saveError } = await supabase
         .from('reports')
         .insert({
           user_id: user.id,
@@ -564,6 +568,16 @@ export default async function handler(req, res) {
         })
         .select('id')
         .single()
+
+      if (saveError) {
+        console.error('[roi-agent] report save failed:', saveError)
+        send(res, {
+          type: 'error',
+          message: 'Failed to save report: ' + saveError.message,
+        })
+        res.end()
+        return
+      }
 
       if (savedReport?.id) {
         savedReportId = savedReport.id
