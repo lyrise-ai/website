@@ -383,7 +383,8 @@ export interface ReportState {
 
 export interface AgentCallbacks {
   onTextDelta(delta: string): void
-  onToolStart(toolName: string): void
+  onToolStart(toolName: string, args?: Record<string, unknown>): void
+  onPipelineLog?(message: string): void
   onReportUpdate(state: ReportState, changedSections?: string[]): void
   onDone(newMessages: import('ai').ModelMessage[]): void
   onError(err: Error): void
@@ -393,7 +394,8 @@ export interface AgentCallbacks {
 
 export type AgentEvent =
   | { type: 'text_delta'; delta: string }
-  | { type: 'tool_start'; tool: string }
+  | { type: 'tool_start'; tool: string; args?: Record<string, unknown> }
+  | { type: 'pipeline_log'; message: string }
   | { type: 'report_update'; state: ReportState }
   | { type: 'done'; messages?: import('ai').ModelMessage[] }
   | { type: 'error'; message: string }

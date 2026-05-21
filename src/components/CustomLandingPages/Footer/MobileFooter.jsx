@@ -58,7 +58,7 @@ const MobileFooter = () => {
 
           <div className="w-full">
             <a
-              href="https://calendly.com/elena-lyrise/30min"
+              href="https://api.leadconnectorhq.com/widget/bookings/strategy-call-with-lyrisesivto9"
               target={'_blank'}
               rel="noopener noreferrer"
             >
