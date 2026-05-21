@@ -4,11 +4,23 @@
 // Resend is simpler: no OAuth dance, just an API key
 // ─────────────────────────────────────────────────────────────────────────────
 
+export const DEFAULT_REPORT_BCC = ['elena@lyrise.ai', 'mbanoub@lyrise.ai']
+
+function escapeHtmlAttr(value: string): string {
+  return value
+    .replace(/&/g, '&amp;')
+    .replace(/"/g, '&quot;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+}
+
 export async function sendReportEmail(
   recipientEmail: string,
   companyName: string,
   pdfBase64: string,
   filename: string,
+  bcc: string[] = DEFAULT_REPORT_BCC,
+  chatUrl?: string,
 ): Promise<void> {
   const apiKey = process.env.RESEND_API_KEY
   const fromEmail = process.env.EMAIL_FROM ?? 'reports@roi.lyrise.ai'
@@ -16,6 +28,22 @@ export async function sendReportEmail(
   if (!apiKey) {
     throw new Error('RESEND_API_KEY not configured')
   }
+
+  const chatCta = chatUrl
+    ? `
+        <p style="margin: 18px 0 8px;">Want to refine the numbers, change the currency, or ask follow-up questions?</p>
+        <p style="margin: 0 0 18px;">
+          <a href="${escapeHtmlAttr(chatUrl)}"
+             style="display: inline-block; padding: 10px 18px; background: #2957FF; color: #fff;
+                    text-decoration: none; border-radius: 6px; font-weight: 600;">
+            Open editing chat
+          </a>
+        </p>
+        <p style="font-size: 12px; color: #6b7280; margin: 0 0 16px;">
+          Opens the live executive and full reports with our AI assistant — no login needed.
+        </p>
+      `
+    : ''
 
   const res = await fetch('https://api.resend.com/emails', {
     method: 'POST',
@@ -26,7 +54,7 @@ export async function sendReportEmail(
     body: JSON.stringify({
       from: `LyRise AI <${fromEmail}>`,
       to: [recipientEmail],
-      bcc: ['elena@lyrise.ai', 'mbanoub@lyrise.ai'], // always BCC sender for CRM tracking
+      bcc, // CRM-tracking copy; filtered to avoid duplicates with `to`
       subject: `Your AI Automation ROI Report — ${companyName}`,
       html: `
         <p>Hi,</p>
@@ -34,6 +62,7 @@ export async function sendReportEmail(
         prepared by LyRise AI.</p>
         <p>This report models the financial impact of deploying targeted AI workflows across your operations.
         All figures are conservative estimates and should be validated with your actual volumes and rates.</p>
+        ${chatCta}
         <p>Ready to explore next steps?
         <a href="https://api.leadconnectorhq.com/widget/bookings/strategy-call-with-lyrisesivto9">Book a 30-minute discovery call</a>.</p>
         <br>

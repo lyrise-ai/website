@@ -1,6 +1,6 @@
 import React from 'react'
 import styles from './styles.module.css'
-import Image from 'next/image'
+import Image from 'next/legacy/image'
 import LyriseLogo from '../../../assets/rebranding/lyriselogo.png'
 import { FaFacebook, FaInstagram, FaLinkedin } from 'react-icons/fa'
 import { WaitlistModal } from '../OurGuarantee/WaitlistModal'

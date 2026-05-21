@@ -93,14 +93,8 @@ const MainHeaderMobile = ({ navigation, buttons }) => {
           </ul>
           <div className="flex-1 flex flex-row items-end justify-start">
             {buttons.map(({ id, label, path }) => (
-              <WaitlistModal>
-                <div
-                  key={id}
-                  // href={path}
-                  // target="_blank"
-                  // rel="noopener noreferrer"
-                  className="cursor-pointer text-xl inline-block px-4 py-2 rounded-lg text-white bg-new-black transition-colors hover:bg-new-black/90"
-                >
+              <WaitlistModal key={id}>
+                <div className="cursor-pointer text-xl inline-block px-4 py-2 rounded-lg text-white bg-new-black transition-colors hover:bg-new-black/90">
                   {label}
                 </div>
               </WaitlistModal>

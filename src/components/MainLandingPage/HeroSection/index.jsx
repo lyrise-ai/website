@@ -120,7 +120,7 @@ function HeroSection() {
 
         <div className={styles.gradientOverlay}></div>
 
-        <div className="flex flex-col items-center gap-10 relative z-10">
+        <div className="relative z-10 flex flex-col items-center gap-10">
           <div className="flex flex-col items-center justify-start gap-2 md:gap-0">
             <h2 className="font-outfit text-center text-[32px] md:text-[64px] font-bold text-[#2C2C2C] leading-[100%]">
               Unlock $300K-$1M
@@ -135,7 +135,7 @@ function HeroSection() {
           </div>
 
           <Link
-            href="/roi-report"
+            href="/dashboard"
             className="inline-flex items-center justify-center px-8 py-4 text-lg font-semibold text-white transition-all transform bg-[#2C2C2C] rounded-full hover:bg-black hover:-translate-y-0.5 shadow-lg hover:shadow-gray-500/30 group"
           >
             Get Your ROI Breakdown

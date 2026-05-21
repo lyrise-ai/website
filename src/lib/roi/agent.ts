@@ -67,6 +67,8 @@ interface ModelerResult {
   }>
 }
 
+export { PIPELINE_LOG_TOOL_NAMES } from '@/src/lib/roi/constants'
+
 // Map a salary-source URL hostname to a clean display label. We trust the URL
 // over the modeler's free-text rateSource — if the URL is real, derive the
 // label from it so the Provenance table never says "Bayt" for a glassdoor.com
@@ -133,6 +135,7 @@ function reAssemble(
     state.company,
   )
   if (!state.copy || !state.normInput) return
+  callbacks.onPipelineLog?.('Rendering financial tables and report layout…')
   state.assembled = assembleReport(state)
   state.renderedHtml = renderTemplate(execTemplateHtml, state.assembled)
   state.renderedFullHtml = renderTemplate(fullTemplateHtml, state.assembled)
@@ -185,6 +188,24 @@ function addEvidence(
 
 // ── Tool definitions ──────────────────────────────────────────────────────────
 
+const COMPANY_SEARCH_POOL = [
+  'Profiling company from public sources…',
+  'Looking up company intelligence…',
+  'Estimating headcount and revenue…',
+  'Checking company footprint…',
+]
+
+const SALARY_SEARCH_POOL = [
+  'Sourcing salary benchmarks…',
+  'Querying role-based pay rates…',
+  'Checking regional compensation data…',
+  'Cross-referencing wage market data…',
+  'Collecting salary evidence…',
+]
+
+const SALARY_SEARCH_RE =
+  /salary|hourly rate|compensation|glassdoor|bayt\.com|gulftalent|payscale|naukrigulf|wuzzuf|comparably|talent\.com/i
+
 function buildTools(
   state: ReportState,
   execTemplateHtml: string,
@@ -192,6 +213,9 @@ function buildTools(
   callbacks: AgentCallbacks,
   tracker?: UsageTracker,
 ) {
+  let companySearchCount = 0
+  let salarySearchCount = 0
+
   return {
     // ── Research tools ──────────────────────────────────────────────────────
     web_search: tool({
@@ -214,6 +238,15 @@ function buildTools(
         roiLog('tool:web_search', `query: "${query}"`, {
           maxResults: maxResults ?? 3,
         })
+        if (SALARY_SEARCH_RE.test(query)) {
+          // eslint-disable-next-line security/detect-object-injection
+          callbacks.onPipelineLog?.(SALARY_SEARCH_POOL[salarySearchCount % SALARY_SEARCH_POOL.length])
+          salarySearchCount++
+        } else {
+          // eslint-disable-next-line security/detect-object-injection
+          callbacks.onPipelineLog?.(COMPANY_SEARCH_POOL[companySearchCount % COMPANY_SEARCH_POOL.length])
+          companySearchCount++
+        }
         const response = await webSearch(query, maxResults ?? 3)
         roiLog(
           'tool:web_search',
@@ -257,6 +290,7 @@ function buildTools(
       }),
       execute: async ({ url }: { url: string }) => {
         roiLog('tool:fetch_page', `fetching: ${url}`)
+        callbacks.onPipelineLog?.('Reading company website…')
         const content = await fetchPage(url)
         roiLog(
           'tool:fetch_page',
@@ -430,6 +464,7 @@ function buildTools(
       }),
       execute: async (input) => {
         const cp = input.company_profile
+        callbacks.onPipelineLog?.(`Research complete — ${input.workflows.length} workflows identified…`)
         roiLog('tool:set_research', `locking research for ${cp.company}`, {
           industry: cp.industry,
           country: cp.country,
@@ -655,6 +690,7 @@ function buildTools(
         let updatedWorkflows: WorkflowInput[] | null = null
         let lastError = ''
 
+        callbacks.onPipelineLog?.('Calibrating ROI model inputs…')
         roiLog('modeler', 'starting financial model', {
           workflowCount: state.workflows.length,
           salaryEvidenceCount: state.salaryEvidence?.length ?? 0,
@@ -677,6 +713,7 @@ function buildTools(
             retryHint = `\n\nPREVIOUS ATTEMPT FAILED: ${lastError}.${prescription}`
           }
 
+          if (attempt > 0) callbacks.onPipelineLog?.('Refining model assumptions…')
           roiLog(
             'modeler',
             `attempt ${attempt + 1}/3${attempt > 0 ? ' (retry)' : ''}`,
@@ -836,6 +873,7 @@ function buildTools(
           state.globals = globals
           state.calcOutput = calcOut
           roiLog('modeler', `✅ accepted on attempt ${attempt + 1}`)
+          callbacks.onPipelineLog?.('3-year financial projections validated…')
           break
         }
 
@@ -931,6 +969,7 @@ function buildTools(
       }),
       execute: async (copy: ReportCopy) => {
         state.copy = copy
+        callbacks.onPipelineLog?.('Writing profit levers and executive summary…')
         reAssemble(state, execTemplateHtml, fullTemplateHtml, callbacks, [
           'thesis',
           'workflows',
@@ -1856,6 +1895,9 @@ export async function runReportAgent(params: {
   templateHtml: string
   fullTemplateHtml: string
   estimatesOnly?: boolean
+  // Aborts the streamText loop when the caller (e.g. an HTTP client) goes away,
+  // so we stop burning tokens on a report nobody is waiting on.
+  abortSignal?: AbortSignal
 }): Promise<void> {
   const {
     mode,
@@ -1866,6 +1908,7 @@ export async function runReportAgent(params: {
     templateHtml,
     fullTemplateHtml,
     estimatesOnly = false,
+    abortSignal,
   } = params
 
   const company = state.normInput?.companyName ?? 'unknown'
@@ -1947,21 +1990,36 @@ ${
     messages,
     tools,
     stopWhen: stepCountIs(mode === 'generate' ? 24 : 8),
+    abortSignal,
   })
 
-  for await (const part of result.fullStream) {
-    if (part.type === 'text-delta') {
-      callbacks.onTextDelta(part.text)
-    } else if (part.type === 'tool-call') {
-      callbacks.onToolStart(part.toolName)
-    } else if (part.type === 'error') {
-      callbacks.onError(
-        part.error instanceof Error
-          ? part.error
-          : new Error(String(part.error)),
-      )
+  try {
+    for await (const part of result.fullStream) {
+      if (part.type === 'text-delta') {
+        callbacks.onTextDelta(part.text)
+      } else if (part.type === 'tool-call') {
+        callbacks.onToolStart(part.toolName, part.input as Record<string, unknown>)
+      } else if (part.type === 'error') {
+        // An abort surfaces here as an error part — treat it as a clean stop,
+        // not a generation failure, so the caller doesn't persist/email it.
+        if (abortSignal?.aborted) {
+          roiWarn('agent', '⏹ runReportAgent aborted — caller disconnected')
+          return
+        }
+        callbacks.onError(
+          part.error instanceof Error
+            ? part.error
+            : new Error(String(part.error)),
+        )
+        return
+      }
+    }
+  } catch (err) {
+    if (abortSignal?.aborted) {
+      roiWarn('agent', '⏹ runReportAgent aborted — caller disconnected')
       return
     }
+    throw err
   }
 
   const response = await result.response

@@ -14,6 +14,14 @@ module.exports = {
         primary: 'rgba(41, 87, 255, 1)',
         'primary-25': '#F7F9FF',
         'primary-50': '#EFF2FF',
+        'primary-tint': '#EFF2FF',
+        navy: '#1a2742',
+        terminal: {
+          bg: '#151d2e',
+          fg: '#e4e7f0',
+          muted: '#7e8ea8',
+          border: '#2c3a51',
+        },
         facebook: '#1877F2',
         main: 'rgba(41, 87, 255, 1)',
         'new-black': '#2C2C2C',
@@ -25,6 +33,7 @@ module.exports = {
         toxigenesis: 'Toxigenesis',
         'space-grotesk': 'Space Grotesk',
         poppins: 'Poppins',
+        display: ['Space Grotesk', 'ui-sans-serif', 'system-ui', 'sans-serif'],
       },
 
       fontWeight: {

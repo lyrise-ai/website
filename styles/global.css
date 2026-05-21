@@ -137,6 +137,18 @@ li {
   margin-right: auto;
 }
 
+@keyframes indeterminate {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(400%);
+  }
+}
+.indeterminate-line {
+  animation: indeterminate 1.8s cubic-bezier(0.45, 0, 0.25, 1) infinite;
+}
+
 /* Small */
 
 @media (max-width: 480px) {
