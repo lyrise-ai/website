@@ -656,7 +656,7 @@ export async function getServerSideProps({ req, res }) {
   } = await supabase.auth.getUser()
 
   if (!user) {
-    return { redirect: { destination: '/login', permanent: false } }
+    return { redirect: { destination: '/auth/login', permanent: false } }
   }
 
   const admin = createAdminClient()
@@ -776,7 +776,7 @@ export default function ROIReport({ isEmployee }) {
         })
 
         if (response.status === 401) {
-          window.location.href = '/login'
+          window.location.href = '/auth/login'
           return
         }
 
