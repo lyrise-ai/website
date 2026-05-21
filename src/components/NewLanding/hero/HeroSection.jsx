@@ -15,10 +15,10 @@ export default function HeroSection() {
         data-show-video={true}
         className="group flex flex-col lg:gap-5 justify-center col-span-4 max-w-2xl md:max-w-4xl mx-auto transition-all data-[show-video=false]:col-span-9 data-[show-video=false]:text-center data-[show-video=false]:items-center max-md:data-[show-video=false]:my-auto"
       >
-        <h1 className="text-5xl lg:text-7xl font-semibold font-primary max-sm:mt-10">
+        <h1 className="text-5xl font-semibold lg:text-7xl font-primary max-sm:mt-10">
           Unlock $300K-$1M Hidden in Your Legal &amp; Finance Operations
         </h1>
-        <h3 className="pr-5 text-neutral-600 font-secondary text-lg md:text-xl lg:text-2xl lg:font-primary max-md:mb-2">
+        <h3 className="pr-5 text-lg text-neutral-600 font-secondary md:text-xl lg:text-2xl lg:font-primary max-md:mb-2">
           We map your processes in 14 days and deploy AI only when ROI ≥
           $30K/month.
         </h3>
