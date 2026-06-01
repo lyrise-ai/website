@@ -1,7 +1,7 @@
 // Map a BulkRow → the camelCase formData shape that POST /api/roi-agent
 // expects (matches mapFormToPayload in pages/api/roi-agent.js).
 
-import type { BulkRow } from './parseApolloCsv'
+import type { BulkRow } from './parseBulkCsv'
 import { countryToCurrency } from './countryToCurrency'
 
 const TEAM_SIZE_BANDS: Array<{ max: number; label: string }> = [
