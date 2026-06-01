@@ -13,6 +13,12 @@ const EDITABLE_FIELDS = [
   { key: 'recipientFirstName', label: 'Contact name' },
   { key: 'recipientTitle', label: 'Title' },
   { key: 'email', label: 'Email', required: true },
+  { key: 'employees', label: 'Employee count', inputMode: 'numeric' },
+  {
+    key: 'annualRevenue',
+    label: 'Annual revenue',
+    inputMode: 'decimal',
+  },
   { key: 'country', label: 'Country' },
   { key: 'industry', label: 'Industry' },
   { key: 'website', label: 'Website' },
@@ -26,6 +32,8 @@ function EditRowModal({ row, onSave, onCancel }) {
     }`.trim(),
     recipientTitle: row.recipientTitle || '',
     email: row.email || '',
+    employees: row.employees || '',
+    annualRevenue: row.annualRevenue || '',
     country: row.country || '',
     industry: row.industry || '',
     website: row.website || '',
@@ -56,6 +64,7 @@ function EditRowModal({ row, onSave, onCancel }) {
               <input
                 type="text"
                 value={draft[field.key]}
+                inputMode={field.inputMode}
                 onChange={(e) =>
                   setDraft((prev) => ({ ...prev, [field.key]: e.target.value }))
                 }
@@ -82,6 +91,8 @@ function EditRowModal({ row, onSave, onCancel }) {
                 recipientLastName: '',
                 recipientTitle: draft.recipientTitle.trim(),
                 email: draft.email.trim().toLowerCase(),
+                employees: draft.employees.trim(),
+                annualRevenue: draft.annualRevenue.trim(),
                 country: draft.country.trim(),
                 industry: draft.industry.trim(),
                 website: draft.website.trim(),
@@ -106,6 +117,27 @@ function getRowStatus(row, skipped, index) {
   return hasWarnings ? 'warning' : 'ready'
 }
 
+const STATUS_LABELS = {
+  ready: 'Ready',
+  warning: 'Needs context',
+  blocked: 'Blocked',
+  skipped: 'Skipped',
+}
+
+const STATUS_BADGES = {
+  ready: 'bg-[#EEF4FF] text-[#2957FF]',
+  warning: 'bg-amber-100 text-amber-700',
+  blocked: 'bg-red-100 text-red-700',
+  skipped: 'bg-gray-100 text-gray-600',
+}
+
+const STATUS_ROW_CLASSES = {
+  ready: '',
+  warning: 'bg-amber-50/30',
+  blocked: 'bg-red-50/30',
+  skipped: 'bg-gray-50',
+}
+
 export default function BulkIntake() {
   const router = useRouter()
   const fileInputRef = useRef(null)
@@ -120,6 +152,7 @@ export default function BulkIntake() {
   const [editingIndex, setEditingIndex] = useState(null)
   const [emailMode, setEmailMode] = useState('production')
   const [overrideEmail, setOverrideEmail] = useState('')
+  const [showDetectedColumns, setShowDetectedColumns] = useState(false)
 
   const handleFiles = useCallback(async (file) => {
     if (!file) return
@@ -137,6 +170,7 @@ export default function BulkIntake() {
       setFileWarnings([...parsed.fileWarnings, ...deduped.warnings])
       setFileErrors(parsed.fileErrors)
       setSkipped(new Set())
+      setShowDetectedColumns(false)
     } catch (err) {
       setError(err?.message ?? 'Could not parse this CSV.')
       setRawCount(0)
@@ -145,6 +179,7 @@ export default function BulkIntake() {
       setFileWarnings([])
       setFileErrors([])
       setSkipped(new Set())
+      setShowDetectedColumns(false)
     } finally {
       setParsing(false)
     }
@@ -237,6 +272,13 @@ export default function BulkIntake() {
     emailMode === 'production' ||
     (overrideEmail.trim().length > 0 && EMAIL_RE.test(overrideEmail.trim()))
 
+  const selectionSummary =
+    selectedPayloads.length === 0
+      ? 'No companies selected yet'
+      : `${selectedPayloads.length} ${
+          selectedPayloads.length === 1 ? 'company is' : 'companies are'
+        } ready to generate`
+
   const onGenerate = () => {
     if (selectedPayloads.length === 0 || !overrideValid) return
 
@@ -249,8 +291,8 @@ export default function BulkIntake() {
   }
 
   return (
-    <div className="mx-auto max-w-4xl px-4 py-12">
-      <div className="mb-8 flex items-center justify-between">
+    <div className="mx-auto max-w-4xl px-4 py-8 sm:py-12">
+      <div className="mb-6 flex items-center justify-between sm:mb-8">
         <div>
           <Link
             href="/dashboard"
@@ -271,7 +313,7 @@ export default function BulkIntake() {
         onDragOver={(e) => e.preventDefault()}
         onDrop={onDrop}
         onClick={() => fileInputRef.current?.click()}
-        className="cursor-pointer rounded-2xl border-2 border-dashed border-gray-200 bg-white px-8 py-12 text-center transition-colors hover:border-gray-400"
+        className="cursor-pointer rounded-2xl border-2 border-dashed border-gray-200 bg-white px-6 py-10 text-center transition-colors hover:border-gray-400 sm:px-8 sm:py-12"
       >
         <input
           ref={fileInputRef}
@@ -318,47 +360,93 @@ export default function BulkIntake() {
 
       {rows.length > 0 && (
         <>
-          <div className="mt-6 grid gap-3 sm:grid-cols-4">
-            <div className="rounded-2xl border border-gray-100 bg-white px-4 py-4 shadow-sm">
-              <div className="font-outfit text-[11px] font-semibold uppercase tracking-wider text-gray-400">
-                Ready
+          <div className="mt-6 rounded-2xl border border-gray-100 bg-white p-3 shadow-sm">
+            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+              <div className="rounded-xl bg-[#F9FAFC] px-4 py-3">
+                <div className="font-outfit text-[11px] font-semibold uppercase tracking-wider text-gray-400">
+                  Ready
+                </div>
+                <div className="mt-1 font-outfit text-2xl font-bold text-[#2C2C2C]">
+                  {summary.ready}
+                </div>
               </div>
-              <div className="mt-2 font-outfit text-2xl font-bold text-[#2C2C2C]">
-                {summary.ready}
+              <div className="rounded-xl bg-[#F9FAFC] px-4 py-3">
+                <div className="font-outfit text-[11px] font-semibold uppercase tracking-wider text-gray-400">
+                  Needs context
+                </div>
+                <div className="mt-1 font-outfit text-2xl font-bold text-amber-600">
+                  {summary.warning}
+                </div>
               </div>
-            </div>
-            <div className="rounded-2xl border border-gray-100 bg-white px-4 py-4 shadow-sm">
-              <div className="font-outfit text-[11px] font-semibold uppercase tracking-wider text-gray-400">
-                Needs context
+              <div className="rounded-xl bg-[#F9FAFC] px-4 py-3">
+                <div className="font-outfit text-[11px] font-semibold uppercase tracking-wider text-gray-400">
+                  Blocked
+                </div>
+                <div className="mt-1 font-outfit text-2xl font-bold text-red-600">
+                  {summary.blocked}
+                </div>
               </div>
-              <div className="mt-2 font-outfit text-2xl font-bold text-amber-600">
-                {summary.warning}
-              </div>
-            </div>
-            <div className="rounded-2xl border border-gray-100 bg-white px-4 py-4 shadow-sm">
-              <div className="font-outfit text-[11px] font-semibold uppercase tracking-wider text-gray-400">
-                Blocked
-              </div>
-              <div className="mt-2 font-outfit text-2xl font-bold text-red-600">
-                {summary.blocked}
-              </div>
-            </div>
-            <div className="rounded-2xl border border-gray-100 bg-white px-4 py-4 shadow-sm">
-              <div className="font-outfit text-[11px] font-semibold uppercase tracking-wider text-gray-400">
-                Skipped
-              </div>
-              <div className="mt-2 font-outfit text-2xl font-bold text-gray-500">
-                {summary.skipped}
+              <div className="rounded-xl bg-[#F9FAFC] px-4 py-3">
+                <div className="font-outfit text-[11px] font-semibold uppercase tracking-wider text-gray-400">
+                  Skipped
+                </div>
+                <div className="mt-1 font-outfit text-2xl font-bold text-gray-500">
+                  {summary.skipped}
+                </div>
               </div>
             </div>
           </div>
 
-          <div className="mt-6 rounded-2xl border border-gray-100 bg-white px-5 py-4 shadow-sm">
+          <div className="mt-6 rounded-2xl border border-gray-100 bg-white px-4 py-4 shadow-sm sm:px-5">
+            <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
+              <p className="font-outfit text-sm text-gray-500">
+                Parsed {rawCount} {rawCount === 1 ? 'row' : 'rows'} {'->'}{' '}
+                <span className="font-semibold text-[#2C2C2C]">
+                  {rows.length} unique{' '}
+                  {rows.length === 1 ? 'company' : 'companies'}
+                </span>{' '}
+                {'·'} {selectedPayloads.length} selected
+              </p>
+              {Object.keys(detectedColumns).length > 0 && (
+                <button
+                  type="button"
+                  onClick={() => setShowDetectedColumns((prev) => !prev)}
+                  className="self-start font-outfit text-xs font-semibold text-[#2957FF] hover:underline"
+                >
+                  {showDetectedColumns
+                    ? 'Hide detected mapping'
+                    : 'View detected mapping'}
+                </button>
+              )}
+            </div>
+
+            {showDetectedColumns && Object.keys(detectedColumns).length > 0 && (
+              <div className="mt-4 border-t border-gray-100 pt-4">
+                <p className="mb-2 font-outfit text-[11px] font-semibold uppercase tracking-wider text-gray-500">
+                  Detected columns
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  {Object.entries(detectedColumns)
+                    .filter(([, value]) => value)
+                    .map(([field, value]) => (
+                      <span
+                        key={field}
+                        className="inline-flex items-center rounded-full bg-gray-100 px-3 py-1 font-outfit text-xs text-gray-600"
+                      >
+                        {field}: {value}
+                      </span>
+                    ))}
+                </div>
+              </div>
+            )}
+          </div>
+
+          <div className="mt-6 rounded-2xl border border-gray-100 bg-white px-4 py-4 shadow-sm sm:px-5">
             <p className="mb-3 font-outfit text-[11px] font-semibold uppercase tracking-wider text-gray-500">
               Email delivery
             </p>
             <div className="space-y-2">
-              <label className="flex cursor-pointer items-center gap-2">
+              <label className="flex cursor-pointer items-start gap-2 sm:items-center">
                 <input
                   type="radio"
                   name="emailMode"
@@ -370,7 +458,7 @@ export default function BulkIntake() {
                 <span className="font-outfit text-sm text-[#2C2C2C]">
                   Send to production recipients
                 </span>
-                <span className="font-outfit text-xs text-gray-400">
+                <span className="pt-0.5 font-outfit text-xs text-gray-400 sm:pt-0">
                   each report goes to its contact email
                 </span>
               </label>
@@ -404,35 +492,123 @@ export default function BulkIntake() {
             </div>
           </div>
 
-          <p className="mb-3 mt-6 font-outfit text-sm text-gray-500">
-            Parsed {rawCount} {rawCount === 1 ? 'row' : 'rows'} {'->'}{' '}
-            <span className="font-semibold text-[#2C2C2C]">
-              {rows.length} unique {rows.length === 1 ? 'company' : 'companies'}
-            </span>{' '}
-            {'·'} {selectedPayloads.length} selected
-          </p>
+          <div className="mt-6 space-y-3 md:hidden">
+            {selectableRows.map(({ row, payload, disabled, index, status }) => {
+              const visibleIssues = row.issues.slice(0, 2)
+              const isChecked = status !== 'blocked' && status !== 'skipped'
 
-          {Object.keys(detectedColumns).length > 0 && (
-            <div className="mb-4 rounded-2xl border border-gray-100 bg-white px-5 py-4 shadow-sm">
-              <p className="mb-2 font-outfit text-[11px] font-semibold uppercase tracking-wider text-gray-500">
-                Detected columns
-              </p>
-              <div className="flex flex-wrap gap-2">
-                {Object.entries(detectedColumns)
-                  .filter(([, value]) => value)
-                  .map(([field, value]) => (
+              return (
+                <div
+                  key={`${row.rawRowIndex}-${index}-mobile`}
+                  className={`rounded-2xl border border-gray-100 bg-white p-4 shadow-sm ${STATUS_ROW_CLASSES[status]}`}
+                >
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="flex items-start gap-3">
+                      <input
+                        type="checkbox"
+                        checked={isChecked}
+                        disabled={disabled}
+                        onChange={() => toggleRow(index)}
+                        className="mt-1 h-4 w-4"
+                      />
+                      <div>
+                        <div className="font-outfit font-medium text-[#2C2C2C]">
+                          {payload.companyName || (
+                            <span className="text-red-600">
+                              missing - click Edit
+                            </span>
+                          )}
+                        </div>
+                        {payload.industry && (
+                          <div className="mt-1 font-outfit text-xs text-gray-400">
+                            {payload.industry}
+                          </div>
+                        )}
+                      </div>
+                    </div>
                     <span
-                      key={field}
-                      className="inline-flex items-center rounded-full bg-gray-100 px-3 py-1 font-outfit text-xs text-gray-600"
+                      className={`inline-flex items-center rounded-full px-2.5 py-1 font-outfit text-xs font-semibold ${STATUS_BADGES[status]}`}
                     >
-                      {field}: {value}
+                      {STATUS_LABELS[status]}
                     </span>
-                  ))}
-              </div>
-            </div>
-          )}
+                  </div>
 
-          <div className="overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm">
+                  <div className="mt-4 grid gap-3 sm:grid-cols-2">
+                    <div>
+                      <div className="font-outfit text-[11px] font-semibold uppercase tracking-wider text-gray-400">
+                        Contact
+                      </div>
+                      <div className="mt-1 font-outfit text-sm font-medium text-[#2C2C2C]">
+                        {payload.recipientName || '-'}
+                      </div>
+                      {payload.recipientTitle && (
+                        <div className="mt-1 font-outfit text-xs text-gray-500">
+                          {payload.recipientTitle}
+                        </div>
+                      )}
+                      <div className="mt-1 break-all font-outfit text-xs text-gray-400">
+                        {payload.email || (
+                          <span className="text-red-600">
+                            no email - click Edit
+                          </span>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <div className="font-outfit text-[11px] font-semibold uppercase tracking-wider text-gray-400">
+                          Country
+                        </div>
+                        <div className="mt-1 font-outfit text-sm text-gray-600">
+                          {payload.country || '-'}
+                        </div>
+                      </div>
+                      <div>
+                        <div className="font-outfit text-[11px] font-semibold uppercase tracking-wider text-gray-400">
+                          Currency
+                        </div>
+                        <div className="mt-1">
+                          <span className="inline-flex items-center rounded-full bg-blue-50 px-2 py-0.5 font-outfit text-xs font-semibold text-[#2957FF]">
+                            {payload.currency}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {visibleIssues.length > 0 && (
+                    <div className="mt-4 space-y-1">
+                      {visibleIssues.map((issue) => (
+                        <div
+                          key={`${issue.field}-${issue.message}-mobile`}
+                          className={`font-outfit text-[11px] ${
+                            issue.severity === 'error'
+                              ? 'text-red-600'
+                              : 'text-amber-700'
+                          }`}
+                        >
+                          {issue.message}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  <div className="mt-4 flex justify-end">
+                    <button
+                      type="button"
+                      onClick={() => setEditingIndex(index)}
+                      className="font-outfit text-xs font-semibold text-[#2957FF] hover:underline"
+                    >
+                      Edit
+                    </button>
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+
+          <div className="mt-6 hidden overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm md:block">
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-gray-100">
@@ -442,6 +618,9 @@ export default function BulkIntake() {
                   </th>
                   <th className="px-4 py-3 text-left font-outfit text-[11px] font-semibold uppercase tracking-wider text-gray-400">
                     Contact
+                  </th>
+                  <th className="px-4 py-3 text-left font-outfit text-[11px] font-semibold uppercase tracking-wider text-gray-400">
+                    Status
                   </th>
                   <th className="px-4 py-3 text-left font-outfit text-[11px] font-semibold uppercase tracking-wider text-gray-400">
                     Country
@@ -455,31 +634,25 @@ export default function BulkIntake() {
               <tbody>
                 {selectableRows.map(
                   ({ row, payload, disabled, index, status }) => {
-                    const statusClasses = {
-                      ready: '',
-                      warning: 'bg-amber-50/30',
-                      blocked: 'bg-red-50/30',
-                      skipped: 'bg-gray-50',
-                    }
-                    const visibleIssues = row.issues.slice(0, 3)
+                    const visibleIssues = row.issues.slice(0, 2)
                     const isChecked =
                       status !== 'blocked' && status !== 'skipped'
 
                     return (
                       <tr
                         key={`${row.rawRowIndex}-${index}`}
-                        className={`border-b border-gray-50 ${statusClasses[status]}`}
+                        className={`border-b border-gray-50 ${STATUS_ROW_CLASSES[status]}`}
                       >
-                        <td className="px-4 py-3 align-middle">
+                        <td className="px-4 py-4 align-top">
                           <input
                             type="checkbox"
                             checked={isChecked}
                             disabled={disabled}
                             onChange={() => toggleRow(index)}
-                            className="h-4 w-4"
+                            className="mt-1 h-4 w-4"
                           />
                         </td>
-                        <td className="px-4 py-3 font-outfit text-[#2C2C2C]">
+                        <td className="px-4 py-4 font-outfit text-[#2C2C2C]">
                           <div className="font-medium">
                             {payload.companyName || (
                               <span className="text-red-600">
@@ -488,34 +661,21 @@ export default function BulkIntake() {
                             )}
                           </div>
                           {payload.industry && (
-                            <div className="text-xs text-gray-400">
+                            <div className="mt-1 text-xs text-gray-400">
                               {payload.industry}
                             </div>
                           )}
-                          {visibleIssues.length > 0 && (
-                            <div className="mt-2 flex flex-wrap gap-2">
-                              {visibleIssues.map((issue) => (
-                                <span
-                                  key={`${issue.field}-${issue.message}`}
-                                  className={`inline-flex items-center rounded-full px-2.5 py-1 font-outfit text-[11px] font-medium ${
-                                    issue.severity === 'error'
-                                      ? 'bg-red-100 text-red-700'
-                                      : 'bg-amber-100 text-amber-700'
-                                  }`}
-                                >
-                                  {issue.message}
-                                </span>
-                              ))}
+                        </td>
+                        <td className="px-4 py-4 font-outfit text-gray-600">
+                          <div className="font-medium text-[#2C2C2C]">
+                            {payload.recipientName || '-'}
+                          </div>
+                          {payload.recipientTitle && (
+                            <div className="mt-1 text-xs text-gray-500">
+                              {payload.recipientTitle}
                             </div>
                           )}
-                        </td>
-                        <td className="px-4 py-3 font-outfit text-gray-600">
-                          <div>{payload.recipientName || '-'}</div>
-                          <div className="text-xs text-gray-400">
-                            {payload.recipientTitle || ''}
-                            {payload.recipientTitle && payload.email
-                              ? ' · '
-                              : ''}
+                          <div className="mt-1 text-xs text-gray-400">
                             {payload.email || (
                               <span className="text-red-600">
                                 no email - click Edit
@@ -523,15 +683,38 @@ export default function BulkIntake() {
                             )}
                           </div>
                         </td>
-                        <td className="px-4 py-3 font-outfit text-gray-500">
+                        <td className="px-4 py-4 font-outfit text-gray-500">
+                          <span
+                            className={`inline-flex items-center rounded-full px-2.5 py-1 text-xs font-semibold ${STATUS_BADGES[status]}`}
+                          >
+                            {STATUS_LABELS[status]}
+                          </span>
+                          {visibleIssues.length > 0 && (
+                            <div className="mt-2 space-y-1">
+                              {visibleIssues.map((issue) => (
+                                <div
+                                  key={`${issue.field}-${issue.message}`}
+                                  className={`font-outfit text-[11px] ${
+                                    issue.severity === 'error'
+                                      ? 'text-red-600'
+                                      : 'text-amber-700'
+                                  }`}
+                                >
+                                  {issue.message}
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                        </td>
+                        <td className="px-4 py-4 font-outfit text-gray-500">
                           {payload.country || '-'}
                         </td>
-                        <td className="px-4 py-3 font-outfit text-gray-500">
+                        <td className="px-4 py-4 font-outfit text-gray-500">
                           <span className="inline-flex items-center rounded-full bg-blue-50 px-2 py-0.5 text-xs font-semibold text-[#2957FF]">
                             {payload.currency}
                           </span>
                         </td>
-                        <td className="px-4 py-3 text-right">
+                        <td className="px-4 py-4 text-right">
                           <button
                             type="button"
                             onClick={() => setEditingIndex(index)}
@@ -548,21 +731,32 @@ export default function BulkIntake() {
             </table>
           </div>
 
-          <div className="mt-6 flex items-center justify-end gap-3">
-            {emailMode === 'override' && !overrideValid && (
-              <span className="font-outfit text-xs text-red-500">
-                Enter a valid override email
-              </span>
-            )}
-            <button
-              type="button"
-              onClick={onGenerate}
-              disabled={selectedPayloads.length === 0 || !overrideValid}
-              className="rounded-full bg-[#2C2C2C] px-6 py-2.5 font-outfit text-sm font-semibold text-white transition-colors hover:bg-black disabled:cursor-not-allowed disabled:bg-gray-300"
-            >
-              Generate {selectedPayloads.length}{' '}
-              {selectedPayloads.length === 1 ? 'Report' : 'Reports'} {'->'}
-            </button>
+          <div className="sticky bottom-3 z-10 mt-4 rounded-2xl border border-gray-100 bg-white/95 px-4 py-4 shadow-sm backdrop-blur sm:static sm:px-5">
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <p className="font-outfit text-sm font-semibold text-[#2C2C2C]">
+                  {selectionSummary}
+                </p>
+                <p className="mt-1 font-outfit text-xs text-gray-400">
+                  Review blocked rows before generating, warning rows can still
+                  be included.
+                </p>
+                {emailMode === 'override' && !overrideValid && (
+                  <p className="mt-1 font-outfit text-xs text-red-500">
+                    Enter a valid override email
+                  </p>
+                )}
+              </div>
+              <button
+                type="button"
+                onClick={onGenerate}
+                disabled={selectedPayloads.length === 0 || !overrideValid}
+                className="w-full rounded-full bg-[#2C2C2C] px-6 py-3 font-outfit text-sm font-semibold text-white transition-colors hover:bg-black disabled:cursor-not-allowed disabled:bg-gray-300 sm:w-auto"
+              >
+                Generate {selectedPayloads.length}{' '}
+                {selectedPayloads.length === 1 ? 'Report' : 'Reports'} {'->'}
+              </button>
+            </div>
           </div>
         </>
       )}
