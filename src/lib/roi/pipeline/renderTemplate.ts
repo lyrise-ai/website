@@ -10,9 +10,13 @@ import type { AssembleReportOutput } from '@/src/lib/roi/types'
 
 const ARABIC_RE = /[\u0600-\u06FF\u0750-\u077F\u0870-\u08FF\uFB50-\uFDFF\uFE70-\uFEFF]/
 
+function escapeHtml(text: string): string {
+  return text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+}
+
 function wrapIfRtl(text: string): string {
-  if (!ARABIC_RE.test(text)) return text
-  return `<span dir="rtl" style="font-family:'Cairo',sans-serif;unicode-bidi:embed;">${text}</span>`
+  if (!ARABIC_RE.test(text)) return escapeHtml(text)
+  return `<span dir="rtl" style="font-family:'Cairo',sans-serif;unicode-bidi:embed;">${escapeHtml(text)}</span>`
 }
 
 // Fields whose values are plain names (not HTML blobs) and may contain Arabic
