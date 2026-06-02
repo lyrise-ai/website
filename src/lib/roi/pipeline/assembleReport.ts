@@ -384,7 +384,7 @@ function buildProvenanceTableBody(
       input: 'Annual revenue anchor',
       detail: 'Not provided',
       source: '—',
-      status: 'Not provided',
+      status: 'Unknown',
     })
   }
   if (company?.employees) {
