@@ -91,8 +91,10 @@ function EditRowModal({ row, onSave, onCancel }) {
                 recipientLastName: '',
                 recipientTitle: draft.recipientTitle.trim(),
                 email: draft.email.trim().toLowerCase(),
-                employees: draft.employees.trim(),
-                annualRevenue: draft.annualRevenue.trim(),
+                employees: draft.employees.trim().replace(/[,\s]/g, ''),
+                annualRevenue: draft.annualRevenue
+                  .trim()
+                  .replace(/[^0-9.]/g, ''),
                 country: draft.country.trim(),
                 industry: draft.industry.trim(),
                 website: draft.website.trim(),
@@ -197,6 +199,11 @@ export default function BulkIntake() {
     if (file) handleFiles(file)
   }
 
+  // Inclusion is controlled by the `skipped` Set; `isChecked` is derived as
+  // `status !== 'blocked' && status !== 'skipped'`. Toggling always flips the
+  // skipped membership — blocked rows ignore the checkbox (disabled), and
+  // editing a blocked row re-validates it, removes it from skipped if present,
+  // and may change its status to ready/warning so it becomes auto-included.
   const toggleRow = (index) => {
     setSkipped((prev) => {
       const next = new Set(prev)

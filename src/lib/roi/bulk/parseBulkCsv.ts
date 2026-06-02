@@ -135,11 +135,13 @@ function emptyDetectedColumns(): DetectedColumns {
 
 function detectColumns(headers: string[]): DetectedColumns {
   const detected = emptyDetectedColumns()
+  // Map normalizedHeader → the transformed key PapaParse uses as the row key
+  // (transformHeader applies normalizeCell, so row keys === normalizeCell(csvHeader))
   const headerMap = new Map<string, string>()
 
   headers.forEach((header) => {
-    const clean = normalizeCell(header)
-    if (clean) headerMap.set(normalizeHeader(clean), clean)
+    const transformedKey = normalizeCell(header)
+    if (transformedKey) headerMap.set(normalizeHeader(transformedKey), transformedKey)
   })
 
   BULK_FIELD_KEYS.forEach((field) => {
@@ -234,17 +236,6 @@ function buildFileMessages(
   const fileWarnings: string[] = []
   const fileErrors: string[] = []
 
-  const missingRequiredColumns = REQUIRED_FIELDS.filter(
-    (field) => !detectedColumns[field],
-  )
-  if (missingRequiredColumns.length > 0) {
-    fileErrors.push(
-      `Missing required column detection for ${missingRequiredColumns
-        .map((field) => (field === 'companyName' ? 'company name' : field))
-        .join(' and ')}.`,
-    )
-  }
-
   const missingOptionalColumns = OPTIONAL_WARNING_FIELDS.map(
     ({ field }) => field,
   )
@@ -294,6 +285,25 @@ export function parseBulkCsv(file: File): Promise<ParseBulkCsvResult> {
 
         const headers = Object.keys(results.data[0] ?? {})
         const detectedColumns = detectColumns(headers)
+
+        const missingRequired = REQUIRED_FIELDS.filter(
+          (field) => !detectedColumns[field],
+        )
+        if (missingRequired.length > 0) {
+          const names = missingRequired
+            .map((f) => (f === 'companyName' ? 'company name' : f))
+            .join(' and ')
+          resolve({
+            rows: [],
+            detectedColumns,
+            fileWarnings: [],
+            fileErrors: [
+              `Could not detect required column${missingRequired.length > 1 ? 's' : ''} for ${names}. Check that your CSV has a recognisable header for ${missingRequired.length > 1 ? 'these fields' : 'this field'} and re-upload.`,
+            ],
+          })
+          return
+        }
+
         const rows = results.data.map((row, index) =>
           buildRow(row, index, detectedColumns),
         )
