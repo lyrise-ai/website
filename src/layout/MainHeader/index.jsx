@@ -34,7 +34,7 @@ export default function MainHeader({ user = null }) {
       method: 'POST',
       credentials: 'include',
     })
-    router.push('/')
+    window.location.href = '/'
   }
 
   const navigate = (path) => {
