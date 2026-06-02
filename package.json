@@ -8,6 +8,7 @@
     "start": "next start",
     "lint": "next lint",
     "lint:fix": "next lint --fix",
+    "test": "node --test \"src/**/__tests__/*.test.mjs\"",
     "prettier": "prettier --write .",
     "eval:roi": "node evals/roi/run.mjs",
     "eval:roi:scaffold": "node evals/roi/scaffoldCasesFromPdf.mjs",
