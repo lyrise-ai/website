@@ -1,6 +1,6 @@
 // Dedup Apollo rows down to one per company, picking the most senior contact.
 
-import type { BulkRow } from './parseApolloCsv'
+import type { BulkRow } from './parseBulkCsv'
 import { seniorityRank } from './seniorityRank'
 
 function normalizeCompanyKey(name: string): string {
@@ -16,7 +16,11 @@ function normalizeCompanyKey(name: string): string {
     .trim()
 }
 
-export function dedupByCompany(rows: BulkRow[]): BulkRow[] {
+export function dedupByCompany(rows: BulkRow[]): {
+  rows: BulkRow[]
+  dedupedCount: number
+  warnings: string[]
+} {
   const groups = new Map<string, BulkRow[]>()
   const orderedKeys: string[] = []
 
@@ -31,7 +35,7 @@ export function dedupByCompany(rows: BulkRow[]): BulkRow[] {
     groups.get(key)!.push(row)
   })
 
-  return orderedKeys.map((key) => {
+  const dedupedRows = orderedKeys.map((key) => {
     const candidates = groups.get(key)!
     return candidates.reduce((best, row) => {
       const bestScore = seniorityRank(best.seniority, best.recipientTitle)
@@ -39,4 +43,19 @@ export function dedupByCompany(rows: BulkRow[]): BulkRow[] {
       return score > bestScore ? row : best
     }, candidates[0])
   })
+
+  const dedupedCount = rows.length - dedupedRows.length
+
+  return {
+    rows: dedupedRows,
+    dedupedCount,
+    warnings:
+      dedupedCount > 0
+        ? [
+            `Collapsed ${dedupedCount} duplicate ${
+              dedupedCount === 1 ? 'row' : 'rows'
+            } by company name.`,
+          ]
+        : [],
+  }
 }
