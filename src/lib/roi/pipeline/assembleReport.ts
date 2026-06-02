@@ -137,6 +137,10 @@ function buildCompanySnapshotTableBody(
     rows.push(
       `<tr><td>Revenue estimated ${sym}${company.revenueEstimateM}M annually</td><td><span class="badge-benchmarked">Benchmarked</span></td></tr>`,
     )
+  } else {
+    rows.push(
+      `<tr><td>Annual revenue — not provided</td><td><span class="badge-assumed">Unknown</span></td></tr>`,
+    )
   }
   // Country: form-supplied wins; otherwise show research-derived country.
   const countryFromForm = (normInput?.country ?? '').trim()
@@ -374,6 +378,13 @@ function buildProvenanceTableBody(
       detail: `${sym}${company.revenueEstimateM}M estimated`,
       source: 'Benchmarked',
       status: 'Needs validation',
+    })
+  } else {
+    rows.push({
+      input: 'Annual revenue anchor',
+      detail: 'Not provided',
+      source: '—',
+      status: 'Unknown',
     })
   }
   if (company?.employees) {
@@ -781,9 +792,12 @@ export function assembleReport(state: ReportState): AssembleReportOutput {
       ? company.revenueEstimateM! * 1_000_000
       : 0
   const revPct = revenueBase > 0 ? Math.round((tf12 / revenueBase) * 100) : 0
+  const revenueRangeKnown = (normInput?.revenueRange ?? '').trim().length > 0
   const revenueContextStatement =
     revenueBase > 0 && revPct <= 500
       ? `This represents approximately ${revPct}% of your estimated annual revenue returned through operational efficiency — without adding headcount.`
+      : !revenueRangeKnown && revenueBase === 0
+      ? 'Annual revenue was not provided — financial gain percentages against a revenue base are unavailable.'
       : ''
 
   const confLevel = confidenceLevel ?? 'low'
