@@ -56,9 +56,20 @@ const usd = (n) => `$${Number(n || 0).toFixed(n >= 1 ? 2 : 4)}`
 const secs = (ms) => `${(Number(ms || 0) / 1000).toFixed(1)}s`
 const num = (n) => Number(n || 0).toLocaleString()
 
+// Human-friendly duration: "—" / "45s" / "3m 20s".
+const dur = (ms) => {
+  const total = Math.round(Number(ms || 0) / 1000)
+  if (!total) return '—'
+  if (total < 60) return `${total}s`
+  const m = Math.floor(total / 60)
+  const s = total % 60
+  return s ? `${m}m ${s}s` : `${m}m`
+}
+
 export default function UsageDashboard() {
   const [days, setDays] = useState(30)
   const [data, setData] = useState(null)
+  const [engagement, setEngagement] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
 
@@ -66,15 +77,24 @@ export default function UsageDashboard() {
     let cancelled = false
     setLoading(true)
     setError('')
-    fetch(`/api/usage/summary?days=${days}`, { credentials: 'include' })
-      .then((r) => r.json())
-      .then((json) => {
+    Promise.all([
+      fetch(`/api/usage/summary?days=${days}`, {
+        credentials: 'include',
+      }).then((r) => r.json()),
+      fetch(`/api/usage/engagement?days=${days}`, {
+        credentials: 'include',
+      })
+        .then((r) => r.json())
+        .catch(() => null),
+    ])
+      .then(([summary, eng]) => {
         if (cancelled) return
-        if (json.error && !json.totals) {
-          setError(json.error)
+        if (summary.error && !summary.totals) {
+          setError(summary.error)
         } else {
-          setData(json)
+          setData(summary)
         }
+        setEngagement(eng)
       })
       .catch(() => !cancelled && setError('Failed to load usage data'))
       .finally(() => !cancelled && setLoading(false))
@@ -164,6 +184,10 @@ export default function UsageDashboard() {
 
         {!loading && !error && data && data.ready !== false && (
           <Dashboard data={data} />
+        )}
+
+        {!loading && !error && engagement && engagement.ready !== false && (
+          <EngagementPanel data={engagement} />
         )}
       </Box>
     </>
@@ -295,6 +319,96 @@ function Dashboard({ data }) {
         </CardContent>
       </Card>
     </>
+  )
+}
+
+// Recipient engagement: who opened "Edit with chat", time in panel, downloads.
+function EngagementPanel({ data }) {
+  const { totals, perReport } = data
+  return (
+    <Box sx={{ mt: 4 }}>
+      <Typography variant="h5" fontWeight={700} color="#1a1a2e" mb={0.5}>
+        Recipient engagement
+      </Typography>
+      <Typography variant="body2" color="text.secondary" mb={2}>
+        Activity from prospects who opened &quot;Edit with chat&quot; from the
+        emails
+      </Typography>
+
+      <Box
+        sx={{
+          display: 'grid',
+          gridTemplateColumns: { xs: '1fr 1fr', md: 'repeat(4, 1fr)' },
+          gap: 2,
+          mb: 3,
+        }}
+      >
+        <StatCard
+          label="Reports opened"
+          value={num(totals.reportsOpened)}
+          accent="#16a34a"
+        />
+        <StatCard
+          label="Total opens"
+          value={num(totals.opens)}
+          accent="#0891b2"
+        />
+        <StatCard
+          label="Avg time in chat"
+          value={dur(totals.avgDurationMs)}
+          accent="#7c3aed"
+        />
+        <StatCard
+          label="PDF downloads"
+          value={num(totals.downloads)}
+          accent="#ea580c"
+        />
+      </Box>
+
+      <Card>
+        <CardContent>
+          <Typography fontWeight={600} mb={2}>
+            By report
+          </Typography>
+          {perReport.length === 0 ? (
+            <Typography variant="body2" color="text.secondary">
+              No recipient activity in this window yet.
+            </Typography>
+          ) : (
+            <Table size="small">
+              <TableHead>
+                <TableRow>
+                  <TableCell>Company</TableCell>
+                  <TableCell>Recipient</TableCell>
+                  <TableCell align="right">Opens</TableCell>
+                  <TableCell align="right">Avg time</TableCell>
+                  <TableCell align="right">Chat msgs</TableCell>
+                  <TableCell align="right">Downloads</TableCell>
+                  <TableCell align="right">Last activity</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {perReport.map((r) => (
+                  <TableRow key={r.reportId} hover>
+                    <TableCell>{r.company}</TableCell>
+                    <TableCell>{r.email}</TableCell>
+                    <TableCell align="right">{num(r.opens)}</TableCell>
+                    <TableCell align="right">{dur(r.avgDurationMs)}</TableCell>
+                    <TableCell align="right">{num(r.chatMessages)}</TableCell>
+                    <TableCell align="right">{num(r.downloads)}</TableCell>
+                    <TableCell align="right">
+                      {r.lastActivity
+                        ? new Date(r.lastActivity).toLocaleString()
+                        : '—'}
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          )}
+        </CardContent>
+      </Card>
+    </Box>
   )
 }
 
