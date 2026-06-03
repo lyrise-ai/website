@@ -22,12 +22,19 @@ export function dedupByCompany(rows: BulkRow[]): {
   warnings: string[]
 } {
   const groups = new Map<string, BulkRow[]>()
+  const unnamedRows: BulkRow[] = []
   const orderedKeys: string[] = []
 
   rows.forEach((row) => {
-    if (!row.companyName) return
+    if (!row.companyName) {
+      unnamedRows.push(row)
+      return
+    }
     const key = normalizeCompanyKey(row.companyName)
-    if (!key) return
+    if (!key) {
+      unnamedRows.push(row)
+      return
+    }
     if (!groups.has(key)) {
       groups.set(key, [])
       orderedKeys.push(key)
@@ -44,10 +51,11 @@ export function dedupByCompany(rows: BulkRow[]): {
     }, candidates[0])
   })
 
-  const dedupedCount = rows.length - dedupedRows.length
+  const finalRows = [...dedupedRows, ...unnamedRows]
+  const dedupedCount = rows.length - unnamedRows.length - dedupedRows.length
 
   return {
-    rows: dedupedRows,
+    rows: finalRows,
     dedupedCount,
     warnings:
       dedupedCount > 0

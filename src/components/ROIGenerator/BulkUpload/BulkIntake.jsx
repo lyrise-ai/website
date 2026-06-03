@@ -344,7 +344,7 @@ export default function BulkIntake() {
         </div>
       )}
 
-      {rows.length > 0 && (fileErrors.length > 0 || fileWarnings.length > 0) && (
+      {(fileErrors.length > 0 || fileWarnings.length > 0) && (
         <div className="mt-4 space-y-2">
           {fileErrors.map((message) => (
             <div
