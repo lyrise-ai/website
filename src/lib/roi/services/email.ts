@@ -66,7 +66,7 @@ export async function sendReportEmail(
         <p>Ready to explore next steps?
         <a href="https://api.leadconnectorhq.com/widget/bookings/strategy-call-with-lyrisesivto9">Book a 30-minute discovery call</a>.</p>
         <br>
-        <p>Best,<br>Elena<br>LyRise AI — <a href="https://lyrise.ai">lyrise.ai</a></p>
+        <p>Best,<br>LyRise Team<br>LyRise AI — <a href="https://lyrise.ai">lyrise.ai</a></p>
       `.trim(),
       attachments: [
         {
