@@ -74,40 +74,95 @@ const OPTIONAL_WARNING_FIELDS: Array<{
 const HEADER_ALIASES: Record<BulkFieldKey, string[]> = {
   companyName: [
     'Company Name',
+    'Company Name for Initial Email',
     'Company',
     'Account Name',
     'Organization',
+    'Organization Name',
     'Business Name',
   ],
   recipientFirstName: [
     'First Name',
     'Contact First Name',
     'Lead First Name',
+    'Contact First',
     'first_name',
   ],
   recipientLastName: [
     'Last Name',
     'Contact Last Name',
     'Lead Last Name',
+    'Contact Last',
     'last_name',
   ],
-  recipientTitle: ['Title', 'Job Title', 'Position', 'Contact Title'],
-  seniority: ['Seniority', 'Job Seniority', 'Role Seniority'],
-  email: ['Email', 'Work Email', 'Business Email', 'contact_email'],
-  website: ['Website', 'Company Website', 'Company Website URL', 'Domain'],
+  recipientTitle: [
+    'Title',
+    'Job Title',
+    'Position',
+    'Contact Title',
+    'Contact Job Title',
+  ],
+  seniority: [
+    'Seniority',
+    'Job Seniority',
+    'Role Seniority',
+    'Contact Seniority',
+  ],
+  email: [
+    'Email',
+    'Email Address',
+    'Primary Email',
+    'Work Email',
+    'Business Email',
+    'contact_email',
+  ],
+  website: [
+    'Website',
+    'Company Website',
+    'Company Website URL',
+    'Company URL',
+    'Website URL',
+    'Company Domain',
+    'Domain',
+  ],
   companyLinkedinUrl: [
     'Company Linkedin Url',
     'Company LinkedIn URL',
+    'Company LinkedIn Url',
+    'Organization LinkedIn URL',
     'LinkedIn',
     'Company LinkedIn',
     'Linkedin URL',
   ],
-  industry: ['Industry', 'Vertical'],
-  employees: ['# Employees', 'Employees', 'Employee Count', 'Headcount'],
-  annualRevenue: ['Annual Revenue', 'Revenue', 'Estimated Revenue'],
-  country: ['Country', 'Company Country', 'HQ Country'],
-  keywords: ['Keywords', 'Company Keywords', 'Description'],
-  technologies: ['Technologies', 'Tech Stack', 'Technology Stack'],
+  industry: ['Industry', 'Vertical', 'Primary Industry', 'Company Industry'],
+  employees: [
+    '# Employees',
+    'Employees',
+    'Employee Count',
+    'Number of Employees',
+    'Employee Range',
+    'Headcount',
+  ],
+  annualRevenue: [
+    'Annual Revenue',
+    'Annual Revenue (USD)',
+    'Revenue',
+    'Estimated Revenue',
+  ],
+  country: ['Country', 'Company Country', 'HQ Country', 'Location Country'],
+  keywords: [
+    'Keywords',
+    'Company Keywords',
+    'Company Description',
+    'Description',
+  ],
+  technologies: [
+    'Technologies',
+    'Technology',
+    'Technology Names',
+    'Tech Stack',
+    'Technology Stack',
+  ],
 }
 
 function normalizeHeader(value: string): string {
@@ -133,22 +188,58 @@ function emptyDetectedColumns(): DetectedColumns {
   }, {} as DetectedColumns)
 }
 
-function detectColumns(headers: string[]): DetectedColumns {
-  const detected = emptyDetectedColumns()
+function getAliasMatches(
+  headers: string[],
+): Record<BulkFieldKey, string[]> {
+  const matches = BULK_FIELD_KEYS.reduce((acc, key) => {
+    acc[key] = []
+    return acc
+  }, {} as Record<BulkFieldKey, string[]>)
+
   // Map normalizedHeader → the transformed key PapaParse uses as the row key
   // (transformHeader applies normalizeCell, so row keys === normalizeCell(csvHeader))
   const headerMap = new Map<string, string>()
 
   headers.forEach((header) => {
     const transformedKey = normalizeCell(header)
-    if (transformedKey) headerMap.set(normalizeHeader(transformedKey), transformedKey)
+    if (transformedKey)
+      headerMap.set(normalizeHeader(transformedKey), transformedKey)
   })
 
   BULK_FIELD_KEYS.forEach((field) => {
-    const hit = HEADER_ALIASES[field]
+    matches[field] = HEADER_ALIASES[field]
       .map((alias) => headerMap.get(normalizeHeader(alias)))
-      .find(Boolean)
-    detected[field] = hit ?? null
+      .filter(Boolean) as string[]
+  })
+
+  return matches
+}
+
+function countNonEmpty(rows: RawCsvRow[], header: string): number {
+  return rows.reduce((count, row) => {
+    return pick(row, header) ? count + 1 : count
+  }, 0)
+}
+
+function detectColumns(headers: string[], rows: RawCsvRow[]): DetectedColumns {
+  const detected = emptyDetectedColumns()
+  const aliasMatches = getAliasMatches(headers)
+
+  BULK_FIELD_KEYS.forEach((field) => {
+    const candidates = aliasMatches[field]
+    if (candidates.length === 0) {
+      detected[field] = null
+      return
+    }
+
+    detected[field] = candidates.reduce((best, header) => {
+      if (!best) return header
+
+      const bestCount = countNonEmpty(rows, best)
+      const headerCount = countNonEmpty(rows, header)
+
+      return headerCount > bestCount ? header : best
+    }, candidates[0] ?? null)
   })
 
   return detected
@@ -162,6 +253,76 @@ function pick(
   if (!header) return ''
   const value = normalizeCell(row[header])
   return lowercase ? value.toLowerCase() : value
+}
+
+function scoreCompanyHeader(header: string): number {
+  const normalized = normalizeHeader(header)
+
+  const positives = [
+    'company',
+    'organization',
+    'organisation',
+    'business',
+    'account',
+    'firm',
+    'employer',
+    'client',
+  ]
+  const negatives = [
+    'website',
+    'url',
+    'domain',
+    'linkedin',
+    'facebook',
+    'twitter',
+    'email',
+    'phone',
+    'industry',
+    'revenue',
+    'employee',
+    'headcount',
+    'keyword',
+    'technology',
+    'country',
+    'city',
+    'state',
+    'contact',
+  ]
+
+  let score = 0
+
+  if (
+    normalized.includes('company name') ||
+    normalized.includes('organization name') ||
+    normalized.includes('organisation name') ||
+    normalized.includes('business name') ||
+    normalized.includes('account name') ||
+    normalized.includes('firm name')
+  ) {
+    score += 8
+  }
+
+  if (normalized.includes('name')) score += 2
+  if (positives.some((token) => normalized.includes(token))) score += 3
+  if (negatives.some((token) => normalized.includes(token))) score -= 6
+
+  return score
+}
+
+function pickCompanyName(row: RawCsvRow, detectedHeader: string | null): string {
+  const direct = pick(row, detectedHeader)
+  if (direct) return direct
+
+  const fallback = Object.keys(row)
+    .map((header) => ({
+      header,
+      value: pick(row, header),
+      score: scoreCompanyHeader(header),
+    }))
+    .filter(({ value, score }) => value && score > 0)
+    .sort((a, b) => b.score - a.score)[0]
+
+  return fallback?.value ?? ''
 }
 
 export function validateBulkRow(row: BulkRowDraft): BulkRow {
@@ -212,7 +373,7 @@ function buildRow(
 ): BulkRow {
   return validateBulkRow({
     rawRowIndex: rowIndex,
-    companyName: pick(csvRow, detectedColumns.companyName),
+    companyName: pickCompanyName(csvRow, detectedColumns.companyName),
     recipientFirstName: pick(csvRow, detectedColumns.recipientFirstName),
     recipientLastName: pick(csvRow, detectedColumns.recipientLastName),
     recipientTitle: pick(csvRow, detectedColumns.recipientTitle),
@@ -284,7 +445,7 @@ export function parseBulkCsv(file: File): Promise<ParseBulkCsvResult> {
         }
 
         const headers = Object.keys(results.data[0] ?? {})
-        const detectedColumns = detectColumns(headers)
+        const detectedColumns = detectColumns(headers, results.data)
 
         const missingRequired = REQUIRED_FIELDS.filter(
           (field) => !detectedColumns[field],
@@ -298,7 +459,11 @@ export function parseBulkCsv(file: File): Promise<ParseBulkCsvResult> {
             detectedColumns,
             fileWarnings: [],
             fileErrors: [
-              `Could not detect required column${missingRequired.length > 1 ? 's' : ''} for ${names}. Check that your CSV has a recognisable header for ${missingRequired.length > 1 ? 'these fields' : 'this field'} and re-upload.`,
+              `Could not detect required column${
+                missingRequired.length > 1 ? 's' : ''
+              } for ${names}. Check that your CSV has a recognisable header for ${
+                missingRequired.length > 1 ? 'these fields' : 'this field'
+              } and re-upload.`,
             ],
           })
           return
