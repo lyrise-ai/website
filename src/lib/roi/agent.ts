@@ -20,6 +20,7 @@ import { z } from 'zod'
 
 import { researchModel, fastModel } from '@/src/lib/roi/llm'
 import { UsageTracker } from '@/src/lib/roi/services/usageTracker'
+import { persistUsage } from '@/src/lib/roi/services/usageStore'
 import { webSearch } from '@/src/lib/roi/tools/webSearch'
 import { fetchPage } from '@/src/lib/roi/tools/fetchPage'
 import { roiCalculator } from '@/src/lib/roi/pipeline/roiCalculator'
@@ -2031,7 +2032,9 @@ ${
   } catch {
     /* usage not available — skip */
   }
-  tracker.flush()
+  // Persist to Supabase for the monitoring dashboard. Fire-and-forget: a
+  // monitoring write must never block the response or fail report generation.
+  void persistUsage(tracker.flush())
 
   if (mode === 'generate' && !state.assembled) {
     const done =
