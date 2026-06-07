@@ -28,6 +28,7 @@ import {
   splitStoredState,
 } from '@/src/lib/roi/reportState'
 import { persistReportEvidence } from '@/src/lib/roi/reportEvidence'
+import { persistUsage } from '@/src/lib/roi/services/usageStore'
 import { assessReportSpecificity } from '@/src/lib/roi/specificity'
 
 export const config = {
@@ -388,6 +389,7 @@ export default async function handler(req, res) {
     }
 
     let capturedMessages = []
+    let capturedUsage = null
 
     await runReportAgent({
       mode,
@@ -420,6 +422,9 @@ export default async function handler(req, res) {
             messages,
           })
         },
+        onUsage: (summary) => {
+          capturedUsage = summary
+        },
         onError: (err) => send(res, { type: 'error', message: err.message }),
       },
     })
@@ -427,6 +432,15 @@ export default async function handler(req, res) {
     if (mode === 'chat' && reportId) {
       const userRole = chatUserRole
       state.specificityAssessment = assessReportSpecificity(state)
+
+      // Persist LLM usage for this chat turn (report already exists). upsert on
+      // report_id keeps one usage row per report. Fire-and-forget.
+      if (capturedUsage) {
+        persistUsage(capturedUsage, {
+          reportId,
+          userId: persistedReport?.user_id ?? user.id,
+        }).catch((e) => console.error('[roi-usage] persist failed', e))
+      }
 
       // chat_messages.user_id is FK to auth.users. For share-link visitors
       // (no session) we attribute writes to the report owner so the FK
@@ -581,6 +595,14 @@ export default async function handler(req, res) {
 
       if (savedReport?.id) {
         savedReportId = savedReport.id
+        // Persist LLM usage now that the report row (report_id) exists.
+        // Fire-and-forget: monitoring must never block or fail generation.
+        if (capturedUsage) {
+          persistUsage(capturedUsage, {
+            reportId: savedReport.id,
+            userId: user.id,
+          }).catch((e) => console.error('[roi-usage] persist failed', e))
+        }
         await persistReportEvidence(
           adminSupabase,
           savedReport.id,
