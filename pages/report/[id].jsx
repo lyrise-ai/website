@@ -1,8 +1,11 @@
+import { useEffect, useState } from 'react'
 import Head from 'next/head'
 import { createClient, createAdminClient } from '../../src/lib/supabase-server'
+import { createClient as createBrowserClient } from '../../src/lib/supabase-browser'
 import ReportViewerWithBatch from '../../src/components/ROIGenerator/BulkUpload/ReportViewerWithBatch'
 import { buildStateFromReportRow } from '@/src/lib/roi/reportState'
 import { motion } from 'framer-motion'
+import { useRouter } from 'next/router'
 
 export async function getServerSideProps({ req, res, params, query }) {
   const supabase = createClient(req, res)
@@ -116,6 +119,16 @@ export async function getServerSideProps({ req, res, params, query }) {
   }
 }
 
+// ── Alpha terminology guide data ─────────────────────────────────────────────
+// Rendered in a toolbar dropdown when ?alpha=true is in the URL.
+const ALPHA_TERMS = [
+  { term: 'Hours Returned', def: 'Total hours/year your team gets back when AI handles repetitive tasks' },
+  { term: 'Operational Dividend', def: 'Dollar value of those freed hours at your blended rate. Measurable from day one.' },
+  { term: 'Profit Uplift', def: 'What freed hours produce when redirected to higher-value work.' },
+  { term: 'Total Financial Gain', def: 'Operational Dividend + Profit Uplift. Full annual value.' },
+  { term: 'Hypothesis-Driven Projection', def: 'Estimated from benchmarks, not your internal data. Needs validation.' },
+]
+
 export default function ReportPage({
   initialState,
   email,
@@ -126,6 +139,138 @@ export default function ReportPage({
   isShareLink,
   shareToken,
 }) {
+  // Read the alpha flag from the URL client-side so we don't need to touch
+  // getServerSideProps. When present, show alpha-specific UI overlays.
+  const { query, push } = useRouter()
+  const isAlpha = query.alpha === 'true'
+
+  // Controls the terminology guide dropdown panel
+  const [guideOpen, setGuideOpen] = useState(false)
+
+  // Tour-exit modal state — shown when tester clicks "Finish tour"
+  const [showTourExit, setShowTourExit] = useState(false)
+  const [reportClarity, setReportClarity] = useState(0)
+  const [chatRating, setChatRating] = useState(0)
+  const [clarityHover, setClarityHover] = useState(0)
+  const [chatHover, setChatHover] = useState(0)
+  const [tourExitSubmitting, setTourExitSubmitting] = useState(false)
+
+  // FIX 1 — Inject "📖 Terminology Guide" button into the ReportViewer toolbar,
+  // next to the existing "Take a tour" (?) button. Uses a window bridge so the
+  // DOM-injected button can toggle guideOpen React state.
+  useEffect(() => {
+    if (!isAlpha) return undefined
+
+    // Expose toggle function so the DOM-injected button can reach React state
+    window.__alphaGuideToggle = () => setGuideOpen((v) => !v)
+
+    const injectBtn = () => {
+      if (document.getElementById('alpha-guide-btn')) return true
+      const tourBtn = document.querySelector('button[title="Take a tour"]')
+      if (!tourBtn) return false
+      const btn = document.createElement('button')
+      btn.id = 'alpha-guide-btn'
+      btn.type = 'button'
+      btn.textContent = '📖 Terminology Guide'
+      btn.style.cssText = [
+        'padding:6px 12px;font-size:13px;font-weight:500;',
+        'border:1px solid #e2e8f0;border-radius:6px;',
+        'background:#fff;color:#374151;cursor:pointer;font-family:inherit;',
+      ].join('')
+      btn.onclick = () => window.__alphaGuideToggle?.()
+      tourBtn.parentNode.insertBefore(btn, tourBtn)
+      return true
+    }
+
+    // Try immediately; if the toolbar hasn't mounted yet, retry after a short delay
+    if (!injectBtn()) {
+      const t = setTimeout(injectBtn, 600)
+      return () => {
+        clearTimeout(t)
+        document.getElementById('alpha-guide-btn')?.remove()
+        delete window.__alphaGuideToggle
+      }
+    }
+    return () => {
+      document.getElementById('alpha-guide-btn')?.remove()
+      delete window.__alphaGuideToggle
+    }
+  }, [isAlpha])
+
+  // FIX 2 — Auto-trigger the existing product tour when ?alpha=true.
+  // Simulates a click on the "Take a tour" button after the page has rendered.
+  // The button itself is unchanged so users can replay the tour manually.
+  useEffect(() => {
+    if (!isAlpha) return undefined
+    const t = setTimeout(() => {
+      document.querySelector('button[title="Take a tour"]')?.click()
+    }, 800)
+    return () => clearTimeout(t)
+  }, [isAlpha])
+
+  // Track that the tester reached and loaded the report page
+  useEffect(() => {
+    if (!isAlpha) return
+    try {
+      const token = localStorage.getItem('alpha_token')
+      if (!token) return
+      createBrowserClient()
+        .from('alpha_feedback')
+        .upsert({ alpha_token: token, step_generation_completed: true }, { onConflict: 'alpha_token' })
+        .then(({ error }) => { if (error) console.error('[alpha] generation page tracking:', error) })
+    } catch { /* non-critical */ }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isAlpha])
+
+  // Handler for the tour-exit modal submit
+  const handleTourExitSubmit = async () => {
+    setTourExitSubmitting(true)
+    try {
+      const token = localStorage.getItem('alpha_token')
+      if (token) {
+        await createBrowserClient()
+          .from('alpha_feedback')
+          .upsert(
+            {
+              alpha_token: token,
+              step_report_completed: true,
+              step3_report_clarity: reportClarity || null,
+              step4_chat_rating: chatRating || null,
+            },
+            { onConflict: 'alpha_token' },
+          )
+      }
+    } catch { /* non-critical */ } finally {
+      setTourExitSubmitting(false)
+    }
+    push(`/alpha-survey?reportId=${reportId}`)
+  }
+
+  // Inject a short usage hint just above the chat textarea when alpha is active.
+  // Uses DOM injection because the textarea lives inside ReportViewerWithBatch.
+  useEffect(() => {
+    if (!isAlpha) return undefined
+
+    const injectChatHint = () => {
+      if (document.getElementById('alpha-chat-hint')) return
+      const textarea = document.querySelector('textarea[placeholder="Ask me to change anything in the report…"]')
+      if (!textarea) return
+      const form = textarea.closest('form')
+      if (!form) return
+      const hint = document.createElement('div')
+      hint.id = 'alpha-chat-hint'
+      hint.style.cssText = [
+        'color:#2957FF;font-size:11px;padding:4px 14px 2px;',
+        'line-height:1.5;font-family:inherit',
+      ].join('')
+      hint.textContent = '💡 Try: change currency to EGP · adjust team size · rewrite a section'
+      form.parentNode.insertBefore(hint, form)
+    }
+
+    const t = setTimeout(injectChatHint, 800)
+    return () => clearTimeout(t)
+  }, [isAlpha])
+
   return (
     <>
       <Head>
@@ -149,6 +294,129 @@ export default function ReportPage({
           backHref={isShareLink ? null : '/dashboard'}
         />
       </motion.div>
+
+      {/* Alpha-only overlays — all use fixed positioning clear of the chat panel */}
+      {isAlpha && (
+        <>
+          {/* Terminology guide dropdown — toggled by the injected toolbar button */}
+          {guideOpen && (
+            <div
+              className="fixed z-50 bg-white border border-slate-200 rounded-xl shadow-xl w-80 overflow-hidden"
+              style={{ top: '54px', right: '16px' }}
+            >
+              <div className="px-4 py-3 border-b border-slate-100 flex items-center justify-between">
+                <span className="font-semibold text-slate-800 text-sm">
+                  📖 Terminology Guide
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setGuideOpen(false)}
+                  className="text-slate-400 hover:text-slate-600 text-xl leading-none"
+                  aria-label="Close guide"
+                >
+                  &times;
+                </button>
+              </div>
+              <div className="px-4 py-3 space-y-4 max-h-80 overflow-y-auto">
+                {ALPHA_TERMS.map(({ term, def }) => (
+                  <div key={term}>
+                    <p className="font-semibold text-slate-800 text-xs">{term}</p>
+                    <p className="text-slate-500 text-xs mt-0.5 leading-relaxed">{def}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Finish tour button — left side, clear of chat panel */}
+          <button
+            type="button"
+            onClick={() => setShowTourExit(true)}
+            className="fixed left-4 bottom-24 z-50 bg-blue-600 text-white rounded-xl px-4 py-3 shadow-lg text-sm font-semibold hover:bg-blue-700 transition-colors"
+          >
+            🎉 Finish tour →
+          </button>
+
+          {/* Tour-exit modal — collect report clarity + chat rating before redirecting */}
+          {showTourExit && (
+            <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50">
+              <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm mx-4 p-6">
+                <h3 className="font-bold text-lg text-slate-900 mb-1">
+                  Before you go…
+                </h3>
+                <p className="text-xs text-slate-400 mb-5">
+                  Two quick questions — takes 20 seconds.
+                </p>
+
+                {/* Q: Report clarity */}
+                <p className="text-sm font-medium text-slate-700 mb-2">
+                  How clearly did the report communicate value to you?
+                </p>
+                <div className="flex gap-2 mb-5">
+                  {[1, 2, 3, 4, 5].map((s) => (
+                    <button
+                      key={s}
+                      type="button"
+                      onClick={() => setReportClarity(s)}
+                      onMouseEnter={() => setClarityHover(s)}
+                      onMouseLeave={() => setClarityHover(0)}
+                      aria-label={`${s} star${s > 1 ? 's' : ''}`}
+                      className="focus:outline-none transition-transform hover:scale-110"
+                    >
+                      <svg viewBox="0 0 20 20" className="w-8 h-8" fill={s <= (clarityHover || reportClarity) ? '#fbbf24' : '#e2e8f0'}>
+                        <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                      </svg>
+                    </button>
+                  ))}
+                </div>
+
+                {/* Q: Chat rating (optional) */}
+                <p className="text-sm font-medium text-slate-700 mb-1">
+                  How smooth was editing the report with AI?
+                </p>
+                <p className="text-xs text-slate-400 mb-2">
+                  Skip if you didn&apos;t use the chat
+                </p>
+                <div className="flex gap-2 mb-6">
+                  {[1, 2, 3, 4, 5].map((s) => (
+                    <button
+                      key={s}
+                      type="button"
+                      onClick={() => setChatRating(s)}
+                      onMouseEnter={() => setChatHover(s)}
+                      onMouseLeave={() => setChatHover(0)}
+                      aria-label={`${s} star${s > 1 ? 's' : ''}`}
+                      className="focus:outline-none transition-transform hover:scale-110"
+                    >
+                      <svg viewBox="0 0 20 20" className="w-8 h-8" fill={s <= (chatHover || chatRating) ? '#fbbf24' : '#e2e8f0'}>
+                        <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                      </svg>
+                    </button>
+                  ))}
+                </div>
+
+                <div className="flex gap-3">
+                  <button
+                    type="button"
+                    onClick={() => setShowTourExit(false)}
+                    className="flex-1 py-2.5 text-sm font-medium text-slate-500 border border-slate-200 rounded-xl hover:border-slate-400 transition-colors"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleTourExitSubmit}
+                    disabled={reportClarity === 0 || tourExitSubmitting}
+                    className="flex-1 py-2.5 text-sm font-semibold bg-blue-600 text-white rounded-xl hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  >
+                    {tourExitSubmitting ? 'Saving…' : 'Continue to survey →'}
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+        </>
+      )}
     </>
   )
 }
