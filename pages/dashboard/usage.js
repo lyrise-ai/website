@@ -491,7 +491,7 @@ function ReportRow({ row }) {
             </IconButton>
           )}
         </TableCell>
-        <TableCell>{new Date(row.ts).toLocaleString()}</TableCell>
+        <TableCell>{new Date(row.created_at).toLocaleString()}</TableCell>
         <TableCell>{row.company || '—'}</TableCell>
         <TableCell>{row.mode}</TableCell>
         <TableCell align="right">{usd(row.cost_usd)}</TableCell>

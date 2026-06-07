@@ -20,7 +20,6 @@ import { z } from 'zod'
 
 import { researchModel, fastModel } from '@/src/lib/roi/llm'
 import { UsageTracker } from '@/src/lib/roi/services/usageTracker'
-import { persistUsage } from '@/src/lib/roi/services/usageStore'
 import { webSearch } from '@/src/lib/roi/tools/webSearch'
 import { fetchPage } from '@/src/lib/roi/tools/fetchPage'
 import { roiCalculator } from '@/src/lib/roi/pipeline/roiCalculator'
@@ -2032,9 +2031,10 @@ ${
   } catch {
     /* usage not available — skip */
   }
-  // Persist to Supabase for the monitoring dashboard. Fire-and-forget: a
-  // monitoring write must never block the response or fail report generation.
-  void persistUsage(tracker.flush())
+  // Hand the usage summary to the caller, which persists it once the report
+  // row (report_id) exists. In generate mode the report is saved AFTER the
+  // agent runs, so the agent itself has no report_id to write.
+  callbacks.onUsage?.(tracker.flush())
 
   if (mode === 'generate' && !state.assembled) {
     const done =

@@ -49,10 +49,10 @@ export default async function handler(req, res) {
   const { data: rows, error } = await admin
     .from('roi_usage')
     .select(
-      'id, ts, company, mode, duration_ms, input_tokens, output_tokens, total_tokens, cost_usd, calls',
+      'id, created_at, company, mode, duration_ms, input_tokens, output_tokens, total_tokens, cost_usd, calls',
     )
-    .gte('ts', since)
-    .order('ts', { ascending: false })
+    .gte('created_at', since)
+    .order('created_at', { ascending: false })
 
   if (error) {
     // Most likely the migration hasn't been applied yet — surface a clear,
@@ -86,7 +86,7 @@ export default async function handler(req, res) {
   // ── Per-day (cost + volume over time) ───────────────────────────────────────
   const dayMap = new Map()
   safeRows.forEach((r) => {
-    const day = (r.ts || '').slice(0, 10) // YYYY-MM-DD
+    const day = (r.created_at || '').slice(0, 10) // YYYY-MM-DD
     const cur = dayMap.get(day) || { day, costUsd: 0, count: 0 }
     cur.costUsd += Number(r.cost_usd || 0)
     cur.count += 1
