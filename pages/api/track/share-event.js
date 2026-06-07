@@ -12,8 +12,8 @@ import { createAdminClient } from '../../../src/lib/supabase-server'
 //
 // Writes to the existing `events` table (same shape as report_viewed etc.),
 // with user_id = NULL since the recipient is anonymous. durationMs (for chat
-// session length) is stored in events.meta if that column exists; otherwise it
-// is silently dropped so this never fails on a missing column.
+// session length) is stored in the events.meta JSONB column added by migration
+// 20260603_000006_events_meta.
 // ─────────────────────────────────────────────────────────────────────────────
 
 // Only these types may be written through this anonymous endpoint.
@@ -58,21 +58,15 @@ export default async function handler(req, res) {
     return res.status(403).json({ error: 'Invalid share link' })
   }
 
-  // Build the row. Try to attach duration in a `meta` JSONB column; if the
-  // column doesn't exist, retry without it so tracking never blocks on schema.
-  const baseRow = { user_id: null, report_id: reportId, type }
-  const meta =
-    typeof durationMs === 'number' && durationMs >= 0 ? { durationMs } : null
+  // Build the row. Attach duration in the `meta` JSONB column when present
+  // (added by migration 20260603_000006_events_meta). A single insert avoids
+  // the risk of double-writing an event if a transient error triggered a retry.
+  const row = { user_id: null, report_id: reportId, type }
+  if (typeof durationMs === 'number' && durationMs >= 0) {
+    row.meta = { durationMs }
+  }
 
-  let insertError = null
-  if (meta) {
-    const { error } = await admin.from('events').insert({ ...baseRow, meta })
-    insertError = error
-  }
-  if (!meta || insertError) {
-    const { error } = await admin.from('events').insert(baseRow)
-    insertError = error
-  }
+  const { error: insertError } = await admin.from('events').insert(row)
 
   if (insertError) {
     // Non-fatal: tracking must never surface as a user-facing error.

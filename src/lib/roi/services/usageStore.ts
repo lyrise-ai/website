@@ -25,22 +25,22 @@ export async function persistUsage(
     return
   }
   try {
-    // created_at defaults to now() in the DB; the table has no `ts` column.
-    const { error } = await supabaseAdmin.from('roi_usage').upsert(
-      {
-        report_id: ids.reportId,
-        user_id: ids.userId ?? null,
-        company: summary.company,
-        mode: summary.mode,
-        duration_ms: summary.durationMs,
-        input_tokens: summary.totals.inputTokens,
-        output_tokens: summary.totals.outputTokens,
-        total_tokens: summary.totals.totalTokens,
-        cost_usd: summary.totals.costUsd,
-        calls: summary.calls,
-      },
-      { onConflict: 'report_id' },
-    )
+    // Additive upsert: a report's cost accrues across the initial generation
+    // AND every chat turn. The upsert_roi_usage RPC sums cost/tokens/duration
+    // and concatenates calls on conflict, so a cheap chat turn never overwrites
+    // the expensive generation row. created_at defaults to now() in the DB.
+    const { error } = await supabaseAdmin.rpc('upsert_roi_usage', {
+      p_report_id: ids.reportId,
+      p_user_id: ids.userId ?? null,
+      p_company: summary.company,
+      p_mode: summary.mode,
+      p_duration_ms: summary.durationMs,
+      p_input_tokens: summary.totals.inputTokens,
+      p_output_tokens: summary.totals.outputTokens,
+      p_total_tokens: summary.totals.totalTokens,
+      p_cost_usd: summary.totals.costUsd,
+      p_calls: summary.calls,
+    })
     if (error) {
       console.warn('[roi-usage] Supabase insert failed:', error.message)
     }

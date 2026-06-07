@@ -185,13 +185,15 @@ export default function ReportViewer({
     // pagehide is the most reliable unload signal across browsers (incl. mobile
     // bfcache); visibilitychange→hidden catches tab switches/closes too.
     const onHide = () => endSession()
-    window.addEventListener('pagehide', onHide)
-    document.addEventListener('visibilitychange', () => {
+    const onVisibility = () => {
       if (document.visibilityState === 'hidden') endSession()
-    })
+    }
+    window.addEventListener('pagehide', onHide)
+    document.addEventListener('visibilitychange', onVisibility)
 
     return () => {
       window.removeEventListener('pagehide', onHide)
+      document.removeEventListener('visibilitychange', onVisibility)
       endSession()
     }
   }, [isShareLink, shareToken, reportId])
