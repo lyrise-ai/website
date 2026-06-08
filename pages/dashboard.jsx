@@ -114,7 +114,7 @@ export async function getServerSideProps({ req, res }) {
   } = await supabase.auth.getUser()
 
   if (!user) {
-    return { redirect: { destination: '/login', permanent: false } }
+    return { redirect: { destination: '/auth/login', permanent: false } }
   }
 
   const { role, error: roleError } = await getRoleForUser(user.id)
