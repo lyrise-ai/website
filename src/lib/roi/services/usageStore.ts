@@ -51,6 +51,7 @@ export async function persistUsage(
       reportId: ids.reportId,
       company: summary.company,
       mode: summary.mode,
+      incrementCostUsd: summary.totals.costUsd,
     })
   } catch (err) {
     console.warn('[roi-usage] persistUsage threw:', err)

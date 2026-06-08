@@ -48,6 +48,8 @@ async function sendUsageAlertEmail(args: {
   thresholdUsd: number
   windowDays: number
   totalCostUsd: number
+  alertStep: number
+  alertTriggerUsd: number
   reportCount: number
   latestCompany?: string | null
   latestMode?: string | null
@@ -80,13 +82,15 @@ async function sendUsageAlertEmail(args: {
           ROI usage reached <strong>${formatUsd(
             args.totalCostUsd,
           )}</strong> in the last
-          <strong>${
-            args.windowDays
-          } days</strong>, which is above the configured threshold of
-          <strong>${formatUsd(args.thresholdUsd)}</strong>.
+          <strong>${args.windowDays} days</strong>, crossing alert step
+          <strong>${args.alertStep}</strong> at
+          <strong>${formatUsd(args.alertTriggerUsd)}</strong>.
         </p>
         <p style="margin:0 0 16px;color:#374151;font-size:14px">
-          Reports included in this window: <strong>${args.reportCount}</strong>
+          Base alert increment: <strong>${formatUsd(
+            args.thresholdUsd,
+          )}</strong>. Reports included in this window:
+          <strong>${args.reportCount}</strong>
         </p>
         ${latestContext}
         <p style="margin:0 0 18px">
@@ -96,9 +100,9 @@ async function sendUsageAlertEmail(args: {
           </a>
         </p>
         <p style="margin:0;color:#6b7280;font-size:12px">
-          This alert is sent once per ${
-            args.windowDays
-          }-day cooldown window to avoid duplicates.
+          We re-alert only when spend reaches the next ${formatUsd(
+            args.thresholdUsd,
+          )} step in this rolling ${args.windowDays}-day window.
         </p>
       </div>
     </div>
@@ -113,9 +117,9 @@ async function sendUsageAlertEmail(args: {
     body: JSON.stringify({
       from: `LyRise Monitoring <${fromEmail}>`,
       to: args.recipients,
-      subject: `[ROI Usage Alert] ${formatUsd(args.totalCostUsd)} in ${
-        args.windowDays
-      } days`,
+      subject: `[ROI Usage Alert] Crossed ${formatUsd(
+        args.alertTriggerUsd,
+      )} in ${args.windowDays} days`,
       html,
     }),
     signal: AbortSignal.timeout(15_000),
@@ -140,6 +144,7 @@ export async function maybeSendUsageCostAlert(args: {
   reportId: string
   company?: string | null
   mode?: string | null
+  incrementCostUsd?: number
 }): Promise<void> {
   const allowInDev = process.env.ROI_USAGE_ALERTS_IN_DEV === 'true'
   if (process.env.NODE_ENV === 'development' && !allowInDev) return
@@ -182,13 +187,18 @@ export async function maybeSendUsageCostAlert(args: {
       0,
     )
     if (totalCostUsd < thresholdUsd) return
+    const incrementCostUsd = Math.max(Number(args.incrementCostUsd || 0), 0)
+    const previousWindowCostUsd = Math.max(totalCostUsd - incrementCostUsd, 0)
+    const baselineStep = Math.floor(previousWindowCostUsd / thresholdUsd)
+    const alertStep = Math.floor(totalCostUsd / thresholdUsd)
+    if (alertStep < 1) return
 
-    const cooldownSeconds = Math.round(windowDays * 24 * 60 * 60)
     const { data: claimed, error: claimError } = await supabaseAdmin.rpc(
       'claim_roi_usage_cost_alert',
       {
         p_alert_type: ALERT_TYPE,
-        p_cooldown_seconds: cooldownSeconds,
+        p_baseline_step: baselineStep,
+        p_target_step: alertStep,
         p_lease_seconds: LEASE_SECONDS,
       },
     )
@@ -207,6 +217,8 @@ export async function maybeSendUsageCostAlert(args: {
         thresholdUsd,
         windowDays,
         totalCostUsd,
+        alertStep,
+        alertTriggerUsd: alertStep * thresholdUsd,
         reportCount: safeRows.length,
         latestCompany: args.company ?? latestRow?.company ?? null,
         latestMode: args.mode ?? latestRow?.mode ?? null,
@@ -217,6 +229,7 @@ export async function maybeSendUsageCostAlert(args: {
         {
           p_alert_type: ALERT_TYPE,
           p_total_cost_usd: totalCostUsd,
+          p_sent_step: alertStep,
         },
       )
       if (markError) {
@@ -230,6 +243,8 @@ export async function maybeSendUsageCostAlert(args: {
         meta: {
           thresholdUsd,
           windowDays,
+          alertStep,
+          alertTriggerUsd: alertStep * thresholdUsd,
           totalCostUsd,
           recipients,
         },
