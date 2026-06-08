@@ -129,6 +129,37 @@ const ALPHA_TERMS = [
   { term: 'Hypothesis-Driven Projection', def: 'Estimated from benchmarks, not your internal data. Needs validation.' },
 ]
 
+/**
+ * Extracts the top 20 meaningful keywords from an array of chat message objects.
+ * Used to snapshot what a tester asked the AI about, stored in alpha_feedback
+ * so the dashboard can aggregate across all testers without querying chat_messages.
+ */
+function extractKeywords(messages) {
+  const stopWords = new Set([
+    'the','a','an','and','or','but','in','on','at','to','for',
+    'of','with','is','it','this','that','was','are','be','as',
+    'by','from','have','has','i','my','we','our','you','your',
+    'they','their','not','no','so','if','its','will','can','do',
+    'all','more','about','would','there','what','which','when',
+    'how','who','been','were','had','did','get','got','just',
+    'also','very','really','good','great','please','could',
+    'make','change','update','edit','rewrite','adjust','add',
+    'remove','show','help','want','need','report',
+  ])
+  const freq = {}
+  messages
+    .map((m) => String(m.content || '').toLowerCase())
+    .join(' ')
+    .replace(/[^a-z\s]/g, '')
+    .split(/\s+/)
+    .filter((w) => w.length >= 3 && !stopWords.has(w))
+    .forEach((w) => { freq[w] = (freq[w] || 0) + 1 })
+  return Object.entries(freq)
+    .sort(([, a], [, b]) => b - a)
+    .slice(0, 20)
+    .map(([word]) => word)
+}
+
 export default function ReportPage({
   initialState,
   email,
@@ -227,8 +258,10 @@ export default function ReportPage({
     setTourExitSubmitting(true)
     try {
       const token = localStorage.getItem('alpha_token')
+      const supabase = createBrowserClient()
+
       if (token) {
-        await createBrowserClient()
+        await supabase
           .from('alpha_feedback')
           .upsert(
             {
@@ -239,6 +272,32 @@ export default function ReportPage({
             },
             { onConflict: 'alpha_token' },
           )
+      }
+
+      // Extract keywords from this report's chat messages and save them to
+      // alpha_feedback matched on report_id (more reliable than alpha_token,
+      // which can be missing from localStorage in some sessions).
+      console.log('reportId:', reportId)
+      const { data: messages } = await supabase
+        .from('chat_messages')
+        .select('content')
+        .eq('report_id', reportId)
+        .eq('role', 'user')
+        .limit(100)
+
+      console.log('messages found:', messages?.length)
+      const keywords = extractKeywords(messages || [])
+      console.log('keywords extracted:', keywords)
+
+      if (keywords.length > 0) {
+        console.log('updating alpha_feedback for report:', reportId)
+        await supabase
+          .from('alpha_feedback')
+          .update({
+            chat_keywords: keywords,
+            step_report_completed: true,
+          })
+          .eq('report_id', reportId)
       }
     } catch { /* non-critical */ } finally {
       setTourExitSubmitting(false)
