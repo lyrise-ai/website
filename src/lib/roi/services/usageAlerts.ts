@@ -1,17 +1,6 @@
 /* eslint-disable no-console */
 import { supabaseAdmin } from '@/src/lib/supabaseAdmin'
 
-const DEFAULT_ALERT_RECIPIENTS = [
-  'mayar@lyrise.ai',
-  'amira@lyrise.ai',
-  'mbanoub@lyrise.ai',
-  'elena@lyrise.ai',
-  'adel@lyrise.ai',
-  'yousef@lyrise.ai',
-  'omar@lyrise.ai',
-  'y.ashraf@lyrise.ai',
-]
-
 const ALERT_TYPE = 'roi_usage_cost_threshold'
 const LEASE_SECONDS = 5 * 60
 
@@ -149,10 +138,10 @@ export async function maybeSendUsageCostAlert(args: {
   const allowInDev = process.env.ROI_USAGE_ALERTS_IN_DEV === 'true'
   if (process.env.NODE_ENV === 'development' && !allowInDev) return
 
+  // Recipients are env-driven so we don't bake the team's addresses into the
+  // repo. Prod must set ROI_USAGE_ALERT_EMAILS or alerts stay silent.
   const recipients = parseEmailList(
-    process.env.ROI_USAGE_ALERT_EMAILS ??
-      process.env.DEV_ALERT_EMAILS ??
-      DEFAULT_ALERT_RECIPIENTS.join(','),
+    process.env.ROI_USAGE_ALERT_EMAILS ?? process.env.DEV_ALERT_EMAILS,
   )
   if (!recipients.length) return
   if (!process.env.RESEND_API_KEY) return
@@ -191,7 +180,6 @@ export async function maybeSendUsageCostAlert(args: {
     const previousWindowCostUsd = Math.max(totalCostUsd - incrementCostUsd, 0)
     const baselineStep = Math.floor(previousWindowCostUsd / thresholdUsd)
     const alertStep = Math.floor(totalCostUsd / thresholdUsd)
-    if (alertStep < 1) return
 
     const { data: claimed, error: claimError } = await supabaseAdmin.rpc(
       'claim_roi_usage_cost_alert',
