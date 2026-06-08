@@ -17,6 +17,9 @@
 import { useState, useEffect, useCallback, useMemo } from 'react'
 import Head from 'next/head'
 import { createClient } from '../src/lib/supabase-browser'
+import { createClient as createServerClient } from '../src/lib/supabase-server'
+import { getRoleForUser } from '../src/lib/authHelpers'
+import MainHeader from '../src/layout/MainHeader/index'
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -369,6 +372,26 @@ function PlaybookModal({ onClose }) {
   )
 }
 
+// ── Access control ────────────────────────────────────────────────────────────
+
+export async function getServerSideProps({ req, res }) {
+  const supabase = createServerClient(req, res)
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+
+  if (!user) {
+    return { redirect: { destination: '/auth/login', permanent: false } }
+  }
+
+  const { role, error: roleError } = await getRoleForUser(user.id)
+  if (roleError || role !== 'EMPLOYEE') {
+    return { redirect: { destination: '/auth/login', permanent: false } }
+  }
+
+  return { props: {} }
+}
+
 // ── Main page ─────────────────────────────────────────────────────────────────
 
 export default function AlphaDashboard() {
@@ -577,6 +600,8 @@ export default function AlphaDashboard() {
         <title>Alpha Dashboard | LyRise Internal</title>
         <meta name="robots" content="noindex,nofollow" />
       </Head>
+
+      <MainHeader />
 
       {/* ── Header ── */}
       <div className="bg-white border-b border-slate-200 px-8 py-5 flex items-center justify-between">
