@@ -340,13 +340,15 @@ export default async function handler(req, res) {
   try {
     const execTemplateHtml = loadTemplate('roi-exec-template.html')
     const fullTemplateHtml = loadTemplate('roi-template.html')
+    const useDevMock =
+      IS_DEV && mode === 'generate' && devOptions?.skipLLM === true
 
     let state
     if (mode === 'generate') {
       const payload = mapFormToPayload(formData ?? req.body)
       const normInput = normalizeInput(payload)
 
-      if (IS_DEV && devOptions?.skipLLM === true) {
+      if (useDevMock) {
         state = buildDevMockReportState({
           normInput,
           execTemplateHtml,
@@ -355,34 +357,29 @@ export default async function handler(req, res) {
         send(res, {
           type: 'text_delta',
           delta:
-            'Using dev mock report. Skipping research, LLM calls, PDF, and email.',
+            'Using dev mock report. Skipping research and LLM calls, but still saving the report.',
         })
         send(res, { type: 'report_update', state })
-        send(res, {
-          type: 'done',
-          assembled: true,
-          messages: [{ role: 'assistant', content: 'Dev mock report ready.' }],
-        })
-        res.end()
-        return
       }
 
-      state = {
-        normInput,
-        company: null,
-        globals: null,
-        workflows: null,
-        copy: null,
-        calcOutput: null,
-        assembled: null,
-        renderedHtml: null,
-        renderedFullHtml: null,
-        confidenceLevel: null,
-        coreThesis: null,
-        painPoints: [],
-        researchSummary: null,
-        evidenceItems: [],
-        specificityAssessment: null,
+      if (!useDevMock) {
+        state = {
+          normInput,
+          company: null,
+          globals: null,
+          workflows: null,
+          copy: null,
+          calcOutput: null,
+          assembled: null,
+          renderedHtml: null,
+          renderedFullHtml: null,
+          confidenceLevel: null,
+          coreThesis: null,
+          painPoints: [],
+          researchSummary: null,
+          evidenceItems: [],
+          specificityAssessment: null,
+        }
       }
     } else {
       state = buildStateFromReportRow(persistedReport)
@@ -391,43 +388,54 @@ export default async function handler(req, res) {
     let capturedMessages = []
     let capturedUsage = null
 
-    await runReportAgent({
-      mode,
-      state,
-      message,
-      chatHistory: mode === 'chat' ? persistedChatHistory : chatHistory,
-      templateHtml: execTemplateHtml,
-      fullTemplateHtml,
-      estimatesOnly: Boolean(devOptions?.estimatesOnly),
-      abortSignal: abortController.signal,
-      callbacks: {
-        onTextDelta: (delta) => send(res, { type: 'text_delta', delta }),
-        onToolStart: (tool, args) =>
-          send(res, { type: 'tool_start', tool, args }),
-        onPipelineLog: (message) =>
-          send(res, { type: 'pipeline_log', message }),
-        onReportUpdate: (s, changedSections) => {
-          const { renderedHtml, renderedFullHtml, ...rest } = s
-          send(res, {
-            type: 'report_update',
-            state: { ...rest, renderedHtml, renderedFullHtml },
-            changedSections,
-          })
+    if (useDevMock) {
+      capturedMessages = [
+        { role: 'assistant', content: 'Dev mock report ready.' },
+      ]
+      send(res, {
+        type: 'done',
+        assembled: true,
+        messages: capturedMessages,
+      })
+    } else {
+      await runReportAgent({
+        mode,
+        state,
+        message,
+        chatHistory: mode === 'chat' ? persistedChatHistory : chatHistory,
+        templateHtml: execTemplateHtml,
+        fullTemplateHtml,
+        estimatesOnly: Boolean(devOptions?.estimatesOnly),
+        abortSignal: abortController.signal,
+        callbacks: {
+          onTextDelta: (delta) => send(res, { type: 'text_delta', delta }),
+          onToolStart: (tool, args) =>
+            send(res, { type: 'tool_start', tool, args }),
+          onPipelineLog: (message) =>
+            send(res, { type: 'pipeline_log', message }),
+          onReportUpdate: (s, changedSections) => {
+            const { renderedHtml, renderedFullHtml, ...rest } = s
+            send(res, {
+              type: 'report_update',
+              state: { ...rest, renderedHtml, renderedFullHtml },
+              changedSections,
+            })
+          },
+          onDone: (messages) => {
+            capturedMessages = messages ?? []
+            send(res, {
+              type: 'done',
+              assembled: Boolean(state?.assembled),
+              messages,
+            })
+          },
+          onUsage: (summary) => {
+            capturedUsage = summary
+          },
+          onError: (err) => send(res, { type: 'error', message: err.message }),
         },
-        onDone: (messages) => {
-          capturedMessages = messages ?? []
-          send(res, {
-            type: 'done',
-            assembled: Boolean(state?.assembled),
-            messages,
-          })
-        },
-        onUsage: (summary) => {
-          capturedUsage = summary
-        },
-        onError: (err) => send(res, { type: 'error', message: err.message }),
-      },
-    })
+      })
+    }
 
     if (mode === 'chat' && reportId) {
       const userRole = chatUserRole

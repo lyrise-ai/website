@@ -12,6 +12,7 @@
 
 import { supabaseAdmin } from '@/src/lib/supabaseAdmin'
 
+import { maybeSendUsageCostAlert } from './usageAlerts'
 import type { UsageSummary } from './usageTracker'
 
 export async function persistUsage(
@@ -43,7 +44,15 @@ export async function persistUsage(
     })
     if (error) {
       console.warn('[roi-usage] Supabase insert failed:', error.message)
+      return
     }
+
+    await maybeSendUsageCostAlert({
+      reportId: ids.reportId,
+      company: summary.company,
+      mode: summary.mode,
+      incrementCostUsd: summary.totals.costUsd,
+    })
   } catch (err) {
     console.warn('[roi-usage] persistUsage threw:', err)
   }
