@@ -3,6 +3,7 @@ import { createClient, createAdminClient } from '../../src/lib/supabase-server'
 import ReportViewerWithBatch from '../../src/components/ROIGenerator/BulkUpload/ReportViewerWithBatch'
 import { buildStateFromReportRow } from '@/src/lib/roi/reportState'
 import { motion } from 'framer-motion'
+import ErrorBoundary from '../../src/components/shared/ErrorBoundary'
 
 export async function getServerSideProps({ req, res, params, query }) {
   const supabase = createClient(req, res)
@@ -127,7 +128,10 @@ export default function ReportPage({
   shareToken,
 }) {
   return (
-    <>
+    <ErrorBoundary
+      isEmployee={isEmployee}
+      pageContext={{ page: 'report', reportId }}
+    >
       <Head>
         <title>ROI Report | LyRise</title>
       </Head>
@@ -149,6 +153,6 @@ export default function ReportPage({
           backHref={isShareLink ? null : '/dashboard'}
         />
       </motion.div>
-    </>
+    </ErrorBoundary>
   )
 }

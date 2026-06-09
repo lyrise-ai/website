@@ -1,6 +1,7 @@
 import React, { useState, useRef, useCallback, useEffect } from 'react'
 import Link from 'next/link'
 import { drainSSE } from '@/src/lib/drainSSE'
+import { trackShareEvent } from '@/src/lib/trackShareEvent'
 
 const SUGGEST_RE = /\[SUGGEST:\s*([^\]]+)\]$/
 function parseSuggestions(content) {
@@ -157,6 +158,45 @@ export default function ReportViewer({
   const downloadRef = useRef(null)
   const resendEmailRef = useRef(null)
   const chatPanelRef = useRef(null)
+
+  // Share-link recipient tracking: when a prospect opens "Edit with chat" from
+  // the email, record the open and how long they spend on the page (the chat
+  // panel session). Only runs for share-link visitors; employees/owners are
+  // not tracked. session-end uses sendBeacon (in trackShareEvent) so it fires
+  // even as the tab closes.
+  useEffect(() => {
+    if (!isShareLink || !shareToken || !reportId) return undefined
+
+    const startedAt = Date.now()
+    trackShareEvent({ reportId, shareToken, type: 'chat_link_opened' })
+
+    let sent = false
+    const endSession = () => {
+      if (sent) return
+      sent = true
+      trackShareEvent({
+        reportId,
+        shareToken,
+        type: 'chat_session_end',
+        durationMs: Date.now() - startedAt,
+      })
+    }
+
+    // pagehide is the most reliable unload signal across browsers (incl. mobile
+    // bfcache); visibilitychange→hidden catches tab switches/closes too.
+    const onHide = () => endSession()
+    const onVisibility = () => {
+      if (document.visibilityState === 'hidden') endSession()
+    }
+    window.addEventListener('pagehide', onHide)
+    document.addEventListener('visibilitychange', onVisibility)
+
+    return () => {
+      window.removeEventListener('pagehide', onHide)
+      document.removeEventListener('visibilitychange', onVisibility)
+      endSession()
+    }
+  }, [isShareLink, shareToken, reportId])
 
   const TOUR_STEPS = [
     {
@@ -471,13 +511,21 @@ export default function ReportViewer({
       document.body.removeChild(a)
       URL.revokeObjectURL(url)
 
+      if (isShareLink && shareToken) {
+        trackShareEvent({
+          reportId,
+          shareToken,
+          type: 'pdf_downloaded_share',
+        })
+      }
+
       setDownloadStatus('idle')
     } catch (err) {
       console.error('[ReportViewer] PDF download failed:', err)
       setDownloadStatus('error')
       setTimeout(() => setDownloadStatus('idle'), 3000)
     }
-  }, [downloadStatus, reportId, activeTab])
+  }, [downloadStatus, reportId, activeTab, isShareLink, shareToken])
 
   const handleResendEmail = useCallback(async () => {
     if (!reportId || emailStatus === 'sending') return

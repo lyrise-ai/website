@@ -10,6 +10,7 @@ import {
 import { createClient as createBrowserClient } from '../src/lib/supabase-browser'
 import MainHeader from '../src/layout/MainHeader/index'
 import { getRoleForUser } from '../src/lib/authHelpers'
+import ErrorBoundary from '../src/components/shared/ErrorBoundary'
 
 const STATUS_STYLES = {
   SUCCESS: { bg: 'bg-green-50', text: 'text-green-700', label: 'Done' },
@@ -143,6 +144,13 @@ export async function getServerSideProps({ req, res }) {
     (r) => r.created_at >= oneWeekAgoIso,
   ).length
 
+  const todayStartIso = new Date(
+    new Date().setUTCHours(0, 0, 0, 0),
+  ).toISOString()
+  const reportsToday = (reports ?? []).filter(
+    (r) => r.created_at >= todayStartIso,
+  ).length
+
   if (!isEmployee) {
     return {
       props: {
@@ -153,6 +161,7 @@ export async function getServerSideProps({ req, res }) {
         isEmployee,
         reports: withRequester(reports, () => user.email),
         reportsThisWeek,
+        reportsToday,
         users: [],
         recentEvents: [],
       },
@@ -206,18 +215,20 @@ export async function getServerSideProps({ req, res }) {
       userId: user.id,
       reports: withRequester(reports, (r) => userEmailById[r.user_id]),
       reportsThisWeek,
+      reportsToday,
       users: usersWithStats,
       recentEvents,
     },
   }
 }
 
-export default function Dashboard({
+function DashboardInner({
   user,
   reports: initialReports,
   isEmployee,
   userId,
   reportsThisWeek,
+  reportsToday,
   users,
   recentEvents,
 }) {
@@ -276,6 +287,14 @@ export default function Dashboard({
           <div className="flex items-center gap-3">
             {isEmployee && (
               <Link
+                href="/dashboard/usage"
+                className="font-outfit text-sm font-semibold text-[#2C2C2C] hover:bg-gray-50 transition-colors border border-gray-300 rounded-full px-5 py-2.5"
+              >
+                Usage
+              </Link>
+            )}
+            {isEmployee && (
+              <Link
                 href="/roi-report/bulk"
                 className="font-outfit text-[#2C2C2C] hover:bg-gray-50 transition-colors border border-gray-300 rounded-full px-5 py-1.5 flex flex-col items-center leading-tight"
               >
@@ -299,10 +318,11 @@ export default function Dashboard({
         {/* Employee: stats + tabs */}
         {isEmployee && (
           <>
-            <div className="grid grid-cols-3 gap-4 mb-6">
+            <div className="grid grid-cols-4 gap-4 mb-6">
               <StatCard label="Total Users" value={users.length} />
               <StatCard label="Total Reports" value={reports.length} />
               <StatCard label="Reports This Week" value={reportsThisWeek} />
+              <StatCard label="Reports Today" value={reportsToday} />
             </div>
 
             <div className="flex gap-1 p-1 mb-6 bg-gray-100 rounded-xl w-fit">
@@ -568,5 +588,14 @@ export default function Dashboard({
         )}
       </div>
     </div>
+  )
+}
+
+export default function Dashboard(props) {
+  const { isEmployee } = props
+  return (
+    <ErrorBoundary isEmployee={isEmployee} pageContext={{ page: 'dashboard' }}>
+      <DashboardInner {...props} />
+    </ErrorBoundary>
   )
 }
