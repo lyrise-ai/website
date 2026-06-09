@@ -228,10 +228,15 @@ export default function AlphaSurvey() {
       // Read alpha_token from localStorage — generated in alpha-tour.jsx
       const alphaToken = localStorage.getItem('alpha_token') || null
 
+      // Read chat keywords saved to localStorage when the user finished the report
+      const chatKeywords = localStorage.getItem('alpha_chat_keywords')
+      const parsedKeywords = chatKeywords ? JSON.parse(chatKeywords) : null
+
       const payload = {
         ...(alphaToken ? { alpha_token: alphaToken } : {}),
         report_id: reportId || null,
         user_email: emailParam || null,
+        chat_keywords: parsedKeywords,
         // PMF core fields
         pmf_disappointed: finalAnswers['pmf_disappointed'] || null,
         pmf_who_benefits: finalAnswers['pmf_who_benefits'] || null,

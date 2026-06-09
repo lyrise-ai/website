@@ -116,8 +116,7 @@ const REVENUE_OPTS = [
 ]
 
 const TOTAL_STEPS = 2
-// Always false — form is never prefilled regardless of environment
-const IS_DEV = false
+const IS_DEV = process.env.NODE_ENV === 'development'
 const MIN_VISIBLE_DURATION =
   Number(process.env.NEXT_PUBLIC_ROI_MIN_LOADER_MS) || 3500
 
@@ -832,6 +831,7 @@ export default function AlphaTour() {
         setStep((prev) => prev + 1)
         return
       }
+      localStorage.setItem('alpha_email', s2.email.trim())
       await runGeneration({ skipLLM })
     },
     [step, s1, s2, runGeneration],

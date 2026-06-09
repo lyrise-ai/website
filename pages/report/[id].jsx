@@ -289,20 +289,16 @@ export default function ReportPage({
       const keywords = extractKeywords(messages || [])
       console.log('keywords extracted:', keywords)
 
+      // Save keywords to localStorage — they will be written to Supabase
+      // when the tester submits the survey in alpha-survey.jsx
       if (keywords.length > 0) {
-        console.log('updating alpha_feedback for report:', reportId)
-        await supabase
-          .from('alpha_feedback')
-          .update({
-            chat_keywords: keywords,
-            step_report_completed: true,
-          })
-          .eq('report_id', reportId)
+        localStorage.setItem('alpha_chat_keywords', JSON.stringify(keywords))
       }
     } catch { /* non-critical */ } finally {
       setTourExitSubmitting(false)
     }
-    push(`/alpha-survey?reportId=${reportId}`)
+    const alphaEmail = localStorage.getItem('alpha_email') || ''
+    push(`/alpha-survey?reportId=${reportId}&email=${encodeURIComponent(alphaEmail)}`)
   }
 
   // Inject a short usage hint just above the chat textarea when alpha is active.
