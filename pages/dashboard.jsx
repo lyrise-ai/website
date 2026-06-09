@@ -144,7 +144,9 @@ export async function getServerSideProps({ req, res }) {
     (r) => r.created_at >= oneWeekAgoIso,
   ).length
 
-  const todayStartIso = new Date(new Date().setUTCHours(0, 0, 0, 0)).toISOString()
+  const todayStartIso = new Date(
+    new Date().setUTCHours(0, 0, 0, 0),
+  ).toISOString()
   const reportsToday = (reports ?? []).filter(
     (r) => r.created_at >= todayStartIso,
   ).length
@@ -283,6 +285,14 @@ function DashboardInner({
             </p>
           </div>
           <div className="flex items-center gap-3">
+            {isEmployee && (
+              <Link
+                href="/dashboard/usage"
+                className="font-outfit text-sm font-semibold text-[#2C2C2C] hover:bg-gray-50 transition-colors border border-gray-300 rounded-full px-5 py-2.5"
+              >
+                Usage
+              </Link>
+            )}
             {isEmployee && (
               <Link
                 href="/roi-report/bulk"
@@ -582,11 +592,9 @@ function DashboardInner({
 }
 
 export default function Dashboard(props) {
+  const { isEmployee } = props
   return (
-    <ErrorBoundary
-      isEmployee={props.isEmployee}
-      pageContext={{ page: 'dashboard' }}
-    >
+    <ErrorBoundary isEmployee={isEmployee} pageContext={{ page: 'dashboard' }}>
       <DashboardInner {...props} />
     </ErrorBoundary>
   )
