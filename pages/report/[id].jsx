@@ -129,35 +129,27 @@ const ALPHA_TERMS = [
   { term: 'Hypothesis-Driven Projection', def: 'Estimated from benchmarks, not your internal data. Needs validation.' },
 ]
 
-/**
- * Extracts the top 20 meaningful keywords from an array of chat message objects.
- * Used to snapshot what a tester asked the AI about, stored in alpha_feedback
- * so the dashboard can aggregate across all testers without querying chat_messages.
- */
-function extractKeywords(messages) {
-  const stopWords = new Set([
-    'the','a','an','and','or','but','in','on','at','to','for',
-    'of','with','is','it','this','that','was','are','be','as',
-    'by','from','have','has','i','my','we','our','you','your',
-    'they','their','not','no','so','if','its','will','can','do',
-    'all','more','about','would','there','what','which','when',
-    'how','who','been','were','had','did','get','got','just',
-    'also','very','really','good','great','please','could',
-    'make','change','update','edit','rewrite','adjust','add',
-    'remove','show','help','want','need','report',
-  ])
-  const freq = {}
-  messages
-    .map((m) => String(m.content || '').toLowerCase())
-    .join(' ')
-    .replace(/[^a-z\s]/g, '')
-    .split(/\s+/)
-    .filter((w) => w.length >= 3 && !stopWords.has(w))
-    .forEach((w) => { freq[w] = (freq[w] || 0) + 1 })
-  return Object.entries(freq)
-    .sort(([, a], [, b]) => b - a)
-    .slice(0, 20)
-    .map(([word]) => word)
+function categorizeChatMessages(messages) {
+  if (!messages || messages.length === 0) return []
+  return messages
+    .map(m => {
+      const content = String(m.content || '').trim()
+      if (!content || content.length < 3) return null
+      const lower = content.toLowerCase()
+      let category = 'other'
+      if (lower.match(/what|why|how|explain|mean|means|understand|confused|unclear/)) {
+        category = 'confusion'
+      } else if (lower.match(/change|update|modify|adjust|switch|convert|make it|set/)) {
+        category = 'modification'
+      } else if (lower.match(/add|include|insert|append|more detail|expand/)) {
+        category = 'content_request'
+      } else if (lower.match(/calculate|where|source|basis|assumption|number|figure/)) {
+        category = 'clarification'
+      }
+      return { content, category }
+    })
+    .filter(Boolean)
+    .slice(0, 50)
 }
 
 export default function ReportPage({
@@ -286,14 +278,8 @@ export default function ReportPage({
         .limit(100)
 
       console.log('messages found:', messages?.length)
-      const keywords = extractKeywords(messages || [])
-      console.log('keywords extracted:', keywords)
-
-      // Save keywords to localStorage — they will be written to Supabase
-      // when the tester submits the survey in alpha-survey.jsx
-      if (keywords.length > 0) {
-        localStorage.setItem('alpha_chat_keywords', JSON.stringify(keywords))
-      }
+      localStorage.setItem('alpha_chat_keywords',
+        JSON.stringify(categorizeChatMessages(messages || [])))
     } catch { /* non-critical */ } finally {
       setTourExitSubmitting(false)
     }

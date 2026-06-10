@@ -1,17 +1,3 @@
-/**
- * Alpha Tour Page
- *
- * Flow:
- *   1. ROI intake form (Steps 1 & 2) with tooltip hints on every field
- *   2. Step 2 has an inline star rating for form clarity (saved to localStorage)
- *   3. GENERATING/FINALISING: loading screen + real-time generation speed card
- *   4. COMPLETE: redirect to /report/[id]?alpha=true — the report page shows
- *      a "Finish the tour →" button linking to /alpha-survey for the full PMF survey
- *
- * Interim feedback (intake rating, generation speed) is saved to localStorage
- * so alpha-survey.jsx can read and include it in the final Supabase insert.
- */
-
 import React, { useState, useCallback, useRef, useEffect } from 'react'
 import Head from 'next/head'
 import { motion, AnimatePresence } from 'framer-motion'
@@ -129,15 +115,12 @@ const VIEW_STATES = {
   ERROR: 'error',
 }
 
-// Tools whose pipeline_log messages replace a generic tool_start line
+// Tools that emit pipeline_log instead of tool_start
 const PIPELINE_LOG_TOOLS = new Set(PIPELINE_LOG_TOOL_NAMES)
 
 // ── Tooltip component ─────────────────────────────────────────────────────────
 
-/**
- * Inline ? badge that shows a tooltip on hover/focus.
- * Drops down and aligns to the right edge so it never overflows the card.
- */
+// Inline ? badge with hover tooltip
 function Tooltip({ text, openLeft = false }) {
   const [visible, setVisible] = useState(false)
   return (
@@ -269,10 +252,7 @@ function validateStep(step, s1, s2) {
 
 // ── Step 1: Company basics ────────────────────────────────────────────────────
 
-/**
- * Collects company-level inputs. Each field has a tooltip explaining why we ask
- * for it — useful for alpha testers evaluating the form UX itself.
- */
+// Step 1: company basics form
 function Step1({ data, onChange, errors }) {
   return (
     <div className="space-y-5">
@@ -362,10 +342,7 @@ function Step1({ data, onChange, errors }) {
 
       <div className="space-y-2">
         <label className="text-[12.5px] font-semibold text-gray-800 flex items-center">
-          Estimated annual revenue{' '}
-          <span className="font-normal text-gray-400 ml-1">
-            — sets the 5–20% Total Financial Gain band
-          </span>
+          Estimated annual revenue
           <Tooltip text="Used to estimate scale only — not shared externally. Pick the closest band." openLeft />
         </label>
         <PillGroup
@@ -380,10 +357,7 @@ function Step1({ data, onChange, errors }) {
 
 // ── Step 2: Delivery details ───────────────────────────────────────────────────
 
-/**
- * Collects email and currency for report delivery.
- * Tooltips explain the purpose of each field to reduce hesitation.
- */
+// Step 2: email and currency form
 function Step2({ data, onChange, errors, intakeRating, onIntakeRatingChange }) {
   const [intakeHovered, setIntakeHovered] = useState(0)
   return (
@@ -444,7 +418,7 @@ function Step2({ data, onChange, errors, intakeRating, onIntakeRatingChange }) {
         />
       </div>
 
-      {/* Optional inline intake clarity rating — fires on star click, no separate submit */}
+      {/* Intake clarity rating */}
       <div className="pt-4 border-t border-gray-100">
         <p className="text-xs text-gray-400 mb-2">
           Optional — How clear was this form?
@@ -566,12 +540,11 @@ function sseEventToLogLine(event) {
 
 // ── Page ──────────────────────────────────────────────────────────────────────
 
-// Publicly accessible — no auth required for the alpha tour.
+// No auth required for alpha tour
 export default function AlphaTour() {
   const router = useRouter()
 
-  // ── Splash screen — shown until 2.8s then fades out over 0.5s ──
-  // splashExiting triggers the exit animation; onExitComplete sets showSplash=false.
+  // Splash screen
   const [showSplash, setShowSplash] = useState(true)
   const [splashExiting, setSplashExiting] = useState(false)
   useEffect(() => {
@@ -579,8 +552,7 @@ export default function AlphaTour() {
     return () => clearTimeout(t)
   }, [])
 
-  // ── Alpha token — generated once per tester, persisted to localStorage ──
-  // Preserved on refresh (same session), cleared after survey completion.
+  // Alpha token for session tracking
   useEffect(() => {
     const existing = localStorage.getItem('alpha_token')
     if (!existing) {
@@ -630,10 +602,10 @@ export default function AlphaTour() {
   const [isGenerationComplete, setIsGenerationComplete] = useState(false)
   const generationStartedAt = useRef(Date.now())
 
-  // Intake form clarity rating — set by Step2's inline stars, saved to localStorage on click
+  // Intake clarity rating from Step 2 stars
   const [intakeRating, setIntakeRating] = useState(0)
 
-  // ── Core generation — calls the same /api/roi-agent endpoint as roi-report.jsx ──
+  // Core generation via /api/roi-agent
 
   const runGeneration = useCallback(
     async ({ skipLLM = false, estimatesOnly = false } = {}) => {
@@ -645,7 +617,6 @@ export default function AlphaTour() {
       setReportState(null)
       setErrorMessage('')
 
-      // Track that the tester completed the intake form
       try {
         const token = localStorage.getItem('alpha_token')
         if (token) {
@@ -689,7 +660,7 @@ export default function AlphaTour() {
           return
         }
 
-        // 409 = a report already exists for this session; redirect to it
+        // 409 = duplicate session, redirect to existing report
         if (response.status === 409) {
           const data = await response.json()
           if (data.report_id) {
@@ -717,7 +688,7 @@ export default function AlphaTour() {
           return
         }
 
-        // Stream the SSE response; update the loading screen log in real time
+        // Stream SSE response
         let latestState = null
         await drainSSE(
           response.body.getReader(),
@@ -786,9 +757,7 @@ export default function AlphaTour() {
     }
   }, [viewState, reportState])
 
-  // ── COMPLETE → redirect to report with ?alpha=true ─────────────────────────
-  // The report page reads this flag and shows "Finish the tour →" button
-  // which links to /alpha-survey for the full PMF survey.
+  // COMPLETE → redirect to report with ?alpha=true
   useEffect(() => {
     if (viewState !== VIEW_STATES.COMPLETE) return () => {}
 
@@ -803,7 +772,6 @@ export default function AlphaTour() {
       return () => clearTimeout(fallback)
     }
 
-    // Track that the report was successfully generated
     try {
       const token = localStorage.getItem('alpha_token')
       if (token) {
@@ -843,9 +811,6 @@ export default function AlphaTour() {
   }, [])
 
   // ── Typewriter lines for splash ───────────────────────────────────────────
-  // Hooks must be called unconditionally (before any early return).
-  // Timing: line1 starts at 1200ms, types 70 chars × 30ms = 2100ms.
-  // Line2 starts at 1200 + 2100 + 800 = 4100ms. Splash exits at 8050ms.
   const { displayed: line1 } = useTypewriter(
     "Welcome to The Alpha Tour! You are among the first to experience this.",
     30,
@@ -858,8 +823,6 @@ export default function AlphaTour() {
   )
 
   // ── Render: splash ────────────────────────────────────────────────────────
-  // The form is not mounted at all while the splash is showing.
-  // onExitComplete fires after the 0.5s fade-out and sets showSplash=false.
 
   if (showSplash) {
     return (
@@ -873,7 +836,7 @@ export default function AlphaTour() {
             className="fixed inset-0 flex flex-col items-center justify-center"
             style={{ background: '#0f1729' }}
           >
-            {/* Skip button — top right corner */}
+            {/* Skip button */}
             <button
               type="button"
               onClick={() => setSplashExiting(true)}
@@ -883,9 +846,8 @@ export default function AlphaTour() {
               Skip →
             </button>
 
-            {/* Step 1 (0s): Full LyRise SVG wordmark with glow */}
+            {/* Logo with glow */}
             <div className="relative flex items-center justify-center mb-6">
-              {/* Pulsing blue glow behind the logo */}
               <motion.div
                 className="absolute blur-3xl rounded-full w-64 h-16 opacity-20"
                 style={{ background: '#378ADD', zIndex: -1 }}
@@ -907,7 +869,7 @@ export default function AlphaTour() {
               </motion.div>
             </div>
 
-            {/* Step 2 (0.8s delay): Thin accent line */}
+            {/* Accent line */}
             <motion.div
               initial={{ width: 0 }}
               animate={{ width: '120px' }}
@@ -915,7 +877,7 @@ export default function AlphaTour() {
               style={{ height: '1px', background: '#378ADD', marginBottom: '1rem' }}
             />
 
-            {/* Step 4 (1.2s delay): Tagline */}
+            {/* Tagline */}
             <motion.p
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -926,7 +888,7 @@ export default function AlphaTour() {
               AI ROI Report · Alpha
             </motion.p>
 
-            {/* Step 5 (1.2s start): Typewriter lines */}
+            {/* Typewriter lines */}
             <div className="text-center space-y-2 min-h-[48px]">
               <p className="text-white/70 text-sm font-light">
                 {line1}
@@ -1012,7 +974,7 @@ export default function AlphaTour() {
 
       <MainHeader />
 
-      {/* Alpha banner — makes it clear this is a test environment */}
+      {/* Alpha banner */}
       <div className="fixed top-0 left-0 right-0 z-50 flex items-center justify-center gap-2 bg-amber-400 py-1 text-xs font-semibold text-amber-900">
         <span>🧪</span>
         <span>Alpha testing — your feedback shapes this product</span>
@@ -1105,7 +1067,7 @@ export default function AlphaTour() {
               </div>
 
               <div className="flex items-center gap-2">
-                {/* IS_DEV is always false in production */}
+                {/* Dev-only fast mock */}
                 {IS_DEV && step === TOTAL_STEPS && (
                   <button
                     type="button"

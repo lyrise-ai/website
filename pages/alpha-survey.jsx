@@ -1,18 +1,3 @@
-/**
- * Alpha Survey Page — /alpha-survey?reportId=[id]
- *
- * Final step of the alpha tour. Accessed via the "Finish the tour →" button
- * that appears on /report/[id] when ?alpha=true is in the URL.
- *
- * Shows one PMF question at a time with smooth slide animations.
- * Branching logic:
- *   Q1 → "Not disappointed"         → Q_ALT (what would change?) → thank you
- *   Q1 → "Very/Somewhat disappointed" → Q2 → Q3 → Q4 → Q5 → thank you
- *
- * On submit, reads interim feedback from localStorage (saved by alpha-tour.jsx)
- * and inserts one combined row into the Supabase `alpha_feedback` table.
- */
-
 import React, { useState, useEffect } from 'react'
 import Head from 'next/head'
 import { motion, AnimatePresence } from 'framer-motion'
@@ -24,7 +9,6 @@ import { createClient } from '../src/lib/supabase-browser'
 
 // ── Question definitions ──────────────────────────────────────────────────────
 
-// Q1 is always the first question shown
 const Q1 = {
   id: 'pmf_disappointed',
   type: 'radio',
@@ -32,7 +16,7 @@ const Q1 = {
   options: ['Very disappointed', 'Somewhat disappointed', 'Not disappointed'],
 }
 
-// Shown instead of Q2-Q5 when the user chooses "Not disappointed"
+// Alt question for non-disappointed users
 const Q_ALT = {
   id: 'not_disappointed_reason',
   type: 'text',
@@ -40,7 +24,6 @@ const Q_ALT = {
   placeholder: 'e.g. If it included competitive benchmarks for my industry…',
 }
 
-// Q2-Q5: follow-up questions for disappointed users
 const FOLLOW_UP_QUESTIONS = [
   {
     id: 'pmf_who_benefits',
@@ -71,10 +54,7 @@ const FOLLOW_UP_QUESTIONS = [
 
 // ── Sub-components ────────────────────────────────────────────────────────────
 
-/**
- * Horizontal progress dots at the top of the card.
- * Filled dots = answered, active dot = wider, empty = upcoming.
- */
+// Horizontal progress dots
 function ProgressDots({ total, current }) {
   return (
     <div className="flex gap-1.5 justify-center mb-6">
@@ -95,10 +75,7 @@ function ProgressDots({ total, current }) {
   )
 }
 
-/**
- * 1–5 amber star picker used for the virality question.
- * Hover previews the selection before clicking.
- */
+// 1–5 star picker with hover preview
 function StarPicker({ value, onChange }) {
   const [hovered, setHovered] = useState(0)
   return (
@@ -129,44 +106,36 @@ function StarPicker({ value, onChange }) {
 
 export default function AlphaSurvey() {
   const router = useRouter()
-  // reportId and optional email come from the URL query params
   const { reportId, email: emailParam } = router.query
 
-  // Which question we're currently showing (0-indexed)
   const [currentQ, setCurrentQ] = useState(0)
-  // All committed answers keyed by question id
   const [answers, setAnswers] = useState({})
-  // Live value for the currently active text question
   const [currentValue, setCurrentValue] = useState('')
-  // Live star selection for the virality question
   const [currentStars, setCurrentStars] = useState(0)
 
   const [submitting, setSubmitting] = useState(false)
   const [submitError, setSubmitError] = useState('')
   const [done, setDone] = useState(false)
 
-  // Interim feedback written to localStorage by alpha-tour.jsx during the tour
   const [intakeRating, setIntakeRating] = useState(null)
   const [generationSpeed, setGenerationSpeed] = useState(null)
 
-  // Read localStorage on mount (client-side only — localStorage isn't on the server)
+  // Read localStorage on mount
   useEffect(() => {
     setIntakeRating(localStorage.getItem('alpha_intake_rating') || null)
     setGenerationSpeed(localStorage.getItem('alpha_generation_speed') || null)
   }, [])
 
-  // ── Compute the active question sequence based on Q1 answer ──────────────
+  // ── Compute question sequence based on Q1 answer ──────────────
 
   const q1Answer = answers['pmf_disappointed']
   const isDisappointed =
     q1Answer === 'Very disappointed' || q1Answer === 'Somewhat disappointed'
 
-  // Questions array: always Q1, then branch based on Q1 answer
   const questions = q1Answer
     ? [Q1, ...(isDisappointed ? FOLLOW_UP_QUESTIONS : [Q_ALT])]
     : [Q1]
 
-  // Total shown in progress dots — computed from Q1 branch
   const totalQuestions = q1Answer
     ? isDisappointed
       ? 1 + FOLLOW_UP_QUESTIONS.length // 5 total
@@ -176,7 +145,6 @@ export default function AlphaSurvey() {
   const activeQuestion = questions[currentQ]
   const isLastQuestion = currentQ === questions.length - 1
 
-  // Reset live input state whenever the active question changes
   useEffect(() => {
     if (!activeQuestion) return
     const existing = answers[activeQuestion.id]
@@ -190,7 +158,7 @@ export default function AlphaSurvey() {
 
   // ── Navigation helpers ────────────────────────────────────────────────────
 
-  /** Commit the current answer to the answers map and return the value. */
+  // Commit current answer and return it
   const commitAnswer = () => {
     if (!activeQuestion) return null
     const value =
@@ -204,14 +172,13 @@ export default function AlphaSurvey() {
     setCurrentQ((prev) => prev + 1)
   }
 
-  /** Move forward without saving the current answer. */
   const handleSkip = () => {
     setCurrentQ((prev) => prev + 1)
     setCurrentValue('')
     setCurrentStars(0)
   }
 
-  /** Commit last answer and insert the full row into Supabase. */
+  // Submit final answers to Supabase
   const handleSubmit = async () => {
     const finalValue = commitAnswer()
     const finalAnswers = {
@@ -225,10 +192,7 @@ export default function AlphaSurvey() {
     try {
       const supabase = createClient()
 
-      // Read alpha_token from localStorage — generated in alpha-tour.jsx
       const alphaToken = localStorage.getItem('alpha_token') || null
-
-      // Read chat keywords saved to localStorage when the user finished the report
       const chatKeywords = localStorage.getItem('alpha_chat_keywords')
       const parsedKeywords = chatKeywords ? JSON.parse(chatKeywords) : null
 
@@ -243,10 +207,8 @@ export default function AlphaSurvey() {
         pmf_main_benefit: finalAnswers['pmf_main_benefit'] || null,
         pmf_improvement: finalAnswers['pmf_improvement'] || null,
         pmf_virality: finalAnswers['pmf_virality'] || null,
-        // Interim feedback collected during the alpha-tour intake flow
         step1_intake_rating: intakeRating ? parseInt(intakeRating, 10) : null,
         step2_generation_speed: generationSpeed || null,
-        // Tour completion metadata
         tour_completed: true,
         step_survey_completed: true,
         last_completed_step: 5,
@@ -256,14 +218,12 @@ export default function AlphaSurvey() {
       // eslint-disable-next-line no-console
       console.log('alpha_feedback payload:', payload)
 
-      // Upsert on alpha_token so all step-tracking rows merge into one record
       const { error } = alphaToken
         ? await supabase.from('alpha_feedback').upsert(payload, { onConflict: 'alpha_token' })
         : await supabase.from('alpha_feedback').insert(payload)
       if (error) throw error
 
-      // Clean up localStorage after successful submission.
-      // alpha_token is cleared so the next visit starts a fresh session.
+      // Clean up localStorage
       localStorage.removeItem('alpha_token')
       localStorage.removeItem('alpha_intake_rating')
       localStorage.removeItem('alpha_intake_comment')
@@ -331,7 +291,6 @@ export default function AlphaSurvey() {
 
       <div className="flex items-center justify-center min-h-screen p-4">
         <div className="w-full max-w-lg">
-          {/* Each question slides in from the right; answered questions slide out left */}
           <AnimatePresence mode="wait">
             <motion.div
               key={currentQ}
@@ -342,7 +301,7 @@ export default function AlphaSurvey() {
               className="bg-white border border-slate-200 rounded-2xl shadow-xl overflow-hidden"
             >
               <div className="px-8 pt-8 pb-8">
-                {/* Back button — shown on all questions except the first */}
+                {/* Back button */}
                 {currentQ > 0 && (
                   <button
                     type="button"
@@ -353,19 +312,17 @@ export default function AlphaSurvey() {
                   </button>
                 )}
 
-                {/* Progress dots — updates when Q1 is answered and total is known */}
                 <ProgressDots total={totalQuestions} current={currentQ} />
 
                 <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-400 mb-2 text-center">
                   Question {currentQ + 1} of {totalQuestions}
                 </p>
 
-                {/* Question text */}
                 <h2 className="text-xl font-bold text-slate-900 text-center mb-6 leading-snug">
                   {activeQuestion?.question}
                 </h2>
 
-                {/* ── Radio options (Q1) ── */}
+                {/* Radio options */}
                 {activeQuestion?.type === 'radio' && (
                   <div className="flex flex-col gap-3">
                     {activeQuestion.options.map((opt) => (
@@ -373,9 +330,6 @@ export default function AlphaSurvey() {
                         key={opt}
                         type="button"
                         onClick={() => {
-                          // Commit Q1 answer and advance in the same event so React
-                          // batches both state updates and re-renders once with the
-                          // correct question sequence already computed.
                           setAnswers((prev) => ({
                             ...prev,
                             [activeQuestion.id]: opt,
@@ -395,7 +349,7 @@ export default function AlphaSurvey() {
                   </div>
                 )}
 
-                {/* ── Text area (Q2-Q4 and Q_ALT) ── */}
+                {/* Text area */}
                 {activeQuestion?.type === 'text' && (
                   <textarea
                     value={currentValue}
@@ -407,7 +361,7 @@ export default function AlphaSurvey() {
                   />
                 )}
 
-                {/* ── Star picker (Q5) ── */}
+                {/* Star picker */}
                 {activeQuestion?.type === 'stars' && (
                   <div className="space-y-3">
                     {activeQuestion.hint && (
@@ -429,10 +383,9 @@ export default function AlphaSurvey() {
                   </p>
                 )}
 
-                {/* Navigation buttons — radio auto-advances so no buttons needed for Q1 */}
+                {/* Navigation buttons */}
                 {activeQuestion?.type !== 'radio' && (
                   <div className="flex gap-3 mt-8">
-                    {/* Skip — available on non-final questions */}
                     {!isLastQuestion && (
                       <button
                         type="button"
@@ -443,7 +396,6 @@ export default function AlphaSurvey() {
                       </button>
                     )}
 
-                    {/* Final question shows Submit; all others show Next */}
                     {isLastQuestion ? (
                       <button
                         type="button"

@@ -263,6 +263,7 @@ export default function AlphaDashboardPanel() {
   const [error, setError] = useState(false)
   const [lastFetched, setLastFetched] = useState(null)
   const [showPlaybook, setShowPlaybook] = useState(false)
+  const [showAllChat, setShowAllChat] = useState(false)
 
   const fetchData = useCallback(async () => {
     setRows(null)
@@ -283,17 +284,17 @@ export default function AlphaDashboardPanel() {
 
   useEffect(() => { fetchData() }, [fetchData])
 
-  const chatWords = useMemo(() => {
-    const allKeywords = (rows ?? [])
-      .filter((r) => r.chat_keywords && r.chat_keywords.length > 0)
-      .flatMap((r) => r.chat_keywords)
-    const freq = {}
-    allKeywords.forEach((word) => { freq[word] = (freq[word] || 0) + 1 })
-    return Object.entries(freq)
-      .sort(([, a], [, b]) => b - a)
-      .slice(0, 20)
-      .map(([word, count]) => ({ word, count }))
+  const chatSentences = useMemo(() => {
+    return (rows ?? [])
+      .filter(r => r.chat_keywords && r.chat_keywords.length > 0)
+      .flatMap(r => r.chat_keywords)
+      .filter(m => m && typeof m === 'object' && m.content)
   }, [rows])
+
+  const confusionCount = chatSentences.filter(m => m.category === 'confusion').length
+  const modificationCount = chatSentences.filter(m => m.category === 'modification').length
+  const contentCount = chatSentences.filter(m => m.category === 'content_request').length
+  const clarificationCount = chatSentences.filter(m => m.category === 'clarification').length
 
   if (rows === null && !error) {
     return (
@@ -678,33 +679,74 @@ export default function AlphaDashboardPanel() {
           </div>
         </section>
 
-        {/* Section 6: AI chat word cloud */}
+        {/* Section 6: AI chat interactions */}
         <section className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
           <h2 className="text-sm font-bold text-slate-900 mb-1 flex items-center">
-            What users ask the AI assistant about
-            <InfoIcon text="Words most commonly used when testers chat with the AI assistant. High frequency words reveal what users want to modify or clarify in their reports." />
+            How users interacted with the AI assistant
+            <InfoIcon text="Chat messages categorized by intent. Confusion signals reveal where users struggled with the report." />
           </h2>
           <p className="text-xs text-slate-400 mb-6">
-            Common themes from chat editing sessions — shows what users want to change or understand
+            Categorized by intent — confusion signals are most actionable
           </p>
-          {chatWords.length === 0 ? (
-            <p className="text-xs text-slate-400">
-              No chat sessions recorded yet. Keywords will appear here after alpha testers use the AI assistant and finish the tour.
-            </p>
+          {chatSentences.length === 0 ? (
+            <p className="text-xs text-slate-400">No chat sessions recorded yet.</p>
           ) : (
-            <div className="flex flex-wrap gap-2">
-              {chatWords.map(({ word, count }) => (
-                <span
-                  key={word}
-                  className={`inline-flex items-center gap-1 bg-amber-50 border border-amber-200 text-amber-800 px-3 py-1 rounded-full ${
-                    count >= 3 ? 'text-lg font-semibold' : count >= 2 ? 'text-base font-medium' : 'text-sm font-normal'
-                  }`}
-                >
-                  {word}
-                  <span className="text-amber-500 text-xs">({count})</span>
-                </span>
-              ))}
-            </div>
+            <>
+              <div className="grid grid-cols-2 gap-3 mb-4">
+                <div className="bg-red-50 border border-red-200 rounded-xl p-4">
+                  <p className="text-xs font-semibold text-red-800 mb-1">🤔 Confusion signals</p>
+                  <p className="text-2xl font-bold text-red-800">{confusionCount}</p>
+                </div>
+                <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
+                  <p className="text-xs font-semibold text-blue-800 mb-1">✏️ Modifications</p>
+                  <p className="text-2xl font-bold text-blue-800">{modificationCount}</p>
+                </div>
+                <div className="bg-amber-50 border border-amber-200 rounded-xl p-4">
+                  <p className="text-xs font-semibold text-amber-800 mb-1">❓ Clarifications</p>
+                  <p className="text-2xl font-bold text-amber-800">{clarificationCount}</p>
+                </div>
+                <div className="bg-green-50 border border-green-200 rounded-xl p-4">
+                  <p className="text-xs font-semibold text-green-800 mb-1">➕ Content requests</p>
+                  <p className="text-2xl font-bold text-green-800">{contentCount}</p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowAllChat(v => !v)}
+                className="text-xs font-medium text-slate-500 hover:text-slate-700 transition-colors"
+              >
+                {showAllChat ? 'Hide messages ▲' : 'See all messages ▼'}
+              </button>
+              {showAllChat && (() => {
+                const sorted = [...chatSentences].sort((a, b) => {
+                  const order = { confusion: 0, clarification: 1, modification: 2, content_request: 3, other: 4 }
+                  return (order[a.category] ?? 4) - (order[b.category] ?? 4)
+                })
+                const catStyle = {
+                  confusion: 'bg-red-50 border-red-200 text-red-700',
+                  modification: 'bg-blue-50 border-blue-200 text-blue-700',
+                  content_request: 'bg-green-50 border-green-200 text-green-700',
+                  clarification: 'bg-amber-50 border-amber-200 text-amber-700',
+                  other: 'bg-slate-50 border-slate-200 text-slate-500',
+                }
+                const catLabel = {
+                  confusion: 'Confusion', modification: 'Modification',
+                  content_request: 'Content request', clarification: 'Clarification', other: 'Other',
+                }
+                return (
+                  <div className="mt-4 space-y-2 max-h-96 overflow-y-auto">
+                    {sorted.map((m, i) => (
+                      <div key={i} className="bg-slate-50 rounded-xl p-3 flex items-start justify-between gap-3">
+                        <p className="text-sm text-slate-700 leading-relaxed flex-1">{m.content}</p>
+                        <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full border shrink-0 ${catStyle[m.category] ?? catStyle.other}`}>
+                          {catLabel[m.category] ?? m.category}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                )
+              })()}
+            </>
           )}
         </section>
 
