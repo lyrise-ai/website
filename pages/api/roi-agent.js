@@ -442,12 +442,15 @@ export default async function handler(req, res) {
       state.specificityAssessment = assessReportSpecificity(state)
 
       // Persist LLM usage for this chat turn (report already exists). upsert on
-      // report_id keeps one usage row per report. Fire-and-forget.
+      // report_id keeps one usage row per report. Awaited (not fire-and-forget):
+      // on Vercel the serverless function can be frozen once the response ends,
+      // dropping un-awaited background writes. persistUsage swallows its own
+      // errors, so awaiting it can never break the chat turn.
       if (capturedUsage) {
-        persistUsage(capturedUsage, {
+        await persistUsage(capturedUsage, {
           reportId,
           userId: persistedReport?.user_id ?? user.id,
-        }).catch((e) => console.error('[roi-usage] persist failed', e))
+        })
       }
 
       // chat_messages.user_id is FK to auth.users. For share-link visitors
@@ -604,12 +607,15 @@ export default async function handler(req, res) {
       if (savedReport?.id) {
         savedReportId = savedReport.id
         // Persist LLM usage now that the report row (report_id) exists.
-        // Fire-and-forget: monitoring must never block or fail generation.
+        // Awaited (not fire-and-forget): on Vercel the serverless function can
+        // be frozen once the response ends, dropping un-awaited background
+        // writes. persistUsage swallows its own errors, so awaiting it can
+        // never block or fail generation.
         if (capturedUsage) {
-          persistUsage(capturedUsage, {
+          await persistUsage(capturedUsage, {
             reportId: savedReport.id,
             userId: user.id,
-          }).catch((e) => console.error('[roi-usage] persist failed', e))
+          })
         }
         await persistReportEvidence(
           adminSupabase,
