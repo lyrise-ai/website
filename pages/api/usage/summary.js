@@ -49,7 +49,7 @@ export default async function handler(req, res) {
   const { data: rows, error } = await admin
     .from('roi_usage')
     .select(
-      'id, created_at, company, mode, duration_ms, input_tokens, output_tokens, total_tokens, cost_usd, calls',
+      'id, report_id, created_at, company, mode, duration_ms, input_tokens, output_tokens, total_tokens, cost_usd, calls',
     )
     .gte('created_at', since)
     .order('created_at', { ascending: false })

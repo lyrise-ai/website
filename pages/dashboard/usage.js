@@ -16,7 +16,11 @@ import {
   MenuItem,
   CircularProgress,
   Chip,
+  Tabs,
+  Tab,
+  Link,
 } from '@mui/material'
+import OpenInNewIcon from '@mui/icons-material/OpenInNew'
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown'
 import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp'
 import { createRouteClient } from '../../src/lib/supabaseRouteClient'
@@ -68,6 +72,7 @@ const dur = (ms) => {
 
 export default function UsageDashboard() {
   const [days, setDays] = useState(30)
+  const [tab, setTab] = useState(0)
   const [data, setData] = useState(null)
   const [engagement, setEngagement] = useState(null)
   const [loading, setLoading] = useState(true)
@@ -183,14 +188,82 @@ export default function UsageDashboard() {
         )}
 
         {!loading && !error && data && data.ready !== false && (
-          <Dashboard data={data} />
-        )}
+          <>
+            <Tabs
+              value={tab}
+              onChange={(_, v) => setTab(v)}
+              sx={{
+                mb: 3,
+                borderBottom: '1px solid #e5e7eb',
+                '& .MuiTab-root': {
+                  textTransform: 'none',
+                  fontWeight: 600,
+                  fontSize: 15,
+                  color: '#6b7280',
+                },
+                '& .Mui-selected': { color: '#1a1a2e' },
+                '& .MuiTabs-indicator': { backgroundColor: '#2957FF' },
+              }}
+            >
+              <Tab label="Our reports" />
+              <Tab
+                label={`Prospect activity${
+                  engagement?.perReport?.length
+                    ? ` (${engagement.perReport.length})`
+                    : ''
+                }`}
+              />
+            </Tabs>
 
-        {!loading && !error && engagement && engagement.ready !== false && (
-          <EngagementPanel data={engagement} />
+            {tab === 0 && <Dashboard data={data} />}
+            {tab === 1 &&
+              (engagement && engagement.ready !== false ? (
+                <EngagementPanel data={engagement} />
+              ) : (
+                <Card sx={{ p: 4, textAlign: 'center' }}>
+                  <Typography color="text.secondary">
+                    No prospect activity available yet.
+                  </Typography>
+                </Card>
+              ))}
+          </>
         )}
       </Box>
     </>
+  )
+}
+
+// Blue "View" link that opens the report (and its chat thread) in a new tab.
+// Employees viewing /report/[id] see the full conversation, including chats
+// from prospects who used "Edit with chat" in the email.
+function ViewReportLink({ reportId, label = 'View' }) {
+  if (!reportId) {
+    return (
+      <Typography component="span" variant="body2" color="text.disabled">
+        —
+      </Typography>
+    )
+  }
+  return (
+    <Link
+      href={`/report/${reportId}`}
+      target="_blank"
+      rel="noopener noreferrer"
+      sx={{
+        display: 'inline-flex',
+        alignItems: 'center',
+        gap: 0.5,
+        color: '#2957FF',
+        fontWeight: 600,
+        fontSize: 14,
+        textDecoration: 'none',
+        whiteSpace: 'nowrap',
+        '&:hover': { textDecoration: 'underline' },
+      }}
+    >
+      {label}
+      <OpenInNewIcon sx={{ fontSize: 15 }} />
+    </Link>
   )
 }
 
@@ -308,6 +381,7 @@ function Dashboard({ data }) {
                 <TableCell align="right">Cost</TableCell>
                 <TableCell align="right">Duration</TableCell>
                 <TableCell align="right">Tokens</TableCell>
+                <TableCell align="right">Report&nbsp;&amp;&nbsp;chat</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
@@ -326,13 +400,11 @@ function Dashboard({ data }) {
 function EngagementPanel({ data }) {
   const { totals, perReport } = data
   return (
-    <Box sx={{ mt: 4 }}>
-      <Typography variant="h5" fontWeight={700} color="#1a1a2e" mb={0.5}>
-        Recipient engagement
-      </Typography>
+    <Box>
       <Typography variant="body2" color="text.secondary" mb={2}>
-        Activity from prospects who opened &quot;Edit with chat&quot; from the
-        emails
+        Activity from prospects who opened &quot;Edit with chat&quot; in the
+        report emails. Open any row to read the full report and their chat
+        thread.
       </Typography>
 
       <Box
@@ -385,6 +457,9 @@ function EngagementPanel({ data }) {
                   <TableCell align="right">Chat msgs</TableCell>
                   <TableCell align="right">Downloads</TableCell>
                   <TableCell align="right">Last activity</TableCell>
+                  <TableCell align="right">
+                    Report&nbsp;&amp;&nbsp;chat
+                  </TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
@@ -400,6 +475,9 @@ function EngagementPanel({ data }) {
                       {r.lastActivity
                         ? new Date(r.lastActivity).toLocaleString()
                         : '—'}
+                    </TableCell>
+                    <TableCell align="right">
+                      <ViewReportLink reportId={r.reportId} />
                     </TableCell>
                   </TableRow>
                 ))}
@@ -497,9 +575,12 @@ function ReportRow({ row }) {
         <TableCell align="right">{usd(row.cost_usd)}</TableCell>
         <TableCell align="right">{secs(row.duration_ms)}</TableCell>
         <TableCell align="right">{num(row.total_tokens)}</TableCell>
+        <TableCell align="right">
+          <ViewReportLink reportId={row.report_id} />
+        </TableCell>
       </TableRow>
       <TableRow>
-        <TableCell sx={{ py: 0, border: 0 }} colSpan={7}>
+        <TableCell sx={{ py: 0, border: 0 }} colSpan={8}>
           <Collapse in={open} timeout="auto" unmountOnExit>
             <Box sx={{ my: 1, ml: 5 }}>
               <Table size="small">
