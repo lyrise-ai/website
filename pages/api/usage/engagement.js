@@ -23,6 +23,15 @@ const SHARE_TYPES = [
   'chat_message_sent_share',
 ]
 
+// Recipient-activity tracking (opens, session time, downloads) only became
+// complete on this date. Earlier `events` rows captured chat messages alone, so
+// they render misleading partial rows (chat counts with empty opens/time/
+// downloads). Floor the query here so the panel starts blank and fills in with
+// fully-tracked activity going forward. The old events are kept in the DB — they
+// still power other views (e.g. the dashboard Activity feed); we just exclude
+// them from this panel.
+const ENGAGEMENT_SINCE_FLOOR = '2026-06-10T00:00:00Z'
+
 export default async function handler(req, res) {
   if (req.method !== 'GET') {
     return res.status(405).json({ error: 'Method not allowed' })
@@ -46,7 +55,10 @@ export default async function handler(req, res) {
   if (!isEmployee) return res.status(403).json({ error: 'Forbidden' })
 
   const days = Math.min(Math.max(parseInt(req.query.days, 10) || 30, 1), 365)
-  const since = new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString()
+  const windowStart = new Date(Date.now() - days * 24 * 60 * 60 * 1000)
+  const floor = new Date(ENGAGEMENT_SINCE_FLOOR)
+  // Never look further back than the floor, even on a wide "Last year" window.
+  const since = (windowStart > floor ? windowStart : floor).toISOString()
 
   const { data: events, error } = await admin
     .from('events')
