@@ -5,6 +5,15 @@ module.exports = {
   eslint: {
     ignoreDuringBuilds: true,
   },
+  async redirects() {
+    return [
+      { source: '/dashboard', destination: 'https://roi.lyrise.ai/dashboard', permanent: false },
+      { source: '/roi-report', destination: 'https://roi.lyrise.ai/roi-report', permanent: false },
+      { source: '/roi-report/:path*', destination: 'https://roi.lyrise.ai/roi-report/:path*', permanent: false },
+      { source: '/report/:id', destination: 'https://roi.lyrise.ai/report/:id', permanent: false },
+      { source: '/roi-feedback', destination: 'https://roi.lyrise.ai/roi-feedback', permanent: false },
+    ]
+  },
   webpack: (config) => {
     config.resolve.alias = {
       ...config.resolve.alias,
