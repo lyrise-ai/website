@@ -135,7 +135,7 @@ function HeroSection() {
           </div>
 
           <Link
-            href="https://roi.lyrise.ai"
+            href="https://roi.lyrise.ai/dashboard"
             className="inline-flex items-center justify-center px-8 py-4 text-lg font-semibold text-white transition-all transform bg-[#2C2C2C] rounded-full hover:bg-black hover:-translate-y-0.5 shadow-lg hover:shadow-gray-500/30 group"
           >
             Get Your ROI Breakdown
