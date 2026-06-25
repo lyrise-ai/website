@@ -6,12 +6,36 @@ module.exports = {
     ignoreDuringBuilds: true,
   },
   async redirects() {
+    if (process.env.NODE_ENV !== 'production') {
+      return []
+    }
+
     return [
-      { source: '/dashboard', destination: 'https://roi.lyrise.ai/dashboard', permanent: false },
-      { source: '/roi-report', destination: 'https://roi.lyrise.ai/roi-report', permanent: false },
-      { source: '/roi-report/:path*', destination: 'https://roi.lyrise.ai/roi-report/:path*', permanent: false },
-      { source: '/report/:id', destination: 'https://roi.lyrise.ai/report/:id', permanent: false },
-      { source: '/roi-feedback', destination: 'https://roi.lyrise.ai/roi-feedback', permanent: false },
+      {
+        source: '/dashboard',
+        destination: 'https://roi.lyrise.ai/dashboard',
+        permanent: false,
+      },
+      {
+        source: '/roi-report',
+        destination: 'https://roi.lyrise.ai/roi-report',
+        permanent: false,
+      },
+      {
+        source: '/roi-report/:path*',
+        destination: 'https://roi.lyrise.ai/roi-report/:path*',
+        permanent: false,
+      },
+      {
+        source: '/report/:id',
+        destination: 'https://roi.lyrise.ai/report/:id',
+        permanent: false,
+      },
+      {
+        source: '/roi-feedback',
+        destination: 'https://roi.lyrise.ai/roi-feedback',
+        permanent: false,
+      },
     ]
   },
   webpack: (config) => {

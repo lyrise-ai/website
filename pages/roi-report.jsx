@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect, useRef } from 'react'
+import React, { useState, useCallback, useEffect, useMemo, useRef } from 'react'
 import Head from 'next/head'
 import { motion, AnimatePresence } from 'framer-motion'
 import { FaCheckCircle } from 'react-icons/fa'
@@ -6,11 +6,11 @@ import clsx from 'clsx'
 import MainHeader from '../src/layout/MainHeader'
 import LogosMarquee from '../src/components/MainLandingPage/LogosMarquee'
 import LastSection from '../src/components/MainLandingPage/LastSection'
+import AssumptionVerificationView from '../src/components/ROIGenerator/AssumptionVerificationView'
 import ReportLoadingScreen from '../src/components/ROIGenerator/ReportLoadingScreen'
-import ReportViewer from '../src/components/ROIGenerator/ReportViewer'
-import GeneratingView from '../src/components/ROIGenerator/GeneratingView'
 import { drainSSE } from '../src/lib/drainSSE'
 import { PIPELINE_LOG_TOOL_NAMES } from '../src/lib/roi/constants'
+import { roiCalculator } from '../src/lib/roi/pipeline/roiCalculator'
 import { useRouter } from 'next/router'
 import ErrorBoundary from '../src/components/shared/ErrorBoundary'
 
@@ -77,6 +77,18 @@ const REVENUE_OPTS = [
   '$200M+',
   'Prefer not to say',
 ]
+const CURRENCY_OPTIONS = CURRENCIES.map((label) => ({
+  label,
+  value: label.split(' – ')[0],
+}))
+const TEAM_SIZE_OPTIONS = TEAM_SIZE_OPTS.map((label) => ({
+  label,
+  value: label,
+}))
+const REVENUE_OPTIONS = REVENUE_OPTS.map((label) => ({
+  label,
+  value: label === 'Prefer not to say' ? '' : label,
+}))
 const TOTAL_STEPS = 2
 const IS_DEV = process.env.NODE_ENV === 'development'
 // Minimum time the loader stays visible (ms). Override via NEXT_PUBLIC_ROI_MIN_LOADER_MS.
@@ -86,6 +98,7 @@ const VIEW_STATES = {
   FORM: 'form',
   LOADING: 'loading',
   GENERATING: 'generating',
+  VERIFYING: 'verifying',
   FINALISING: 'finalising',
   COMPLETE: 'complete',
   SUCCESS: 'success',
@@ -124,6 +137,81 @@ function validateStep(step, s1, s2) {
     if (!s2.currency) errors.currency = 'Please select a currency'
   }
   return errors
+}
+
+function coerceNullablePositiveNumber(value) {
+  if (value === '' || value == null) return null
+  const numeric = Number(value)
+  if (!Number.isFinite(numeric) || numeric <= 0) return null
+  return numeric
+}
+
+function buildVerificationPatch(baseState, draftState) {
+  return {
+    company: {
+      employees: coerceNullablePositiveNumber(draftState?.company?.employees),
+      revenueEstimateM: coerceNullablePositiveNumber(
+        draftState?.company?.revenueEstimateM,
+      ),
+      industry: draftState?.company?.industry ?? '',
+      country: draftState?.company?.country ?? '',
+      teamSize: draftState?.normInput?.teamSize ?? '',
+      revenueRange: draftState?.normInput?.revenueRange ?? '',
+      selectedCurrency: draftState?.normInput?.selectedCurrency ?? '',
+    },
+    workflows: (draftState?.workflows ?? []).map((workflow, index) => ({
+      index,
+      originalName: baseState?.workflows?.[index]?.name ?? workflow.name,
+      name: workflow.name ?? '',
+      function: workflow.function ?? '',
+      owner: workflow.owner ?? '',
+      monthlyVolume: coerceNullablePositiveNumber(workflow.monthlyVolume),
+      minutesPerItemBefore: coerceNullablePositiveNumber(
+        workflow.minutesPerItemBefore,
+      ),
+      minutesPerItemAfter: coerceNullablePositiveNumber(
+        workflow.minutesPerItemAfter,
+      ),
+      rateOverride: coerceNullablePositiveNumber(workflow.rateOverride),
+      seniorityLevel: workflow.seniorityLevel ?? '',
+      sourceType: workflow.sourceType ?? '',
+      rationale: workflow.rationale ?? '',
+    })),
+  }
+}
+
+function validateVerificationDraft(draftState) {
+  const errors = { company: {}, workflows: {} }
+
+  ;(draftState?.workflows ?? []).forEach((workflow, index) => {
+    const workflowErrors = {}
+    if (!workflow?.name?.trim()) workflowErrors.name = 'Required'
+    if (!workflow?.function?.trim()) workflowErrors.function = 'Required'
+    if (!workflow?.owner?.trim()) workflowErrors.owner = 'Required'
+    if (!workflow?.sourceType?.trim()) workflowErrors.sourceType = 'Required'
+    if (!workflow?.rationale?.trim()) workflowErrors.rationale = 'Required'
+    if (!coerceNullablePositiveNumber(workflow?.monthlyVolume)) {
+      workflowErrors.monthlyVolume = 'Enter a positive number'
+    }
+    if (!coerceNullablePositiveNumber(workflow?.minutesPerItemBefore)) {
+      workflowErrors.minutesPerItemBefore = 'Enter a positive number'
+    }
+    if (!coerceNullablePositiveNumber(workflow?.minutesPerItemAfter)) {
+      workflowErrors.minutesPerItemAfter = 'Enter a positive number'
+    }
+    if (!coerceNullablePositiveNumber(workflow?.rateOverride)) {
+      workflowErrors.rateOverride = 'Enter a positive number'
+    }
+    if (Object.keys(workflowErrors).length > 0) {
+      errors.workflows[index] = workflowErrors
+    }
+  })
+
+  const hasErrors =
+    Object.keys(errors.company).length > 0 ||
+    Object.keys(errors.workflows).length > 0
+
+  return hasErrors ? errors : null
 }
 
 // ── Shared UI ─────────────────────────────────────────────────────────────────
@@ -315,7 +403,8 @@ function Step2({ data, onChange, errors, isDev }) {
           Where should we send your report?
         </h2>
         <p className="text-sm text-gray-500">
-          Your report is generated and emailed — usually ready in 60 seconds.
+          We prepare the research first, then you confirm the assumptions before
+          we generate and email the final report.
         </p>
         {isDev && (
           <p className="mt-2 text-xs text-amber-600">
@@ -705,14 +794,17 @@ function ROIReportInner({ isEmployee }) {
   const [step, setStep] = useState(1)
   const [viewState, setViewState] = useState(VIEW_STATES.FORM)
 
-  const [isGenerationComplete, setIsGenerationComplete] = useState(false)
-  const generationStartedAt = useRef(Date.now())
+  const loaderStartedAt = useRef(Date.now())
   const [generationLog, setGenerationLog] = useState('')
   const [sseEvents, setSseEvents] = useState([])
   const [reportState, setReportState] = useState(null)
+  const [verificationState, setVerificationState] = useState(null)
+  const [verificationDraft, setVerificationDraft] = useState(null)
+  const [verificationReportId, setVerificationReportId] = useState(null)
+  const [verificationErrors, setVerificationErrors] = useState(null)
+  const [isRerunningResearch, setIsRerunningResearch] = useState(false)
   const [errorMessage, setErrorMessage] = useState('')
   const [reportId, setReportId] = useState(null)
-  const [initialMessagesUsed, setInitialMessagesUsed] = useState(0)
 
   const [s1, setS1] = useState(
     IS_DEV
@@ -737,6 +829,7 @@ function ROIReportInner({ isEmployee }) {
   const handleGenerationError = useCallback(
     (message) => {
       setErrorMessage(message)
+      setIsRerunningResearch(false)
       setViewState(VIEW_STATES.ERROR)
       if (!isEmployee) {
         fetch('/api/notify-error', {
@@ -744,8 +837,12 @@ function ROIReportInner({ isEmployee }) {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             error: message,
-            context: { page: 'roi-report', company: s1.companyName || '(unknown)' },
-            url: typeof window !== 'undefined' ? window.location.href : undefined,
+            context: {
+              page: 'roi-report',
+              company: s1.companyName || '(unknown)',
+            },
+            url:
+              typeof window !== 'undefined' ? window.location.href : undefined,
           }),
         }).catch(() => {})
       }
@@ -763,15 +860,71 @@ function ROIReportInner({ isEmployee }) {
     setErrors((prev) => ({ ...prev, [key]: '' }))
   }, [])
 
+  const verificationPreview = useMemo(() => {
+    if (
+      !verificationDraft?.company ||
+      !verificationDraft?.globals ||
+      !verificationDraft?.workflows
+    ) {
+      return verificationDraft?.calcOutput ?? null
+    }
+    try {
+      return roiCalculator(
+        verificationDraft.workflows,
+        verificationDraft.globals,
+        verificationDraft.company,
+      )
+    } catch {
+      return verificationDraft?.calcOutput ?? null
+    }
+  }, [verificationDraft])
+
+  const hydrateVerificationState = useCallback(async (existingReportId) => {
+    const existing = await fetch(`/api/roi-agent?reportId=${existingReportId}`)
+    if (!existing.ok) {
+      throw new Error('Could not load your prepared report. Please try again.')
+    }
+    const existingData = await existing.json()
+    if (!existingData?.report) {
+      throw new Error('Prepared report not found.')
+    }
+
+    const { buildStateFromReportRow } = await import(
+      '../src/lib/roi/reportState'
+    )
+    const builtState = buildStateFromReportRow(existingData.report)
+
+    if (existingData.report.status === 'PENDING_VERIFICATION') {
+      setVerificationReportId(existingData.report.id)
+      setVerificationState(builtState)
+      setVerificationDraft(JSON.parse(JSON.stringify(builtState)))
+      setVerificationErrors(null)
+      setIsRerunningResearch(false)
+      setViewState(VIEW_STATES.VERIFYING)
+      return
+    }
+
+    window.location.href = `/report/${existingData.report.id}`
+  }, [])
+
   const runGeneration = useCallback(
-    async ({ skipLLM = false, estimatesOnly = false } = {}) => {
-      generationStartedAt.current = Date.now()
-      setIsGenerationComplete(false)
+    async ({
+      skipLLM = false,
+      estimatesOnly = false,
+      existingReportId = null,
+      isRerun = false,
+    } = {}) => {
+      loaderStartedAt.current = Date.now()
       setViewState(VIEW_STATES.GENERATING)
       setGenerationLog('')
       setSseEvents([])
       setReportState(null)
+      setVerificationReportId(existingReportId)
+      setVerificationState(null)
+      setVerificationDraft(null)
+      setVerificationErrors(null)
       setErrorMessage('')
+      setIsRerunningResearch(isRerun)
 
       const payload = {
         'Company Name': s1.companyName.trim(),
@@ -795,8 +948,9 @@ function ROIReportInner({ isEmployee }) {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            mode: 'generate',
+            mode: 'prepare',
             formData: payload,
+            reportId: existingReportId,
             devOptions: { skipLLM, estimatesOnly },
           }),
         })
@@ -809,43 +963,12 @@ function ROIReportInner({ isEmployee }) {
         if (response.status === 409) {
           const data = await response.json()
           if (data.report_id) {
-            try {
-              const existing = await fetch('/api/roi-agent')
-              if (!existing.ok) {
-                // eslint-disable-next-line no-console -- intentional 409 fallback diagnostics
-                console.warn(
-                  'GET /api/roi-agent failed during 409 fallback:',
-                  existing.status,
-                )
-              } else {
-                const existingData = await existing.json()
-                if (existingData?.report?.rendered_html) {
-                  const { buildStateFromReportRow } = await import(
-                    '../src/lib/roi/reportState'
-                  )
-                  const builtState = buildStateFromReportRow(
-                    existingData.report,
-                  )
-                  setReportId(data.report_id)
-                  setReportState(builtState)
-                  setIsGenerationComplete(true)
-                  setViewState(VIEW_STATES.FINALISING)
-                  return
-                }
-              }
-            } catch (err) {
-              // eslint-disable-next-line no-console -- intentional 409 fallback diagnostics
-              console.warn(
-                'Failed to load existing report from 409 fallback:',
-                err,
-              )
-            }
-            window.location.href = `/report/${data.report_id}`
+            await hydrateVerificationState(data.report_id)
           }
           return
         }
 
-        let latestState = null
+        let preparedState = null
         await drainSSE(
           response.body.getReader(),
           new TextDecoder(),
@@ -863,36 +986,129 @@ function ROIReportInner({ isEmployee }) {
                 `${prev}\n${event.message}`.slice(-2000),
               )
               setSseEvents((prev) => [...prev, { text: event.message }])
-            } else if (event.type === 'report_update') {
-              latestState = event.state
-              setReportState(event.state)
-            } else if (event.type === 'report_saved') {
-              setReportId(event.report_id)
-            } else if (event.type === 'done') {
-              if (
-                (event.assembled || latestState?.assembled) &&
-                latestState?.renderedHtml
-              ) {
-                setIsGenerationComplete(true)
-                setViewState(VIEW_STATES.FINALISING)
-              } else {
-                handleGenerationError(
-                  'Report generation finished without a complete report.',
-                )
-              }
+            } else if (event.type === 'report_prepared') {
+              preparedState = event.state
+              setVerificationReportId(event.report_id)
+              setVerificationState(event.state)
+              setVerificationDraft(JSON.parse(JSON.stringify(event.state)))
+              setVerificationErrors(null)
+              setIsRerunningResearch(false)
+              setViewState(VIEW_STATES.VERIFYING)
             } else if (event.type === 'error') {
               throw new Error(event.message)
             }
           },
         )
+        if (!preparedState) {
+          handleGenerationError(
+            'Preparation finished without a verification state.',
+          )
+        }
       } catch (err) {
         handleGenerationError(
           err.message || 'Something went wrong. Please try again.',
         )
       }
     },
-    [s1, s2, handleGenerationError],
+    [handleGenerationError, hydrateVerificationState, s1, s2],
   )
+
+  const runFinalize = useCallback(async () => {
+    const validationErrors = validateVerificationDraft(verificationDraft)
+    if (validationErrors) {
+      setVerificationErrors(validationErrors)
+      return
+    }
+    if (!verificationReportId || !verificationState || !verificationDraft) {
+      handleGenerationError(
+        'Prepared report data is missing. Please re-run research.',
+      )
+      return
+    }
+
+    loaderStartedAt.current = Date.now()
+    setViewState(VIEW_STATES.FINALISING)
+    setGenerationLog('')
+    setSseEvents([{ text: 'Generating final report copy…' }])
+    setVerificationErrors(null)
+    setErrorMessage('')
+    setReportState(null)
+
+    try {
+      const response = await fetch('/api/roi-agent', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          mode: 'finalize',
+          reportId: verificationReportId,
+          verificationPatch: buildVerificationPatch(
+            verificationState,
+            verificationDraft,
+          ),
+        }),
+      })
+
+      if (response.status === 401) {
+        window.location.href = '/auth/login'
+        return
+      }
+
+      if (!response.ok) {
+        const data = await response.json().catch(() => ({}))
+        throw new Error(data?.error || `HTTP ${response.status}`)
+      }
+
+      let latestState = null
+      await drainSSE(response.body.getReader(), new TextDecoder(), (event) => {
+        if (event.type === 'text_delta') {
+          setGenerationLog((prev) => (prev + event.delta).slice(-2000))
+        } else if (event.type === 'tool_start') {
+          setGenerationLog((prev) => `${prev}\n[${event.tool}]`)
+          const line = sseEventToLogLine(event)
+          if (line) {
+            setSseEvents((prev) => [...prev, { text: line }])
+          }
+        } else if (event.type === 'pipeline_log') {
+          setGenerationLog((prev) => `${prev}\n${event.message}`.slice(-2000))
+          setSseEvents((prev) => [...prev, { text: event.message }])
+        } else if (event.type === 'report_update') {
+          latestState = event.state
+          setReportState(event.state)
+          setSseEvents((prev) => [
+            ...prev,
+            { text: 'Rendering report layout…' },
+          ])
+        } else if (event.type === 'report_saved') {
+          setReportId(event.report_id)
+          setSseEvents((prev) => [
+            ...prev,
+            { text: 'Report saved successfully. Opening report…' },
+          ])
+        } else if (event.type === 'done') {
+          setSseEvents((prev) => [
+            ...prev,
+            { text: 'Final report copy generated.' },
+          ])
+          if (!(event.assembled || latestState?.assembled)) {
+            handleGenerationError(
+              'Report finalization finished without a complete report.',
+            )
+          }
+        } else if (event.type === 'error') {
+          throw new Error(event.message)
+        }
+      })
+    } catch (err) {
+      handleGenerationError(
+        err.message || 'Something went wrong. Please try again.',
+      )
+    }
+  }, [
+    handleGenerationError,
+    verificationDraft,
+    verificationReportId,
+    verificationState,
+  ])
 
   // Finalisation lifecycle: enforce minimum visible loader duration, then
   // transition to COMPLETE once FINALISING and renderedHtml are available.
@@ -902,7 +1118,7 @@ function ROIReportInner({ isEmployee }) {
 
     let timeout
 
-    const elapsed = Date.now() - generationStartedAt.current
+    const elapsed = Date.now() - loaderStartedAt.current
     const remaining = Math.max(0, MIN_VISIBLE_DURATION - elapsed)
 
     // Force a paint cycle so the FINALISING state visually mounts
@@ -954,6 +1170,65 @@ function ROIReportInner({ isEmployee }) {
   const back = useCallback(() => {
     setStep((prev) => Math.max(prev - 1, 1))
     setErrors({})
+  }, [])
+
+  const changeVerificationCompanyField = useCallback((field, value) => {
+    setVerificationDraft((prev) => {
+      if (!prev) return prev
+      if (
+        field === 'teamSize' ||
+        field === 'revenueRange' ||
+        field === 'selectedCurrency'
+      ) {
+        return {
+          ...prev,
+          normInput: {
+            ...prev.normInput,
+            [field]: value,
+          },
+        }
+      }
+      return {
+        ...prev,
+        company: {
+          ...prev.company,
+          [field]: value,
+        },
+      }
+    })
+    setVerificationErrors((prev) =>
+      prev
+        ? {
+            ...prev,
+            company: { ...(prev.company ?? {}), [field]: undefined },
+          }
+        : prev,
+    )
+  }, [])
+
+  const changeVerificationWorkflowField = useCallback((index, field, value) => {
+    setVerificationDraft((prev) => {
+      if (!prev?.workflows?.[index]) return prev
+      return {
+        ...prev,
+        workflows: prev.workflows.map((workflow, workflowIndex) =>
+          workflowIndex === index ? { ...workflow, [field]: value } : workflow,
+        ),
+      }
+    })
+    setVerificationErrors((prev) => {
+      if (!prev?.workflows?.[index]) return prev
+      return {
+        ...prev,
+        workflows: {
+          ...prev.workflows,
+          [index]: {
+            ...prev.workflows[index],
+            [field]: undefined,
+          },
+        },
+      }
+    })
   }, [])
 
   // Non-form views
@@ -1029,6 +1304,41 @@ function ROIReportInner({ isEmployee }) {
           </div>
         </div>
       </div>
+    )
+  }
+
+  if (viewState === VIEW_STATES.VERIFYING && verificationDraft) {
+    return (
+      <>
+        <Head>
+          <title>Verify ROI Assumptions | LyRise</title>
+        </Head>
+        <MainHeader />
+        <AssumptionVerificationView
+          draftState={verificationDraft}
+          previewCalc={verificationPreview}
+          errors={verificationErrors}
+          teamSizeOptions={TEAM_SIZE_OPTIONS}
+          revenueOptions={REVENUE_OPTIONS}
+          currencyOptions={CURRENCY_OPTIONS}
+          onCompanyFieldChange={changeVerificationCompanyField}
+          onWorkflowFieldChange={changeVerificationWorkflowField}
+          onBack={() => {
+            setVerificationErrors(null)
+            setViewState(VIEW_STATES.FORM)
+          }}
+          onConfirm={runFinalize}
+          onRerun={() =>
+            runGeneration({
+              existingReportId: verificationReportId,
+              isRerun: true,
+            })
+          }
+          isSubmitting={viewState === VIEW_STATES.FINALISING}
+          isRerunning={isRerunningResearch}
+        />
+        <LastSection />
+      </>
     )
   }
 
@@ -1131,7 +1441,7 @@ function ROIReportInner({ isEmployee }) {
                     onClick={() => next({ skipLLM: true })}
                     className="px-5 py-2 text-sm font-semibold text-gray-700 transition-colors bg-gray-100 rounded-lg hover:bg-gray-200"
                   >
-                    Fast mock preview
+                    Prepare mock assumptions
                   </button>
                 )}
                 <button
@@ -1139,7 +1449,7 @@ function ROIReportInner({ isEmployee }) {
                   onClick={() => next()}
                   className="px-5 py-2 text-sm font-semibold text-white transition-colors bg-gray-900 rounded-lg shadow-sm hover:bg-gray-700"
                 >
-                  {step === TOTAL_STEPS ? 'Generate my report →' : 'Continue →'}
+                  {step === TOTAL_STEPS ? 'Review assumptions →' : 'Continue →'}
                 </button>
               </div>
             </div>
@@ -1156,11 +1466,10 @@ function ROIReportInner({ isEmployee }) {
 }
 
 export default function ROIReport(props) {
+  const { isEmployee } = props
+
   return (
-    <ErrorBoundary
-      isEmployee={props.isEmployee}
-      pageContext={{ page: 'roi-report' }}
-    >
+    <ErrorBoundary isEmployee={isEmployee} pageContext={{ page: 'roi-report' }}>
       <ROIReportInner {...props} />
     </ErrorBoundary>
   )

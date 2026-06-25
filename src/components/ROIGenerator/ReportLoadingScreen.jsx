@@ -45,7 +45,7 @@ const PHASE_IDLE_ADVANCE_MS = 45000
 const MIN_LOG_GAP_MS = 2500
 
 const PIPELINE_MILESTONE_RE =
-  /^(Research complete|Calibrating ROI|Refining model assumptions|3-year financial|Writing profit|Rendering financial)/i
+  /^(Research complete|Calibrating ROI|Refining model assumptions|3-year financial|Writing profit|Rendering financial|Generating final report copy|Final report copy generated|Rendering report layout|Report saved successfully|Opening report)/i
 
 // Rotating messages from web_search pools in agent.ts — collapse to one summary line
 const SEARCH_POOL_RE =
@@ -100,6 +100,12 @@ export default function ReportLoadingScreen({
   const isComplete = viewState === 'complete'
   const isDoneOrFinalising = isFinalising || isComplete
 
+  useEffect(() => {
+    if (isFinalising) {
+      setPhaseIndex(PHASES.length - 1)
+    }
+  }, [isFinalising])
+
   // Phase auto-advance — idle fallback only; real pipeline_log drives phases first
   useEffect(() => {
     if (isDoneOrFinalising || sseEvents.length > 0) return () => {}
@@ -112,7 +118,7 @@ export default function ReportLoadingScreen({
 
   // Drive phase from real pipeline_log / tool milestones (falls back to generationLog)
   useEffect(() => {
-    if (isDoneOrFinalising) return
+    if (isComplete) return
     const signal = [...sseEvents.map((e) => e.text), generationLog]
       .join('\n')
       .toLowerCase()
@@ -133,11 +139,11 @@ export default function ReportLoadingScreen({
     ) {
       setPhaseIndex(1)
     }
-  }, [generationLog, sseEvents, phaseIndex, isDoneOrFinalising])
+  }, [generationLog, sseEvents, phaseIndex, isComplete])
 
   // Process new pipeline_log events — parallel tool calls burst in the same second
   useEffect(() => {
-    if (!sseEvents.length || isDoneOrFinalising) return
+    if (!sseEvents.length || isComplete) return
 
     const pending = sseEvents.slice(lastProcessedSseIndex.current)
     if (!pending.length) return
@@ -186,7 +192,7 @@ export default function ReportLoadingScreen({
       lastLogAppendAt.current = lastAppendAt
       return next
     })
-  }, [sseEvents, activePhase, isDoneOrFinalising])
+  }, [sseEvents, activePhase, isComplete])
 
   // Elapsed timer
   useEffect(() => {
@@ -200,18 +206,39 @@ export default function ReportLoadingScreen({
 
   // Idle placeholder — one line until real pipeline_log arrives; no cycling
   useEffect(() => {
-    if (isDoneOrFinalising) {
+    if (isComplete) {
       logId.current += 1
       setLogs((prev) => {
-        if (prev.length > 0 && prev[prev.length - 1].phase === 'finalising') {
+        if (prev.length > 0 && prev[prev.length - 1].phase === 'complete') {
           return prev
         }
         return [
           ...prev,
           {
             id: logId.current,
-            phase: 'finalising',
-            text: '✓ Report assembled successfully',
+            phase: 'complete',
+            text: 'Opening report…',
+            time: nowLabel(),
+          },
+        ].slice(-MAX_LOG_LINES)
+      })
+      return () => {}
+    }
+
+    if (isFinalising && sseEvents.length === 0) {
+      logId.current += 1
+      setLogs((prev) => {
+        if (
+          prev.some((entry) => entry.text === 'Generating final report copy…')
+        ) {
+          return prev
+        }
+        return [
+          ...prev,
+          {
+            id: logId.current,
+            phase: 'report',
+            text: 'Generating final report copy…',
             time: nowLabel(),
           },
         ].slice(-MAX_LOG_LINES)
@@ -242,7 +269,7 @@ export default function ReportLoadingScreen({
       ].slice(-MAX_LOG_LINES)
     })
     return undefined
-  }, [activePhase, isDoneOrFinalising, sseEvents.length])
+  }, [activePhase, isComplete, isFinalising, sseEvents.length])
 
   const timeLabel = useMemo(() => {
     const m = String(Math.floor(elapsed / 60)).padStart(2, '0')
@@ -389,7 +416,7 @@ export default function ReportLoadingScreen({
               logs={logs}
               phaseIndex={phaseIndex}
               elapsed={elapsed}
-              isFinalising={isDoneOrFinalising}
+              isComplete={isComplete}
             />
           </div>
 
@@ -480,7 +507,7 @@ function PhaseDot({ state }) {
   )
 }
 
-function ActivityLog({ logs, phaseIndex, elapsed, isFinalising }) {
+function ActivityLog({ logs, phaseIndex, elapsed, isComplete }) {
   const phaseActivityLabels = [
     'Data Collection',
     'Financial Modelling',
@@ -504,7 +531,7 @@ function ActivityLog({ logs, phaseIndex, elapsed, isFinalising }) {
           <span
             className={
               'h-[6px] w-[6px] rounded-full ' +
-              (isFinalising ? 'bg-gray-500' : 'bg-primary opacity-75')
+              (isComplete ? 'bg-gray-500' : 'bg-primary opacity-75')
             }
           />
           <span className="font-mono text-[10px] uppercase tracking-[0.18em] text-terminal-fg opacity-55">
@@ -513,7 +540,7 @@ function ActivityLog({ logs, phaseIndex, elapsed, isFinalising }) {
         </div>
         <div className="flex items-center gap-3">
           <span className="font-mono text-[10px] text-terminal-muted">
-            {isFinalising
+            {isComplete
               ? 'Finalised'
               : `Phase ${phaseIndex + 1}/${
                   PHASES.length
@@ -567,13 +594,11 @@ function ActivityLog({ logs, phaseIndex, elapsed, isFinalising }) {
           <span
             className={
               'h-1 w-1 rounded-full ' +
-              (isFinalising
-                ? 'bg-gray-500 opacity-40'
-                : 'bg-primary opacity-60')
+              (isComplete ? 'bg-gray-500 opacity-40' : 'bg-primary opacity-60')
             }
           />
           <span className="font-mono text-[9.5px] text-terminal-muted opacity-60">
-            {isFinalising ? 'done' : 'live'}
+            {isComplete ? 'done' : 'live'}
           </span>
         </div>
       </div>
