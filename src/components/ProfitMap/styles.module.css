@@ -1,0 +1,168 @@
+/* Figtree (OFL) stands in for Proxima Nova, per the LyRise design system. */
+@font-face {
+  font-family: 'Figtree';
+  font-style: normal;
+  font-weight: 300 900;
+  font-display: swap;
+  src: url('/fonts/figtree/figtree-latin-ext.woff2') format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF,
+    U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020,
+    U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+
+@font-face {
+  font-family: 'Figtree';
+  font-style: normal;
+  font-weight: 300 900;
+  font-display: swap;
+  src: url('/fonts/figtree/figtree-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA,
+    U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193,
+    U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes row {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 0.35;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+.page {
+  max-width: 100%;
+  overflow-x: hidden;
+  min-height: 100vh;
+  background: #08080e;
+  color: #fff;
+  font-family: 'Figtree', 'Proxima Nova', 'Helvetica Neue', Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+.page *,
+.page *::before,
+.page *::after {
+  box-sizing: border-box;
+}
+
+.page a {
+  text-decoration: none;
+}
+
+.heroItem {
+  opacity: 0;
+  animation: rise 0.7s cubic-bezier(0.22, 0.61, 0.36, 1) forwards;
+}
+
+.row {
+  opacity: 0;
+  animation: row 0.5s cubic-bezier(0.22, 0.61, 0.36, 1) forwards;
+}
+
+.pulse {
+  animation: pulse 2.4s ease-in-out infinite;
+}
+
+.pulseFast {
+  animation: pulse 2.2s ease-in-out infinite;
+}
+
+.reveal {
+  opacity: 0;
+  transform: translateY(16px);
+  transition: opacity 0.7s cubic-bezier(0.22, 0.61, 0.36, 1),
+    transform 0.7s cubic-bezier(0.22, 0.61, 0.36, 1);
+}
+
+.reveal[data-in] {
+  opacity: 1;
+  transform: none;
+}
+
+.navLink {
+  font-size: 13.5px;
+  font-weight: 500;
+  color: #8a8aa0;
+  transition: color 200ms cubic-bezier(0.22, 0.61, 0.36, 1);
+}
+
+.navLink:hover {
+  color: #fff;
+}
+
+.footerLink {
+  font-size: 13px;
+  color: #7d7d96;
+  transition: color 200ms cubic-bezier(0.22, 0.61, 0.36, 1);
+}
+
+.footerLink:hover {
+  color: #fff;
+}
+
+.button:focus-visible,
+.chip:focus-visible,
+.deptButton:focus-visible {
+  outline: 2px solid rgba(102, 102, 255, 0.45);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .reveal,
+  .heroItem,
+  .row {
+    opacity: 1 !important;
+    transform: none !important;
+    animation: none !important;
+  }
+}
+
+@media (max-width: 1000px) {
+  .twoCol,
+  .console,
+  .lane,
+  .close {
+    grid-template-columns: 1fr !important;
+  }
+
+  .laneLabel {
+    writing-mode: horizontal-tb !important;
+    transform: none !important;
+    height: auto !important;
+    width: auto !important;
+  }
+}
+
+@media (max-width: 720px) {
+  .footCols {
+    grid-template-columns: 1fr 1fr !important;
+  }
+
+  .navLinks {
+    display: none !important;
+  }
+}
