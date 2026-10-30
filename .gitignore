@@ -59,6 +59,7 @@ temp/
 
 # Local workflow scratch files
 workflows/
+plans/
 
 # AI tool instructions inside .github (keep workflows/actions untouched)
 .github/code-review-graph.instruction.md

@@ -27,6 +27,22 @@ module.exports = {
         'new-black': '#2C2C2C',
       },
       fontFamily: {
+        sans: [
+          'Figtree',
+          'Space Grotesk',
+          'ui-sans-serif',
+          'system-ui',
+          'sans-serif',
+        ],
+        mono: [
+          '"Geist Mono"',
+          'ui-monospace',
+          'SFMono-Regular',
+          'Menlo',
+          'Monaco',
+          'Consolas',
+          'monospace',
+        ],
         primary: 'Space Grotesk',
         secondary: 'Poppins',
         outfit: 'Outfit',

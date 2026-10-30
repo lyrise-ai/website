@@ -4,7 +4,7 @@ import { createServerClient, serializeCookieHeader } from '@supabase/ssr'
 export function createRouteClient(req: NextApiRequest, res: NextApiResponse) {
   // Methods for config cookies
   const getAll = () =>
-    Object.entries(req.cookies).map(([name, value]) => ({
+    Object.entries(req.cookies || {}).map(([name, value]) => ({
       name,
       value: value!,
     }))
@@ -24,9 +24,12 @@ export function createRouteClient(req: NextApiRequest, res: NextApiResponse) {
     res.setHeader('Set-Cookie', allCookies)
   }
   // Create client
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://placeholder.supabase.co'
+  const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'placeholder'
+
   return createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    url,
+    anonKey,
     {
       cookies: {
         getAll,
