@@ -86,7 +86,7 @@ export default function HeroDotMatrixSimulationCanvas({ onAgentInteract }) {
     }
 
     async function runLeftLoop() {
-      await sleep(250 + Math.random() * 300)
+      await sleep(350 + Math.random() * 250)
 
       while (isMounted) {
         const next = findNextLeftSlot()
@@ -95,17 +95,17 @@ export default function HeroDotMatrixSimulationCanvas({ onAgentInteract }) {
           leftStateRef.current.targetSlot = null
           leftStateRef.current.flyingBlock = null
           while (isMounted && !findNextLeftSlot()) {
-            await sleep(600)
+            await sleep(500)
           }
           if (isMounted) {
             leftStateRef.current.phase = 'WAKING'
-            await sleep(750)
+            await sleep(600)
           }
         } else {
           // Fetching
           leftStateRef.current.targetSlot = next
           leftStateRef.current.phase = 'FETCHING'
-          await sleep(550 + Math.random() * 350)
+          await sleep(420 + Math.random() * 180)
           if (!isMounted) break
 
           // Lifting
@@ -117,18 +117,18 @@ export default function HeroDotMatrixSimulationCanvas({ onAgentInteract }) {
             isAccent,
             progress: 0,
           }
-          await sleep(650 + Math.random() * 300)
+          await sleep(460 + Math.random() * 160)
           if (!isMounted) break
 
           // Placing (Flying block travel)
           leftStateRef.current.phase = 'PLACING'
-          const travelSteps = 16
+          const travelSteps = 14
           for (let s = 1; s <= travelSteps; s++) {
             if (!isMounted) break
             if (leftStateRef.current.flyingBlock) {
               leftStateRef.current.flyingBlock.progress = s / travelSteps
             }
-            await sleep(40)
+            await sleep(30)
           }
           if (!isMounted) break
 
@@ -143,11 +143,11 @@ export default function HeroDotMatrixSimulationCanvas({ onAgentInteract }) {
           leftStateRef.current.snappedBlockId = newId
           leftStateRef.current.flyingBlock = null
           leftStateRef.current.phase = 'SNAP'
-          await sleep(450)
+          await sleep(320)
           if (!isMounted) break
           leftStateRef.current.snappedBlockId = null
 
-          await sleep(250 + Math.random() * 500)
+          await sleep(260 + Math.random() * 240)
         }
       }
     }
@@ -178,7 +178,7 @@ export default function HeroDotMatrixSimulationCanvas({ onAgentInteract }) {
     }
 
     async function runRightLoop() {
-      await sleep(900 + Math.random() * 600)
+      await sleep(500 + Math.random() * 350)
 
       while (isMounted) {
         const next = findNextRightSlot()
@@ -187,17 +187,17 @@ export default function HeroDotMatrixSimulationCanvas({ onAgentInteract }) {
           rightStateRef.current.targetSlot = null
           rightStateRef.current.flyingBlock = null
           while (isMounted && !findNextRightSlot()) {
-            await sleep(600)
+            await sleep(500)
           }
           if (isMounted) {
             rightStateRef.current.phase = 'WAKING'
-            await sleep(800)
+            await sleep(600)
           }
         } else {
           // Fetching
           rightStateRef.current.targetSlot = next
           rightStateRef.current.phase = 'FETCHING'
-          await sleep(700 + Math.random() * 450)
+          await sleep(450 + Math.random() * 200)
           if (!isMounted) break
 
           // Lifting
@@ -209,18 +209,18 @@ export default function HeroDotMatrixSimulationCanvas({ onAgentInteract }) {
             isAccent,
             progress: 0,
           }
-          await sleep(750 + Math.random() * 350)
+          await sleep(480 + Math.random() * 180)
           if (!isMounted) break
 
           // Placing (Flying block travel)
           rightStateRef.current.phase = 'PLACING'
-          const travelSteps = 18
+          const travelSteps = 15
           for (let s = 1; s <= travelSteps; s++) {
             if (!isMounted) break
             if (rightStateRef.current.flyingBlock) {
               rightStateRef.current.flyingBlock.progress = s / travelSteps
             }
-            await sleep(45)
+            await sleep(30)
           }
           if (!isMounted) break
 
@@ -235,11 +235,11 @@ export default function HeroDotMatrixSimulationCanvas({ onAgentInteract }) {
           rightStateRef.current.snappedBlockId = newId
           rightStateRef.current.flyingBlock = null
           rightStateRef.current.phase = 'SNAP'
-          await sleep(480)
+          await sleep(340)
           if (!isMounted) break
           rightStateRef.current.snappedBlockId = null
 
-          await sleep(350 + Math.random() * 600)
+          await sleep(280 + Math.random() * 250)
         }
       }
     }
@@ -255,10 +255,10 @@ export default function HeroDotMatrixSimulationCanvas({ onAgentInteract }) {
     let isMounted = true
 
     async function runDecays() {
-      await sleep(7500)
+      await sleep(5000)
 
       while (isMounted) {
-        await sleep(7500 + Math.random() * 6500)
+        await sleep(5500 + Math.random() * 4000)
         if (!isMounted) break
 
         const isLeftDrop = Math.random() < 0.5
@@ -275,7 +275,7 @@ export default function HeroDotMatrixSimulationCanvas({ onAgentInteract }) {
               topBlocks[Math.floor(Math.random() * topBlocks.length)]
             state.fallingBlockId = victim.id
 
-            await sleep(750)
+            await sleep(500)
             if (!isMounted) break
 
             state.blocks = state.blocks.filter((b) => b.id !== victim.id)
@@ -432,6 +432,11 @@ export default function HeroDotMatrixSimulationCanvas({ onAgentInteract }) {
       const qzTop = H * 0.08
       const qzBottom = btnBox ? btnBox.bottom + 18 : H * 0.65
 
+      const pathAmbient = new Path2D()
+      const pathDark = new Path2D()
+      const pathCyan = new Path2D()
+      const pathPurple = new Path2D()
+
       for (let j = 0; j < rows; j++) {
         // Hardware row jump glitch
         let shift = 0
@@ -451,82 +456,99 @@ export default function HeroDotMatrixSimulationCanvas({ onAgentInteract }) {
 
           const lum = red / 255
           let v = Math.max(0, Math.min(1, (1 - lum - 0.08) / 0.44))
+          let isAmbientDot = false
 
-          // Kindred Ambient Micro-LED Grid: Gives the background rich texture instead of sterile empty white space
-          const ambientNoise = hash(i * 1.3, j * 1.7)
-          let ambientV = 0.08 + 0.03 * Math.sin(t * 1.8 + (i * 0.16 + j * 0.12))
-          if (ambientNoise > 0.93) {
-            ambientV += 0.07 // Micro-shimmer pinpoint
-          }
-          if (v < ambientV) {
-            v = ambientV
-          }
-
-          const x = (i + 0.5) * step
-
-          const isButtonCollision =
-            btnBox &&
-            x >= btnBox.left - 16 &&
-            x <= btnBox.right + 16 &&
-            y >= btnBox.top - 12 &&
-            y <= btnBox.bottom + 14
-
-          if (!isButtonCollision) {
-            // Soft bounding-box Quiet Zone: Only dims dots directly behind the center copy
-            if (x > qzLeft && x < qzRight && y > qzTop && y < qzBottom) {
-              const edgeDistX = Math.min(x - qzLeft, qzRight - x)
-              const edgeDistY = Math.min(y - qzTop, qzBottom - y)
-              const edgeDist = Math.min(
-                edgeDistX / (W * 0.08),
-                edgeDistY / (H * 0.08),
-              )
-              v *= Math.max(0.18, 1 - smoothstep(0, 1, edgeDist))
+          // Kindred Ambient Space Dots: Faint micro-LED matrix in open space
+          if (v <= 0.02) {
+            const ambientNoise = hash(i * 1.3, j * 1.7)
+            if (ambientNoise > 0.38) {
+              const wave = Math.sin(t * 1.6 + (i * 0.14 + j * 0.11))
+              v = 0.04 + 0.025 * wave
+              if (ambientNoise > 0.93) {
+                v += 0.05
+              }
+              isAmbientDot = true
             }
+          }
 
-            if (v > 0.02) {
-              // Per-cell dissolve seed & micro-shimmer
-              const seed = 0.55 * hash(i, j) + 0.45 * hash(j * 3.1, 7.7)
-              v *= 0.88 + 0.12 * Math.sin(t * 3.0 + seed * 38)
+          if (v > 0.02) {
+            const x = (i + 0.5) * step
 
-              // 5-Level Quantization (Kindred spec)
-              let dotRadius = 0
-              let isFaintAmbient = false
-              if (v >= 0.86) {
-                dotRadius = R * 1.0
-              } else if (v >= 0.64) {
-                dotRadius = R * 0.78
-              } else if (v >= 0.38) {
-                dotRadius = R * 0.52
-              } else if (v >= 0.1) {
-                dotRadius = R * 0.36 // Crisp pinpoint highlight dot
-              } else if (v >= 0.025) {
-                dotRadius = R * 0.24 // Ultra-faint ambient matrix dot
-                isFaintAmbient = true
+            const isButtonCollision =
+              btnBox &&
+              x >= btnBox.left - 16 &&
+              x <= btnBox.right + 16 &&
+              y >= btnBox.top - 12 &&
+              y <= btnBox.bottom + 14
+
+            if (!isButtonCollision) {
+              // Soft bounding-box Quiet Zone: Only dims dots directly behind the center copy
+              if (x > qzLeft && x < qzRight && y > qzTop && y < qzBottom) {
+                const edgeDistX = Math.min(x - qzLeft, qzRight - x)
+                const edgeDistY = Math.min(y - qzTop, qzBottom - y)
+                const edgeDist = Math.min(
+                  edgeDistX / (W * 0.08),
+                  edgeDistY / (H * 0.08),
+                )
+                v *= Math.max(0.18, 1 - smoothstep(0, 1, edgeDist))
               }
 
-              if (dotRadius > 0) {
-                // Faint ambient dots use delicate slate tint; active structures use rich high-contrast colors
-                if (isFaintAmbient) {
-                  ctx.fillStyle = '#cbd5e1'
+              if (v > 0.02) {
+                // Per-cell dissolve seed & micro-shimmer
+                const seed = 0.55 * hash(i, j) + 0.45 * hash(j * 3.1, 7.7)
+                v *= 0.88 + 0.12 * Math.sin(t * 3.0 + seed * 38)
+
+                if (isAmbientDot) {
+                  const ambientR = Math.max(0.65, R * 0.22)
+                  pathAmbient.moveTo(x + ambientR, y)
+                  pathAmbient.arc(x, y, ambientR, 0, Math.PI * 2)
                 } else {
-                  const isCyanAccent = green > red + 25 && blue > red + 25
-                  const isPurpleAccent = red > green + 25 && blue > green + 25
+                  // 4-Level Quantization (Kindred high-contrast spec)
+                  let dotRadius = 0
+                  if (v >= 0.86) {
+                    dotRadius = R * 1.0
+                  } else if (v >= 0.64) {
+                    dotRadius = R * 0.78
+                  } else if (v >= 0.38) {
+                    dotRadius = R * 0.54
+                  } else if (v >= 0.1) {
+                    dotRadius = R * 0.38
+                  }
 
-                  ctx.fillStyle = isCyanAccent
-                    ? '#00b8b0'
-                    : isPurpleAccent
-                    ? '#6666ff'
-                    : '#0d0d0d'
+                  if (dotRadius > 0) {
+                    const isCyanAccent = green > red + 25 && blue > red + 25
+                    const isPurpleAccent = red > green + 25 && blue > green + 25
+
+                    if (isCyanAccent) {
+                      pathCyan.moveTo(x + dotRadius, y)
+                      pathCyan.arc(x, y, dotRadius, 0, Math.PI * 2)
+                    } else if (isPurpleAccent) {
+                      pathPurple.moveTo(x + dotRadius, y)
+                      pathPurple.arc(x, y, dotRadius, 0, Math.PI * 2)
+                    } else {
+                      pathDark.moveTo(x + dotRadius, y)
+                      pathDark.arc(x, y, dotRadius, 0, Math.PI * 2)
+                    }
+                  }
                 }
-
-                ctx.beginPath()
-                ctx.arc(x, y, dotRadius, 0, Math.PI * 2)
-                ctx.fill()
               }
             }
           }
         }
       }
+
+      // Execute ultra-fast batched GPU fills (4 single draw calls total)
+      ctx.fillStyle = '#cbd5e1'
+      ctx.fill(pathAmbient)
+
+      ctx.fillStyle = '#0d0d0d'
+      ctx.fill(pathDark)
+
+      ctx.fillStyle = '#00b8b0'
+      ctx.fill(pathCyan)
+
+      ctx.fillStyle = '#6666ff'
+      ctx.fill(pathPurple)
 
       animationFrameId = requestAnimationFrame(render)
     }
